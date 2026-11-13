@@ -50,6 +50,10 @@ Person (Q-13).
 | Vorbereiten | Material den Unterrichtsstunden kommender Tage zuordnen | Präsentieren |
 | Tagesansicht | die Ansicht im Unterricht: alle Unterrichtsstunden eines Tages mit ihrem Material | Stundenplan |
 | Präsentieren | Material über die Technik im Klassenraum zeigen (z. B. iPad per Apple TV auf Smartboard) | Öffnen |
+| Wochenvariante | eine von zwei Fassungen des Stundenplans, die sich wöchentlich abwechseln (A-Woche / B-Woche) | Stundenplan-Quelle |
+| unterrichtsfreier Tag | Ferientag oder Feiertag: an ihm gibt es keine Unterrichtsstunden | Ausfall |
+| Ausfall | eine einzelne Unterrichtsstunde, die nicht stattfindet; der Stundenplan-Eintrag bleibt bestehen | unterrichtsfreier Tag |
+| Vertretungsstunde | eine zusätzliche, einmalige Unterrichtsstunde, die nicht aus dem Stundenplan stammt (z. B. Vertretung in einer fremden Klasse) | Unterrichtsstunde aus dem Stundenplan |
 | Stundenplan-Quelle | woher der Stundenplan kommt: von Hand angelegt oder aus einem Schulverwaltungssystem importiert | Ablage |
 
 ## Constraints
@@ -77,6 +81,10 @@ Herkunft: Andreas, 2026-11-13 — die Zielgruppe ist breiter als Lehrkräfte mit
 
 Die Lehrkraft legt ihren festen Stundenplan selbst an: je Stundenplan-Eintrag Wochentag, Stunde,
 Klasse und Fach.
+
+### FR-1.1 — A/B-Wochen [MVP]
+
+Der Stundenplan kann zwei Wochenvarianten haben, die sich wöchentlich abwechseln (Q-5).
 
 ### FR-2 — Stundenplan aus Schulmanager Online importieren [MVP]
 
@@ -113,6 +121,26 @@ AutoSpeichern, sodass Notizen und Zeichnungen sofort in der Ablage landen.
 PDFs und Bilder zeigt das Produkt selbst an; die Lehrkraft kann darauf mit dem Stift schreiben und
 zeichnen. So können auch Lehrkräfte ohne PowerPoint präsentieren und notieren.
 
+### FR-7 — Unterrichtsfreie Tage [MVP]
+
+Die Lehrkraft trägt Ferien und Feiertage ein; an diesen Tagen gibt es keine Unterrichtsstunden.
+Bereits zugeordnetes Material bleibt erhalten und lässt sich auf eine andere Unterrichtsstunde
+verschieben (Q-5).
+
+### FR-7.1 — Ferien und Feiertage aus einem Ferienkalender übernehmen [Later]
+
+Statt von Hand: unterrichtsfreie Tage aus einem Ferienkalender übernehmen (Q-5).
+
+### FR-8 — Ausfall markieren und Material weiterreichen [MVP]
+
+Die Lehrkraft markiert eine Unterrichtsstunde als Ausfall. Ihr Material lässt sich mit einem Tipp in
+die nächste Unterrichtsstunde derselben Klasse verschieben (Q-5).
+
+### FR-9 — Vertretungsstunde anlegen [MVP]
+
+Die Lehrkraft legt eine Vertretungsstunde frei an (Datum, Stunde, Klasse, Fach) und kann ihr Material
+zuordnen wie jeder anderen Unterrichtsstunde (Q-5).
+
 ### NFR-1 — Material sofort und aktuell verfügbar [MVP]
 
 Im Unterricht öffnet das Material ohne spürbares Warten und ist der aktuelle Stand aus der Ablage
@@ -134,9 +162,9 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 
 ## Lieferstufen
 
-- **MVP:** FR-1, FR-2, FR-3, FR-4, FR-5, FR-5.1, FR-6, NFR-1 bis NFR-4 (geprüfte Zahl: 11).
-  Ob FR-2 und FR-5.1 wirklich in den MVP gehören, ist offen (Q-3, Q-4).
-- **Later:** FR-2.1.
+- **MVP:** FR-1, FR-1.1, FR-2, FR-3, FR-4, FR-5, FR-5.1, FR-6, FR-7, FR-8, FR-9, NFR-1 bis NFR-4
+  (geprüfte Zahl: 15). Ob FR-2 und FR-5.1 wirklich in den MVP gehören, ist offen (Q-3, Q-4).
+- **Later:** FR-2.1, FR-7.1.
 
 ## Out of Scope
 
@@ -181,7 +209,7 @@ verteilen. Umgang: Konto vor dem ersten Test mit Lehrkräften einrichten.
 - ~~Q-2~~: Wird nur am Mac vorbereitet, oder auch am Tablet? Hat jede Lehrkraft einen Mac? → answered 2026-11-13: beides — Vorbereiten geht am Mac und am Tablet; ein Mac ist nicht Voraussetzung (FR-3 angepasst).
 - Q-3: Gehört der Schulmanager-Import (FR-2) in den MVP oder kommt er danach?
 - Q-4: Gehört die OneDrive-Anbindung mit AutoSpeichern (FR-5.1) in den MVP?
-- Q-5: Wie werden A/B-Wochen, Ferien, Feiertage, Ausfall und Vertretungen behandelt?
+- ~~Q-5~~: Wie werden A/B-Wochen, Ferien, Feiertage, Ausfall und Vertretungen behandelt? → answered 2026-11-13: Vorschlag angenommen — zwei Wochenvarianten im Wechsel (FR-1.1); unterrichtsfreie Tage von Hand, später aus Ferienkalender (FR-7, FR-7.1); Ausfall je Unterrichtsstunde mit Weiterreichen des Materials (FR-8); Vertretungsstunde frei anlegen (FR-9).
 - Q-6: Wie viel Material hat eine Unterrichtsstunde, und zählt die Reihenfolge?
 - Q-7: Soll Material für Parallelklassen (z. B. 8a und 8b) oder für die Folgewoche einfach wiederverwendet werden können?
 - Q-8: Soll das Produkt Daten nach außen anbieten (z. B. Kalender-Abo, lesbare Plan-Datei), damit andere Apps sie nutzen?
@@ -200,13 +228,14 @@ Folgen, sobald die MVP-Liste nach Q-3/Q-4 feststeht.
 - 2026-11-13: PRD new — Entwurf aus dem Gespräch vom 2026-11-13
 - 2026-11-13: Nutzerschaft changed — Tablet ist persönlich (Q-13); Out of Scope um geteilte Tablets ergänzt
 - 2026-11-13: FR-3 changed — Vorbereiten auch am Tablet, Mac nicht Voraussetzung (Q-2); Nutzerschaft entsprechend
+- 2026-11-13: FR-1.1, FR-7, FR-7.1, FR-8, FR-9 new — Abweichungen vom Stundenplan (Q-5); Glossar um Wochenvariante, unterrichtsfreier Tag, Ausfall, Vertretungsstunde ergänzt
 
 ## Anhang A — Abdeckung
 
 | Phase | Anforderungen |
 |---|---|
-| 1 Stundenplan einrichten | FR-1, FR-2, FR-2.1 |
-| 2 Vorbereiten | FR-3 |
+| 1 Stundenplan einrichten | FR-1, FR-1.1, FR-2, FR-2.1, FR-7, FR-7.1 |
+| 2 Vorbereiten | FR-3, FR-8, FR-9 |
 | 3 Tagesansicht | FR-4 |
 | 4 Öffnen und präsentieren | FR-5, FR-5.1, FR-6 |
 | 5 Änderungen in der Ablage | FR-5.1, NFR-1 |
