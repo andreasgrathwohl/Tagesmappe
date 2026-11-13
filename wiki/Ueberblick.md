@@ -55,3 +55,4 @@ Eltern oder Verwaltung.
 - **Keine eigenen Server** – Daten bleiben bei der Lehrkraft.
 - **Ein Stand je Datei** – Zuordnen verweist, kopiert nie.
 - **Präsentieren bleibt in PowerPoint & Co.** – die App ersetzt sie nicht.
+- **Kein Abo** – der Kern ist kostenlos, Klassenbildschirm und Tafel kosten einmal.

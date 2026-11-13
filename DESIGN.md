@@ -3,7 +3,7 @@ status: draft
 date: 2026-11-13
 ---
 
-# Tagesmappe — Gestaltung
+# Pult — Gestaltung
 
 **Besitzt:** wie sich das Produkt zeigt und verhält. Farbbedeutungen, Dichte, Zustände,
 Interaktionsgrammatik, Wortlaut in der Oberfläche.

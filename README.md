@@ -1,4 +1,4 @@
-# Tagesmappe (Arbeitstitel)
+# Pult
 
 Tagesbegleiter für Lehrkräfte auf iPad und Mac: Unterrichtsmaterial vorab den Stunden des festen
 Stundenplans zuordnen – und im Unterricht nur den heutigen Tag sehen. Eine Stunde antippen, das
@@ -9,6 +9,8 @@ Stand.
 > **Stand:** Spezifikation. Die Anforderungen sind freigegeben (`docs/PRD.md`, `status: ready`);
 > sechs Architekturentscheidungen sind beschlossen (`docs/adr/`), die Architektur ist für alle Bereiche
 > beschrieben. Es gibt noch keinen Code; unter `mockup/` liegen HTML-Mockups zur Veranschaulichung.
+> Der Name „Pult“ ist intern festgelegt, die Markenprüfung steht aus (Q-29); das Repository heißt
+> weiter `Tagesmappe`.
 
 ## Worum es geht
 
@@ -52,5 +54,5 @@ Maßgeblich sind immer die Dokumente unter `docs/` und `DESIGN.md`; das Wiki ver
 ## Verwandt
 
 [OneDrive Opener](https://github.com/andreasgrathwohl/OneDriveMac) – macOS-App, die Office-Dateien aus
-OneDrive mit AutoSpeichern öffnet. Eigenständig; Tagesmappe übernimmt die dort gewonnenen
+OneDrive mit AutoSpeichern öffnet. Eigenständig; Pult übernimmt die dort gewonnenen
 Erkenntnisse zum Öffnen von OneDrive-Dokumenten in Office.

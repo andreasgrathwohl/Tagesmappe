@@ -3,7 +3,7 @@ status: draft
 date: 2026-11-13
 ---
 
-# Tagesmappe — Architektur
+# Pult — Architektur
 
 **Beschreibt, entscheidet nicht.** Jede Festlegung ist eine ADR (`docs/adr/NNNN-titel.md`); dieses
 Dokument sagt, wie gebaut wird, innerhalb dessen, was die ADRs festgelegt haben, und verweist mit
@@ -79,6 +79,20 @@ den Oberflächen, nicht im Datenmodell.
 - Verteilung an Testerinnen über TestFlight; dafür ist ein Apple-Entwicklerkonto nötig (RISK-4).
 - Texte der Oberfläche liegen von Anfang an in einer Übersetzungstabelle (deutsch als erste Sprache),
   damit weitere Sprachen ohne Umbau möglich sind (Q-10).
+
+### Kauf
+
+- Der Einmalkauf (FR-13) ist ein dauerhafter In-App-Kauf über Apples Kaufsystem (StoreKit 2). Ob er
+  besteht, prüft die App auf dem Gerät mit den signierten Kaufbelegen, die StoreKit liefert – ohne
+  eigenen Server (NFR-2). Auf weiteren Geräten derselben Apple-ID meldet StoreKit den Kauf von selbst;
+  „Käufe wiederherstellen“ gibt es zusätzlich, weil der App Store es verlangt.
+- Freigeschaltet wird an genau einer Stelle („Freischaltung“), die Klassenbildschirm und Tafel abfragen.
+  Ohne Kauf zeigen beide ein Kaufangebot; der Zweitbildschirm zeigt dann statt des Klassenbildschirms
+  eine neutrale Fläche, und Material am Zweitbildschirm (FR-6.2) bleibt kostenlos.
+- Der Kaufstand wird nicht in den App-Daten gespeichert und nicht gespiegelt – StoreKit ist die
+  einzige Quelle.
+- Die Schulversion (FR-13.2, später) wäre ein zweites Ziel im selben Xcode-Projekt, das die
+  Freischaltung fest auf „gekauft“ setzt und als bezahlte App ohne In-App-Kauf erscheint.
 
 ## Area: daten
 
@@ -366,4 +380,5 @@ gespiegelt (ADR-0002); gemäß FR-6.1 gehören sie zur Zuordnung.
 - 2026-11-13: anzeige changed — Zweitbildschirm über eigene Szene statt reiner Spiegelung (FR-6.2); vorher: „Präsentiert wird über die Bildschirmspiegelung des Systems (AirPlay); die App baut keine eigene Übertragung.“
 - 2026-11-13: anzeige changed — vier Zustände des Zweitbildschirms, Klassenbildschirm und Tafel (FR-11, FR-12); daten changed — Modelle Stundenangaben und Tafelseite, Nebenläufigkeit ergänzt
 - 2026-11-13: anzeige changed — Timer als Schicht über allen Zuständen (FR-11.2); Verbindung wird erkannt, nicht gestartet (FR-11.6)
+- 2026-11-13: plattform changed — Kauf über StoreKit, ohne Server (FR-13); Titel auf „Pult“
 - 2026-11-13: anzeige changed — Klassenbildschirm im Verlauf der Stunde (FR-11.7), Kamera, Vorlage, Abdecken (FR-12.5 bis FR-12.7); daten changed — Stundenangaben mit Bereitlegen und Hausaufgabe, Tafelseite mit Bild als Hintergrund

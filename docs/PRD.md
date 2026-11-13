@@ -4,7 +4,7 @@ ready-since: 2026-11-13
 date: 2026-11-13
 ---
 
-# Tagesmappe (Arbeitstitel) — Product Requirements
+# Pult — Product Requirements
 
 **Besitzt:** was gebaut wird, für wen, warum. Anforderungen, Lieferstufen, Risiken, offene Fragen,
 Kennzahlen, Abnahmekriterien — und das Glossar, an das alle späteren Ebenen gebunden sind.
@@ -300,6 +300,28 @@ bleibt unverändert (Q-24).
 Die Lehrkraft kann einen Teil der Tafelseite für die Klasse verdecken und schrittweise freigeben. Am
 Tablet sieht sie das Verdeckte weiterhin (Q-24).
 
+### FR-13 — Kern kostenlos, Smartboard und Tafel per Einmalkauf [MVP]
+
+Das Produkt ist kostenlos zu laden. Kostenlos und unbefristet nutzbar ist der Kern: Stundenplan (FR-1,
+FR-1.1, FR-2, FR-2.2, FR-7 bis FR-9), Vorbereiten (FR-3 bis FR-3.4), Tagesansicht (FR-4), Öffnen und
+Anzeigen von Material (FR-5, FR-5.1, FR-6, FR-6.1) sowie der Zweitbildschirm mit Material (FR-6.2) und
+das Erkennen der Verbindung (FR-11.6). Ein einmaliger Kauf schaltet auf allen Geräten derselben
+Apple-ID dauerhaft frei: Klassenbildschirm mit seinen Unterpunkten (FR-11, FR-11.1 bis FR-11.5,
+FR-11.7) und Tafel mit ihren Unterpunkten (FR-12 bis FR-12.7). Es gibt kein Abo. Vom Nutzer:
+Vorschlag am 2026-11-13 angenommen (Q-9).
+
+### FR-13.1 — Schulmanager-Import ohne Bezahlung und ohne Gewähr [MVP]
+
+Der Import aus Schulmanager Online (FR-2, FR-2.2) gehört immer zum kostenlosen Teil und wird in der
+App als inoffizielle Anbindung ohne Gewähr bezeichnet, solange es keine Vereinbarung mit dem Anbieter
+gibt (RISK-1).
+
+### FR-13.2 — Schulversion für den Sammelkauf [Later]
+
+Für Schulen, die für ihr Kollegium kaufen, eine eigene, bezahlte Fassung mit allen Funktionen ohne
+In-App-Kauf, die über Apple School Manager verteilt werden kann (RISK-7). Erst, wenn Schulen danach
+fragen.
+
 ### NFR-1 — Material sofort und aktuell verfügbar [MVP]
 
 Im Unterricht öffnet das Material ohne spürbares Warten und ist der aktuelle Stand aus der Ablage
@@ -322,8 +344,8 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 ## Lieferstufen
 
 - **MVP:** FR-1, FR-1.1, FR-2, FR-2.2, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-7, FR-8,
-  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, NFR-1 bis NFR-4 (geprüfte Zahl: 38). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
-- **Later:** FR-2.1, FR-7.1, FR-10.
+  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, FR-13.1, NFR-1 bis NFR-4 (geprüfte Zahl: 40). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
+- **Later:** FR-2.1, FR-7.1, FR-10, FR-13.2.
 
 ## Out of Scope
 
@@ -347,7 +369,15 @@ Risiken und vor häufigen Abfragen. Umgang: Import nur auf ausdrücklichen Wunsc
 selten — einmal je Morgen und auf Knopfdruck, nicht dauernd (ADR-0004) —, von Hand gepflegter
 Stundenplan bleibt immer möglich (FR-1), parallel den Anbieter nach einer offiziellen Partnerschaft
 fragen. Ob die inoffizielle Schnittstelle für Lehrerkonten Stundenplan und Vertretungen liefert, ist
-ungeprüft (Q-16).
+ungeprüft (Q-16). Ergänzt 2026-11-13: Für den Import wird kein Geld verlangt (FR-13.1), damit ein
+Ausfall keine bezahlte Funktion trifft.
+
+### RISK-7 — Schulen können den Einmalkauf nicht sammelweise kaufen
+
+In-App-Käufe lassen sich laut Apple nicht über den Sammelkauf in Apple School Manager erwerben und
+verteilen. Kauft eine Schule für ihr Kollegium, erreicht sie die Freischaltung aus FR-13 so nicht.
+Umgang: Zielgruppe sind zunächst Lehrkräfte mit eigenem Tablet (Q-13), die selbst kaufen; fragen
+Schulen, folgt die Schulversion (FR-13.2).
 
 ### RISK-2 — Öffnen aus der Ablage ohne AutoSpeichern
 
@@ -385,7 +415,7 @@ muss.
 
 ## Open Questions
 
-- Q-1: Wie heißt das Produkt? „Tagesmappe“ ist Arbeitstitel.
+- ~~Q-1~~: Wie heißt das Produkt? „Tagesmappe“ ist Arbeitstitel. → answered 2026-11-13: „Pult“ – das Lehrerpult, an dem alles für die Stunde bereitliegt und von dem aus gesteuert wird, was die Klasse sieht. „Tagesmappe“ bleibt Name des Repositorys. Markenrecherche (DPMA, App Store) steht aus (Q-29).
 - ~~Q-2~~: Wird nur am Mac vorbereitet, oder auch am Tablet? Hat jede Lehrkraft einen Mac? → answered 2026-11-13: beides — Vorbereiten geht am Mac und am Tablet; ein Mac ist nicht Voraussetzung (FR-3 angepasst).
 - ~~Q-3~~: Gehört der Schulmanager-Import (FR-2) in den MVP oder kommt er danach? → answered 2026-11-13: in den MVP („alles gleich hinein“), trotz RISK-1.
 - ~~Q-4~~: Gehört die OneDrive-Anbindung mit AutoSpeichern (FR-5.1) in den MVP? → answered 2026-11-13: ja, MVP.
@@ -393,7 +423,9 @@ muss.
 - ~~Q-6~~: Wie viel Material hat eine Unterrichtsstunde, und zählt die Reihenfolge? → answered 2026-11-13: mehrere, in festgelegter Reihenfolge (FR-3.1).
 - ~~Q-7~~: Soll Material für Parallelklassen (z. B. 8a und 8b) oder für die Folgewoche einfach wiederverwendet werden können? → answered 2026-11-13: ja — Zuordnung für Parallelklasse übernehmen (FR-3.2), in die nächste Stunde schieben (FR-3.3), nie Dateien kopieren (FR-3.4).
 - ~~Q-8~~: Soll das Produkt Daten nach außen anbieten (z. B. Kalender-Abo, lesbare Plan-Datei), damit andere Apps sie nutzen? → answered 2026-11-13: später als Kalender-Abo (FR-10, Later); in der ersten Version nichts nach außen.
-- Q-9: Geschäftsmodell — kostenlos, Einmalkauf oder Abo? (bestimmt u. a. App-Store-Auftritt)
+- ~~Q-9~~: Geschäftsmodell — kostenlos, Einmalkauf oder Abo? (bestimmt u. a. App-Store-Auftritt) → answered 2026-11-13: Kern kostenlos, Klassenbildschirm und Tafel per Einmalkauf, kein Abo; Schulmanager-Import immer kostenlos; Schulversion später (FR-13 bis FR-13.2). Verworfen: Abo (keine laufenden Kosten zu decken, Lehrkräfte zahlen privat), Testzeit mit Kauf für alles (keine dauerhafte Gratisfassung, die sich im Kollegium herumspricht). Andreas antwortete „Modelle finde ich gut“; die Wahl zwischen den beiden Einmalkauf-Varianten ist damit als Zustimmung zur empfohlenen gelesen.
+- Q-29: Ist „Pult“ als Name frei – Markenregister (DPMA, EUIPO) in Klasse 9 (Software) und App-Store-Suche? Bis zur Prüfung ist der Name nur intern festgelegt.
+- Q-30: Was kostet der Einmalkauf? Vorschlag: 14,99–19,99 €; zum Vergleich ein Lehrer-Planer im App Store für 9,99 € einmalig.
 - Q-10: Zielmarkt — nur deutschsprachige Schulen, oder international?
 - ~~Q-11~~: Gehören Android-Tablets und Windows dazu? → answered 2026-11-13: vorerst nein — Andreas stimmte einer nativen Apple-App für iPad und Mac zu, mit der Folge, dass Android-Tablets vorerst wegfallen (wird als ADR festgehalten).
 - Q-12: Woran wird Erfolg gemessen, ohne eigene Server?
@@ -432,6 +464,8 @@ muss.
 - AK-37 (FR-12.5): Aufbau: Tafel offen, Tablet verbunden. Handlung: Kamera wählen, ein Heft unter das Tablet halten, „Standbild“ tippen, auf das Bild schreiben. Ergebnis: Der Zweitbildschirm zeigt erst das Livebild, dann das Standbild mit dem Geschriebenen; das Standbild ist eine neue Seite des Tafelbilds und nach einem Neustart noch da.
 - AK-38 (FR-12.6): Aufbau: Unterrichtsstunde mit einem zugeordneten PDF. Handlung: in der Tafel „Vorlage“ wählen, Seite 1 des PDFs nehmen und einen Ausschnitt um Aufgabe 2 ziehen. Ergebnis: Eine neue Tafelseite zeigt den Ausschnitt vergrößert als Hintergrund und lässt sich beschreiben; das PDF in der Ablage ist unverändert.
 - AK-39 (FR-12.7): Aufbau: Tafelseite mit drei Zeilen, Tablet verbunden. Handlung: Abdecken wählen, die Abdeckung bis unter Zeile 1 ziehen, dann bis unter Zeile 2. Ergebnis: Der Zweitbildschirm zeigt erst nur Zeile 1, dann Zeile 1 und 2; am Tablet sind alle drei Zeilen durch die Abdeckung hindurch erkennbar.
+- AK-40 (FR-13): Aufbau: frisch geladene App, kein Kauf. Handlung: Stundenplan anlegen, Material zuordnen, öffnen, mit Apple TV verbunden ein PDF zeigen; dann Tafel und Klassenbildschirm antippen; Einmalkauf ausführen; App auf einem zweiten Gerät mit derselben Apple-ID öffnen. Ergebnis: Ohne Kauf funktioniert alles bis einschließlich PDF am Zweitbildschirm; Tafel und Klassenbildschirm zeigen ein Kaufangebot statt der Funktion; nach dem Kauf sind beide auf beiden Geräten frei, ohne erneute Zahlung und ohne Ablaufdatum.
+- AK-41 (FR-13.1): Aufbau: kein Kauf. Handlung: Stundenplan-Quelle Schulmanager Online einrichten und importieren. Ergebnis: Der Import funktioniert ohne Kauf; die App bezeichnet die Anbindung als inoffiziell und ohne Gewähr.
 - AK-26 (FR-11.2): Aufbau: wie AK-24. Handlung: Timer auf 5 Minuten stellen und starten; nach 1 Minute anhalten; beenden. Ergebnis: Der Klassenbildschirm zählt von 5:00 herunter, bleibt beim Anhalten bei 4:00 stehen und zeigt nach dem Beenden keinen Timer mehr. Wird währenddessen ein PDF oder die Tafel gezeigt, bleibt die Restzeit auf dem Zweitbildschirm sichtbar; läuft der Timer ab, gibt es ein sichtbares und hörbares Signal.
 - AK-27 (FR-11.3): Aufbau: wie AK-24. Handlung: „Partnerarbeit“ wählen; Auswahl aufheben. Ergebnis: Der Klassenbildschirm zeigt Symbol und Wort „Partnerarbeit“, danach keine Arbeitsform.
 - AK-28 (FR-11.4): Aufbau: Zweitbildschirm zeigt ein PDF. Handlung: „Dunkel“ tippen; erneut tippen. Ergebnis: Der Zweitbildschirm ist schwarz, danach zeigt er wieder dieselbe PDF-Seite; das Tablet zeigt die ganze Zeit das PDF.
@@ -471,6 +505,8 @@ muss.
 - 2026-11-13: Q-28 new — Wunsch, die AirPlay-Verbindung in der App zu starten; so nicht möglich, Alternativen zur Entscheidung
 - 2026-11-13: FR-11.6 new — Verbindung erkennen, zum Verbinden hinführen, Kabel empfehlen (Q-28); AK-35, Lieferstufen (34) und Abdeckung angepasst
 - 2026-11-13: FR-11.7, FR-12.5 bis FR-12.7 new — Klassenbildschirm im Verlauf der Stunde ohne Countdown (Q-25); Dokumentenkamera, Vorlage, Abdecken (Q-24); FR-11.1 changed — Hinweis geteilt in Bereitlegen und Hausaufgabe; AK-25 changed, AK-36 bis AK-39 new; Out of Scope um Notiz-App-Funktionen ergänzt; Lieferstufen (38) und Abdeckung angepasst
+- 2026-11-13: Produktname „Pult“ (Q-1), Titel angepasst; Q-29 new (Markenprüfung)
+- 2026-11-13: FR-13, FR-13.1 new, FR-13.2 new [Later] — Geschäftsmodell (Q-9); RISK-1 ergänzt, RISK-7 new; AK-40, AK-41, Q-30 new; Lieferstufen (40) und Abdeckung angepasst
 
 ## Anhang A — Abdeckung
 
@@ -483,7 +519,8 @@ muss.
 | 4 Öffnen und präsentieren | FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7 |
 | 5 Änderungen in der Ablage | FR-5.1, NFR-1 |
 
-FR-10 gehört zu keiner Ablaufphase (Ausgabe nach außen, neben dem Ablauf).
+FR-10 gehört zu keiner Ablaufphase (Ausgabe nach außen, neben dem Ablauf). FR-13 bis FR-13.2 ebenfalls
+nicht (Geschäftsmodell, quer zu allen Phasen).
 
 | Anforderung | Abnahmekriterium |
 |---|---|
@@ -518,6 +555,8 @@ FR-10 gehört zu keiner Ablaufphase (Ausgabe nach außen, neben dem Ablauf).
 | FR-12.5 | AK-37 |
 | FR-12.6 | AK-38 |
 | FR-12.7 | AK-39 |
+| FR-13 | AK-40 |
+| FR-13.1 | AK-41 |
 | FR-7 | AK-14 |
 | FR-8 | AK-15 |
 | FR-9 | AK-16 |
