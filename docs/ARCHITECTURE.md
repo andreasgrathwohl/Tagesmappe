@@ -79,8 +79,9 @@ den Oberflächen, nicht im Datenmodell. Mindestversion iPadOS 26 und macOS 26 ge
 - Gemäß ADR-0009: Bezeichner im Code englisch nach der Spalte „Im Code“ des Glossars, Kommentare
   deutsch.
 
-- Gebaut wird ausschließlich auf macOS – per CI (GitHub Actions, macOS-Runner) oder auf einem Mac. Der
-  Entwicklungsrechner ist Windows und kann weder bauen noch testen.
+- Die App wird ausschließlich auf macOS gebaut – per CI (GitHub Actions, macOS-Runner) oder auf einem
+  Mac. Auf dem Entwicklungsrechner (Windows) lässt sich nur das Kern-Paket mit Swift für Windows
+  testen (`scripts/swift-test.ps1`); maßgeblich bleibt der CI-Lauf.
 - CI läuft nur bei Tags und auf manuellen Anstoß, nicht bei jedem Push (Runner kosten je Lauf).
 - Logik, die sich ohne Oberfläche prüfen lässt (Stundenplan-Auflösung, Identität, Import-Abgleich),
   liegt in einem eigenen Swift-Paket mit Tests, damit ein CI-Lauf möglichst viel belegt.
@@ -394,5 +395,6 @@ gespiegelt (ADR-0002); gemäß FR-6.1 gehören sie zur Zuordnung.
 - 2026-11-13: plattform changed — Mindestversion (ADR-0007), XcodeGen und Kern-Paket (ADR-0008), beide two-way, Status bleibt ready
 - 2026-11-13: plattform changed — Code-Sprache (ADR-0009): Bezeichner englisch, Kommentare deutsch; Kern-Paket heißt `FrontstageCore`
 - 2026-11-13: Q-32 new — Bearbeiten am Ort über `UIDocumentInteractionController` (aus Teilplan 03)
+- 2026-11-13: plattform changed — Kern-Paket lokal mit Swift für Windows testbar (`scripts/swift-test.ps1`), App weiter nur auf macOS
 - 2026-11-13: Architecture Doc status ready — freigegeben von Andreas; offen bleiben Q-18 (am Gerät) und im PRD Q-22, beide blockieren den Bau nicht, weil für beide ein Rückfall beschrieben ist (Übergabe der Datei bzw. RISK-5)
 - 2026-11-13: anzeige changed — Klassenbildschirm im Verlauf der Stunde (FR-11.7), Kamera, Vorlage, Abdecken (FR-12.5 bis FR-12.7); daten changed — Stundenangaben mit Bereitlegen und Hausaufgabe, Tafelseite mit Bild als Hintergrund

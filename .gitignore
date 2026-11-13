@@ -2,3 +2,11 @@
 # Wiederherstellen: npx skills add dickwu/apple-design-skill --skill apple-design -y
 /.agents/
 /.claude/skills/
+
+# Xcode-Projekt wird aus project.yml erzeugt (ADR-0008)
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+.build/
+.swiftpm/
