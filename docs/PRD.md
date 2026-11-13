@@ -24,7 +24,7 @@ dabei immer der aktuelle Stand aus ihrer eigenen Ablage ist.
 ## Nutzerschaft
 
 Lehrkräfte, die mit einem Tablet unterrichten und ihr Material in einer Cloud-Ablage halten — mit
-oder ohne Microsoft 365. Ausgangsfall (Kontext, keine Anforderung): eine Realschul-Lehrkraft mit
+oder ohne Microsoft 365, mit oder ohne Mac. Ausgangsfall (Kontext, keine Anforderung): eine Realschul-Lehrkraft mit
 Mac, iPad und OneDrive, die PowerPoint vom iPad per Apple TV auf ein Smartboard spiegelt und auf dem
 iPad in der Präsentation schreibt und zeichnet.
 
@@ -91,6 +91,7 @@ Als weitere Stundenplan-Quelle — vom Nutzer genannt („Untis könnte noch ang
 
 Die Lehrkraft ordnet Material aus ihrer Ablage den Unterrichtsstunden der kommenden Tage zu — für
 die Woche oder für morgen. Vom Nutzer genannt: „am Mac vorbereiten für die Woche oder morgen“.
+Vorbereiten geht am Mac und am Tablet; ein Mac ist nicht Voraussetzung (Q-2).
 
 ### FR-4 — Tagesansicht mit Fokus auf den Tag [MVP]
 
@@ -177,7 +178,7 @@ verteilen. Umgang: Konto vor dem ersten Test mit Lehrkräften einrichten.
 ## Open Questions
 
 - Q-1: Wie heißt das Produkt? „Tagesmappe“ ist Arbeitstitel.
-- Q-2: Wird nur am Mac vorbereitet, oder auch am Tablet? Hat jede Lehrkraft einen Mac?
+- ~~Q-2~~: Wird nur am Mac vorbereitet, oder auch am Tablet? Hat jede Lehrkraft einen Mac? → answered 2026-11-13: beides — Vorbereiten geht am Mac und am Tablet; ein Mac ist nicht Voraussetzung (FR-3 angepasst).
 - Q-3: Gehört der Schulmanager-Import (FR-2) in den MVP oder kommt er danach?
 - Q-4: Gehört die OneDrive-Anbindung mit AutoSpeichern (FR-5.1) in den MVP?
 - Q-5: Wie werden A/B-Wochen, Ferien, Feiertage, Ausfall und Vertretungen behandelt?
@@ -198,6 +199,7 @@ Folgen, sobald die MVP-Liste nach Q-3/Q-4 feststeht.
 
 - 2026-11-13: PRD new — Entwurf aus dem Gespräch vom 2026-11-13
 - 2026-11-13: Nutzerschaft changed — Tablet ist persönlich (Q-13); Out of Scope um geteilte Tablets ergänzt
+- 2026-11-13: FR-3 changed — Vorbereiten auch am Tablet, Mac nicht Voraussetzung (Q-2); Nutzerschaft entsprechend
 
 ## Anhang A — Abdeckung
 
