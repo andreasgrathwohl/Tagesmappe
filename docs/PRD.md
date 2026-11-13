@@ -110,7 +110,7 @@ Der Stundenplan kann zwei Wochenvarianten haben, die sich wöchentlich abwechsel
 Die Lehrkraft legt einmal fest, wann jede Stunde beginnt und endet (z. B. 1. Stunde 7:45–8:30). Liefert
 die Stundenplan-Quelle Zeiten, werden sie übernommen. Abgeleitet am 2026-11-13 aus FR-11 und FR-11.7,
 die Stundenende, „Gleich:“ und die letzten fünf Minuten zeigen und dafür Uhrzeiten brauchen; vom Nutzer
-noch nicht ausdrücklich bestätigt.
+bestätigt am 2026-11-13.
 
 ### FR-2 — Stundenplan aus Schulmanager Online importieren [MVP]
 
@@ -565,6 +565,7 @@ muss.
 - 2026-11-13: FR-3.2 changed — Zielstunde wählt die Lehrkraft; FR-3.3 präzisiert — gleiche Klasse und gleiches Fach (gilt für FR-8); FR-13 changed — Thema/Bereitlegen/Hausaufgabe eintragen und Dunkel kostenlos
 - 2026-11-13: AK-7 changed (Zielstunde wählen); Glossar: Vorlage und Standbild auf `BoardBackground.image` korrigiert, Timer, Abdecken, Kaufangebot, Zustand des Materials, Übergabe ergänzt
 - 2026-11-13: FR-1.2 new — Zeitraster, abgeleitet aus FR-11 und FR-11.7 (Lücke beim Plan-Cold-Start-Check gefunden); Glossar um Zeitraster ergänzt; AK-42, Lieferstufen (41) und Abdeckung angepasst
+- 2026-11-13: FR-1.2 bestätigt von Andreas
 
 ## Anhang A — Abdeckung
 
