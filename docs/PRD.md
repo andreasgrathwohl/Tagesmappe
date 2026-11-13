@@ -35,6 +35,9 @@ iPad in der Präsentation schreibt und zeichnet.
 
 Nicht Zielgruppe: Schülerinnen und Schüler, Eltern, Schulverwaltung.
 
+Das Tablet ist persönlich: Es gehört einer Lehrkraft, und sie ist auf ihm immer die handelnde
+Person (Q-13).
+
 ## Glossar — bindend
 
 | Begriff | Bedeutung | Nicht zu verwechseln mit |
@@ -139,6 +142,7 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 - Ersatz für PowerPoint/Keynote beim Präsentieren — die Lehrkraft präsentiert und zeichnet darin weiter.
 - Eigene Cloud-Ablage für Material — Material bleibt in der Ablage der Lehrkraft (NFR-2).
 - Schüler-, Eltern- und Verwaltungsfunktionen.
+- Geteilte Tablets mit mehreren Lehrkräften (An- und Abmelden je Person) — das Tablet ist persönlich (Q-13); spätere Aufnahme hieße Umbau der Datenhaltung, wird ADR.
 - Android-Tablets und Windows, vorerst — teurer Ausschluss, wird ADR (siehe Q-11).
 
 ## Kennzahlen
@@ -184,7 +188,7 @@ verteilen. Umgang: Konto vor dem ersten Test mit Lehrkräften einrichten.
 - Q-10: Zielmarkt — nur deutschsprachige Schulen, oder international?
 - ~~Q-11~~: Gehören Android-Tablets und Windows dazu? → answered 2026-11-13: vorerst nein — Andreas stimmte einer nativen Apple-App für iPad und Mac zu, mit der Folge, dass Android-Tablets vorerst wegfallen (wird als ADR festgehalten).
 - Q-12: Woran wird Erfolg gemessen, ohne eigene Server?
-- Q-13: Ist das Tablet persönlich, oder teilen sich Lehrkräfte Geräte? (Wer gilt dann als handelnde Person?)
+- ~~Q-13~~: Ist das Tablet persönlich, oder teilen sich Lehrkräfte Geräte? (Wer gilt dann als handelnde Person?) → answered 2026-11-13: persönlich — ein Tablet gehört einer Lehrkraft; handelnde Person ist immer die Besitzerin bzw. der Besitzer des Geräts. Keine Mehrbenutzer-Anmeldung auf einem Gerät.
 
 ## Abnahmekriterien
 
@@ -193,6 +197,7 @@ Folgen, sobald die MVP-Liste nach Q-3/Q-4 feststeht.
 ## Changes
 
 - 2026-11-13: PRD new — Entwurf aus dem Gespräch vom 2026-11-13
+- 2026-11-13: Nutzerschaft changed — Tablet ist persönlich (Q-13); Out of Scope um geteilte Tablets ergänzt
 
 ## Anhang A — Abdeckung
 
