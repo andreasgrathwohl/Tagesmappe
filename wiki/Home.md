@@ -1,4 +1,4 @@
-# Pult – Wiki
+# Frontstage – Wiki
 
 Einstieg in das Projekt. **Dieses Wiki entscheidet nichts** – es fasst zusammen und verweist. Weicht
 etwas hier von `docs/` oder `DESIGN.md` ab, gilt das Dokument; das Wiki wird im selben Zug korrigiert.

@@ -4,7 +4,7 @@ ready-since: 2026-11-13
 date: 2026-11-13
 ---
 
-# Pult — Product Requirements
+# Frontstage — Product Requirements
 
 **Besitzt:** was gebaut wird, für wen, warum. Anforderungen, Lieferstufen, Risiken, offene Fragen,
 Kennzahlen, Abnahmekriterien — und das Glossar, an das alle späteren Ebenen gebunden sind.
@@ -390,6 +390,11 @@ App-Store-Auftritt und Bekanntheit. Umgang: vor jedem öffentlichen Auftritt (Te
 außerhalb des eigenen Kreises, App-Store-Eintrag) Register prüfen; bis dahin bleibt „Pult“
 Arbeitsname (Q-29).
 
+Ergänzt 2026-11-13: Umgang gewählt – der Name ist gewechselt auf „Frontstage“ (Q-1). Für den neuen
+Namen gilt dasselbe Risiko in anderer Form: „Frontstage“ ist ein allgemeines englisches Wort, das
+Firmen außerhalb der Schule nutzen; eine Lehrer-App dieses Namens fand die Websuche nicht. Ob es als
+Marke in Klasse 9 oder 42 eingetragen ist, ist ungeprüft (Q-31).
+
 ### RISK-2 — Öffnen aus der Ablage ohne AutoSpeichern
 
 Öffnet PowerPoint eine Datei, die über die Dateien-App eines Ablage-Anbieters kommt, möglicherweise
@@ -426,7 +431,7 @@ muss.
 
 ## Open Questions
 
-- ~~Q-1~~: Wie heißt das Produkt? „Tagesmappe“ ist Arbeitstitel. → answered 2026-11-13: „Pult“ – das Lehrerpult, an dem alles für die Stunde bereitliegt und von dem aus gesteuert wird, was die Klasse sieht. „Tagesmappe“ bleibt Name des Repositorys. Markenrecherche (DPMA, App Store) steht aus (Q-29).
+- ~~Q-1~~: Wie heißt das Produkt? „Tagesmappe“ ist Arbeitstitel. → answered 2026-11-13: „Pult“ – das Lehrerpult, an dem alles für die Stunde bereitliegt und von dem aus gesteuert wird, was die Klasse sieht. „Tagesmappe“ bleibt Name des Repositorys. Markenrecherche (DPMA, App Store) steht aus (Q-29). → changed 2026-11-13: „Frontstage“ – was vorne vor der Klasse passiert. „Pult“ verworfen, weil „PULT“ als Software-Marke in Gebrauch ist (RISK-8); dazwischen geprüft und verworfen: Stundenlicht, Klassenlicht, Katheder, Doppelstunde, Stundenbühne, Stundenregie, Klassenregie, Klassenblick, Tafelrand, Taktgeber, Lessonstage, Lectern, Teachdeck (Classcue und Classcast vergeben).
 - ~~Q-2~~: Wird nur am Mac vorbereitet, oder auch am Tablet? Hat jede Lehrkraft einen Mac? → answered 2026-11-13: beides — Vorbereiten geht am Mac und am Tablet; ein Mac ist nicht Voraussetzung (FR-3 angepasst).
 - ~~Q-3~~: Gehört der Schulmanager-Import (FR-2) in den MVP oder kommt er danach? → answered 2026-11-13: in den MVP („alles gleich hinein“), trotz RISK-1.
 - ~~Q-4~~: Gehört die OneDrive-Anbindung mit AutoSpeichern (FR-5.1) in den MVP? → answered 2026-11-13: ja, MVP.
@@ -435,7 +440,8 @@ muss.
 - ~~Q-7~~: Soll Material für Parallelklassen (z. B. 8a und 8b) oder für die Folgewoche einfach wiederverwendet werden können? → answered 2026-11-13: ja — Zuordnung für Parallelklasse übernehmen (FR-3.2), in die nächste Stunde schieben (FR-3.3), nie Dateien kopieren (FR-3.4).
 - ~~Q-8~~: Soll das Produkt Daten nach außen anbieten (z. B. Kalender-Abo, lesbare Plan-Datei), damit andere Apps sie nutzen? → answered 2026-11-13: später als Kalender-Abo (FR-10, Later); in der ersten Version nichts nach außen.
 - ~~Q-9~~: Geschäftsmodell — kostenlos, Einmalkauf oder Abo? (bestimmt u. a. App-Store-Auftritt) → answered 2026-11-13: Kern kostenlos, Klassenbildschirm und Tafel per Einmalkauf, kein Abo; Schulmanager-Import immer kostenlos; Schulversion später (FR-13 bis FR-13.2). Verworfen: Abo (keine laufenden Kosten zu decken, Lehrkräfte zahlen privat), Testzeit mit Kauf für alles (keine dauerhafte Gratisfassung, die sich im Kollegium herumspricht). Andreas antwortete „Modelle finde ich gut“; die Wahl zwischen den beiden Einmalkauf-Varianten ist damit als Zustimmung zur empfohlenen gelesen.
-- Q-29: Ist „Pult“ als Name frei – Markenregister (DPMA, EUIPO) in Klasse 9 (Software) und App-Store-Suche? Bis zur Prüfung ist der Name nur intern festgelegt. Stand 2026-11-13 nach Websuche: App Store und Web zeigen eine etablierte Software-Marke „PULT“ der Pult GmbH (Arbeitsplatz- und Besuchermanagement, eigene iPad-App) sowie zwei weitere Apps mit „Pult“ im Namen (TV-Fernbedienung, Mac-Fernsteuerung); siehe RISK-8. Nicht geprüft: die Register selbst – DPMAregister und EUIPO eSearch lassen sich nur von Hand abfragen (Suchbegriff „PULT“, Klassen 9 und 42, auch ähnliche Schreibweisen). Offen bleibt: Registerprüfung von Hand, und ob ein unterscheidungskräftiger Zusatz („Pult für den Unterricht“) oder ein anderer Name nötig ist.
+- ~~Q-29~~: Ist „Pult“ als Name frei – Markenregister (DPMA, EUIPO) in Klasse 9 (Software) und App-Store-Suche? Bis zur Prüfung ist der Name nur intern festgelegt. Stand 2026-11-13 nach Websuche: App Store und Web zeigen eine etablierte Software-Marke „PULT“ der Pult GmbH (Arbeitsplatz- und Besuchermanagement, eigene iPad-App) sowie zwei weitere Apps mit „Pult“ im Namen (TV-Fernbedienung, Mac-Fernsteuerung); siehe RISK-8. Nicht geprüft: die Register selbst – DPMAregister und EUIPO eSearch lassen sich nur von Hand abfragen (Suchbegriff „PULT“, Klassen 9 und 42, auch ähnliche Schreibweisen). Offen bleibt: Registerprüfung von Hand, und ob ein unterscheidungskräftiger Zusatz („Pult für den Unterricht“) oder ein anderer Name nötig ist. → answered 2026-11-13: nicht verwendet – Name gewechselt auf „Frontstage“ (Q-1); Prüfung für den neuen Namen: Q-31.
+- Q-31: Ist „Frontstage“ als Marke frei – DPMAregister, EUIPO eSearch und WIPO Global Brand Database, Klassen 9 und 42, auch ähnliche Schreibweisen („Front Stage“, „FrontStage“)? Websuche 2026-11-13: keine Lehrer-App dieses Namens, aber allgemeines Wort, das Firmen außerhalb der Schule nutzen. Bis zur Registerprüfung ist der Name nur intern festgelegt.
 - ~~Q-30~~: Was kostet der Einmalkauf? Vorschlag: 14,99–19,99 €; zum Vergleich ein Lehrer-Planer im App Store für 9,99 € einmalig. → answered 2026-11-13: Spanne 14,99–19,99 € bestätigt; der genaue Preis wird beim Anlegen des App-Store-Eintrags gewählt.
 - Q-10: Zielmarkt — nur deutschsprachige Schulen, oder international?
 - ~~Q-11~~: Gehören Android-Tablets und Windows dazu? → answered 2026-11-13: vorerst nein — Andreas stimmte einer nativen Apple-App für iPad und Mac zu, mit der Folge, dass Android-Tablets vorerst wegfallen (wird als ADR festgehalten).
@@ -519,6 +525,7 @@ muss.
 - 2026-11-13: Produktname „Pult“ (Q-1), Titel angepasst; Q-29 new (Markenprüfung)
 - 2026-11-13: FR-13, FR-13.1 new, FR-13.2 new [Later] — Geschäftsmodell (Q-9); RISK-1 ergänzt, RISK-7 new; AK-40, AK-41, Q-30 new; Lieferstufen (40) und Abdeckung angepasst
 - 2026-11-13: Q-30 answered (14,99–19,99 €); Q-29 um Rechercheergebnis ergänzt, weiter offen; RISK-8 new — „PULT“ als Software-Marke der Pult GmbH in Gebrauch
+- 2026-11-13: Produktname „Frontstage“ statt „Pult“ (Q-1 changed, Q-29 answered); RISK-8 ergänzt; Q-31 new (Markenprüfung Frontstage)
 
 ## Anhang A — Abdeckung
 
