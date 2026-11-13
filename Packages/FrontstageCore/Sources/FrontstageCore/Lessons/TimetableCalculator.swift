@@ -97,4 +97,26 @@ public enum TimetableCalculator {
       return $0.key.schoolClass.normalized < $1.key.schoolClass.normalized
     }
   }
+
+  /// Nächste nicht ausgefallene Stunde derselben Klasse und desselben Fachs nach `key`, höchstens
+  /// `maxDays` Tage später; `nil`, wenn keine gefunden wird. Am Tag des Schlüssels zählen nur
+  /// spätere Stunden (größere laufende Nummer). Die Stundennummer des Ausgangsschlüssels wird nie
+  /// gelesen, damit auch Schlüssel ohne Stunde (Ferien, ADR-0005) funktionieren.
+  public static func nextLesson(
+    after key: LessonKey, timetable: Timetable, nonTeachingPeriods: [NonTeachingPeriod],
+    changes: [ScheduleChange], maxDays: Int = 28
+  ) -> LessonKey? {
+    guard maxDays >= 0 else { return nil }
+    for offset in 0...maxDays {
+      let day = key.date.adding(days: offset)
+      let candidate = lessons(
+        on: day, timetable: timetable, nonTeachingPeriods: nonTeachingPeriods, changes: changes
+      ).first { lesson in
+        lesson.key.schoolClass == key.schoolClass && lesson.key.subject == key.subject
+          && !lesson.isCancelled && (offset > 0 || lesson.key.ordinal > key.ordinal)
+      }
+      if let candidate { return candidate.key }
+    }
+    return nil
+  }
 }
