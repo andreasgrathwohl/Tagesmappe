@@ -222,7 +222,38 @@ Online“, später „WebUntis“ (FR-2.1).
 
 Eigene Anzeige von PDFs und Bildern mit Stift (FR-6), gebaut mit den Systembausteinen für
 PDF-Darstellung (PDFKit) und Stifteingabe (PencilKit), gemäß ADR-0001. Präsentiert wird über die
-Bildschirmspiegelung des Systems (AirPlay); die App baut keine eigene Übertragung.
+Bildschirmverbindung des Systems (AirPlay oder Kabel); die App baut keine eigene Übertragung, liefert
+dem verbundenen Bildschirm aber einen eigenen Inhalt (FR-6.2).
+
+### Zweitbildschirm
+
+Grundlage ist Apples Entwicklerdoku „Presenting content on a connected display“ (gelesen 2026-11-13):
+
+- Ohne Zutun der App spiegelt das System das Tablet-Bild auf den verbundenen Bildschirm. Für eigenen
+  Inhalt stellt das System eine zweite Szene mit der Rolle `windowExternalDisplayNonInteractive`
+  bereit; ihr Inhalt füllt den ganzen Bildschirm und nimmt keine Eingaben an. (Eine „Szene“ ist in
+  UIKit eine eigenständige Instanz der Oberfläche mit eigenem Fenster. SwiftUI hat dafür keinen
+  eigenen Baustein – die Szene wird in UIKit angelegt und zeigt eine SwiftUI-Ansicht über
+  `UIHostingController`.)
+- Ab iOS 27 bekommt die App diese Szene nur, wenn sie vorher ein Szenen-Zubehör anmeldet
+  (`UISceneAccessory.externalNonInteractive`, angemeldet an einem View-Controller mit
+  `registerSceneAccessory`). In früheren Versionen verband das System die Szene von selbst. Die
+  Anmeldung gilt, solange dieser View-Controller gezeigt wird.
+- Weil die Tagesansicht nie auf dem Zweitbildschirm erscheinen darf (FR-6.2), wird das Zubehör an der
+  Hauptansicht der App angemeldet und gilt damit, solange die App im Vordergrund ist – nicht erst, wenn
+  die Anzeige offen ist. Sonst würde das System die Tagesansicht spiegeln.
+- Die Szene zeigt die aktuelle Seite des geöffneten Materials mit ihren Stiftnotizen, ohne
+  Bedienelemente; Blättern, Zoomen und Schreiben am Tablet werden dorthin übertragen. Ist kein
+  Material geöffnet, zeigt sie eine neutrale Fläche – was genau, ist offen (Q-21 in `DESIGN.md`).
+- Die App bleibt ohne verbundenen Bildschirm voll nutzbar; Verbinden und Trennen mitten in der Stunde
+  ändern nur, ob die zweite Szene existiert.
+- Geht die App in den Hintergrund (Material öffnet in PowerPoint, FR-5), endet ihr Einfluss auf den
+  Bildschirm; es gilt, was die andere App und das System tun (RISK-5, Q-22).
+- Am Mac regelt das System, ob ein AirPlay-Bildschirm spiegelt oder eigener Bildschirm ist; die App
+  baut dafür nichts Eigenes.
+
+Nicht belegt und am Gerät zu prüfen: das Verhalten über AirPlay im Schulnetz (Verzögerung beim
+Schreiben), und der Übergang zwischen eigener Szene und Spiegelung beim App-Wechsel.
 
 ### Darstellung
 
@@ -271,3 +302,4 @@ gespiegelt (ADR-0002); gemäß FR-6.1 gehören sie zur Zuordnung.
 - 2026-11-13: plattform, daten, ablage, stundenplan-quellen changed — ausgearbeitet nach Freigabe der ADR-Ebene; anzeige bleibt draft (Q-17)
 - 2026-11-13: anzeige changed — ausgearbeitet nach ADR-0006 (Stiftnotizen getrennt in den App-Daten) und FR-6.1 (je Zuordnung); daten changed — Modell Stiftnotiz, Nebenläufigkeit und Zusammenführen ergänzt
 - 2026-11-13: Überblick new — Bausteinbild, abgeleitet aus den Bereichen
+- 2026-11-13: anzeige changed — Zweitbildschirm über eigene Szene statt reiner Spiegelung (FR-6.2); vorher: „Präsentiert wird über die Bildschirmspiegelung des Systems (AirPlay); die App baut keine eigene Übertragung.“

@@ -19,7 +19,8 @@ Stand.
 - **Im Unterricht**: Tagesansicht, ein Tipp öffnet das Material. Mit Microsoft 365 öffnen
   OneDrive-Dateien mit AutoSpeichern, Notizen und Zeichnungen landen sofort in der Ablage. PDFs und
   Bilder zeigt die App selbst, mit Stift; diese Stiftnotizen gelten je Unterrichtsstunde und lassen
-  die Datei unverändert.
+  die Datei unverändert. Das Smartboard zeigt dabei als Zweitbildschirm nur das Material – die
+  Tagesansicht bleibt auf dem iPad.
 - **Datenschutz**: keine eigenen Server – Stundenplan, Zuordnungen und Material bleiben bei der
   Lehrkraft.
 
