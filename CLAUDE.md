@@ -10,8 +10,16 @@ Stand jeder Ebene steht im Frontmatter des jeweiligen Dokuments.
   `-Filter <Test>` für einzelne Tests). Die App (SwiftUI, SwiftData, UIKit) lässt sich auf Windows nicht
   bauen: Gebaut und getestet wird sie nur per GitHub Actions auf macOS oder auf einem Mac. Maßgeblich
   bleibt der CI-Lauf auf macOS – Foundation unter Windows weicht in Einzelheiten ab.
-- **CI kostet Geld:** nur bei Tags oder manuell (`workflow_dispatch`), nie bei jedem Push. Änderungen
-  sammeln, Diff sorgfältig auf Compilerfehler durchsehen, dann ein Lauf.
+- **CI kostet Geld, die macOS-Minuten sind begrenzt:** nur bei Tags oder manuell (`workflow_dispatch`),
+  nie bei jedem Push. Änderungen sammeln, Diff sorgfältig auf Compilerfehler durchsehen, dann ein Lauf.
+  Sparregeln:
+  - Höchstens **ein** CI-Lauf je Teilplan, am Ende; kein zweiter Lauf nur zur Bestätigung.
+  - Änderungen, die nur `Packages/FrontstageCore` berühren, brauchen keinen CI-Lauf – lokal mit
+    `scripts/swift-test.ps1` prüfen; der nächste fällige Lauf bestätigt sie auf macOS mit.
+  - Reine Dokument- oder Plan-PRs: kein CI-Lauf.
+  - Wenn möglich mehrere Teilpläne gemeinsam in einem Lauf prüfen, statt je einen.
+  - Schlägt ein Lauf fehl: erst das hochgeladene `TestResults.xcresult` und das Log lesen, Ursache
+    beheben und den Diff prüfen, dann **ein** neuer Lauf – nie „noch mal probieren“.
 - Swift/SwiftUI ist für den Entwickler Neuland: nicht offensichtliche Idiome und Framework-Eigenheiten
   kurz mit erklären.
 - Regeln der iCloud-Spiegelung (ADR-0002): kein `@Attribute(.unique)`/`#Unique`, alle Eigenschaften

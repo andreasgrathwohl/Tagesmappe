@@ -7,7 +7,7 @@ concurrency: { group: "ci-${{ github.ref }}", cancel-in-progress: true }
 jobs:
   build-and-test:
     runs-on: macos-26
-    timeout-minutes: 45
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - run: xcodebuild -version && swift --version
@@ -19,8 +19,6 @@ jobs:
         run: swift test --package-path Packages/FrontstageCore
       - name: Build macOS
         run: xcodebuild build -project Frontstage.xcodeproj -scheme Frontstage-macOS -destination 'generic/platform=macOS' CODE_SIGNING_ALLOWED=NO
-      - name: Build iPadOS
-        run: xcodebuild build -project Frontstage.xcodeproj -scheme Frontstage-iOS -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO
       - name: Pick iPad simulator
         id: sim
         run: |
