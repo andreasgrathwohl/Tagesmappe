@@ -162,6 +162,11 @@ die nächste Unterrichtsstunde derselben Klasse verschieben (Q-5).
 Die Lehrkraft legt eine Vertretungsstunde frei an (Datum, Stunde, Klasse, Fach) und kann ihr Material
 zuordnen wie jeder anderen Unterrichtsstunde (Q-5).
 
+### FR-10 — Unterrichtsstunden als Kalender-Abo [Later]
+
+Die Lehrkraft kann ihre Unterrichtsstunden samt Material über einen Kalender-Link in einer
+Kalender-App (z. B. iPhone, Outlook) sehen (Q-8). Die erste Version bietet keine Daten nach außen an.
+
 ### NFR-1 — Material sofort und aktuell verfügbar [MVP]
 
 Im Unterricht öffnet das Material ohne spürbares Warten und ist der aktuelle Stand aus der Ablage
@@ -185,7 +190,7 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 
 - **MVP:** FR-1, FR-1.1, FR-2, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-7, FR-8, FR-9,
   NFR-1 bis NFR-4 (geprüfte Zahl: 19). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
-- **Later:** FR-2.1, FR-7.1.
+- **Later:** FR-2.1, FR-7.1, FR-10.
 
 ## Out of Scope
 
@@ -233,7 +238,7 @@ verteilen. Umgang: Konto vor dem ersten Test mit Lehrkräften einrichten.
 - ~~Q-5~~: Wie werden A/B-Wochen, Ferien, Feiertage, Ausfall und Vertretungen behandelt? → answered 2026-11-13: Vorschlag angenommen — zwei Wochenvarianten im Wechsel (FR-1.1); unterrichtsfreie Tage von Hand, später aus Ferienkalender (FR-7, FR-7.1); Ausfall je Unterrichtsstunde mit Weiterreichen des Materials (FR-8); Vertretungsstunde frei anlegen (FR-9).
 - ~~Q-6~~: Wie viel Material hat eine Unterrichtsstunde, und zählt die Reihenfolge? → answered 2026-11-13: mehrere, in festgelegter Reihenfolge (FR-3.1).
 - ~~Q-7~~: Soll Material für Parallelklassen (z. B. 8a und 8b) oder für die Folgewoche einfach wiederverwendet werden können? → answered 2026-11-13: ja — Zuordnung für Parallelklasse übernehmen (FR-3.2), in die nächste Stunde schieben (FR-3.3), nie Dateien kopieren (FR-3.4).
-- Q-8: Soll das Produkt Daten nach außen anbieten (z. B. Kalender-Abo, lesbare Plan-Datei), damit andere Apps sie nutzen?
+- ~~Q-8~~: Soll das Produkt Daten nach außen anbieten (z. B. Kalender-Abo, lesbare Plan-Datei), damit andere Apps sie nutzen? → answered 2026-11-13: später als Kalender-Abo (FR-10, Later); in der ersten Version nichts nach außen.
 - Q-9: Geschäftsmodell — kostenlos, Einmalkauf oder Abo? (bestimmt u. a. App-Store-Auftritt)
 - Q-10: Zielmarkt — nur deutschsprachige Schulen, oder international?
 - ~~Q-11~~: Gehören Android-Tablets und Windows dazu? → answered 2026-11-13: vorerst nein — Andreas stimmte einer nativen Apple-App für iPad und Mac zu, mit der Folge, dass Android-Tablets vorerst wegfallen (wird als ADR festgehalten).
@@ -251,6 +256,7 @@ Folgen, sobald die MVP-Liste nach Q-3/Q-4 feststeht.
 - 2026-11-13: FR-3 changed — Vorbereiten auch am Tablet, Mac nicht Voraussetzung (Q-2); Nutzerschaft entsprechend
 - 2026-11-13: FR-1.1, FR-7, FR-7.1, FR-8, FR-9 new — Abweichungen vom Stundenplan (Q-5); Glossar um Wochenvariante, unterrichtsfreier Tag, Ausfall, Vertretungsstunde ergänzt
 - 2026-11-13: Lieferstufen changed — FR-2 und FR-5.1 als MVP bestätigt (Q-3, Q-4)
+- 2026-11-13: FR-10 new — Kalender-Abo als spätere Schnittstelle nach außen (Q-8)
 - 2026-11-13: FR-3.1 bis FR-3.4 new — Material je Stunde und Wiederverwenden (Q-6, Q-7); Glossar um Zuordnung ergänzt
 
 ## Anhang A — Abdeckung
@@ -262,5 +268,7 @@ Folgen, sobald die MVP-Liste nach Q-3/Q-4 feststeht.
 | 3 Tagesansicht | FR-4 |
 | 4 Öffnen und präsentieren | FR-5, FR-5.1, FR-6 |
 | 5 Änderungen in der Ablage | FR-5.1, NFR-1 |
+
+FR-10 gehört zu keiner Ablaufphase (Ausgabe nach außen, neben dem Ablauf).
 
 Tabelle 2 (MVP-Anforderung → Abnahmekriterium) folgt mit den Abnahmekriterien.
