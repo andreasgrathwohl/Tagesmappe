@@ -99,9 +99,12 @@ public enum TimetableCalculator {
   }
 
   /// Nächste nicht ausgefallene Stunde derselben Klasse und desselben Fachs nach `key`, höchstens
-  /// `maxDays` Tage später; `nil`, wenn keine gefunden wird. Am Tag des Schlüssels zählen nur
-  /// spätere Stunden (größere laufende Nummer). Die Stundennummer des Ausgangsschlüssels wird nie
-  /// gelesen, damit auch Schlüssel ohne Stunde (Ferien, ADR-0005) funktionieren.
+  /// `maxDays` Tage später; `nil`, wenn keine gefunden wird.
+  ///
+  /// Am Tag des Schlüssels zählen nur die Stunden, die in der Tagesliste (nach Stunde sortiert)
+  /// hinter dem Ausgangsschlüssel stehen – die laufende Nummer ist keine Zeitfolge, weil
+  /// Vertretungen hinten nummeriert werden (ADR-0005). Steht der Ausgangsschlüssel an seinem Tag
+  /// nicht in der Liste (Ferien, ADR-0005), zählen dort die Stunden mit größerer laufender Nummer.
   public static func nextLesson(
     after key: LessonKey, timetable: Timetable, nonTeachingPeriods: [NonTeachingPeriod],
     changes: [ScheduleChange], maxDays: Int = 28
@@ -109,11 +112,18 @@ public enum TimetableCalculator {
     guard maxDays >= 0 else { return nil }
     for offset in 0...maxDays {
       let day = key.date.adding(days: offset)
-      let candidate = lessons(
-        on: day, timetable: timetable, nonTeachingPeriods: nonTeachingPeriods, changes: changes
-      ).first { lesson in
+      var dayLessons = lessons(
+        on: day, timetable: timetable, nonTeachingPeriods: nonTeachingPeriods, changes: changes)
+      if offset == 0 {
+        if let index = dayLessons.firstIndex(where: { $0.key == key }) {
+          dayLessons = Array(dayLessons[(index + 1)...])
+        } else {
+          dayLessons = dayLessons.filter { $0.key.ordinal > key.ordinal }
+        }
+      }
+      let candidate = dayLessons.first { lesson in
         lesson.key.schoolClass == key.schoolClass && lesson.key.subject == key.subject
-          && !lesson.isCancelled && (offset > 0 || lesson.key.ordinal > key.ordinal)
+          && !lesson.isCancelled
       }
       if let candidate { return candidate.key }
     }

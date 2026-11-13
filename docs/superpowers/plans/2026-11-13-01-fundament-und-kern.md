@@ -439,10 +439,17 @@ Di 6. Stunde 8a Englisch. `tue = LessonKey(date: d(2026,11,17), schoolClass: Sch
 
 - [ ] **Step 2: Diff durchsehen.**
 
-- [ ] **Step 3: Implementieren** – am Tag von `key.date`: Kandidaten sind Lessons gleicher Klasse und
-  gleichen Fachs mit `ordinal > key.ordinal`; an den Folgetagen `1...maxDays` jede Lesson gleicher
-  Klasse und gleichen Fachs; jeweils erste nicht ausgefallene in Listenreihenfolge. Kein Rückgriff auf
-  `period` des Ausgangsschlüssels, damit auch Schlüssel „ohne Stunde“ (Ferien, ADR-0005) funktionieren.
+- [ ] **Step 3: Implementieren** – am Tag von `key.date`: den Ausgangsschlüssel in `lessons(on:)` dieses
+  Tages (nach `period` sortiert) suchen; gefunden → Kandidaten sind die Lessons **hinter** seiner
+  Position in der Liste; nicht gefunden (Ferien bzw. keine Stunde an dem Tag, ADR-0005) → Rückfall auf
+  Lessons mit `ordinal > key.ordinal`. Grund: Vertretungen werden hinten nummeriert, die laufende Nummer
+  ist also keine Zeitfolge (Vertretung in der 1. Stunde hat Nummer 2, reguläre 2. Stunde Nummer 1). An
+  den Folgetagen `1...maxDays` jede Lesson gleicher Klasse und gleichen Fachs; jeweils erste nicht
+  ausgefallene gleicher Klasse und gleichen Fachs in Listenreihenfolge. Kein Rückgriff auf `period` des
+  Ausgangsschlüssels, damit auch Schlüssel „ohne Stunde“ funktionieren. Zusätzliche Tests:
+  `nextLessonAfterRegularSkipsEarlierSubstitute` und `nextLessonAfterSubstituteIsLaterRegular`
+  (Vertretung Di 1. Stunde 8b Englisch), `nextLessonRespectsMaxDaysBoundary` (`maxDays: 1` → `nil`,
+  `maxDays: 2` → Do 19.11.).
 
 - [ ] **Step 4: Diff durchsehen.**
 

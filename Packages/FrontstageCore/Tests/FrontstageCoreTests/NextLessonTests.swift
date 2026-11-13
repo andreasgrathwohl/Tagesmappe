@@ -78,6 +78,33 @@ struct NextLessonTests {
     #expect(next(tue, changes: changes) == key(d(2026, 11, 18), "8b", "Englisch", 1))
   }
 
+  /// Vertretung Di 1. Stunde 8b Englisch: Sie bekommt Nummer 2, liegt aber vor der regulären
+  /// 2. Stunde mit Nummer 1 – Nummernfolge ist hier nicht Zeitfolge.
+  private var earlySubstitute: [ScheduleChange] {
+    [
+      .substituteLesson(
+        date: d(2026, 11, 17), period: 1, schoolClass: SchoolClass("8b"),
+        subject: Subject("Englisch"), .manual)
+    ]
+  }
+
+  @Test("Nach der regulären Stunde zählt eine frühere Vertretung desselben Tages nicht (AK-8)")
+  func nextLessonAfterRegularSkipsEarlierSubstitute() {
+    #expect(next(tue, changes: earlySubstitute) == key(d(2026, 11, 19), "8b", "Englisch", 1))
+  }
+
+  @Test("Nach einer frühen Vertretung folgt die spätere reguläre Stunde desselben Tages (AK-8)")
+  func nextLessonAfterSubstituteIsLaterRegular() {
+    let substitute = key(d(2026, 11, 17), "8b", "Englisch", 2)
+    #expect(next(substitute, changes: earlySubstitute) == tue)
+  }
+
+  @Test("maxDays ist die Grenze: zwei Tage entfernt braucht maxDays 2")
+  func nextLessonRespectsMaxDaysBoundary() {
+    #expect(next(tue, maxDays: 1) == nil)
+    #expect(next(tue, maxDays: 2) == key(d(2026, 11, 19), "8b", "Englisch", 1))
+  }
+
   @Test("Jenseits von maxDays gibt es kein Ergebnis")
   func nextLessonNilBeyondMaxDays() {
     let off = [
