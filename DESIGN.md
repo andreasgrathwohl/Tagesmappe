@@ -3,7 +3,7 @@ status: draft
 date: 2026-11-13
 ---
 
-# Pult — Gestaltung
+# Frontstage — Gestaltung
 
 **Besitzt:** wie sich das Produkt zeigt und verhält. Farbbedeutungen, Dichte, Zustände,
 Interaktionsgrammatik, Wortlaut in der Oberfläche.
@@ -41,8 +41,8 @@ Prüfungen dagegen laufen mit dem projektlokalen Skill `apple-design`.
 
 **Entscheidung:** Das App-Icon ist der Entwurf „Heute“: auf Petrol eine Spalte aus Stundenblöcken;
 die aktuelle Stunde leuchtet gelb und geht als ein Balken in eine große gelbe Fläche über – das
-Smartboard. Quelle: `design/icon/pult-app-icon.svg`, für den eingefärbten Darstellungsmodus
-`design/icon/pult-app-icon-mono.svg`. Farben: Grund Petrol `#0E4B57`, übrige Stunden Blassgrünblau
+Smartboard. Quelle: `design/icon/frontstage-app-icon.svg`, für den eingefärbten Darstellungsmodus
+`design/icon/frontstage-app-icon-mono.svg`. Farben: Grund Petrol `#0E4B57`, übrige Stunden Blassgrünblau
 `#8FC3C9`, aktive Stunde und Fläche Signalgelb `#FFC94A`. Gewählt von Andreas am 2026-11-13.
 
 **Kontext:** Auswahl zwischen sechs gerenderten Entwürfen aus drei Blickwinkeln (Apples
@@ -74,6 +74,11 @@ Eine Farbe trägt genau eine Bedeutung: Gelb heißt „jetzt, gezeigt“.
 **Revisit if:** Testerinnen erkennen das Icon auf dem Home-Bildschirm nicht als „Pult“ wieder, oder
 die Markenprüfung (Q-29) erzwingt einen anderen Namen, zu dem ein gegenständliches Zeichen besser passt.
 
+*Ergänzt 2026-11-13:* Das Produkt heißt jetzt „Frontstage“ (PRD, Q-1). Das Icon bleibt: Die Stunde, die
+nach vorn auf die große Fläche tritt, ist genau „front stage“. Der erste Kostenpunkt (kein Bezug zum
+Namen) entfällt damit. Revisit if gilt jetzt sinngemäß: Testerinnen erkennen das Icon nicht als
+„Frontstage“ wieder.
+
 ---
 
 ## Wiederkehrende Fallen
@@ -97,3 +102,4 @@ die Markenprüfung (Q-29) erzwingt einen anderen Namen, zu dem ein gegenständli
 - 2026-11-13: Q-19 changed, Q-21 new — Zweitbildschirm (FR-6.2) grenzt Q-19 ein und wirft die Frage nach seinem Ruhezustand auf
 - 2026-11-13: Q-21 removed — beantwortet durch FR-11 (Klassenbildschirm)
 - 2026-11-13: UI-1 new — App-Icon „Heute“, gewählt aus sechs Entwürfen
+- 2026-11-13: UI-1 changed — Produktname „Frontstage“ statt „Pult“; Icon bleibt, Quelldateien umbenannt nach `design/icon/frontstage-app-icon*.svg`

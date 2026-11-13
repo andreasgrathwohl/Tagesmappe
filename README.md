@@ -1,4 +1,4 @@
-# Pult
+# Frontstage
 
 Tagesbegleiter für Lehrkräfte auf iPad und Mac: Unterrichtsmaterial vorab den Stunden des festen
 Stundenplans zuordnen – und im Unterricht nur den heutigen Tag sehen. Eine Stunde antippen, das
@@ -9,9 +9,8 @@ Stand.
 > **Stand:** Spezifikation. Die Anforderungen sind freigegeben (`docs/PRD.md`, `status: ready`);
 > sechs Architekturentscheidungen sind beschlossen (`docs/adr/`), die Architektur ist für alle Bereiche
 > beschrieben. Es gibt noch keinen Code; unter `mockup/` liegen HTML-Mockups zur Veranschaulichung.
-> Der Name „Pult“ ist Arbeitsname: Eine Software-Marke „PULT“ ist bereits in Gebrauch (RISK-8),
-> die Registerprüfung steht aus (Q-29). Das Repository heißt
-> weiter `Tagesmappe`.
+> Der Name „Frontstage“ ist intern festgelegt, die Registerprüfung steht aus (Q-31). Das Repository
+> heißt weiter `Tagesmappe`.
 
 ## Worum es geht
 
@@ -55,5 +54,5 @@ Maßgeblich sind immer die Dokumente unter `docs/` und `DESIGN.md`; das Wiki ver
 ## Verwandt
 
 [OneDrive Opener](https://github.com/andreasgrathwohl/OneDriveMac) – macOS-App, die Office-Dateien aus
-OneDrive mit AutoSpeichern öffnet. Eigenständig; Pult übernimmt die dort gewonnenen
+OneDrive mit AutoSpeichern öffnet. Eigenständig; Frontstage übernimmt die dort gewonnenen
 Erkenntnisse zum Öffnen von OneDrive-Dokumenten in Office.
