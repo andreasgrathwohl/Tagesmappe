@@ -28,7 +28,9 @@ Platzhalter, kein Beschluss: eine Leiste am unteren Rand des iPad-Bildschirms, v
 3. **Timer:** Knopf „Timer“; läuft einer, steht dort die Restzeit (z. B. `4:12`) mit Anhalten und Beenden.
 4. **Arbeitsform:** Menüknopf, zeigt die gewählte (Einzelarbeit, Partnerarbeit, Gruppenarbeit) oder „Arbeitsform“.
 5. Ganz rechts der **Verbindungsstatus:** „Apple TV Raum 204“ mit Symbol, oder „Kein Bildschirm verbunden“ –
-   dann ist das Vorschaubild schraffiert, der Umschalter bleibt bedienbar.
+   dann ist das Vorschaubild schraffiert, der Umschalter bleibt bedienbar, und daneben steht der Knopf
+   „So verbinden“ (FR-11.6): ein Popover mit den Schritten zur Bildschirmsynchronisierung im
+   Kontrollzentrum und dem Hinweis auf die Kabelverbindung.
 
 ## Zweitbildschirm in den Mockups
 

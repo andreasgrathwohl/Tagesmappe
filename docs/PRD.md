@@ -236,6 +236,15 @@ Das Tablet zeigt jederzeit ein Vorschaubild dessen, was der Zweitbildschirm gera
 zwischen Klassenbildschirm, Material, Tafel und Dunkel umschalten. Der Bildschirm im Klassenraum nimmt
 selbst keine Eingaben entgegen; bedient wird nur am Tablet.
 
+### FR-11.6 — Verbindung erkennen und zum Verbinden hinführen [MVP]
+
+Das Produkt erkennt sofort, wenn ein Bildschirm verbunden oder getrennt wird – per AirPlay oder per
+Kabel –, und zeigt den Stand am Tablet an. Mit dem Verbinden erscheint der Klassenbildschirm ohne
+weiteren Handgriff. Ist kein Bildschirm verbunden, führt „So verbinden“ in wenigen Schritten zur
+Bildschirmsynchronisierung des Systems und nennt die Kabelverbindung als Weg, der ohne Handgriff und
+ohne Schulnetz steht. Das Produkt startet die Verbindung nicht selbst – das lässt das System nicht zu
+(Q-28).
+
 ### FR-12 — Tafel [MVP]
 
 Aus der Tagesansicht öffnet ein Tipp die Tafel: eine leere Seite, auf die die Lehrkraft mit dem Stift
@@ -285,7 +294,7 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 ## Lieferstufen
 
 - **MVP:** FR-1, FR-1.1, FR-2, FR-2.2, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-7, FR-8,
-  FR-9, FR-11, FR-11.1 bis FR-11.5, FR-12, FR-12.1 bis FR-12.4, NFR-1 bis NFR-4 (geprüfte Zahl: 33). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
+  FR-9, FR-11, FR-11.1 bis FR-11.6, FR-12, FR-12.1 bis FR-12.4, NFR-1 bis NFR-4 (geprüfte Zahl: 34). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
 - **Later:** FR-2.1, FR-7.1, FR-10.
 
 ## Out of Scope
@@ -368,7 +377,7 @@ muss.
 - Q-25: Was zeigt der Klassenbildschirm, wenn gerade keine Unterrichtsstunde läuft (Pause, vor der ersten Stunde, Ausfall)? Andreas am 2026-11-13: „think out of the box“ – Vorschlag daraufhin, in den Mockups gezeigt und noch nicht bestätigt: Der Klassenbildschirm folgt dem Verlauf der Stunde. Vor Beginn: „Gleich: <Klasse> <Fach>“ mit Countdown bis zum Beginn und dem, was bereitzulegen ist. Während der Stunde: wie FR-11. In den letzten Minuten: die Hausaufgabe groß. Kommt heute keine Unterrichtsstunde mehr: nur Uhrzeit und Datum. Dafür würde der Hinweis aus FR-11.1 in „Bereitlegen“ und „Hausaufgabe“ geteilt.
 - ~~Q-26~~: Ist der Timer (FR-11.2) nur auf dem Klassenbildschirm zu sehen, oder läuft er sichtbar weiter, während Material oder Tafel gezeigt wird? Gibt er am Ende ein Signal? → answered 2026-11-13: ja zu beidem – läuft sichtbar weiter und gibt am Ende ein Signal (FR-11.2 ergänzt).
 - ~~Q-27~~: Heißt der Ruhezustand des Zweitbildschirms „Klassenbildschirm“? („Tafel“ ist bestätigt; dieser Name ist Arbeitsbegriff.) → answered 2026-11-13: ja, „Klassenbildschirm“ (Glossar angepasst).
-- Q-28: Andreas am 2026-11-13: „In der App muss man die AirPlay-Verbindung starten können.“ Befund aus Apples Doku und Entwicklerforen (gelesen 2026-11-13): Eine App kann die Bildschirmverbindung zu einem Apple TV nicht selbst starten; das geht nur über das Kontrollzentrum des Systems („Bildschirmsynchronisierung“). Die AirPlay-Auswahl, die Apps einbauen dürfen (`AVRoutePickerView`), leitet nur Ton und Video weiter und liefert keinen Zweitbildschirm. Was soll stattdessen gelten – (a) die App erkennt die Verbindung sofort und führt bei fehlender Verbindung mit einer kurzen Anleitung dorthin (zwei Handgriffe im Kontrollzentrum), (b) zusätzlich Kabelverbindung empfehlen, die ohne Handgriff steht, (c) technisch untersuchen, ob sich der Zweitbildschirm-Inhalt als Videostrom über die einbaubare AirPlay-Auswahl senden lässt (unbelegt, mit Verzögerung beim Schreiben zu rechnen)? Bis zur Antwort entsteht keine Anforderung.
+- ~~Q-28~~: Andreas am 2026-11-13: „In der App muss man die AirPlay-Verbindung starten können.“ Befund aus Apples Doku und Entwicklerforen (gelesen 2026-11-13): Eine App kann die Bildschirmverbindung zu einem Apple TV nicht selbst starten; das geht nur über das Kontrollzentrum des Systems („Bildschirmsynchronisierung“). Die AirPlay-Auswahl, die Apps einbauen dürfen (`AVRoutePickerView`), leitet nur Ton und Video weiter und liefert keinen Zweitbildschirm. Was soll stattdessen gelten – (a) die App erkennt die Verbindung sofort und führt bei fehlender Verbindung mit einer kurzen Anleitung dorthin (zwei Handgriffe im Kontrollzentrum), (b) zusätzlich Kabelverbindung empfehlen, die ohne Handgriff steht, (c) technisch untersuchen, ob sich der Zweitbildschirm-Inhalt als Videostrom über die einbaubare AirPlay-Auswahl senden lässt (unbelegt, mit Verzögerung beim Schreiben zu rechnen)? Bis zur Antwort entsteht keine Anforderung. → answered 2026-11-13: (a) und (b) – erkennen, hinführen und Kabel empfehlen (FR-11.6); (c) wird nicht verfolgt.
 
 ## Abnahmekriterien
 
@@ -394,6 +403,7 @@ muss.
 - AK-27 (FR-11.3): Aufbau: wie AK-24. Handlung: „Partnerarbeit“ wählen; Auswahl aufheben. Ergebnis: Der Klassenbildschirm zeigt Symbol und Wort „Partnerarbeit“, danach keine Arbeitsform.
 - AK-28 (FR-11.4): Aufbau: Zweitbildschirm zeigt ein PDF. Handlung: „Dunkel“ tippen; erneut tippen. Ergebnis: Der Zweitbildschirm ist schwarz, danach zeigt er wieder dieselbe PDF-Seite; das Tablet zeigt die ganze Zeit das PDF.
 - AK-29 (FR-11.5): Aufbau: Tablet mit Apple TV verbunden, ein PDF zugeordnet. Handlung: nacheinander Klassenbildschirm, Material, Tafel und Dunkel wählen. Ergebnis: Der Zweitbildschirm wechselt jeweils; das Vorschaubild am Tablet zeigt jedes Mal dasselbe wie der Zweitbildschirm.
+- AK-35 (FR-11.6): Aufbau: Tablet nicht verbunden, Tagesansicht offen. Handlung: „So verbinden“ antippen, den Schritten folgen und im Kontrollzentrum das Apple TV wählen; später die Verbindung trennen; danach ein Kabel zum Bildschirm anstecken. Ergebnis: Die Anleitung nennt die Schritte zur Bildschirmsynchronisierung und die Kabelverbindung; wenige Sekunden nach dem Verbinden zeigt das Tablet den verbundenen Bildschirm an und der Zweitbildschirm den Klassenbildschirm, ohne weiteren Handgriff in der App; nach dem Trennen zeigt das Tablet „nicht verbunden“; mit dem Kabel gilt dasselbe wie mit AirPlay.
 - AK-30 (FR-12): Aufbau: Tagesansicht, Unterrichtsstunde läuft. Handlung: Tafel mit einem Tipp öffnen, mit dem Stift ein Wort schreiben, einen Strich radieren. Ergebnis: Der Zweitbildschirm zeigt die Seite mit dem Geschriebenen ohne Bedienelemente; ohne Apple TV geht dasselbe am Tablet allein.
 - AK-31 (FR-12.1): Aufbau: Tafel offen, Seite 1 beschrieben. Handlung: Seite hinzufügen, Hintergrund „kariert“ wählen, zurückblättern. Ergebnis: Seite 2 ist kariert und leer, Seite 1 zeigt unverändert das Geschriebene.
 - AK-32 (FR-12.2): Aufbau: Di 2. Stunde 8b, Tafel mit zwei beschriebenen Seiten. Handlung: App beenden, am nächsten Tag die Unterrichtsstunde vom Dienstag aufrufen und die Tafel öffnen; danach das Tafelbild löschen. Ergebnis: Beide Seiten sind noch da; nach dem Löschen ist die Tafel dieser Unterrichtsstunde leer.
@@ -426,6 +436,7 @@ muss.
 - 2026-11-13: FR-6.2 changed — Zweitbildschirm zeigt neben Material auch Tafel und Klassenbildschirm (FR-11, FR-12)
 - 2026-11-13: FR-11.2 changed — Timer läuft über Material und Tafel sichtbar weiter und gibt ein Signal (Q-26); Glossar: Klassenbildschirm als Name bestätigt (Q-27); Q-24 und Q-25 um Vorschläge ergänzt, weiter offen
 - 2026-11-13: Q-28 new — Wunsch, die AirPlay-Verbindung in der App zu starten; so nicht möglich, Alternativen zur Entscheidung
+- 2026-11-13: FR-11.6 new — Verbindung erkennen, zum Verbinden hinführen, Kabel empfehlen (Q-28); AK-35, Lieferstufen (34) und Abdeckung angepasst
 
 ## Anhang A — Abdeckung
 
@@ -435,7 +446,7 @@ muss.
 | 2 Vorbereiten | FR-3, FR-3.1 bis FR-3.4, FR-8, FR-9 |
 | 3 Tagesansicht | FR-4, FR-2.2 |
 | 2 Vorbereiten (Thema und Hinweis) | FR-11.1 |
-| 4 Öffnen und präsentieren | FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-11, FR-11.1 bis FR-11.5, FR-12, FR-12.1 bis FR-12.4 |
+| 4 Öffnen und präsentieren | FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-11, FR-11.1 bis FR-11.6, FR-12, FR-12.1 bis FR-12.4 |
 | 5 Änderungen in der Ablage | FR-5.1, NFR-1 |
 
 FR-10 gehört zu keiner Ablaufphase (Ausgabe nach außen, neben dem Ablauf).
@@ -463,6 +474,7 @@ FR-10 gehört zu keiner Ablaufphase (Ausgabe nach außen, neben dem Ablauf).
 | FR-11.3 | AK-27 |
 | FR-11.4 | AK-28 |
 | FR-11.5 | AK-29 |
+| FR-11.6 | AK-35 |
 | FR-12 | AK-30 |
 | FR-12.1 | AK-31 |
 | FR-12.2 | AK-32 |

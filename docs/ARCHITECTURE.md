@@ -261,6 +261,11 @@ Grundlage ist Apples Entwicklerdoku „Presenting content on a connected display
   andere App stimmt.
 - Die App bleibt ohne verbundenen Bildschirm voll nutzbar; Verbinden und Trennen mitten in der Stunde
   ändern nur, ob die zweite Szene existiert.
+- Die Verbindung startet die App nicht selbst (FR-11.6): Dafür gibt es keine erlaubte Schnittstelle;
+  die einbaubare AirPlay-Auswahl (`AVRoutePickerView`) leitet nur Ton und Video weiter und liefert
+  keine zweite Szene. Den Verbindungsstand leitet die App daraus ab, ob das System die zweite Szene
+  verbunden hat – AirPlay und Kabel sind für sie dasselbe. „So verbinden“ ist eine Anleitung in der
+  App, kein Sprung in das Kontrollzentrum (auch dafür gibt es keine Schnittstelle).
 - Geht die App in den Hintergrund (Material öffnet in PowerPoint, FR-5), endet ihr Einfluss auf den
   Bildschirm; es gilt, was die andere App und das System tun (RISK-5, Q-22).
 - Am Mac regelt das System, ob ein AirPlay-Bildschirm spiegelt oder eigener Bildschirm ist; die App
@@ -347,3 +352,4 @@ gespiegelt (ADR-0002); gemäß FR-6.1 gehören sie zur Zuordnung.
 - 2026-11-13: Überblick new — Bausteinbild, abgeleitet aus den Bereichen
 - 2026-11-13: anzeige changed — Zweitbildschirm über eigene Szene statt reiner Spiegelung (FR-6.2); vorher: „Präsentiert wird über die Bildschirmspiegelung des Systems (AirPlay); die App baut keine eigene Übertragung.“
 - 2026-11-13: anzeige changed — vier Zustände des Zweitbildschirms, Klassenbildschirm und Tafel (FR-11, FR-12); daten changed — Modelle Stundenangaben und Tafelseite, Nebenläufigkeit ergänzt
+- 2026-11-13: anzeige changed — Timer als Schicht über allen Zuständen (FR-11.2); Verbindung wird erkannt, nicht gestartet (FR-11.6)
