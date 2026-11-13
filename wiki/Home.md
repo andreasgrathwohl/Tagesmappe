@@ -18,12 +18,14 @@ etwas hier von `docs/` oder `DESIGN.md` ab, gilt das Dokument; das Wiki wird im 
 | Was ist noch offen? | [Open Questions](../docs/PRD.md#open-questions) |
 | Woran erkennt man, dass es fertig ist? | [Abnahmekriterien](../docs/PRD.md#abnahmekriterien) |
 | Welche Risiken gibt es? | [Risiken](../docs/PRD.md#risiken) |
+| Warum native App, warum iCloud, warum Dateien-App? | [docs/adr/](../docs/adr/) |
+| Wie ist es gebaut (Datenmodell, Abgleich, Öffnen)? | [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md) |
 
 ## Stand
 
 | Ebene | Status |
 |---|---|
 | PRD | ready (2026-11-13) |
-| ADRs | in Klärung – ADR-0001 bis ADR-0005 beschlossen (2026-11-13) |
-| Architecture Doc | Bereichsliste angelegt, noch nicht ausgearbeitet |
-| UI Spec (`DESIGN.md`) | noch nicht begonnen |
+| ADRs | ready (2026-11-13) – ADR-0001 bis ADR-0005 beschlossen |
+| Architecture Doc | Entwurf – vier von fünf Bereichen ausgearbeitet, `anzeige` offen (Q-17) |
+| UI Spec (`DESIGN.md`) | leer angelegt, alle Kategorien offen |

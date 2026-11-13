@@ -7,7 +7,7 @@ date: 2026-11-13
 
 **Beschreibt, entscheidet nicht.** Jede Festlegung ist eine ADR (`docs/adr/NNNN-titel.md`); dieses
 Dokument sagt, wie gebaut wird, innerhalb dessen, was die ADRs festgelegt haben, und verweist mit
-„gemäß ADR-NNNN“ darauf.
+„gemäß ADR-NNNN“ darauf. Begriffe folgen dem Glossar im PRD.
 
 **Besitzt nicht:** was das Produkt kann (`docs/PRD.md`) und wie es aussieht (`DESIGN.md`).
 
@@ -15,35 +15,166 @@ Dokument sagt, wie gebaut wird, innerhalb dessen, was die ADRs festgelegt haben,
 
 ## Area: plattform
 
-- area-status: draft
+- area-status: detailed
 
-App-Technik, Gerätearten, Bauweg und Verteilung.
+Gemäß ADR-0001: eine native SwiftUI-App in einem Xcode-Projekt mit zwei Zielen, iPadOS und macOS, aus
+gemeinsamem Code. Geräteunterschiede (Stift nur am Tablet, Ziehen aus dem Finder nur am Mac) liegen in
+den Oberflächen, nicht im Datenmodell.
+
+### Bauen und Verteilen
+
+- Gebaut wird ausschließlich auf macOS – per CI (GitHub Actions, macOS-Runner) oder auf einem Mac. Der
+  Entwicklungsrechner ist Windows und kann weder bauen noch testen.
+- CI läuft nur bei Tags und auf manuellen Anstoß, nicht bei jedem Push (Runner kosten je Lauf).
+- Logik, die sich ohne Oberfläche prüfen lässt (Stundenplan-Auflösung, Identität, Import-Abgleich),
+  liegt in einem eigenen Swift-Paket mit Tests, damit ein CI-Lauf möglichst viel belegt.
+- Verteilung an Testerinnen über TestFlight; dafür ist ein Apple-Entwicklerkonto nötig (RISK-4).
+- Texte der Oberfläche liegen von Anfang an in einer Übersetzungstabelle (deutsch als erste Sprache),
+  damit weitere Sprachen ohne Umbau möglich sind (Q-10).
 
 ## Area: daten
 
-- area-status: draft
+- area-status: detailed
 
-Stundenplan, Unterrichtsstunden und Zuordnungen: wo sie liegen, wie sie zwischen Mac und Tablet
-abgeglichen werden, wovon die Identität einer Unterrichtsstunde abhängt.
+### Datenmodell
+
+Gemäß ADR-0002 (SwiftData, gespiegelt in die private iCloud-Datenbank) und ADR-0005 (Identität der
+Unterrichtsstunde). Wegen der Spiegelung sind alle Eigenschaften optional oder haben einen
+Vorgabewert, alle Beziehungen sind optional, und kein Modell nutzt Eindeutigkeitsregeln.
+
+| Modell | Trägt | Hinweis |
+|---|---|---|
+| Stundenplan | Name, gültig ab/bis, Stundenplan-Quelle, Zahl der Wochenvarianten (1 oder 2), Bezugswoche für A | genau einer ist aktiv |
+| Stundenplan-Eintrag | Wochenvariante, Wochentag, Stunde, Klasse, Fach | gehört zu einem Stundenplan |
+| unterrichtsfreier Zeitraum | von, bis, Bezeichnung | FR-7 |
+| Abweichung | Datum, Schlüssel der Unterrichtsstunde, Art (Ausfall, Vertretungsstunde), bei Vertretungsstunde: Stunde, Klasse, Fach | FR-8, FR-9, FR-2.2 |
+| Zuordnung | Schlüssel der Unterrichtsstunde, Position, Verweis auf das Material | FR-3, FR-3.1 |
+| Materialverweis | Ordnerfreigabe, Pfad darin, ggf. OneDrive-Kennung, Anzeigename, Dateiart | gemäß ADR-0003 |
+| Ordnerfreigabe | dauerhafter Systemverweis auf einen freigegebenen Ordner | **nur lokal je Gerät**, nicht gespiegelt (s. Area ablage) |
+
+**Unterrichtsstunden werden nicht gespeichert, sondern berechnet:** aus Stundenplan, Wochenvariante des
+Datums, unterrichtsfreien Zeiträumen und Abweichungen. Gespeichert wird nur, was die Lehrkraft dazu
+tut (Zuordnungen, Abweichungen).
+
+**Schlüssel der Unterrichtsstunde** gemäß ADR-0005: Datum + Klasse + Fach + laufende Nummer am Tag
+(1 für die erste Stunde dieser Klasse in diesem Fach an diesem Tag, 2 für die zweite …). Klasse und
+Fach werden vor dem Vergleich normalisiert (Groß-/Kleinschreibung, Leerzeichen, führende Nullen:
+„8 b“, „08B“ → „8b“).
+
+**Material ohne Stunde:** Passt zu einer Zuordnung keine berechnete Unterrichtsstunde mehr (Tag wurde
+unterrichtsfrei, Klasse fällt an dem Tag weg), bleibt die Zuordnung erhalten und erscheint am
+betreffenden Datum als „ohne Stunde“, bis die Lehrkraft sie verschiebt (FR-7, ADR-0005).
+
+### Nebenläufigkeit
+
+Gemäß ADR-0002 gewinnt bei gleichzeitiger Änderung desselben Datensatzes der zuletzt abgeglichene
+Stand. Je Datenart:
+
+| Datenart | Verhalten | Unterlegener Wert |
+|---|---|---|
+| Zuordnung hinzufügen (zwei Geräte, dieselbe Unterrichtsstunde) | beide bleiben; doppelte Verweise auf dieselbe Datei in derselben Unterrichtsstunde führt die App nach dem Abgleich zu einem zusammen | geht nicht verloren |
+| Reihenfolge der Materialien | zuletzt abgeglichene Reihenfolge gilt; gleiche Positionen werden nach Anlagezeit aufgelöst | Reihenfolge des anderen Geräts verloren – hinnehmbar, sichtbar und sofort korrigierbar |
+| Stundenplan-Eintrag ändern | zuletzt abgeglichener Stand gilt | verloren – selten (Stundenplan ändert sich wenige Male im Jahr) |
+| Abweichung (Ausfall, Vertretungsstunde) | doppelte gleichartige Abweichungen werden zusammengeführt | geht nicht verloren |
+
+Zusammenführen heißt: Nach jedem Abgleich sucht die App Datensätze mit gleichem fachlichem Schlüssel
+und behält den ältesten.
+
+### Betrieb
+
+Sicherung und Wiederherstellung übernimmt iCloud im Konto der Lehrkraft (gemäß ADR-0002). Der zu
+prüfende Wiederherstellungsweg ist: App auf einem zweiten Gerät mit demselben Apple-Konto
+installieren – Stundenplan und Zuordnungen erscheinen ohne Zutun; nur die Ordnerfreigaben müssen dort
+einmal neu erteilt werden.
 
 ## Area: ablage
 
-- area-status: draft
+- area-status: detailed
 
-Zugriff auf Material in der Ablage der Lehrkraft, Öffnen in der passenden App, Bereithalten für den
-Unterricht, OneDrive-Zusatz mit AutoSpeichern.
+Gemäß ADR-0003.
+
+### Zugriff auf Material
+
+- Die Lehrkraft gibt einmal je Gerät einen oder mehrere Ordner ihrer Ablage frei (Ordnerauswahl des
+  Systems). Die App hält dafür je Ordner eine Ordnerfreigabe; diese ist an das Gerät gebunden und wird
+  nicht gespiegelt.
+- Ein Materialverweis nennt die Ordnerfreigabe über einen gespiegelten Namen der Freigabe plus den
+  Pfad darin. Auf einem zweiten Gerät wird derselbe Ordner einmal freigegeben und dem Namen zugeordnet;
+  danach lösen alle Verweise auch dort auf.
+- Löst ein Verweis nicht auf (Datei umbenannt, verschoben, Freigabe fehlt), zeigt die Zuordnung das an
+  und bietet Neuverknüpfen an; sie verschwindet nicht.
+
+### Öffnen
+
+| Material | Weg |
+|---|---|
+| Präsentation, Dokument, Tabelle – ohne OneDrive-Anmeldung | Übergabe der Datei an die zuständige App (Öffnen am Ort, keine Kopie) |
+| Office-Datei in OneDrive, Lehrkraft bei Microsoft angemeldet | Öffnen als Cloud-Dokument über die Office-Adresse, damit AutoSpeichern greift (FR-5.1) |
+| PDF, Bild | eigene Anzeige (Area anzeige) |
+
+Schlägt das Öffnen als Cloud-Dokument fehl oder dauert es zu lang, fällt die App auf die Übergabe der
+Datei zurück – das Verhalten, das OneDrive Opener am Mac dafür gefunden hat (Fenster „öffnet
+ungewöhnlich lange“ mit „Lokal öffnen“).
+
+### Bereithalten
+
+Für NFR-1 stößt die App für das Material der kommenden Unterrichtsstunden (heute und nächster
+Unterrichtstag) das Herunterladen über die Dateien-Schnittstelle an, sobald Netz da ist – beim Öffnen
+der App und beim Zuordnen. Die Tagesansicht zeigt je Material, ob es auf dem Gerät liegt.
+
+### Fremdsysteme
+
+- **Dateien-App und Ablage-Anbieter.** Grenze: ein Baustein „Ablage“, der Verweise auflöst, Dateien
+  öffnet und bereithält; keine Oberfläche spricht Anbieter direkt an. Güte der Beschreibung:
+  dokumentierte Systemschnittstelle, das Verhalten der einzelnen Anbieter dahinter ist aber
+  unterschiedlich und nur durch Ausprobieren belegt. Bei Abweichung: Material als „nicht verfügbar“
+  kennzeichnen, nie stillschweigend einen alten Stand zeigen.
+- **Microsoft Graph und Office-Adressen (OneDrive).** Grenze: ein Baustein „OneDrive-Zusatz“, nur aktiv
+  nach Anmeldung. Güte: Graph ist dokumentiert; das Format der Office-Adresse, mit der PowerPoint ein
+  Cloud-Dokument öffnet, ist rückentwickelt (Erkenntnis aus OneDrive Opener, dort für den Mac belegt,
+  für iPadOS ungeprüft – Q-18). Bei Abweichung: Rückfall auf die Übergabe der Datei.
 
 ## Area: stundenplan-quellen
 
-- area-status: draft
+- area-status: detailed
 
-Austauschbare Bausteine, die einen Stundenplan liefern: von Hand, Schulmanager Online, später WebUntis.
+Gemäß ADR-0004. Jede Stundenplan-Quelle ist ein Baustein mit derselben Schnittstelle: Er liefert eine
+Liste von Stundenplan-Einträgen und – wenn die Quelle das kann – Abweichungen für einen Zeitraum.
+Bausteine: „von Hand“ (liefert nichts, der Stundenplan wird in der App gepflegt), „Schulmanager
+Online“, später „WebUntis“ (FR-2.1).
+
+### Import-Abgleich
+
+- Ein Import ersetzt den Stundenplan nicht blind: Er wird mit dem vorhandenen verglichen. Neue und
+  geänderte Einträge werden der Lehrkraft vor der Übernahme gezeigt; von Hand geänderte Einträge gehen
+  nie stillschweigend verloren (AK-3).
+- Abweichungen aus der Quelle (Vertretungen, Ausfall) werden als Abweichungen mit Herkunft „Quelle“
+  gespeichert und beim nächsten Import ersetzt; von Hand angelegte Abweichungen bleiben unberührt.
+- Zeitpunkt gemäß ADR-0004: beim ersten Öffnen der App am Tag, soweit möglich als
+  Hintergrund-Aktualisierung am Morgen, und auf Knopfdruck. Die Tagesansicht zeigt, von wann der Stand
+  ist.
+
+### Fremdsysteme
+
+- **Schulmanager Online.** Grenze: allein der Baustein „Schulmanager Online“; fällt er aus, bleiben
+  Stundenplan, Zuordnungen und Tagesansicht nutzbar. Güte der Beschreibung: rückentwickelt, ohne
+  Zusage des Anbieters; für Lehrerkonten ungeprüft (Q-16). Bei Abweichung (Anmeldung scheitert,
+  Antwort hat unerwartete Form): kein Teilimport, letzter Stand bleibt, die Tagesansicht zeigt das
+  Alter des Stands und einen Hinweis; dreimal in Folge gescheitert → Hinweis, den Stundenplan von Hand
+  zu pflegen.
+- Zugangsdaten liegen nur im Schlüsselbund des Geräts (NFR-4) und werden nicht gespiegelt; auf einem
+  zweiten Gerät meldet sich die Lehrkraft dort erneut an.
 
 ## Area: anzeige
 
 - area-status: draft
 
-Eigene Anzeige von PDFs und Bildern mit Stift (FR-6).
+Eigene Anzeige von PDFs und Bildern mit Stift (FR-6), gebaut mit den Systembausteinen für
+PDF-Darstellung und Stifteingabe (gemäß ADR-0001). Präsentiert wird über die Bildschirmspiegelung des
+Systems (AirPlay); die App baut keine eigene Übertragung.
+
+Offen ist, wo die Stiftnotizen liegen (Q-17) – das ist eine Frage, wo die Wahrheit liegt, und wird
+eine ADR, bevor dieser Bereich ausgearbeitet wird.
 
 ---
 
@@ -51,7 +182,10 @@ Eigene Anzeige von PDFs und Bildern mit Stift (FR-6).
 
 - ~~Q-14~~: Wovon hängt die Identität einer Unterrichtsstunde ab, damit Zuordnungen eine Änderung des Stundenplans überstehen? → answered 2026-11-13: Datum + Klasse + Fach + laufende Nummer, Material folgt der Klasse (ADR-0005, accepted)
 - ~~Q-15~~: Wie oft und wodurch ausgelöst wird der Schulmanager abgefragt, und wie spät dürfen Vertretungen dort ankommen? → answered 2026-11-13: einmal je Morgen und auf Knopfdruck; Vertretungen am selben Morgen (ADR-0004, accepted)
+- Q-17: Wo liegen Stiftnotizen auf PDFs und Bildern – in der Datei in der Ablage (dann sieht sie jede andere App und jedes Gerät, das Original ist aber verändert) oder getrennt in den App-Daten (Original bleibt unberührt, Notizen sieht nur diese App)? Bis zur Klärung wird nichts angenommen; der Bereich `anzeige` bleibt `draft`.
+- Q-18: Öffnet PowerPoint auf iPadOS ein OneDrive-Dokument über die Office-Adresse mit AutoSpeichern, so wie am Mac? (Prüfung auf einem echten iPad nötig; siehe RISK-2.)
 
 ## Changes
 
 - 2026-11-13: plattform, daten, ablage, stundenplan-quellen, anzeige new — Bereichsliste vor der ersten ADR
+- 2026-11-13: plattform, daten, ablage, stundenplan-quellen changed — ausgearbeitet nach Freigabe der ADR-Ebene; anzeige bleibt draft (Q-17)

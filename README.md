@@ -27,8 +27,9 @@ Stand.
 |---|---|
 | [docs/PRD.md](docs/PRD.md) | Was, für wen, warum: Glossar, Anforderungen, Lieferstufen, Risiken, offene Fragen, Abnahmekriterien |
 | [docs/adr/](docs/adr/) | Architekturentscheidungen, je Entscheidung eine Datei |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Wie gebaut wird, je Bereich (Bereichsliste steht, Ausarbeitung folgt) |
-| `DESIGN.md` | Gestaltungsbeschlüsse (folgt) |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Wie gebaut wird, je Bereich: Datenmodell, Abgleich, Dateizugriff, Stundenplan-Quellen |
+| [DESIGN.md](DESIGN.md) | Gestaltungsbeschlüsse (leer angelegt, alle Kategorien offen) |
+| [CLAUDE.md](CLAUDE.md) | Projektregeln: Bauen, Skills, Dokument-Konvention |
 | [wiki/](wiki/Home.md) | Einstieg, Überblick und Wegweiser in die Dokumente |
 
 Maßgeblich sind immer die Dokumente unter `docs/` und `DESIGN.md`; das Wiki verweist nur darauf.
