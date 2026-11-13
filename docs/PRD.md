@@ -63,6 +63,8 @@ Person (Q-13).
 | Tafel | eine leere Seite im Produkt, auf die die Lehrkraft mit dem Stift schreibt und die der Zweitbildschirm zeigt | Material (eine Datei aus der Ablage) | `Board` |
 | Tafelbild | was in einer Unterrichtsstunde auf die Tafel geschrieben wurde, alle Seiten zusammen; gehört zur Unterrichtsstunde und bleibt erhalten | Stiftnotiz (liegt auf einem Material) | `BoardDrawing` |
 | Stiftnotiz | was die Lehrkraft in der Anzeige des Produkts mit dem Stift auf ein PDF oder Bild schreibt oder zeichnet; gehört zu einer Zuordnung, nicht zur Datei | Zeichnungen in einer Präsentation (die gehören zur Datei und landen in der Ablage) | `PenNote` |
+| Notiz-Datei | der Ordner `<Name>.frontstage-notizen` neben einem Dokument; enthält je Unterrichtsstunde die Stiftnotizen in einer Form, die Frontstage weiter bearbeiten kann | Material | `PenNoteFile` |
+| Notiz-PDF | lesbare Fassung eines Dokuments mit den Stiftnotizen einer Unterrichtsstunde, neben dem Dokument | Material (das Original bleibt unverändert) | `PenNotePDF` |
 | Stand | Zeitpunkt, zu dem der Stundenplan zuletzt aus der Stundenplan-Quelle geholt wurde; die Tagesansicht zeigt ihn | Datum einer Unterrichtsstunde | `sourceFetchedAt` |
 | Arbeitsform | wie die Klasse gerade arbeitet: Einzelarbeit, Partnerarbeit oder Gruppenarbeit | Fach | `WorkMode` (`individual`, `pairs`, `groups`) |
 | Vorlage | Seite oder Ausschnitt aus Material oder Ablage als Hintergrund einer Tafelseite | Material (bleibt unverändert in der Ablage) | `BoardBackground.image`, erzeugt von `TemplateRenderer` |
@@ -74,6 +76,8 @@ Person (Q-13).
 | Kaufangebot | was statt einer gekauften Funktion erscheint, solange der Einmalkauf fehlt | Abo | `PurchaseOffer` |
 | Zustand des Materials | ob ein Material auf dem Gerät liegt, geladen wird oder nicht verfügbar ist | Ausfall | `MaterialAvailability` |
 | Übergabe | Material zum Bearbeiten an die zuständige App geben, ohne Kopie | Präsentieren | `handOff` |
+| Datenort | wo die App-Daten zwischen den Geräten einer Lehrkraft abgeglichen werden: iCloud oder ein Ordner in der Ablage | Ablage (dort liegt das Material) | `DataLocation` (`iCloud`, `folder`) |
+| Datenordner | der Ordner in der Ablage, den die Lehrkraft als Datenort gewählt hat; die App schreibt nur dort hinein | Ordnerfreigabe für Material | `DataFolder` |
 
 ## Constraints
 
@@ -160,6 +164,10 @@ Präzisiert 2026-11-13: „Nächste Unterrichtsstunde“ heißt gleiche Klasse u
 Zuordnen, Übernehmen und Schieben verweisen auf die Datei in der Ablage; es entsteht nie eine Kopie
 der Datei, damit es immer nur einen Stand des Materials gibt (Q-7, NFR-1).
 
+Präzisiert 2026-11-14: Das lesbare Notiz-PDF neben dem Dokument (FR-6.1, ADR-0011) und das als PDF
+gesicherte Tafelbild (FR-12.4) sind abgeleitete Dateien, keine Kopien des Materials; Zuordnungen
+verweisen immer auf das Original.
+
 ### FR-4 — Tagesansicht mit Fokus auf den Tag [MVP]
 
 Auf dem Tablet zeigt das Produkt die Unterrichtsstunden eines Tages mit ihrem Material, mit
@@ -186,6 +194,11 @@ Eine Stiftnotiz gehört zur Zuordnung, nicht zur Datei: Wird dasselbe Material i
 Unterrichtsstunde gezeigt, beginnt es dort ohne Notizen. „In die nächste Stunde schieben“ (FR-3.3) und
 das Weiterreichen bei Ausfall (FR-8) nehmen die Stiftnotizen mit; „Für <Klasse> übernehmen“ (FR-3.2)
 nicht. Die Datei in der Ablage bleibt unverändert (Q-17, Q-20).
+
+Geändert 2026-11-14 (ADR-0011): Die Stiftnotizen einer Unterrichtsstunde liegen neben dem Dokument in
+der Ablage – als Notiz-Datei für Frontstage und als lesbares PDF „<Name> – Notizen <Klasse> <Datum>.pdf“,
+damit sie auch außerhalb von Frontstage auffindbar sind. Das Original bleibt unverändert. Vom Nutzer:
+„Notizen zu Dokumenten müssen neben dem eigentlichen Dokument liegen, sonst findet man es nie wieder.“
 
 ### FR-6.2 — Zweitbildschirm zeigt nur das Material [MVP]
 
@@ -355,6 +368,15 @@ Für Schulen, die für ihr Kollegium kaufen, eine eigene, bezahlte Fassung mit a
 In-App-Kauf, die über Apple School Manager verteilt werden kann (RISK-7). Erst, wenn Schulen danach
 fragen.
 
+### FR-14 — Datenort wählbar: iCloud oder ein Ordner in der Ablage [MVP]
+
+Die Lehrkraft wählt beim Einrichten, wo die App-Daten (Stundenplan, Abweichungen, Zuordnungen,
+Stiftnotizen, Stundenangaben, Tafelbilder) zwischen ihren Geräten abgeglichen werden: in iCloud oder
+in einem Ordner ihrer Ablage (z. B. OneDrive, Google Drive, Schul-Nextcloud, iCloud Drive). Mit beiden
+Datenorten funktionieren Vorbereiten am Mac und Unterrichten am iPad gleich. Ein späterer Wechsel des
+Datenorts nimmt alle Daten mit. Die App schreibt dabei nur in diesen Datenordner, nie in Material
+(FR-3.4). Vom Nutzer: „Nicht jeder nutzt iCloud, daher soll es auswählbar sein“ (ADR-0010).
+
 ### NFR-1 — Material sofort und aktuell verfügbar [MVP]
 
 Im Unterricht öffnet das Material ohne spürbares Warten und ist der aktuelle Stand aus der Ablage
@@ -377,7 +399,7 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 ## Lieferstufen
 
 - **MVP:** FR-1, FR-1.1, FR-2, FR-2.2, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-7, FR-8,
-  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, FR-13.1, NFR-1 bis NFR-4, FR-1.2 (geprüfte Zahl: 41). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
+  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, FR-13.1, NFR-1 bis NFR-4, FR-1.2, FR-14 (geprüfte Zahl: 42). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
 - **Later:** FR-2.1, FR-7.1, FR-10, FR-13.2.
 
 ## Out of Scope
@@ -411,6 +433,14 @@ In-App-Käufe lassen sich laut Apple nicht über den Sammelkauf in Apple School 
 verteilen. Kauft eine Schule für ihr Kollegium, erreicht sie die Freischaltung aus FR-13 so nicht.
 Umgang: Zielgruppe sind zunächst Lehrkräfte mit eigenem Tablet (Q-13), die selbst kaufen; fragen
 Schulen, folgt die Schulversion (FR-13.2).
+
+### RISK-9 — Abgleich über einen Ordner in der Ablage ist langsamer und anbieterabhängig
+
+Mit dem Datenort „Ordner in der Ablage“ (FR-14, ADR-0010) bestimmt der Ablage-Anbieter, wann eine am
+Mac vorbereitete Zuordnung auf dem iPad ankommt; manche Anbieter laden Dateien erst beim Öffnen und
+erzeugen bei gleichzeitigem Schreiben Konfliktkopien. Umgang: eine Datei je Datensatz, Konfliktkopien
+erkennen und zusammenführen, Stand des Abgleichs sichtbar machen; früh mit OneDrive, Google Drive und
+iCloud Drive am Gerät prüfen.
 
 ### RISK-8 — Der Name „Pult“ ist als Software-Marke bereits in Gebrauch
 
@@ -506,7 +536,7 @@ muss.
 - AK-10 (FR-4): Aufbau: Dienstag mit 5 Unterrichtsstunden, davon 3 mit Material. Handlung: Tagesansicht öffnen. Ergebnis: alle 5 Unterrichtsstunden in zeitlicher Reihenfolge, mit Klasse, Fach und Material, ohne Scrollen auf einem 11"-Tablet.
 - AK-11 (FR-5): Aufbau: PowerPoint-Datei in iCloud Drive zugeordnet, PowerPoint installiert. Handlung: in der Tagesansicht antippen. Ergebnis: Die Datei öffnet in PowerPoint und lässt sich dort bearbeiten; die Änderung steht danach in der Ablage.
 - AK-12 (FR-5.1): Aufbau: PowerPoint-Datei in OneDrive, Lehrkraft mit Microsoft 365 angemeldet. Handlung: antippen, auf einer Folie zeichnen. Ergebnis: PowerPoint zeigt AutoSpeichern an; die Zeichnung ist binnen einer Minute am Mac in derselben Datei sichtbar.
-- AK-13 (FR-6): Aufbau: PDF zugeordnet. Handlung: antippen, mit dem Stift auf Seite 1 schreiben, schließen, erneut öffnen. Ergebnis: Die Notiz ist noch da.
+- AK-13 (FR-6): Aufbau: PDF zugeordnet. Handlung: antippen, mit dem Stift auf Seite 1 schreiben, schließen, erneut öffnen. Ergebnis: Die Notiz ist noch da. Neben dem PDF liegen der Ordner `<Name>.frontstage-notizen` und `<Name> – Notizen <Klasse> <Datum>.pdf` mit der Notiz; das Original ist unverändert (ADR-0011).
 - AK-22 (FR-6.1): Aufbau: ein PDF ist Di 8a zugeordnet und per „Für 8b übernehmen“ auch Mi 8b; nächste 8a-Stunde ist Do. Handlung: am Di in der 8a auf Seite 1 schreiben; am Mi in der 8b öffnen; dann das Material von Di 8a „in die nächste Stunde“ schieben und am Do öffnen. Ergebnis: Mi 8b zeigt das PDF ohne Notiz; Do 8a zeigt die Notiz vom Di; die Datei in der Ablage ist unverändert.
 - AK-23 (FR-6.2): Aufbau: Tablet per AirPlay mit einem Apple TV verbunden, ein PDF zugeordnet. Handlung: Tagesansicht öffnen; PDF antippen; mit dem Stift auf Seite 1 schreiben; PDF schließen. Ergebnis: Solange die Tagesansicht zu sehen ist, zeigt der Bildschirm am Apple TV sie nicht; nach dem Antippen zeigt er die PDF-Seite im Vollbild ohne Bedienelemente; die Stiftnotiz erscheint dort; nach dem Schließen ist die Tagesansicht weiterhin nur auf dem Tablet. Ohne Apple TV lässt sich derselbe Ablauf auf dem Tablet allein ausführen.
 - AK-24 (FR-11): Aufbau: Tablet mit Apple TV verbunden, Di 2. Stunde 8b Englisch läuft (8:35–9:20), kein Material und keine Tafel offen. Handlung: Tagesansicht öffnen. Ergebnis: Der Zweitbildschirm zeigt „8b“, „Englisch“, die Uhrzeit und das Stundenende 9:20 – und weder andere Klassen noch Dateinamen.
@@ -516,6 +546,7 @@ muss.
 - AK-38 (FR-12.6): Aufbau: Unterrichtsstunde mit einem zugeordneten PDF. Handlung: in der Tafel „Vorlage“ wählen, Seite 1 des PDFs nehmen und einen Ausschnitt um Aufgabe 2 ziehen. Ergebnis: Eine neue Tafelseite zeigt den Ausschnitt vergrößert als Hintergrund und lässt sich beschreiben; das PDF in der Ablage ist unverändert.
 - AK-39 (FR-12.7): Aufbau: Tafelseite mit drei Zeilen, Tablet verbunden. Handlung: Abdecken wählen, die Abdeckung bis unter Zeile 1 ziehen, dann bis unter Zeile 2. Ergebnis: Der Zweitbildschirm zeigt erst nur Zeile 1, dann Zeile 1 und 2; am Tablet sind alle drei Zeilen durch die Abdeckung hindurch erkennbar.
 - AK-40 (FR-13): Aufbau: frisch geladene App, kein Kauf. Handlung: Stundenplan anlegen, Material zuordnen, öffnen, mit Apple TV verbunden ein PDF zeigen; dann Tafel und Klassenbildschirm antippen; Einmalkauf ausführen; App auf einem zweiten Gerät mit derselben Apple-ID öffnen. Ergebnis: Ohne Kauf funktioniert alles bis einschließlich PDF am Zweitbildschirm; Tafel und Klassenbildschirm zeigen ein Kaufangebot statt der Funktion; nach dem Kauf sind beide auf beiden Geräten frei, ohne erneute Zahlung und ohne Ablaufdatum.
+- AK-43 (FR-14): Aufbau: iPad und Mac ohne iCloud-Anmeldung, beide mit Zugriff auf denselben OneDrive-Ordner. Handlung: auf beiden Geräten beim Einrichten Datenort „Ordner in der Ablage“ und diesen Ordner wählen; am Mac einen Stundenplan-Eintrag anlegen und Material zuordnen; am iPad mit dem Stift eine Notiz auf ein PDF schreiben. Ergebnis: Eintrag und Zuordnung erscheinen am iPad, die Stiftnotiz am Mac, sobald der Anbieter die Dateien abgeglichen hat; das Material selbst ist unverändert; im Ordner liegen nur Dateien der App.
 - AK-41 (FR-13.1): Aufbau: kein Kauf. Handlung: Stundenplan-Quelle Schulmanager Online einrichten und importieren. Ergebnis: Der Import funktioniert ohne Kauf; die App bezeichnet die Anbindung als inoffiziell und ohne Gewähr.
 - AK-26 (FR-11.2): Aufbau: wie AK-24. Handlung: Timer auf 5 Minuten stellen und starten; nach 1 Minute anhalten; beenden. Ergebnis: Der Klassenbildschirm zählt von 5:00 herunter, bleibt beim Anhalten bei 4:00 stehen und zeigt nach dem Beenden keinen Timer mehr. Wird währenddessen ein PDF oder die Tafel gezeigt, bleibt die Restzeit auf dem Zweitbildschirm sichtbar; läuft der Timer ab, gibt es ein sichtbares und hörbares Signal.
 - AK-27 (FR-11.3): Aufbau: wie AK-24. Handlung: „Partnerarbeit“ wählen; Auswahl aufheben. Ergebnis: Der Klassenbildschirm zeigt Symbol und Wort „Partnerarbeit“, danach keine Arbeitsform.
@@ -566,6 +597,8 @@ muss.
 - 2026-11-13: AK-7 changed (Zielstunde wählen); Glossar: Vorlage und Standbild auf `BoardBackground.image` korrigiert, Timer, Abdecken, Kaufangebot, Zustand des Materials, Übergabe ergänzt
 - 2026-11-13: FR-1.2 new — Zeitraster, abgeleitet aus FR-11 und FR-11.7 (Lücke beim Plan-Cold-Start-Check gefunden); Glossar um Zeitraster ergänzt; AK-42, Lieferstufen (41) und Abdeckung angepasst
 - 2026-11-13: FR-1.2 bestätigt von Andreas
+- 2026-11-14: FR-14 new — Datenort wählbar, iCloud oder Ordner in der Ablage (ADR-0010 löst ADR-0002 ab); AK-43, RISK-9, Glossar Datenort und Datenordner; Lieferstufen (42)
+- 2026-11-14: FR-6.1 changed — Stiftnotizen neben dem Dokument als Notiz-Datei und lesbares PDF (ADR-0011 löst ADR-0006 ab); FR-3.4 präzisiert (abgeleitete Dateien); AK-13 ergänzt; Glossar Notiz-Datei, Notiz-PDF
 
 ## Anhang A — Abdeckung
 
@@ -617,6 +650,7 @@ nicht (Geschäftsmodell, quer zu allen Phasen).
 | FR-12.7 | AK-39 |
 | FR-13 | AK-40 |
 | FR-13.1 | AK-41 |
+| FR-14 | AK-43 |
 | FR-7 | AK-14 |
 | FR-8 | AK-15 |
 | FR-9 | AK-16 |
