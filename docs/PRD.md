@@ -247,7 +247,26 @@ verteilen. Umgang: Konto vor dem ersten Test mit Lehrkräften einrichten.
 
 ## Abnahmekriterien
 
-Folgen, sobald die MVP-Liste nach Q-3/Q-4 feststeht.
+- AK-1 (FR-1): Aufbau: leerer Stundenplan. Handlung: Eintrag „Di, 2. Stunde, 8b, Englisch“ anlegen. Ergebnis: Die Tagesansicht jedes Dienstags zeigt in der 2. Stunde „8b Englisch“.
+- AK-2 (FR-1.1): Aufbau: A-Woche Mo 1. Stunde 7a, B-Woche Mo 1. Stunde 9c; Woche vom 16.11. ist A-Woche. Handlung: Tagesansichten Mo 16.11. und Mo 23.11. öffnen. Ergebnis: 16.11. zeigt 7a, 23.11. zeigt 9c.
+- AK-3 (FR-2): Aufbau: Schulmanager-Testkonto mit Stundenplan (3 Einträge). Handlung: Import auslösen. Ergebnis: Die 3 Einträge stehen im Stundenplan; ein vorher von Hand angelegter Eintrag geht dabei nicht stillschweigend verloren.
+- AK-4 (FR-3): Aufbau: Stundenplan mit „Di 2. Stunde 8b“, eine Präsentation in der Ablage. Handlung: am Mac die Präsentation der Unterrichtsstunde am kommenden Dienstag zuordnen. Ergebnis: Am Tablet zeigt die Tagesansicht dieses Dienstags die Präsentation in der 2. Stunde.
+- AK-5 (FR-3, Tablet): wie AK-4, Zuordnung aber am Tablet. Ergebnis: am Mac sichtbar.
+- AK-6 (FR-3.1): Aufbau: Unterrichtsstunde mit Präsentation, Arbeitsblatt, Lösung. Handlung: Lösung an Position 1 ziehen. Ergebnis: Tagesansicht zeigt Lösung, Präsentation, Arbeitsblatt.
+- AK-7 (FR-3.2): Aufbau: Di 2. Stunde 8a mit 2 Materialien, Mi 3. Stunde 8b ohne. Handlung: „Für 8b übernehmen“. Ergebnis: Mi 3. Stunde 8b hat dieselben 2 Materialien; in der Ablage liegen keine neuen Dateien.
+- AK-8 (FR-3.3): Aufbau: Di 8b mit Material X, nächste 8b-Stunde Do. Handlung: X „in die nächste Stunde“. Ergebnis: X steht am Do, nicht mehr am Di.
+- AK-9 (FR-3.4): Aufbau: Material zugeordnet, übernommen und geschoben. Handlung: Datei in der Ablage am Mac ändern. Ergebnis: Jede Unterrichtsstunde mit dieser Zuordnung öffnet den geänderten Stand; Dateianzahl in der Ablage unverändert.
+- AK-10 (FR-4): Aufbau: Dienstag mit 5 Unterrichtsstunden, davon 3 mit Material. Handlung: Tagesansicht öffnen. Ergebnis: alle 5 Unterrichtsstunden in zeitlicher Reihenfolge, mit Klasse, Fach und Material, ohne Scrollen auf einem 11"-Tablet.
+- AK-11 (FR-5): Aufbau: PowerPoint-Datei in iCloud Drive zugeordnet, PowerPoint installiert. Handlung: in der Tagesansicht antippen. Ergebnis: Die Datei öffnet in PowerPoint und lässt sich dort bearbeiten; die Änderung steht danach in der Ablage.
+- AK-12 (FR-5.1): Aufbau: PowerPoint-Datei in OneDrive, Lehrkraft mit Microsoft 365 angemeldet. Handlung: antippen, auf einer Folie zeichnen. Ergebnis: PowerPoint zeigt AutoSpeichern an; die Zeichnung ist binnen einer Minute am Mac in derselben Datei sichtbar.
+- AK-13 (FR-6): Aufbau: PDF zugeordnet. Handlung: antippen, mit dem Stift auf Seite 1 schreiben, schließen, erneut öffnen. Ergebnis: Die Notiz ist noch da.
+- AK-14 (FR-7): Aufbau: Herbstferien 2.–6.11. eingetragen, Material am 3.11. zugeordnet. Handlung: Tagesansicht 3.11. öffnen. Ergebnis: keine Unterrichtsstunden; das Material ist nicht verloren und lässt sich einer anderen Unterrichtsstunde zuordnen.
+- AK-15 (FR-8): Aufbau: Di 8b mit Material, nächste 8b-Stunde Do. Handlung: Di als Ausfall markieren, Material weiterreichen. Ergebnis: Di als Ausfall erkennbar, Material am Do.
+- AK-16 (FR-9): Handlung: Vertretungsstunde „Mi 4. Stunde 6c Mathe“ anlegen, Material zuordnen. Ergebnis: erscheint in der Tagesansicht am Mittwoch, nur an diesem Datum.
+- AK-17 (NFR-1): Aufbau: Material des Tages wurde morgens im WLAN geöffnet bzw. bereitgehalten; danach WLAN aus. Handlung: Material antippen. Ergebnis: es öffnet in unter 3 Sekunden.
+- AK-18 (NFR-2): Aufbau: Netzwerkmitschnitt während Einrichten, Vorbereiten und Unterricht. Ergebnis: keine Verbindung zu Servern des Produkts; nur Ablage-Anbieter, Apple, Microsoft (bei FR-5.1) und Schulmanager (bei FR-2).
+- AK-19 (NFR-3): Aufbau: je ein Material aus iCloud Drive, OneDrive und Google Drive. Handlung: zuordnen und öffnen. Ergebnis: alle drei öffnen.
+- AK-20 (NFR-4): Aufbau: Schulmanager-Import eingerichtet. Handlung: Gerätespeicher und Ablage nach dem Passwort durchsuchen. Ergebnis: nur im sicheren Speicher des Geräts (Schlüsselbund) gefunden.
 
 ## Changes
 
@@ -256,6 +275,7 @@ Folgen, sobald die MVP-Liste nach Q-3/Q-4 feststeht.
 - 2026-11-13: FR-3 changed — Vorbereiten auch am Tablet, Mac nicht Voraussetzung (Q-2); Nutzerschaft entsprechend
 - 2026-11-13: FR-1.1, FR-7, FR-7.1, FR-8, FR-9 new — Abweichungen vom Stundenplan (Q-5); Glossar um Wochenvariante, unterrichtsfreier Tag, Ausfall, Vertretungsstunde ergänzt
 - 2026-11-13: Lieferstufen changed — FR-2 und FR-5.1 als MVP bestätigt (Q-3, Q-4)
+- 2026-11-13: Abnahmekriterien new — AK-1 bis AK-20 für alle 19 MVP-Anforderungen
 - 2026-11-13: FR-10 new — Kalender-Abo als spätere Schnittstelle nach außen (Q-8)
 - 2026-11-13: FR-3.1 bis FR-3.4 new — Material je Stunde und Wiederverwenden (Q-6, Q-7); Glossar um Zuordnung ergänzt
 
@@ -271,4 +291,24 @@ Folgen, sobald die MVP-Liste nach Q-3/Q-4 feststeht.
 
 FR-10 gehört zu keiner Ablaufphase (Ausgabe nach außen, neben dem Ablauf).
 
-Tabelle 2 (MVP-Anforderung → Abnahmekriterium) folgt mit den Abnahmekriterien.
+| Anforderung | Abnahmekriterium |
+|---|---|
+| FR-1 | AK-1 |
+| FR-1.1 | AK-2 |
+| FR-2 | AK-3 |
+| FR-3 | AK-4, AK-5 |
+| FR-3.1 | AK-6 |
+| FR-3.2 | AK-7 |
+| FR-3.3 | AK-8 |
+| FR-3.4 | AK-9 |
+| FR-4 | AK-10 |
+| FR-5 | AK-11 |
+| FR-5.1 | AK-12 |
+| FR-6 | AK-13 |
+| FR-7 | AK-14 |
+| FR-8 | AK-15 |
+| FR-9 | AK-16 |
+| NFR-1 | AK-17 |
+| NFR-2 | AK-18 |
+| NFR-3 | AK-19 |
+| NFR-4 | AK-20 |
