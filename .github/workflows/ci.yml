@@ -24,10 +24,17 @@ jobs:
       - name: Pick iPad simulator
         id: sim
         run: |
-          SDK=$(xcrun --sdk iphonesimulator --show-sdk-version | tr . -)
+          # Nur major.minor des SDK; Laufzeit-Schlüssel enden auf iOS-26-0 oder iOS-26-0-1 (Patch-Laufzeit)
+          SDK=$(xcrun --sdk iphonesimulator --show-sdk-version | cut -d. -f1-2 | tr . -)
           echo "iPhoneSimulator SDK: $SDK"
-          PICK=$(xcrun simctl list devices available --json | jq -r --arg sdk "$SDK" '[.devices | to_entries[] | select(.key | endswith("iOS-" + $sdk)) | .key as $rt | .value[] | select(.name | startswith("iPad")) | "\(.udid) \($rt) \(.name)"][0] // empty')
-          if [ -z "$PICK" ]; then echo "Kein iPad-Simulator für iOS-$SDK gefunden."; xcrun simctl list devices available; exit 1; fi
+          DEVICES=$(xcrun simctl list devices available --json)
+          PICK=$(echo "$DEVICES" | jq -r --arg sdk "$SDK" '[.devices | to_entries[] | select(.key | test("iOS-" + $sdk + "(-[0-9]+)*$")) | .key as $rt | .value[] | select(.name | startswith("iPad")) | "\(.udid) \($rt) \(.name)"][0] // empty')
+          if [ -z "$PICK" ]; then
+            # Rückfall: neueste iOS-Laufzeit mit iPad, Versionen numerisch sortiert
+            PICK=$(echo "$DEVICES" | jq -r '[.devices | to_entries[] | select(.key | test("\\.iOS-[0-9-]+$")) | .key as $rt | ($rt | capture("iOS-(?<v>[0-9-]+)$").v | split("-") | map(tonumber)) as $ver | .value[] | select(.name | startswith("iPad")) | {ver: $ver, line: "\(.udid) \($rt) \(.name)"}] | sort_by(.ver) | reverse | .[0].line // empty')
+            if [ -n "$PICK" ]; then echo "Rückfall: keine Laufzeit für iOS-$SDK, nehme neueste verfügbare iOS-Laufzeit."; fi
+          fi
+          if [ -z "$PICK" ]; then echo "Kein iPad-Simulator gefunden (SDK iOS-$SDK)."; xcrun simctl list devices available; exit 1; fi
           UDID=${PICK%% *}
           echo "Gewählt: $PICK"
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
