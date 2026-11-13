@@ -6,7 +6,7 @@
 <title>Zweitbildschirm – Mockup</title>
 <!--
   Mockup: Zweitbildschirm (Smartboard über Apple TV). Veranschaulichung, kein Gestaltungsbeschluss.
-  Anforderungen: FR-6.2, FR-11, FR-11.1 bis FR-11.4. Vorschlag (nicht beschlossen): Q-25.
+  Anforderungen: FR-6.2, FR-11, FR-11.1 bis FR-11.4. FR-11.7.
   Zustände direkt über den URL-Hash: #vor #stunde #timer #signal #partner #leer #ende #frei
   #material #tafel #dunkel – Zusätze mit „+“: z. B. #material+timer, #stunde+pause+partner, #tafel+light.
 -->
@@ -244,10 +244,10 @@
   <div class="row">
     <span class="lab">Mockup-Steuerung</span>
     <span class="seg" role="group" aria-label="Zustand des Zweitbildschirms" id="views">
-      <button type="button" data-view="vor">Vor der Stunde<span class="vs">Vorschlag</span></button>
+      <button type="button" data-view="vor">Vor der Stunde</button>
       <button type="button" data-view="stunde">In der Stunde</button>
-      <button type="button" data-view="ende">Stundenende<span class="vs">Vorschlag</span></button>
-      <button type="button" data-view="frei">Kein Unterricht mehr<span class="vs">Vorschlag</span></button>
+      <button type="button" data-view="ende">Stundenende</button>
+      <button type="button" data-view="frei">Kein Unterricht mehr</button>
       <button type="button" data-view="material">Material</button>
       <button type="button" data-view="tafel">Tafel</button>
       <button type="button" data-view="dunkel">Dunkel</button>
@@ -406,7 +406,7 @@
     if (v === "vor") {
       h += '<div class="head"><div><div class="soon">Gleich:</div><div class="who"><span class="klasse">' + esc(LESSON.klasse) + '</span><span class="fach">' + esc(LESSON.fach) + '</span></div></div>' +
         '<div class="time"><div class="clock" data-clock></div></div></div>';
-      h += '<div class="main"><div class="countline"><span class="lbl">Beginn in</span><span class="count" data-countdown></span></div></div>';
+      h += '<div style="height:120px"></div>';
       if (LESSON.bereitlegen) h += '<div><div class="lbl">Bitte bereitlegen:</div><div class="big">' + esc(LESSON.bereitlegen) + '</div></div>';
     } else if (v === "stunde") {
       var thema = S.thema ? LESSON.thema : "";
@@ -542,10 +542,10 @@
   }
 
   var NOTES = {
-    vor: '<b>Vorschlag (Q-25), nicht beschlossen:</b> vor Beginn „Gleich: Klasse Fach“, Countdown bis 8:35 und was bereitzulegen ist.',
+    vor: '<b>FR-11.7:</b> vor Beginn „Gleich: Klasse Fach“ und was bereitzulegen ist.',
     stunde: '<b>FR-11:</b> Klasse, Fach, Uhrzeit, Stundenende; Thema (FR-11.1), Timer (FR-11.2) und Arbeitsform (FR-11.3), wenn gesetzt. Leere Felder erzeugen keine Zeile.',
-    ende: '<b>Vorschlag (Q-25), nicht beschlossen:</b> in den letzten Minuten die Hausaufgabe groß.',
-    frei: '<b>Vorschlag (Q-25), nicht beschlossen:</b> kommt heute keine Unterrichtsstunde mehr, nur Uhrzeit und Datum.',
+    ende: '<b>FR-11.7:</b> in den letzten fünf Minuten die Hausaufgabe groß.',
+    frei: '<b>FR-11.7:</b> kommt heute keine Unterrichtsstunde mehr, nur Uhrzeit und Datum.',
     material: '<b>FR-6.2:</b> die PDF-Seite mit Stiftnotizen im Vollbild, ohne Bedienelemente. Ein laufender Timer liegt als Schicht in der Ecke.',
     tafel: '<b>FR-12:</b> die Tafelseite (kariert) ohne Bedienelemente. Ein laufender Timer liegt als Schicht in der Ecke.',
     dunkel: '<b>FR-11.4:</b> schwarz, nichts – auch kein Timer (er läuft am Tablet weiter).'

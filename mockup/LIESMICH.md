@@ -43,8 +43,9 @@ Bereitlegen „Buch, Heft, Vokabelheft“, Hausaufgabe „Workbook S. 34, Nr. 2 
 Arbeitsform Partnerarbeit. Voriges Tafelbild der 8b Englisch: Mo 16.11. gab es keine 8b – nimm
 Do 12.11., 3. Stunde, zwei Seiten. Raum des Apple TV: „Raum 204“.
 
-Vorschläge, die in den Mockups gezeigt, aber **nicht beschlossen** sind (Q-24, Q-25 im PRD), tragen
-außerhalb des Geräterahmens den Vermerk „Vorschlag“.
+Die in den Mockups zuerst als „Vorschlag“ gezeigten Funktionen sind seit 2026-11-13 Anforderungen:
+Klassenbildschirm im Verlauf der Stunde ohne Countdown (FR-11.7), Kamera, Vorlage, Abdecken
+(FR-12.5 bis FR-12.7).
 
 ## Gemeinsamer Rahmen für alle Mockups
 
@@ -87,9 +88,9 @@ Stellen, an denen beim Bauen mangels Beschluss eine Annahme nötig war — Kandi
   beides).
 - **Klassenbildschirm:** Aufbau, Schriftgrößen für die Entfernung, hell oder dunkel, Form des
   Timer-Signals und wie lange es steht. Der Verlauf vor der Stunde, am Stundenende und ohne Unterricht
-  ist Vorschlag (Q-25), ebenso die Teilung in „Bereitlegen“ und „Hausaufgabe“.
+  ist als FR-11.7 beschlossen, sein Aussehen nicht.
 - **Tafel:** hell oder dunkel, Stiftfarben, Radierer löscht ganze Striche, Seitenformat 16:9. Kamera,
-  Vorlage und Abdecken sind Vorschlag (Q-24).
+  Vorlage und Abdecken sind als FR-12.5 bis FR-12.7 beschlossen, ihre Form nicht.
 - **Anzeige:** Wie der Hinweis „Notizen zu einer früheren Fassung“ aussieht und was er anbietet.
 - „So verbinden“ (FR-11.6) ist in den Mockups ein schlichter Dialog; Wortlaut und Form sind offen.
 

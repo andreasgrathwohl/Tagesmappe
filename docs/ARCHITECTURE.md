@@ -99,8 +99,8 @@ Vorgabewert, alle Beziehungen sind optional, und kein Modell nutzt Eindeutigkeit
 | Zuordnung | Schlüssel der Unterrichtsstunde, Position, Verweis auf das Material | FR-3, FR-3.1 |
 | Materialverweis | Ordnerfreigabe, Pfad darin, ggf. OneDrive-Kennung, Anzeigename, Dateiart | gemäß ADR-0003 |
 | Stiftnotiz | Verweis auf die Zuordnung, Seite (bei Bildern 1), Zeichnungsdaten, Seitengröße beim Zeichnen | gemäß ADR-0006, FR-6.1; s. Area anzeige |
-| Stundenangaben | Schlüssel der Unterrichtsstunde, Thema, Hinweis | FR-11.1; höchstens ein Datensatz je Unterrichtsstunde |
-| Tafelseite | Schlüssel der Unterrichtsstunde, Position, Hintergrund (leer, liniert, kariert), Zeichnungsdaten | FR-12.1, FR-12.2; die Tafelseiten einer Unterrichtsstunde bilden ihr Tafelbild; s. Area anzeige |
+| Stundenangaben | Schlüssel der Unterrichtsstunde, Thema, Bereitlegen, Hausaufgabe | FR-11.1; höchstens ein Datensatz je Unterrichtsstunde |
+| Tafelseite | Schlüssel der Unterrichtsstunde, Position, Hintergrund (leer, liniert, kariert oder ein Bild: Standbild der Kamera bzw. Vorlage, FR-12.5, FR-12.6), Zeichnungsdaten | FR-12.1, FR-12.2; die Tafelseiten einer Unterrichtsstunde bilden ihr Tafelbild; s. Area anzeige |
 | Ordnerfreigabe | dauerhafter Systemverweis auf einen freigegebenen Ordner | **nur lokal je Gerät**, nicht gespiegelt (s. Area ablage) |
 
 **Unterrichtsstunden werden nicht gespeichert, sondern berechnet:** aus Stundenplan, Wochenvariante des
@@ -290,7 +290,9 @@ Schreiben), und der Übergang zwischen eigener Szene und Spiegelung beim App-Wec
 - Klasse, Fach und Stundenende kommen aus der berechneten laufenden Unterrichtsstunde (Area daten),
   Thema und Hinweis aus den Stundenangaben (FR-11.1). Er bekommt nur die Daten dieser einen
   Unterrichtsstunde gereicht – so kann er nichts anderer Klassen und keine Dateinamen zeigen (FR-11).
-- Was er zeigt, wenn keine Unterrichtsstunde läuft, ist offen (Q-25 im PRD).
+- Welche Fassung er zeigt (vor Beginn, während, letzte fünf Minuten, kein Unterricht mehr), wird aus
+  Uhrzeit und den berechneten Unterrichtsstunden des Tages abgeleitet, nicht gespeichert (FR-11.7).
+  Ausfälle zählen nicht mit. Vor Beginn bekommt er die Daten der nächsten Unterrichtsstunde gereicht.
 - Der Timer liegt als eigene Schicht über allen Zuständen außer Dunkel, damit er auch über Material
   und Tafel sichtbar bleibt; am Ende gibt er ein sichtbares und hörbares Signal (FR-11.2). Der Ton
   läuft über die Tonausgabe des Systems und damit bei AirPlay über den Bildschirm im Klassenraum.
@@ -313,6 +315,17 @@ Schreiben), und der Übergang zwischen eigener Szene und Spiegelung beim App-Wec
   Materials (FR-3.4 betrifft Material, nicht Tafelbilder).
 - Geschrieben wird am Tablet. Am Mac lassen sich Tafelbilder ansehen und als PDF sichern, nicht
   zeichnen (wie bei Stiftnotizen).
+- **Kamera (FR-12.5):** Das Livebild der Kamera läuft als Hintergrund unter der Stiftschicht und
+  wird nicht gespeichert. „Standbild“ legt eine neue Tafelseite an, deren Hintergrund das Bild ist
+  (ausgelagerter Anhang wie die Zeichnungsdaten). Die App braucht dafür die Kamerafreigabe des
+  Systems; ohne sie fehlt nur diese Funktion. Standbilder können Arbeiten von Schülerinnen und
+  Schülern zeigen – sie liegen wie alle App-Daten nur im iCloud-Bereich der Lehrkraft (NFR-2).
+- **Vorlage (FR-12.6):** Die gewählte Seite oder ihr Ausschnitt wird einmal als Bild gerendert und
+  als Hintergrund der neuen Tafelseite gespeichert. Die Tafelseite hält damit ein Abbild, keinen
+  Verweis: Ändert sich die Datei später, bleibt die Tafelseite, wie sie war. Das ist keine Kopie der
+  Datei im Sinn von FR-3.4 – in der Ablage entsteht nichts, und das Material bleibt der eine Stand.
+- **Abdecken (FR-12.7):** Die Abdeckung gehört zum flüchtigen Zustand des Zweitbildschirms, nicht zum
+  Tafelbild. Die Szene auf dem Zweitbildschirm zeichnet sie deckend, die am Tablet durchscheinend.
 
 ### Stiftnotizen
 
@@ -353,3 +366,4 @@ gespiegelt (ADR-0002); gemäß FR-6.1 gehören sie zur Zuordnung.
 - 2026-11-13: anzeige changed — Zweitbildschirm über eigene Szene statt reiner Spiegelung (FR-6.2); vorher: „Präsentiert wird über die Bildschirmspiegelung des Systems (AirPlay); die App baut keine eigene Übertragung.“
 - 2026-11-13: anzeige changed — vier Zustände des Zweitbildschirms, Klassenbildschirm und Tafel (FR-11, FR-12); daten changed — Modelle Stundenangaben und Tafelseite, Nebenläufigkeit ergänzt
 - 2026-11-13: anzeige changed — Timer als Schicht über allen Zuständen (FR-11.2); Verbindung wird erkannt, nicht gestartet (FR-11.6)
+- 2026-11-13: anzeige changed — Klassenbildschirm im Verlauf der Stunde (FR-11.7), Kamera, Vorlage, Abdecken (FR-12.5 bis FR-12.7); daten changed — Stundenangaben mit Bereitlegen und Hausaufgabe, Tafelseite mit Bild als Hintergrund

@@ -341,7 +341,7 @@
 
 <div class="stage-wrap"><div class="stage" id="stage"><div class="device" id="device">
 
-  <div class="note-out" style="top:96px"><b>Vorschlag</b><br>◀ Kamera, Vorlage, Abdecken: Q‑24, nicht beschlossen</div>
+  <div class="note-out" style="top:96px">◀ Kamera, Vorlage, Abdecken: FR‑12.5 bis FR‑12.7</div>
 
   <div class="screen" id="screen">
 
@@ -1019,7 +1019,7 @@ window.addEventListener("error", function (e) {
     var items = ["blank", "lined", "grid"].map(function (b) {
       return '<button class="item" type="button" role="menuitemradio" aria-checked="' + (pg.bg === b) + '" data-v="' + b + '"><span style="display:flex;gap:12px;align-items:center"><i class="bg-ico" style="background-image:' + sw[b] + '"></i>' + BGNAME[b] + "</span>" + (pg.bg === b ? '<span class="ck">' + I.check + "</span>" : "") + "</button>";
     }).join("");
-    if (pg.bg === "image" || pg.bg === "camera") items += '<button class="item" type="button" aria-disabled="true" aria-checked="true"><span>' + BGNAME[pg.bg] + "<small>Vorschlag Q-24 · über Leer, Liniert oder Kariert ersetzen</small></span>" + '<span class="ck">' + I.check + "</span></button>";
+    if (pg.bg === "image" || pg.bg === "camera") items += '<button class="item" type="button" aria-disabled="true" aria-checked="true"><span>' + BGNAME[pg.bg] + "<small>über Leer, Liniert oder Kariert ersetzen</small></span>" + '<span class="ck">' + I.check + "</span></button>";
     openPop($("t-bg"), '<div class="ptitle"><b>Hintergrund von Seite ' + (curP + 1) + "</b>Gilt nur für diese Seite</div>" + items, 300, function (v) {
       if (v === pg.bg) return;
       pg.undo.push({ t: "bg", from: { bg: pg.bg, img: pg.img, src: pg.src } }); pg.bg = v; pg.img = null; pg.src = null;
@@ -1036,7 +1036,7 @@ window.addEventListener("error", function (e) {
   $("cam-cancel").onclick = camStop;
   $("cam-still").onclick = function () {
     camStop(); addPage({ bg: "camera", img: camImg, strokes: [], undo: [] });
-    toast("Standbild eingefroren: Es ist der Hintergrund der neuen Seite " + (curP + 1) + " – darauf schreiben. (Vorschlag Q-24)");
+    toast("Standbild eingefroren: Es ist der Hintergrund der neuen Seite " + (curP + 1) + " – darauf schreiben.");
   };
 
   // Vorschlag (b): Vorlage aus dem Material der Stunde oder aus der Ablage
@@ -1058,13 +1058,13 @@ window.addEventListener("error", function (e) {
     var k = 520 / 842, crop = { x: 34, y: 112, w: 520, h: 270 };
     function placeCrop() { var c = $("crop"); c.style.left = crop.x * k + "px"; c.style.top = crop.y * k + "px"; c.style.width = crop.w * k + "px"; c.style.height = crop.h * k + "px"; }
     $("tp-x").onclick = closeScrim;
-    $("tp-all").onclick = function () { closeScrim(); addPage({ bg: "image", img: wsImg, src: null, strokes: [], undo: [] }); toast("Arbeitsblatt Vokabeln, Seite 1 ist Hintergrund der neuen Seite " + (curP + 1) + ". (Vorschlag Q-24)"); };
+    $("tp-all").onclick = function () { closeScrim(); addPage({ bg: "image", img: wsImg, src: null, strokes: [], undo: [] }); toast("Arbeitsblatt Vokabeln, Seite 1 ist Hintergrund der neuen Seite " + (curP + 1) + "."); };
     $("tp-crop").onclick = function () {
       $("crop").classList.add("on"); placeCrop();
       $("tp-hint").textContent = "Rahmen verschieben, an der Ecke unten rechts die Größe ändern. Der Ausschnitt wird vergrößert.";
       $("tp-btns").innerHTML = '<button class="btn" type="button" id="tp-back">Ganze Seite</button><button class="btn prominent" type="button" id="tp-take">Ausschnitt übernehmen</button>';
       $("tp-back").onclick = function () { closeScrim(); openTemplate(); };
-      $("tp-take").onclick = function () { closeScrim(); addPage({ bg: "image", img: wsImg, src: [crop.x, crop.y, crop.w, crop.h], strokes: [], undo: [] }); toast("Ausschnitt aus Arbeitsblatt Vokabeln ist Hintergrund der neuen Seite " + (curP + 1) + ". (Vorschlag Q-24)"); };
+      $("tp-take").onclick = function () { closeScrim(); addPage({ bg: "image", img: wsImg, src: [crop.x, crop.y, crop.w, crop.h], strokes: [], undo: [] }); toast("Ausschnitt aus Arbeitsblatt Vokabeln ist Hintergrund der neuen Seite " + (curP + 1) + "."); };
     };
     var drag = null, cEl = $("crop");
     cEl.addEventListener("pointerdown", function (e) {
