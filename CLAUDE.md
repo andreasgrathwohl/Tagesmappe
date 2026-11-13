@@ -5,8 +5,11 @@ Stand jeder Ebene steht im Frontmatter des jeweiligen Dokuments.
 
 ## Bauen und Testen
 
-- **Kein Swift-Compiler auf dem Entwicklungsrechner (Windows).** Nie versuchen, lokal zu bauen. Gebaut
-  und getestet wird nur per GitHub Actions auf macOS oder auf einem Mac.
+- **Swift für Windows ist installiert (6.4.2), aber nur für das Kern-Paket.** `Packages/FrontstageCore`
+  (nur `Foundation`) lokal testen mit `.\scripts\swift-test.ps1` (lädt Swift- und Visual-Studio-Umgebung;
+  `-Filter <Test>` für einzelne Tests). Die App (SwiftUI, SwiftData, UIKit) lässt sich auf Windows nicht
+  bauen: Gebaut und getestet wird sie nur per GitHub Actions auf macOS oder auf einem Mac. Maßgeblich
+  bleibt der CI-Lauf auf macOS – Foundation unter Windows weicht in Einzelheiten ab.
 - **CI kostet Geld:** nur bei Tags oder manuell (`workflow_dispatch`), nie bei jedem Push. Änderungen
   sammeln, Diff sorgfältig auf Compilerfehler durchsehen, dann ein Lauf.
 - Swift/SwiftUI ist für den Entwickler Neuland: nicht offensichtliche Idiome und Framework-Eigenheiten
