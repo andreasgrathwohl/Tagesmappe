@@ -24,6 +24,6 @@ etwas hier von `docs/` oder `DESIGN.md` ab, gilt das Dokument; das Wiki wird im 
 | Ebene | Status |
 |---|---|
 | PRD | ready (2026-11-13) |
-| ADRs | noch nicht begonnen |
-| Architecture Doc | noch nicht begonnen |
+| ADRs | in Klärung – ADR-0001 bis ADR-0005 beschlossen (2026-11-13) |
+| Architecture Doc | Bereichsliste angelegt, noch nicht ausgearbeitet |
 | UI Spec (`DESIGN.md`) | noch nicht begonnen |

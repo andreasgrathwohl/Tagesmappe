@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-11-13
 reversibility: one-way
 area: daten
@@ -34,7 +34,7 @@ mit Verlustrisiko.
 
 Chosen option: "Datum + Klasse + Fach + laufende Nummer am Tag", because das Material für „8b Englisch
 am Dienstag“ vorbereitet wird und auch dann dort bleiben soll, wenn die Stunde im Plan verschoben wird.
-**Vorgeschlagen, wartet auf Bestätigung (Q-14).**
+Andreas bestätigte am 2026-11-13: Das Material folgt der Klasse (Q-14).
 
 ### Consequences
 
@@ -76,4 +76,4 @@ am Dienstag“ vorbereitet wird und auch dann dort bleiben soll, wenn die Stunde
 
 ## Open Questions
 
-- Q-14: Soll vorbereitetes Material der Klasse folgen, wenn deren Stunde im Stundenplan verschoben wird (Vorschlag), oder am Zeitfeld bleiben?
+- ~~Q-14~~: Soll vorbereitetes Material der Klasse folgen, wenn deren Stunde im Stundenplan verschoben wird (Vorschlag), oder am Zeitfeld bleiben? → answered 2026-11-13: Es folgt der Klasse.

@@ -7,7 +7,7 @@ bleibt in der eigenen Ablage (iCloud Drive, OneDrive, Google Drive, …) und ist
 Stand.
 
 > **Stand:** Spezifikation. Die Anforderungen sind freigegeben (`docs/PRD.md`, `status: ready`);
-> als Nächstes folgen die Architekturentscheidungen. Es gibt noch keinen Code.
+> die ersten fünf Architekturentscheidungen sind beschlossen (`docs/adr/`). Es gibt noch keinen Code.
 
 ## Worum es geht
 
@@ -26,8 +26,8 @@ Stand.
 | Dokument | Inhalt |
 |---|---|
 | [docs/PRD.md](docs/PRD.md) | Was, für wen, warum: Glossar, Anforderungen, Lieferstufen, Risiken, offene Fragen, Abnahmekriterien |
-| `docs/adr/` | Architekturentscheidungen (folgen) |
-| `docs/ARCHITECTURE.md` | Wie gebaut wird, je Bereich (folgt) |
+| [docs/adr/](docs/adr/) | Architekturentscheidungen, je Entscheidung eine Datei |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Wie gebaut wird, je Bereich (Bereichsliste steht, Ausarbeitung folgt) |
 | `DESIGN.md` | Gestaltungsbeschlüsse (folgt) |
 | [wiki/](wiki/Home.md) | Einstieg, Überblick und Wegweiser in die Dokumente |
 
@@ -35,7 +35,8 @@ Maßgeblich sind immer die Dokumente unter `docs/` und `DESIGN.md`; das Wiki ver
 
 ## Entwicklung
 
-- Native Apple-App für iPad und Mac (Entscheidung wird als ADR festgehalten).
+- Native Apple-App für iPad und Mac (ADR-0001); Daten im privaten iCloud-Bereich der Lehrkraft
+  (ADR-0002); Material über die Dateien-App, OneDrive zusätzlich direkt (ADR-0003).
 - Projektlokaler Claude-Code-Skill `apple-design` (Apple Human Interface Guidelines). Er ist nicht im
   Repo enthalten (Inhalt ohne Lizenz bzw. Apple-Texte); wiederherstellen mit
   `npx skills add dickwu/apple-design-skill --skill apple-design -y`.

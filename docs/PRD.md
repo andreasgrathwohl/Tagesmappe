@@ -97,6 +97,11 @@ bietet keine offizielle Schnittstelle; die Anbindung ist inoffiziell (siehe RISK
 
 Als weitere Stundenplan-Quelle — vom Nutzer genannt („Untis könnte noch angebunden werden“).
 
+### FR-2.2 — Vertretungen aus Schulmanager morgens sichtbar [MVP]
+
+Nutzt die Lehrkraft den Schulmanager-Import, zeigt die Tagesansicht Vertretungen und Änderungen des
+Tages bereits am Morgen desselben Tages. Vom Nutzer: „müssen morgens da sein“ (Q-15).
+
 ### FR-3 — Material Unterrichtsstunden zuordnen [MVP]
 
 Die Lehrkraft ordnet Material aus ihrer Ablage den Unterrichtsstunden der kommenden Tage zu — für
@@ -189,8 +194,8 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 
 ## Lieferstufen
 
-- **MVP:** FR-1, FR-1.1, FR-2, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-7, FR-8, FR-9,
-  NFR-1 bis NFR-4 (geprüfte Zahl: 19). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
+- **MVP:** FR-1, FR-1.1, FR-2, FR-2.2, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-7, FR-8,
+  FR-9, NFR-1 bis NFR-4 (geprüfte Zahl: 20). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
 - **Later:** FR-2.1, FR-7.1, FR-10.
 
 ## Out of Scope
@@ -211,8 +216,10 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 
 Schulmanager Online hat keine offizielle Schnittstelle; inoffizielle Bibliotheken warnen selbst vor
 Risiken und vor häufigen Abfragen. Umgang: Import nur auf ausdrücklichen Wunsch der Lehrkraft und
-selten (nicht dauernd), von Hand gepflegter Stundenplan bleibt immer möglich (FR-1), parallel den
-Anbieter nach einer offiziellen Partnerschaft fragen.
+selten — einmal je Morgen und auf Knopfdruck, nicht dauernd (ADR-0004) —, von Hand gepflegter
+Stundenplan bleibt immer möglich (FR-1), parallel den Anbieter nach einer offiziellen Partnerschaft
+fragen. Ob die inoffizielle Schnittstelle für Lehrerkonten Stundenplan und Vertretungen liefert, ist
+ungeprüft (Q-16).
 
 ### RISK-2 — Öffnen aus der Ablage ohne AutoSpeichern
 
@@ -244,6 +251,7 @@ verteilen. Umgang: Konto vor dem ersten Test mit Lehrkräften einrichten.
 - Q-10: Zielmarkt — nur deutschsprachige Schulen, oder international?
 - ~~Q-11~~: Gehören Android-Tablets und Windows dazu? → answered 2026-11-13: vorerst nein — Andreas stimmte einer nativen Apple-App für iPad und Mac zu, mit der Folge, dass Android-Tablets vorerst wegfallen (wird als ADR festgehalten).
 - Q-12: Woran wird Erfolg gemessen, ohne eigene Server?
+- Q-16: Liefert die inoffizielle Schulmanager-Schnittstelle für Lehrerkonten den Stundenplan und die Vertretungen? (Bisher nur für Eltern-/Schülerkonten belegt; Prüfung mit einem echten Lehrerkonto nötig.) → referred to docs/adr/0004-schulmanager-als-austauschbarer-importbaustein.md
 - ~~Q-13~~: Ist das Tablet persönlich, oder teilen sich Lehrkräfte Geräte? (Wer gilt dann als handelnde Person?) → answered 2026-11-13: persönlich — ein Tablet gehört einer Lehrkraft; handelnde Person ist immer die Besitzerin bzw. der Besitzer des Geräts. Keine Mehrbenutzer-Anmeldung auf einem Gerät.
 
 ## Abnahmekriterien
@@ -251,6 +259,7 @@ verteilen. Umgang: Konto vor dem ersten Test mit Lehrkräften einrichten.
 - AK-1 (FR-1): Aufbau: leerer Stundenplan. Handlung: Eintrag „Di, 2. Stunde, 8b, Englisch“ anlegen. Ergebnis: Die Tagesansicht jedes Dienstags zeigt in der 2. Stunde „8b Englisch“.
 - AK-2 (FR-1.1): Aufbau: A-Woche Mo 1. Stunde 7a, B-Woche Mo 1. Stunde 9c; Woche vom 16.11. ist A-Woche. Handlung: Tagesansichten Mo 16.11. und Mo 23.11. öffnen. Ergebnis: 16.11. zeigt 7a, 23.11. zeigt 9c.
 - AK-3 (FR-2): Aufbau: Schulmanager-Testkonto mit Stundenplan (3 Einträge). Handlung: Import auslösen. Ergebnis: Die 3 Einträge stehen im Stundenplan; ein vorher von Hand angelegter Eintrag geht dabei nicht stillschweigend verloren.
+- AK-21 (FR-2.2): Aufbau: Schulmanager-Testkonto; für heute ist dort seit gestern Abend eine Vertretung „3. Stunde 6c“ eingetragen; Tablet war über Nacht gesperrt. Handlung: Tablet um 7:30 Uhr entsperren und Tagesansicht öffnen. Ergebnis: Die Vertretung steht in der 3. Stunde, spätestens wenige Sekunden nach dem Öffnen; die Ansicht zeigt, von wann der Stand ist.
 - AK-4 (FR-3): Aufbau: Stundenplan mit „Di 2. Stunde 8b“, eine Präsentation in der Ablage. Handlung: am Mac die Präsentation der Unterrichtsstunde am kommenden Dienstag zuordnen. Ergebnis: Am Tablet zeigt die Tagesansicht dieses Dienstags die Präsentation in der 2. Stunde.
 - AK-5 (FR-3, Tablet): wie AK-4, Zuordnung aber am Tablet. Ergebnis: am Mac sichtbar.
 - AK-6 (FR-3.1): Aufbau: Unterrichtsstunde mit Präsentation, Arbeitsblatt, Lösung. Handlung: Lösung an Position 1 ziehen. Ergebnis: Tagesansicht zeigt Lösung, Präsentation, Arbeitsblatt.
@@ -276,6 +285,7 @@ verteilen. Umgang: Konto vor dem ersten Test mit Lehrkräften einrichten.
 - 2026-11-13: FR-3 changed — Vorbereiten auch am Tablet, Mac nicht Voraussetzung (Q-2); Nutzerschaft entsprechend
 - 2026-11-13: FR-1.1, FR-7, FR-7.1, FR-8, FR-9 new — Abweichungen vom Stundenplan (Q-5); Glossar um Wochenvariante, unterrichtsfreier Tag, Ausfall, Vertretungsstunde ergänzt
 - 2026-11-13: Lieferstufen changed — FR-2 und FR-5.1 als MVP bestätigt (Q-3, Q-4)
+- 2026-11-13: FR-2.2 new — Vertretungen aus Schulmanager müssen morgens da sein (Q-15); AK-21, RISK-1 und Lieferstufen (20) angepasst; Q-16 neu
 - 2026-11-13: Out of Scope changed — Verweise auf ADR-0001 (Android/Windows) und ADR-0002 (geteilte Tablets) statt „wird ADR“
 - 2026-11-13: PRD status ready — freigegeben von Andreas; offen bleiben Q-1, Q-9, Q-10, Q-12 (blockieren die ADR-Ebene nicht)
 - 2026-11-13: Abnahmekriterien new — AK-1 bis AK-20 für alle 19 MVP-Anforderungen
@@ -288,7 +298,7 @@ verteilen. Umgang: Konto vor dem ersten Test mit Lehrkräften einrichten.
 |---|---|
 | 1 Stundenplan einrichten | FR-1, FR-1.1, FR-2, FR-2.1, FR-7, FR-7.1 |
 | 2 Vorbereiten | FR-3, FR-3.1 bis FR-3.4, FR-8, FR-9 |
-| 3 Tagesansicht | FR-4 |
+| 3 Tagesansicht | FR-4, FR-2.2 |
 | 4 Öffnen und präsentieren | FR-5, FR-5.1, FR-6 |
 | 5 Änderungen in der Ablage | FR-5.1, NFR-1 |
 
@@ -299,6 +309,7 @@ FR-10 gehört zu keiner Ablaufphase (Ausgabe nach außen, neben dem Ablauf).
 | FR-1 | AK-1 |
 | FR-1.1 | AK-2 |
 | FR-2 | AK-3 |
+| FR-2.2 | AK-21 |
 | FR-3 | AK-4, AK-5 |
 | FR-3.1 | AK-6 |
 | FR-3.2 | AK-7 |

@@ -13,5 +13,8 @@ Hier steht bewusst keine Liste der ADRs.
 
 ## Open Questions
 
-- Q-14: siehe `docs/ARCHITECTURE.md` (ADR-0005, one-way, proposed) → referred to docs/ARCHITECTURE.md
-- Q-15: siehe `docs/ARCHITECTURE.md` (ADR-0004, proposed) → referred to docs/ARCHITECTURE.md
+- ~~Q-14~~: Identität der Unterrichtsstunde → answered 2026-11-13: ADR-0005 accepted
+- ~~Q-15~~: Abfragehäufigkeit Schulmanager → answered 2026-11-13: ADR-0004 accepted
+
+Offen und für die ADR-Ebene relevant, aber im PRD geführt: Q-16 (liefern Lehrerkonten Stundenplan und
+Vertretungen?).
