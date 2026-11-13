@@ -103,3 +103,13 @@ public struct CalendarDay: Hashable, Comparable, Codable, Sendable {
     self.day = day
   }
 }
+
+/// Rest mit Vorzeichen des Teilers (Abrundung): `floorMod(-1, 7) == 6`.
+func floorMod(_ a: Int, _ n: Int) -> Int {
+  ((a % n) + n) % n
+}
+
+/// Ganzzahldivision mit Abrundung: `floorDiv(-1, 7) == -1` (Swifts `/` schneidet zu 0 hin ab).
+func floorDiv(_ a: Int, _ n: Int) -> Int {
+  (a - floorMod(a, n)) / n
+}
