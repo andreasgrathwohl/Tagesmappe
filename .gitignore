@@ -1,0 +1,4 @@
+# Projektlokale Skills: nur skills-lock.json wird versioniert (Inhalt ohne Lizenz bzw. mit Apple-Texten nicht weiterverteilen).
+# Wiederherstellen: npx skills add dickwu/apple-design-skill --skill apple-design -y
+/.agents/
+/.claude/skills/
