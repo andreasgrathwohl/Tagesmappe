@@ -49,7 +49,9 @@ Stellen, an denen beim Bauen mangels Beschluss eine Annahme nötig war — Kandi
   noch lädt?
 - **Stand der Stundenplan-Quelle:** Ort, und wie ein veralteter Stand aussieht.
 - **Q-19** (was bei Bildschirmspiegelung sichtbar sein darf) ist in keinem Mockup berücksichtigt.
-- Nicht dargestellt: die Anzeige von PDFs und Bildern mit Stift (FR-6, FR-6.1).
+- Nicht dargestellt: die Anzeige von PDFs und Bildern mit Stift (FR-6, FR-6.1), der Zweitbildschirm
+  mit Klassenbildschirm (FR-6.2, FR-11) und die Tafel (FR-12). Die Tagesansicht im Mockup hat noch
+  weder Vorschaubild noch Umschalter (FR-11.5).
 
 ## Gemeinsame Beispieldaten
 

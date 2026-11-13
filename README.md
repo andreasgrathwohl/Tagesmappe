@@ -21,6 +21,9 @@ Stand.
   Bilder zeigt die App selbst, mit Stift; diese Stiftnotizen gelten je Unterrichtsstunde und lassen
   die Datei unverändert. Das Smartboard zeigt dabei als Zweitbildschirm nur das Material – die
   Tagesansicht bleibt auf dem iPad.
+- **Smartboard und Tafel**: Ist nichts geöffnet, zeigt das Smartboard einen Klassenbildschirm (Klasse,
+  Fach, Uhrzeit, Thema, Timer, Arbeitsform). Mit einem Tipp wird das iPad zur Tafel; das Tafelbild
+  bleibt bei der Unterrichtsstunde.
 - **Datenschutz**: keine eigenen Server – Stundenplan, Zuordnungen und Material bleiben bei der
   Lehrkraft.
 

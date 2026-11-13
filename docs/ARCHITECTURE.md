@@ -24,10 +24,10 @@ flowchart TB
             Tag["Tagesansicht"]
             Vorb["Vorbereiten"]
             Einr["Einrichten"]
-            Anz["Anzeige: PDF und Bild mit Stift<br/>Area anzeige"]
+            Anz["Anzeige: PDF und Bild mit Stift, Tafel<br/>Zweitbildschirm mit Klassenbildschirm<br/>Area anzeige"]
         end
         Kern["Kern-Paket (ohne Oberfläche, mit Tests)<br/>Unterrichtsstunden berechnen · Schlüssel der Unterrichtsstunde ·<br/>Import-Abgleich · Zusammenführen nach dem Abgleich"]
-        Daten[("App-Daten (SwiftData)<br/>Stundenplan, Abweichungen, Zuordnungen,<br/>Materialverweise, Stiftnotizen<br/>Area daten")]
+        Daten[("App-Daten (SwiftData)<br/>Stundenplan, Abweichungen, Zuordnungen,<br/>Materialverweise, Stiftnotizen,<br/>Stundenangaben, Tafelseiten<br/>Area daten")]
         Lokal[("Nur auf diesem Gerät<br/>Ordnerfreigaben · Schlüsselbund")]
         Abl["Baustein Ablage<br/>auflösen · öffnen · bereithalten<br/>Area ablage"]
         OD["Baustein OneDrive-Zusatz<br/>nur nach Anmeldung"]
@@ -99,6 +99,8 @@ Vorgabewert, alle Beziehungen sind optional, und kein Modell nutzt Eindeutigkeit
 | Zuordnung | Schlüssel der Unterrichtsstunde, Position, Verweis auf das Material | FR-3, FR-3.1 |
 | Materialverweis | Ordnerfreigabe, Pfad darin, ggf. OneDrive-Kennung, Anzeigename, Dateiart | gemäß ADR-0003 |
 | Stiftnotiz | Verweis auf die Zuordnung, Seite (bei Bildern 1), Zeichnungsdaten, Seitengröße beim Zeichnen | gemäß ADR-0006, FR-6.1; s. Area anzeige |
+| Stundenangaben | Schlüssel der Unterrichtsstunde, Thema, Hinweis | FR-11.1; höchstens ein Datensatz je Unterrichtsstunde |
+| Tafelseite | Schlüssel der Unterrichtsstunde, Position, Hintergrund (leer, liniert, kariert), Zeichnungsdaten | FR-12.1, FR-12.2; die Tafelseiten einer Unterrichtsstunde bilden ihr Tafelbild; s. Area anzeige |
 | Ordnerfreigabe | dauerhafter Systemverweis auf einen freigegebenen Ordner | **nur lokal je Gerät**, nicht gespiegelt (s. Area ablage) |
 
 **Unterrichtsstunden werden nicht gespeichert, sondern berechnet:** aus Stundenplan, Wochenvariante des
@@ -126,6 +128,9 @@ Stand. Je Datenart:
 | Stundenplan-Eintrag ändern | zuletzt abgeglichener Stand gilt | verloren – selten (Stundenplan ändert sich wenige Male im Jahr) |
 | Abweichung (Ausfall, Vertretungsstunde) | doppelte gleichartige Abweichungen werden zusammengeführt | geht nicht verloren |
 | Stiftnotiz (zwei Geräte, dieselbe Seite derselben Zuordnung) | zuletzt abgeglichener Stand der Seite gilt | Striche des anderen Geräts auf dieser Seite verloren – selten (geschrieben wird am Tablet im Unterricht, s. Area anzeige) |
+
+| Tafelseite (zwei Geräte, dieselbe Seite) | zuletzt abgeglichener Stand der Seite gilt | wie Stiftnotiz – selten |
+| Stundenangaben (Thema, Hinweis) | doppelte Datensätze derselben Unterrichtsstunde werden zusammengeführt; je Feld gilt der zuletzt abgeglichene Stand | überschriebener Text verloren – hinnehmbar, sichtbar und sofort korrigierbar |
 
 Zusammenführen heißt: Nach jedem Abgleich sucht die App Datensätze mit gleichem fachlichem Schlüssel
 und behält den ältesten. Werden dabei zwei Zuordnungen zu einer, werden die Stiftnotizen der
@@ -242,9 +247,18 @@ Grundlage ist Apples Entwicklerdoku „Presenting content on a connected display
 - Weil die Tagesansicht nie auf dem Zweitbildschirm erscheinen darf (FR-6.2), wird das Zubehör an der
   Hauptansicht der App angemeldet und gilt damit, solange die App im Vordergrund ist – nicht erst, wenn
   die Anzeige offen ist. Sonst würde das System die Tagesansicht spiegeln.
-- Die Szene zeigt die aktuelle Seite des geöffneten Materials mit ihren Stiftnotizen, ohne
-  Bedienelemente; Blättern, Zoomen und Schreiben am Tablet werden dorthin übertragen. Ist kein
-  Material geöffnet, zeigt sie eine neutrale Fläche – was genau, ist offen (Q-21 in `DESIGN.md`).
+- Die Szene zeigt genau einen von vier Zuständen (FR-11.5): **Klassenbildschirm** (Ruhezustand,
+  FR-11), **Material** (aktuelle Seite mit Stiftnotizen), **Tafel** (aktuelle Tafelseite, FR-12) oder
+  **Dunkel** (FR-11.4) – immer ohne Bedienelemente. Blättern, Zoomen und Schreiben am Tablet werden
+  dorthin übertragen.
+- Der Zustand liegt an einer Stelle („Zustand des Zweitbildschirms“), die beide Szenen beobachten:
+  Die Szene auf dem Tablet ändert ihn, die Szene auf dem Zweitbildschirm zeichnet ihn. Das
+  Vorschaubild am Tablet (FR-11.5) ist dieselbe Ansicht noch einmal, verkleinert – kein Bildschirmfoto,
+  damit es nie etwas anderes zeigt als der Zweitbildschirm.
+- Dieser Zustand samt Timer (FR-11.2) und Arbeitsform (FR-11.3) ist flüchtig: Er gilt für die laufende
+  Unterrichtsstunde auf diesem Gerät, wird nicht gespeichert und nicht gespiegelt. Der Timer rechnet
+  aus einem Endzeitpunkt, nicht aus gezählten Sekunden, damit er nach einem kurzen Wechsel in eine
+  andere App stimmt.
 - Die App bleibt ohne verbundenen Bildschirm voll nutzbar; Verbinden und Trennen mitten in der Stunde
   ändern nur, ob die zweite Szene existiert.
 - Geht die App in den Hintergrund (Material öffnet in PowerPoint, FR-5), endet ihr Einfluss auf den
@@ -265,6 +279,33 @@ Schreiben), und der Übergang zwischen eigener Szene und Spiegelung beim App-Wec
   gezeichnet (Area plattform: Stift nur am Tablet). Hinweis für den Bau: Die Zeichenfläche von
   PencilKit gibt es nach heutigem Stand nur auf dem Tablet, das Datenformat der Zeichnung lässt sich
   aber auch am Mac lesen und darstellen – beim ersten Bau zu belegen.
+
+### Klassenbildschirm
+
+- Klasse, Fach und Stundenende kommen aus der berechneten laufenden Unterrichtsstunde (Area daten),
+  Thema und Hinweis aus den Stundenangaben (FR-11.1). Er bekommt nur die Daten dieser einen
+  Unterrichtsstunde gereicht – so kann er nichts anderer Klassen und keine Dateinamen zeigen (FR-11).
+- Was er zeigt, wenn keine Unterrichtsstunde läuft, ist offen (Q-25 im PRD); ebenso, ob der Timer auch
+  über Material und Tafel sichtbar ist (Q-26).
+
+### Tafel
+
+- Die Tafel ist dieselbe Zeichenfläche wie in der Darstellung von Material, nur ohne Datei darunter:
+  statt einer PDF-Seite liegt ein gezeichneter Hintergrund (leer, liniert, kariert) unter der
+  Stiftschicht.
+- Je Seite ein Datensatz „Tafelseite“ an der Unterrichtsstunde (Area daten), gespeichert und
+  gespiegelt wie Stiftnotizen (ausgelagerte Zeichnungsdaten, Speichern beim Absetzen des Stifts).
+  Das folgt dem Muster von ADR-0006: Die App schreibt dafür nicht in die Ablage.
+- „Letztes Tafelbild“ (FR-12.3) wird berechnet, nicht gespeichert: die jüngste frühere
+  Unterrichtsstunde mit gleicher Klasse und gleichem Fach, zu der Tafelseiten existieren. Fällt eine
+  Unterrichtsstunde später aus dem Stundenplan, bleiben ihre Tafelseiten erhalten und darüber
+  erreichbar.
+- Sichern als PDF (FR-12.4): Die App erzeugt das PDF aus Hintergrund und Zeichnung und übergibt es
+  dem Teilen-Dialog des Systems; die Lehrkraft wählt dort das Ziel. Die App schreibt also auch hier
+  nicht selbst über eine Ordnerfreigabe in die Ablage, und es entsteht kein zweiter Stand eines
+  Materials (FR-3.4 betrifft Material, nicht Tafelbilder).
+- Geschrieben wird am Tablet. Am Mac lassen sich Tafelbilder ansehen und als PDF sichern, nicht
+  zeichnen (wie bei Stiftnotizen).
 
 ### Stiftnotizen
 
@@ -303,3 +344,4 @@ gespiegelt (ADR-0002); gemäß FR-6.1 gehören sie zur Zuordnung.
 - 2026-11-13: anzeige changed — ausgearbeitet nach ADR-0006 (Stiftnotizen getrennt in den App-Daten) und FR-6.1 (je Zuordnung); daten changed — Modell Stiftnotiz, Nebenläufigkeit und Zusammenführen ergänzt
 - 2026-11-13: Überblick new — Bausteinbild, abgeleitet aus den Bereichen
 - 2026-11-13: anzeige changed — Zweitbildschirm über eigene Szene statt reiner Spiegelung (FR-6.2); vorher: „Präsentiert wird über die Bildschirmspiegelung des Systems (AirPlay); die App baut keine eigene Übertragung.“
+- 2026-11-13: anzeige changed — vier Zustände des Zweitbildschirms, Klassenbildschirm und Tafel (FR-11, FR-12); daten changed — Modelle Stundenangaben und Tafelseite, Nebenläufigkeit ergänzt
