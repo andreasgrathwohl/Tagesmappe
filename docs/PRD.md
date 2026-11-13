@@ -184,7 +184,7 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 ## Lieferstufen
 
 - **MVP:** FR-1, FR-1.1, FR-2, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-7, FR-8, FR-9,
-  NFR-1 bis NFR-4 (geprüfte Zahl: 19). Ob FR-2 und FR-5.1 wirklich in den MVP gehören, ist offen (Q-3, Q-4).
+  NFR-1 bis NFR-4 (geprüfte Zahl: 19). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
 - **Later:** FR-2.1, FR-7.1.
 
 ## Out of Scope
@@ -228,8 +228,8 @@ verteilen. Umgang: Konto vor dem ersten Test mit Lehrkräften einrichten.
 
 - Q-1: Wie heißt das Produkt? „Tagesmappe“ ist Arbeitstitel.
 - ~~Q-2~~: Wird nur am Mac vorbereitet, oder auch am Tablet? Hat jede Lehrkraft einen Mac? → answered 2026-11-13: beides — Vorbereiten geht am Mac und am Tablet; ein Mac ist nicht Voraussetzung (FR-3 angepasst).
-- Q-3: Gehört der Schulmanager-Import (FR-2) in den MVP oder kommt er danach?
-- Q-4: Gehört die OneDrive-Anbindung mit AutoSpeichern (FR-5.1) in den MVP?
+- ~~Q-3~~: Gehört der Schulmanager-Import (FR-2) in den MVP oder kommt er danach? → answered 2026-11-13: in den MVP („alles gleich hinein“), trotz RISK-1.
+- ~~Q-4~~: Gehört die OneDrive-Anbindung mit AutoSpeichern (FR-5.1) in den MVP? → answered 2026-11-13: ja, MVP.
 - ~~Q-5~~: Wie werden A/B-Wochen, Ferien, Feiertage, Ausfall und Vertretungen behandelt? → answered 2026-11-13: Vorschlag angenommen — zwei Wochenvarianten im Wechsel (FR-1.1); unterrichtsfreie Tage von Hand, später aus Ferienkalender (FR-7, FR-7.1); Ausfall je Unterrichtsstunde mit Weiterreichen des Materials (FR-8); Vertretungsstunde frei anlegen (FR-9).
 - ~~Q-6~~: Wie viel Material hat eine Unterrichtsstunde, und zählt die Reihenfolge? → answered 2026-11-13: mehrere, in festgelegter Reihenfolge (FR-3.1).
 - ~~Q-7~~: Soll Material für Parallelklassen (z. B. 8a und 8b) oder für die Folgewoche einfach wiederverwendet werden können? → answered 2026-11-13: ja — Zuordnung für Parallelklasse übernehmen (FR-3.2), in die nächste Stunde schieben (FR-3.3), nie Dateien kopieren (FR-3.4).
@@ -250,6 +250,7 @@ Folgen, sobald die MVP-Liste nach Q-3/Q-4 feststeht.
 - 2026-11-13: Nutzerschaft changed — Tablet ist persönlich (Q-13); Out of Scope um geteilte Tablets ergänzt
 - 2026-11-13: FR-3 changed — Vorbereiten auch am Tablet, Mac nicht Voraussetzung (Q-2); Nutzerschaft entsprechend
 - 2026-11-13: FR-1.1, FR-7, FR-7.1, FR-8, FR-9 new — Abweichungen vom Stundenplan (Q-5); Glossar um Wochenvariante, unterrichtsfreier Tag, Ausfall, Vertretungsstunde ergänzt
+- 2026-11-13: Lieferstufen changed — FR-2 und FR-5.1 als MVP bestätigt (Q-3, Q-4)
 - 2026-11-13: FR-3.1 bis FR-3.4 new — Material je Stunde und Wiederverwenden (Q-6, Q-7); Glossar um Zuordnung ergänzt
 
 ## Anhang A — Abdeckung
