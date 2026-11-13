@@ -67,7 +67,7 @@ Alle Zeilen der Übersicht gelten (Abschnitt „Global Constraints“). Zusätzl
 | `Frontstage/Data/DataStore+Sources.swift` | Stundenplan-Quelle, Stand, Übernahme eines Imports (für 05) |
 | `Frontstage/Data/SyncMergeTrigger.swift` | Auslöser für das Zusammenführen |
 | `FrontstageTests/Data/*.swift` | App-Tests (Simulator) |
-| `project.yml` (ändern) | Entitlements, Info-Schlüssel, Build-Einstellung `CLOUDKIT_CONTAINER_ID` |
+| `project.yml` (ändern) | Entitlements, Info-Schlüssel, Build-Einstellung `CLOUDKIT_CONTAINER_ID`; XcodeGen erzeugt daraus `Frontstage/Resources/<Ziel>.entitlements` und `Config/<Ziel>-Info.plist` |
 | `Frontstage/App/FrontstageApp.swift` (ändern) | Container, `DataStore`, Auslöser einbinden |
 
 ---
@@ -182,9 +182,9 @@ func lessonInfoTreatsWhitespaceAsEmpty() {
 }
 ```
 
-- [ ] **Step 2: Diff durchsehen** – nur `import Foundation`; jeder öffentliche Typ mit öffentlichem Initialisierer. Endungen in `MaterialFileKind`: presentation `ppt pptx pps ppsx key odp`, document `doc docx pages odt rtf`, spreadsheet `xls xlsx numbers ods csv`, pdf `pdf`, image `png jpg jpeg heic gif tif tiff`.
+- [ ] **Step 2: Test lokal ausführen (RED, Übersicht „Kern-Paket lokal testbar“)** – `.\scripts\swift-test.ps1 -Filter DataValuesTests` → schlägt fehl (Typen fehlen). Dann Diff durchsehen – nur `import Foundation`; jeder öffentliche Typ mit öffentlichem Initialisierer. Endungen in `MaterialFileKind`: presentation `ppt pptx pps ppsx key odp`, document `doc docx pages odt rtf`, spreadsheet `xls xlsx numbers ods csv`, pdf `pdf`, image `png jpg jpeg heic gif tif tiff`.
 - [ ] **Step 3: Implementieren** gemäß Interfaces.
-- [ ] **Step 4: Diff durchsehen** – alle öffentlichen Typen `Sendable`, deutsche `///`-Kommentare, keine Zeitzone im Spiel.
+- [ ] **Step 4: Test lokal ausführen (GREEN)** – `.\scripts\swift-test.ps1 -Filter DataValuesTests` → grün. Diff durchsehen – alle öffentlichen Typen `Sendable`, deutsche `///`-Kommentare, keine Zeitzone im Spiel.
 - [ ] **Step 5: Commit**
 
 ```bash
@@ -223,7 +223,7 @@ public enum ParallelLessonFinder {
 }
 ```
 
-Fixture A (auch in Task 8): eine Wochenvariante, Bezugswoche 16.11.2026, Einträge Di 2. Stunde 8a Englisch, Mi 3. Stunde 8b Englisch, Do 1. Stunde 8a Englisch, Fr 4. Stunde 8b Mathe, Mo 5. Stunde 9c Deutsch.
+Fixture A (auch in Task 8): eine Wochenvariante, Bezugswoche 16.11.2026, Einträge Di 2. Stunde 8a Englisch, Mi 3. Stunde 8b Englisch, Do 1. Stunde 8a Englisch, Fr 4. Stunde 8b Mathe, Mo 5. Stunde 9c Deutsch. Im Kern-Test mit den vorhandenen Helfern aus `Tests/FrontstageCoreTests/Fixtures.swift` (Teilplan 01: `d(_:_:_:)`, `timetable(_:bell:variants:)` – Bezugswoche dort schon 16.11.2026 –, `entry(_:_:_:_:variant:)`) bauen; diese Namen nicht neu deklarieren (sonst Doppeldeklaration im Testziel).
 
 - [ ] **Step 1: Failing Tests schreiben**
 
@@ -250,9 +250,9 @@ func selectableClassesExcludeOwnClass() {
 }
 ```
 
-- [ ] **Step 2: Diff durchsehen** – Tage nur über `CalendarDay.adding(days:)` (Teilplan 01), keine eigene Tagesrechnung.
+- [ ] **Step 2: Test lokal ausführen (RED)** – `.\scripts\swift-test.ps1 -Filter ParallelLessonFinderTests` → schlägt fehl. Diff durchsehen – Tage nur über `CalendarDay.adding(days:)` (Teilplan 01), keine eigene Tagesrechnung.
 - [ ] **Step 3: Implementieren** gemäß Interfaces; Reihenfolge: Tage aufsteigend, innerhalb eines Tages die Reihenfolge von `lessons(on:)`.
-- [ ] **Step 4: Diff durchsehen.**
+- [ ] **Step 4: Test lokal ausführen (GREEN)** – `.\scripts\swift-test.ps1 -Filter ParallelLessonFinderTests` → grün. Diff durchsehen.
 - [ ] **Step 5: Commit** – `git commit -m "core: list selectable target lessons of another class"`
 
 ---
@@ -333,7 +333,7 @@ static func survivors<Item, Key: Hashable>(_ items: [Item], key: (Item) -> Key?,
 }
 ```
 
-Eine Stiftnotiz, die selbst aufgegeben wird, steht nur in `deletions`, nicht zusätzlich in `penNoteLinkChanges`; eine Quelle, die der behaltene Datensatz selbst ist, wird nicht eingetragen.
+Eine Stiftnotiz, die selbst aufgegeben wird, steht nur in `deletions`, nicht zusätzlich in `penNoteLinkChanges`; ebenso steht ein aufgegebener Stundenplan-Eintrag nur in `deletions`, nicht zusätzlich in `entryTimetableChanges` (Test `mergesDuplicateActiveTimetables`: `e4` nur gelöscht). Eine Quelle, die der behaltene Datensatz selbst ist, wird nicht eingetragen.
 
 - [ ] **Step 1: Failing Tests schreiben** (feste Zeiten `t1 = Date(timeIntervalSince1970: 1_000)`, `t2 = 2_000`, `t3 = 3_000`; feste UUIDs `id(1)` … `id(9)`)
 
@@ -396,9 +396,9 @@ func breaksTiesByUUID()                                     // zwei Abweichungen
 func cleanSnapshotYieldsEmptyPlan()
 ```
 
-- [ ] **Step 2: Diff durchsehen** – nur `Foundation`; `MergePlan` ist `Equatable` (Tests vergleichen ganze Mengen).
+- [ ] **Step 2: Test lokal ausführen (RED)** – `.\scripts\swift-test.ps1 -Filter SyncMergerTests` → schlägt fehl. Diff durchsehen – nur `Foundation`; `MergePlan` ist `Equatable` (Tests vergleichen ganze Mengen).
 - [ ] **Step 3: Implementieren** – `plan(for:)` in der Reihenfolge der Tabelle (Stundenplan vor Eintrag, Zuordnung vor Stiftnotiz).
-- [ ] **Step 4: Diff durchsehen.**
+- [ ] **Step 4: Test lokal ausführen (GREEN)** – `.\scripts\swift-test.ps1 -Filter SyncMergerTests` → grün; danach einmal ohne Filter (ganzes Kern-Paket). Diff durchsehen.
 - [ ] **Step 5: Commit** – `git commit -m "core: add pure merge planning after sync"`
 
 ---
@@ -432,7 +432,9 @@ Entscheidung Materialverweis (Übersicht, Abstimmung Punkt 5): **kein eigenes Mo
 ```swift
 enum ModelContainerFactory {
     /// Alle gespiegelten Modelle. Ordnerfreigaben gehören nicht dazu (nur lokal, Teilplan 03).
-    static let modelTypes: [any PersistentModel.Type]
+    /// Berechnet statt `static let`: Swift 6 strikt verlangt für globale/statische Konstanten einen
+    /// `Sendable`-Typ, und Metatypen-Felder von `PersistentModel` sind das nicht sicher.
+    static var modelTypes: [any PersistentModel.Type] { get }
     /// Liest den Schlüssel "FrontstageCloudKitContainer" aus der Info.plist.
     static func cloudKitContainerIdentifier(bundle: Bundle = .main) -> String?
     /// Mit Spiegelung in die private Datenbank: ModelConfiguration(schema:, cloudKitDatabase: .private(identifier)).
@@ -444,26 +446,27 @@ enum ModelContainerFactory {
 }
 ```
 
-`project.yml`, je App-Ziel (Zielnamen aus Teilplan 01):
+`project.yml`, je App-Ziel `Frontstage-iOS` bzw. `Frontstage-macOS` (Zielnamen aus Teilplan 01; `<Ziel>` unten durch den Zielnamen ersetzen):
 
 ```yaml
 settings:
   base:
     CLOUDKIT_CONTAINER_ID: iCloud.com.example.frontstage   # Platzhalter; echte Kennung per CI-Secret
 entitlements:
-  path: Frontstage/Resources/Frontstage-<Plattform>.entitlements
+  path: Frontstage/Resources/<Ziel>.entitlements
   properties:
     com.apple.developer.icloud-services: [CloudKit]
     com.apple.developer.icloud-container-identifiers: [$(CLOUDKIT_CONTAINER_ID)]
     aps-environment: development                      # iPadOS-Ziel
     com.apple.developer.aps-environment: development  # macOS-Ziel (statt der Zeile darüber)
 info:
+  path: Config/<Ziel>-Info.plist                      # Pflichtfeld in XcodeGen; außerhalb von Frontstage/, damit die Datei nicht als Ressource ins andere Ziel gerät
   properties:
     FrontstageCloudKitContainer: $(CLOUDKIT_CONTAINER_ID)
     UIBackgroundModes: [remote-notification]          # nur iPadOS-Ziel
 ```
 
-Beide Ziele nutzen **dieselbe** Container-Kennung, sonst gleichen iPad und Mac nicht miteinander ab. Hat Teilplan 01 schon `entitlements:`/`info:`-Blöcke angelegt, werden die Schlüssel dort ergänzt (Sandbox- und Datei-Schlüssel für macOS bleiben unberührt).
+Beide Ziele nutzen **dieselbe** Container-Kennung, sonst gleichen iPad und Mac nicht miteinander ab. Stand im Repo: Teilplan 01 hat **keine** `entitlements:`-/`info:`-Blöcke angelegt (Info.plist entsteht über `GENERATE_INFOPLIST_FILE: YES` in `settings.base`); beide Blöcke entstehen hier neu. `Frontstage-macOS` hat noch keinen `settings:`-Block – er wird angelegt; `Frontstage-iOS` bekommt den Schlüssel in seinem vorhandenen `settings.base`. XcodeGen schreibt die `info.path`-Datei bei jedem `xcodegen generate` und setzt `INFOPLIST_FILE`; Xcode führt sie mit den erzeugten Schlüsseln (`GENERATE_INFOPLIST_FILE`, `INFOPLIST_KEY_*`) zusammen. Spätere Teilpläne (03, 04, 05, 07) ergänzen nur `info.properties` dieser Blöcke.
 
 - [ ] **Step 1: Failing Tests schreiben**
 
@@ -471,7 +474,8 @@ Beide Ziele nutzen **dieselbe** Container-Kennung, sonst gleichen iPad und Mac n
 @MainActor @Suite struct RecordSchemaTests {
     @Test("Jedes Modell lässt sich mit Vorgabewerten anlegen und speichern")
     func everyRecordSavesWithDefaults() throws {
-        let context = ModelContext(try ModelContainerFactory.makeInMemoryContainer())
+        let container = try ModelContainerFactory.makeInMemoryContainer()   // festhalten, solange der Kontext lebt
+        let context = ModelContext(container)
         // je Klasse ein Objekt mit leerem/minimalem init einfügen
         try context.save()
         #expect(try context.fetchCount(FetchDescriptor<BoardPageRecord>()) == 1)
@@ -488,11 +492,13 @@ Beide Ziele nutzen **dieselbe** Container-Kennung, sonst gleichen iPad und Mac n
     func deletingTimetableCascadesToEntries() throws
 
     @Test("Container-Kennung kommt aus der Info.plist, fehlt sie, gilt nil")
-    func containerIdentifierFromBundle()   // Bundle(for:) des Testziels hat den Schlüssel nicht → nil
+    func containerIdentifierFromBundle()   // Bundle(for: BundleToken.self) des Testziels hat den Schlüssel nicht → nil
+                                           // (Bundle(for:) braucht eine Klasse: `private final class BundleToken {}` im Testziel;
+                                           //  nicht Bundle.main – im gehosteten Test ist das die App, die den Schlüssel trägt)
 }
 ```
 
-`Fixtures.swift`: `func makeStore() throws -> DataStore` (In-Memory), `fixtureA`, `fixtureB` (Stundenpläne als Kern-Werte), `func reference(_ name: String) -> MaterialReference` mit `folderGrantName: "Unterricht"`, `relativePath: "Englisch/\(name)"`, `displayName: name`, `fileKind: .pdf`, Tage `tue17`, `wed18`, `thu19`. Teilpläne 04, 06 und 07 nutzen `makeStore()` für ihre App-Tests mit echtem `DataStore` im Speicher.
+`Fixtures.swift` (App-Testziel, `@testable import Frontstage`, `import FrontstageCore`, `import SwiftData`): `@MainActor func makeStore() throws -> DataStore` (In-Memory; `@MainActor`, weil `DataStore` ein Main-Actor-Typ ist; den `ModelContainer` in einer `@MainActor`-Liste der Fixtures festhalten, da `DataStore` nur den `ModelContext` hält), `fixtureA`, `fixtureB` (Stundenpläne als Kern-Werte), `func reference(_ name: String) -> MaterialReference` mit `folderGrantName: "Unterricht"`, `relativePath: "Englisch/\(name)"`, `displayName: name`, `fileKind: .pdf`, Tage `tue17`, `wed18`, `thu19`. Teilpläne 04, 06 und 07 nutzen `makeStore()` für ihre App-Tests mit echtem `DataStore` im Speicher.
 
 - [ ] **Step 2: Diff durchsehen**
   - Suche `#Unique|\.unique` in `Frontstage/` → kein Treffer (ADR-0002).
@@ -780,7 +786,7 @@ extension DataStore {
 
 Die Records werden über `id` gefunden (ein Wörterbuch je Modell aus dem Schnappschuss-Lauf).
 
-- [ ] **Step 1: Failing Tests schreiben**
+- [ ] **Step 1: Failing Tests schreiben** (in `@MainActor @Suite struct DataStoreMergeTests`; `DataStore` ist Main-Actor-gebunden)
 
 ```swift
 @Test("Review Focus 2: Stiftnotizen der aufgegebenen Zuordnung überleben das Löschen")
@@ -877,7 +883,7 @@ extension DataStore {
 }
 ```
 
-- [ ] **Step 1: Failing Tests schreiben** (Fixture A für AK-7/AK-22, Fixture B für AK-8/AK-15)
+- [ ] **Step 1: Failing Tests schreiben** (in `@MainActor @Suite struct DataStoreMaterialLinkTests`; Fixture A für AK-7/AK-22, Fixture B für AK-8/AK-15)
 
 ```swift
 @Test("AK-6: Lösung an Position 1 ziehen")
@@ -1016,7 +1022,7 @@ extension DataStore {
 }
 ```
 
-- [ ] **Step 1: Failing Tests schreiben**
+- [ ] **Step 1: Failing Tests schreiben** (in `@MainActor @Suite struct DataStoreLessonDataTests`)
 
 ```swift
 @Test("AK-25 (Daten): Thema und Bereitlegen eintragen, dann Bereitlegen leeren")
@@ -1079,9 +1085,9 @@ Design-Takt: keiner
 
 Beobachtung über `NotificationCenter.default.addObserver(forName: .NSPersistentStoreRemoteChange, object: nil, queue: .main)` mit `MainActor.assumeIsolated { remoteChangeReceived() }` (Swift 6: der Block ist nicht als Main-Actor markiert, läuft aber auf der Hauptwarteschlange). `import CoreData` nur für den Namen der Mitteilung. Jeder Lauf nach einer Fernänderung protokolliert „Zusammenführen nach Fernänderung“ (`Logger`, Subsystem = Bundle-ID, Stufe `.info`) – das prüft die Geräte-Checkliste. Fehler von `mergeDuplicates()` werden ebenso protokolliert, nie angezeigt.
 
-`FrontstageApp` (Platzhalter aus Teilplan 01; Teilplan 04 ersetzt später den Körper durch `RootView` und übernimmt diese Zeilen in `AppEnvironment`): `let container = try ModelContainerFactory.makeDefault()`, `DataStore(modelContext: container.mainContext)`, `.modelContainer(container)`, `.environment(store)`, `trigger.start()` beim Start, `.onChange(of: scenePhase) { if $1 == .active { trigger.sceneDidBecomeActive() } }`. Schlägt der Container fehl, `fatalError` mit deutscher Meldung (ohne Daten kein sinnvoller Betrieb).
+`FrontstageApp` (Platzhalter aus Teilplan 01; Teilplan 04 ersetzt später den Körper durch `RootView` und übernimmt diese Zeilen in `AppEnvironment`): `let container = try ModelContainerFactory.makeDefault()`, `DataStore(modelContext: container.mainContext)`, `.modelContainer(container)`, `.environment(store)`, `trigger.start()` beim Start, `.onChange(of: scenePhase) { if $1 == .active { trigger.sceneDidBecomeActive() } }`. Schlägt der Container fehl, `fatalError` mit deutscher Meldung (ohne Daten kein sinnvoller Betrieb). Der Inhalt `Text("app.placeholder.title")` des `WindowGroup` bleibt stehen (Übersicht, Abstimmung Punkt 13; `FrontstageTests/AppSmokeTests.swift` prüft den Schlüssel); die Modifikatoren kommen an diesen `Text` bzw. an den `WindowGroup`. `scenePhase` über `@Environment(\.scenePhase)` im `App`-Typ.
 
-- [ ] **Step 1: Failing Tests schreiben**
+- [ ] **Step 1: Failing Tests schreiben** (in `@MainActor @Suite struct SyncMergeTriggerTests`)
 
 ```swift
 @Test("Fernänderung führt nach der Entprellzeit zusammen")
@@ -1107,6 +1113,8 @@ func becomingActiveMergesImmediately()
 
 Design-Takt: keiner
 
+**Ausführung: nur der Controller, nicht ein Implementierer-Subagent** (Übersicht, Global Constraints „CI läuft nur …“; Sparregeln in `CLAUDE.md`: höchstens ein Lauf, nach Möglichkeit gemeinsam mit dem nächsten Teilplan des Bündels). Implementierer melden nach Task 10 fertig; Push und Lauf startet der Controller.
+
 - [ ] **Step 1: Gesamten Diff des Teilplans durchsehen** – `#Unique|\.unique` kein Treffer; jedes `@Model` ohne nicht optionale Beziehung; `FrontstageCore` importiert nur `Foundation`; alle Test-Beschreibungen deutsch mit AK-Nummer, wo eines betroffen ist.
 - [ ] **Step 2: Lauf starten**
 
@@ -1117,7 +1125,7 @@ gh run list --workflow ci.yml --limit 1
 gh run watch <run-id> --exit-status
 ```
 
-Erwartet: Job Kern-Tests (`swift test --package-path Packages/FrontstageCore`) grün mit `DataValuesTests`, `ParallelLessonFinderTests`, `SyncMergerTests`; Job App-Tests (`xcodebuild test`, iPad-Simulator) grün mit `RecordSchemaTests`, `RecordConversionTests`, `DataStoreTimetableTests`, `DataStoreSourcesTests`, `DataStoreMergeTests`, `DataStoreMaterialLinkTests`, `DataStoreLessonDataTests`, `SyncMergeTriggerTests`; macOS-Ziel baut.
+Erwartet (`ci.yml` hat einen Job `build-and-test` mit Schritten): Schritt „Core tests“ (`swift test --package-path Packages/FrontstageCore`) grün mit `DataValuesTests`, `ParallelLessonFinderTests`, `SyncMergerTests`; Schritt „Build macOS“ grün (macOS-Ziel baut); Schritt „App tests (iPad simulator)“ (`xcodebuild test -scheme Frontstage-iOS`) grün mit `RecordSchemaTests`, `RecordConversionTests`, `DataStoreTimetableTests`, `DataStoreSourcesTests`, `DataStoreMergeTests`, `DataStoreMaterialLinkTests`, `DataStoreLessonDataTests`, `SyncMergeTriggerTests` und dem vorhandenen `AppSmokeTests`.
 
 - [ ] **Step 3: Bei Rot** – `gh run view <run-id> --log-failed`, Ursache mit superpowers:systematic-debugging klären, alle Korrekturen sammeln, dann **ein** neuer Lauf.
 
@@ -1169,7 +1177,7 @@ Nicht hier: Oberfläche zu allen AK (Teilplan 04/06/07), Ordnerfreigaben (Teilpl
 ## Abstimmungsbedarf
 
 - **CI (Teilplan 01/04):** Für Release-Bauten muss CI `CLOUDKIT_CONTAINER_ID=iCloud.<BUNDLE_ID_PREFIX>.frontstage` setzen (Secret `BUNDLE_ID_PREFIX`); das ergänzt der TestFlight-Bau in Teilplan 04.
-- **Abweichung von Abstimmung Punkt 5 (bitte bestätigen):** `MaterialLinkRecord.dayText` und die Feld-Zeitstempel `topicUpdatedAt`/`toPrepareUpdatedAt`/`homeworkUpdatedAt` am `LessonInfoRecord` stehen zusätzlich zu den dort genannten Feldern (Gründe in Task 4).
+- ~~**Abweichung von Abstimmung Punkt 5 (bitte bestätigen):** `MaterialLinkRecord.dayText` und die Feld-Zeitstempel `topicUpdatedAt`/`toPrepareUpdatedAt`/`homeworkUpdatedAt` am `LessonInfoRecord` stehen zusätzlich zu den dort genannten Feldern (Gründe in Task 4).~~ → bestätigt: Übersicht, Abstimmung Punkt 5 („Zusätzlich bestätigt“).
 
 ## Annahmen, die ein Mensch bestätigen sollte
 
