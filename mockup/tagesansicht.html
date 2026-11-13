@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tagesansicht iPad</title>
+<!--
+  Mockup, kein Gestaltungsbeschluss. Aussehen = unveränderter Apple-Systemstandard als Platzhalter.
+  Anforderungen: FR-4, FR-5, FR-2.2, FR-3.1, FR-3.3, FR-8, FR-9, NFR-1; AK-10, AK-17, AK-21.
+  Nur erfundene Daten (siehe mockup/LIESMICH.md).
+-->
+<style>
+  /* Systemfarben (iOS/iPadOS-Standardwerte) als Platzhalter — keine eigene Palette. */
+  :root {
+    --page: #D8D8DE;
+    --bg: #F2F2F7;            /* systemGroupedBackground */
+    --cell: #FFFFFF;          /* secondarySystemGroupedBackground */
+    --label: #000000;
+    --label2: rgba(60,60,67,.60);
+    --label3: rgba(60,60,67,.30);
+    --sep: rgba(60,60,67,.29);
+    --fill: rgba(118,118,128,.12);   /* tertiarySystemFill */
+    --fill2: rgba(118,118,128,.08);  /* quaternarySystemFill */
+    --tint: #007AFF;          /* systemBlue */
+    --red: #FF3B30;           /* systemRed */
+    --green: #34C759;         /* systemGreen */
+    --bar: rgba(249,249,249,.94);
+    --elev: #FFFFFF;
+    --now-bg: rgba(0,122,255,.09);
+    --shadow: 0 8px 40px rgba(0,0,0,.18), 0 0 0 .5px rgba(0,0,0,.08);
+    --hud: rgba(30,30,32,.92);
+    --hud-label: #FFFFFF;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page: #0E0E10;
+      --bg: #000000;
+      --cell: #1C1C1E;
+      --label: #FFFFFF;
+      --label2: rgba(235,235,245,.60);
+      --label3: rgba(235,235,245,.30);
+      --sep: rgba(84,84,88,.60);
+      --fill: rgba(118,118,128,.24);
+      --fill2: rgba(118,118,128,.18);
+      --tint: #0A84FF;
+      --red: #FF453A;
+      --green: #30D158;
+      --bar: rgba(22,22,24,.94);
+      --elev: #2C2C2E;
+      --now-bg: rgba(10,132,255,.17);
+      --shadow: 0 8px 40px rgba(0,0,0,.6), 0 0 0 .5px rgba(255,255,255,.12);
+      --hud: rgba(58,58,60,.95);
+      --hud-label: #FFFFFF;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --page: #0E0E10;
+    --bg: #000000;
+    --cell: #1C1C1E;
+    --label: #FFFFFF;
+    --label2: rgba(235,235,245,.60);
+    --label3: rgba(235,235,245,.30);
+    --sep: rgba(84,84,88,.60);
+    --fill: rgba(118,118,128,.24);
+    --fill2: rgba(118,118,128,.18);
+    --tint: #0A84FF;
+    --red: #FF453A;
+    --green: #30D158;
+    --bar: rgba(22,22,24,.94);
+    --elev: #2C2C2E;
+    --now-bg: rgba(10,132,255,.17);
+    --shadow: 0 8px 40px rgba(0,0,0,.6), 0 0 0 .5px rgba(255,255,255,.12);
+    --hud: rgba(58,58,60,.95);
+    --hud-label: #FFFFFF;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--page);
+    font-family: -apple-system, "SF Pro Text", system-ui, sans-serif;
+    color: var(--label);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+  button:focus-visible { outline: 3px solid var(--tint); outline-offset: 2px; border-radius: 10px; }
+  svg { display: block; flex: none; }
+
+  /* ---------- Mockup-Rahmen außerhalb des Geräts ---------- */
+  .caption {
+    position: fixed; top: 0; left: 0; right: 0; height: 44px;
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    font-size: 13px; color: var(--label2); padding: 0 16px;
+  }
+  .caption strong { color: var(--label); font-weight: 600; }
+  .caption .seg { display: inline-flex; background: var(--fill); border-radius: 8px; padding: 2px; }
+  .caption .seg button { font-size: 12px; padding: 4px 10px; border-radius: 6px; color: var(--label); }
+  .caption .seg button[aria-pressed="true"] { background: var(--cell); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+  .stage-wrap { position: fixed; top: 44px; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; }
+  .stage { width: 1242px; height: 882px; transform-origin: top left; flex: none; }
+  .device {
+    width: 1242px; height: 882px; padding: 24px; border-radius: 44px;
+    background: #1D1D1F; box-shadow: 0 0 0 2px #3A3A3C, 0 30px 80px rgba(0,0,0,.25);
+  }
+  .screen {
+    position: relative; width: 1194px; height: 834px; border-radius: 20px; overflow: hidden;
+    background: var(--bg); display: flex; flex-direction: column;
+  }
+
+  /* ---------- Statusleiste ---------- */
+  .statusbar {
+    height: 24px; flex: none; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 22px; font-size: 13px; font-weight: 600;
+  }
+  .statusbar .l { display: flex; gap: 8px; }
+  .statusbar .l span + span { font-weight: 500; }
+  .statusbar .r { display: flex; gap: 6px; align-items: center; }
+
+  /* ---------- Symbolleiste ---------- */
+  .toolbar {
+    height: 50px; flex: none; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 12px;
+  }
+  .tb-group { display: flex; align-items: center; gap: 4px; }
+  .tb-btn {
+    min-width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center;
+    color: var(--tint); border-radius: 22px; font-size: 17px; padding: 0 10px;
+  }
+  .tb-btn:active { background: var(--fill); }
+  .tb-btn[aria-disabled="true"] { color: var(--label3); cursor: default; }
+  .tb-capsule { display: flex; align-items: center; background: var(--fill2); border-radius: 22px; }
+
+  /* ---------- Kopf: großer Titel + Stand der Stundenplan-Quelle ---------- */
+  .head {
+    flex: none; display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 20px 10px;
+  }
+  .head h1 { margin: 0; font-size: 34px; line-height: 41px; font-weight: 700; letter-spacing: .37px; }
+  .head .sub { font-size: 15px; color: var(--label2); margin-top: 2px; }
+  .source {
+    display: flex; align-items: center; gap: 4px; text-align: right;
+  }
+  .source .txt { font-size: 13px; line-height: 18px; color: var(--label2); }
+  .source .txt b { display: block; font-size: 15px; font-weight: 600; color: var(--label); }
+  .source .tb-btn.busy svg { animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .source .tb-btn.busy svg { animation: none; } }
+
+  /* ---------- Liste der Unterrichtsstunden ---------- */
+  .content { flex: 1; padding: 6px 20px 26px; overflow: hidden; display: flex; flex-direction: column; gap: 10px; }
+  .card { background: var(--cell); border-radius: 12px; overflow: hidden; }
+  .row { display: grid; grid-template-columns: 72px 150px 1fr; align-items: center; min-height: 106px; position: relative; }
+  .row + .row::before {
+    content: ""; position: absolute; top: 0; left: 16px; right: 0; height: .5px; background: var(--sep);
+  }
+  .when { padding: 0 0 0 16px; }
+  .hour { font-size: 22px; line-height: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .time { font-size: 15px; line-height: 20px; font-variant-numeric: tabular-nums; }
+  .end { font-size: 13px; line-height: 18px; color: var(--label2); font-variant-numeric: tabular-nums; }
+  .who { padding: 0 12px 0 4px; min-width: 0; }
+  .cls { font-size: 22px; line-height: 28px; font-weight: 700; }
+  .subj { font-size: 17px; line-height: 22px; }
+  .flag { display: flex; align-items: center; gap: 5px; margin-top: 6px; font-size: 13px; line-height: 18px; font-weight: 600; }
+  .flag .src { font-weight: 400; color: var(--label2); }
+  .mats { display: flex; align-items: center; gap: 12px; padding: 12px 16px 12px 0; flex-wrap: nowrap; min-width: 0; }
+
+  /* aktuelle Unterrichtsstunde */
+  .row.now { background: var(--now-bg); }
+  .row.now::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--tint); }
+  .pill-now {
+    display: inline-flex; align-items: center; gap: 5px; margin-top: 6px;
+    background: var(--tint); color: #FFFFFF; font-size: 13px; line-height: 18px; font-weight: 600;
+    padding: 2px 9px 2px 7px; border-radius: 10px;
+  }
+
+  /* Ausfall */
+  .row.cancelled .cls, .row.cancelled .subj { text-decoration: line-through; text-decoration-thickness: 1.5px; color: var(--label2); }
+  .flag.cancel svg { color: var(--label2); }
+
+  /* keine Unterrichtsstunde: kein Zellenhintergrund, nur Zeitachse */
+  .gap {
+    display: grid; grid-template-columns: 72px 1fr; align-items: center; min-height: 44px;
+    color: var(--label2);
+  }
+  .gap .when { padding-left: 16px; display: flex; gap: 8px; align-items: baseline; grid-column: 1 / 3; }
+  .gap .hour { font-size: 17px; line-height: 22px; font-weight: 600; width: 52px; color: var(--label2); }
+  .gap .gtxt { font-size: 15px; }
+  .gap .gtime { font-size: 13px; font-variant-numeric: tabular-nums; }
+
+  /* ---------- Material-Kachel ---------- */
+  .tile {
+    display: flex; align-items: center; min-height: 76px; background: var(--fill2);
+    border-radius: 12px; min-width: 0; flex: 0 1 auto; max-width: 360px;
+  }
+  .tile.wide { flex: 0 0 auto; max-width: none; }
+  .tile-main {
+    display: flex; align-items: center; gap: 12px; text-align: left; min-height: 76px;
+    padding: 10px 4px 10px 12px; flex: 1; min-width: 0; border-radius: 12px;
+  }
+  .tile-main:active { background: var(--fill); }
+  .ficon { position: relative; width: 36px; height: 44px; color: var(--label2); }
+  .ficon .kind {
+    position: absolute; left: 0; right: 0; bottom: 6px; text-align: center;
+    font-size: 9px; font-weight: 700; letter-spacing: .3px; color: var(--label);
+  }
+  .ttext { display: flex; flex-direction: column; min-width: 0; flex: 1; overflow: hidden; }
+  .tname { font-size: 17px; line-height: 22px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tmeta { display: flex; align-items: center; gap: 5px; font-size: 13px; line-height: 18px; color: var(--label2); white-space: nowrap; margin-top: 2px; }
+  .st-local svg { color: var(--green); }
+  .st-loading svg { color: var(--label2); }
+  .st-missing svg { color: var(--red); }
+  .tile.missing { background: transparent; box-shadow: inset 0 0 0 1.5px var(--red); }
+  .tile.missing .ficon { color: var(--label3); }
+  .tile.missing .tname { color: var(--label2); }
+  .tile-more {
+    width: 44px; height: 44px; margin-right: 6px; border-radius: 22px; color: var(--tint);
+    display: inline-flex; align-items: center; justify-content: center; flex: none;
+  }
+  .tile-more:active { background: var(--fill); }
+
+  /* Knöpfe (iPadOS-Standard: grau gefüllt / getönt) */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px;
+    border-radius: 22px; background: var(--fill); color: var(--tint); font-size: 15px; font-weight: 600;
+    white-space: nowrap; flex: none;
+  }
+  .btn:active { filter: brightness(.92); }
+  .btn.prominent { background: var(--tint); color: #FFFFFF; }
+  .btn-stack { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; flex: none; }
+  .btn-stack .hint { font-size: 13px; color: var(--label2); padding-left: 16px; }
+
+  /* Unterrichtsstunde ohne Material */
+  .nomat { display: flex; align-items: center; gap: 12px; color: var(--label2); font-size: 15px; }
+  .nomat .box {
+    display: flex; align-items: center; gap: 10px; min-height: 76px; padding: 0 18px;
+    border: 1.5px dashed var(--label3); border-radius: 12px;
+  }
+  .forwarded { display: flex; align-items: center; gap: 12px; font-size: 15px; color: var(--label2); }
+
+  /* ---------- Unterrichtsfreier Tag ---------- */
+  .free { background: var(--cell); border-radius: 12px; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
+  .free svg { color: var(--label2); margin-bottom: 8px; }
+  .free h2 { margin: 0; font-size: 22px; line-height: 28px; font-weight: 700; }
+  .free p { margin: 0; font-size: 17px; color: var(--label2); }
+  .sect-h { font-size: 13px; text-transform: uppercase; letter-spacing: -.08px; color: var(--label2); padding: 14px 16px 6px; }
+  .sect-f { font-size: 13px; color: var(--label2); padding: 6px 16px 0; }
+  .free-mats { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
+
+  /* ---------- Menü (Kontextmenü / Pull-down am Material) ---------- */
+  .menu {
+    position: absolute; z-index: 20; width: 320px; background: var(--elev); border-radius: 13px;
+    box-shadow: var(--shadow); overflow: hidden; display: none;
+  }
+  .menu.open { display: block; }
+  .menu .mtitle { font-size: 13px; color: var(--label2); padding: 10px 16px 8px; border-bottom: .5px solid var(--sep); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .menu button {
+    width: 100%; min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 8px 16px; text-align: left; font-size: 17px;
+  }
+  .menu button + button { border-top: .5px solid var(--sep); }
+  .menu button:active, .menu button:hover { background: var(--fill2); }
+  .menu .msub { display: block; font-size: 13px; color: var(--label2); }
+
+  /* ---------- Rückmeldung (Mockup: zeigt, was passieren würde) ---------- */
+  .hud {
+    position: absolute; z-index: 30; left: 50%; bottom: 30px; transform: translate(-50%, 20px);
+    max-width: 720px; display: flex; align-items: center; gap: 14px;
+    background: var(--hud); color: var(--hud-label); border-radius: 16px; padding: 12px 12px 12px 18px;
+    font-size: 15px; line-height: 20px; box-shadow: 0 8px 30px rgba(0,0,0,.3);
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+    -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  }
+  .hud.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  .hud .undo { color: #64D2FF; font-weight: 600; min-height: 44px; padding: 0 10px; white-space: nowrap; }
+  .hud .tag { font-size: 11px; text-transform: uppercase; letter-spacing: .4px; opacity: .65; display: block; }
+  @media (prefers-reduced-motion: reduce) { .hud { transition: none; } }
+
+  .home-ind { position: absolute; bottom: 8px; left: 50%; width: 320px; height: 5px; margin-left: -160px; border-radius: 3px; background: var(--label); opacity: .85; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="caption">
+  <span><strong>Tagesansicht</strong> · iPad 11" quer · 1194 × 834 pt · Mockup, kein Gestaltungsbeschluss</span>
+  <span class="seg" role="group" aria-label="Darstellung">
+    <button type="button" data-theme-set="system" aria-pressed="true">System</button>
+    <button type="button" data-theme-set="light" aria-pressed="false">Hell</button>
+    <button type="button" data-theme-set="dark" aria-pressed="false">Dunkel</button>
+  </span>
+  <span>Mo, Mi, Do: Stunden aus den Beispieldaten, Material dort nicht ausgearbeitet</span>
+</div>
+
+<div class="stage-wrap"><div class="stage" id="stage"><div class="device"><div class="screen" id="screen">
+
+  <div class="statusbar" aria-hidden="true">
+    <div class="l"><span>8:40</span><span>Di. 17. Nov.</span></div>
+    <div class="r">
+      <svg width="18" height="13" viewBox="0 0 18 13" fill="currentColor"><path d="M9 2.2c2.6 0 5 1 6.8 2.7l1.2-1.3C14.9 1.6 12 .4 9 .4S3.1 1.6 1 3.6l1.2 1.3C4 3.2 6.4 2.2 9 2.2zm0 3.6c1.6 0 3.1.6 4.2 1.6l1.2-1.3C13 4.8 11.1 4 9 4S5 4.8 3.6 6.1l1.2 1.3C5.9 6.4 7.4 5.8 9 5.8zm0 3.6c.7 0 1.3.2 1.8.6L9 12 7.2 10c.5-.4 1.1-.6 1.8-.6z"/></svg>
+      <span>84 %</span>
+      <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="17" height="9" rx="2" fill="currentColor"/><rect x="24.5" y="4.5" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".4"/></svg>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="tb-group">
+      <button class="tb-btn" type="button" id="btn-sidebar" aria-label="Seitenleiste einblenden">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="4" width="19" height="16" rx="3.5"/><path d="M9.5 4v16"/><path d="M5 8h2M5 11h2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="tb-group">
+      <div class="tb-capsule">
+        <button class="tb-btn" type="button" id="btn-prev" aria-label="Vorheriger Tag">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <button class="tb-btn" type="button" id="btn-today">Heute</button>
+        <button class="tb-btn" type="button" id="btn-next" aria-label="Nächster Tag">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="head">
+    <div>
+      <h1 id="day-title">Dienstag, 17. November</h1>
+      <div class="sub" id="day-sub">A-Woche · Woche 47</div>
+    </div>
+    <div class="source">
+      <div class="txt" aria-live="polite"><b>Schulmanager Online</b><span id="source-stand">Stand: heute 7:28</span></div>
+      <button class="tb-btn" type="button" id="btn-refresh" aria-label="Stundenplan-Quelle jetzt abfragen">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4.5v4.5h-4.5"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <main class="content" id="content" aria-label="Unterrichtsstunden des Tages"></main>
+
+  <div class="menu" id="menu" role="menu"></div>
+  <div class="hud" id="hud" role="status" aria-live="polite"><div id="hud-text"></div><button class="undo" type="button" id="hud-undo" hidden>Widerrufen</button></div>
+  <div class="home-ind" aria-hidden="true"></div>
+
+</div></div></div></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Symbole (Inline-SVG, angelehnt an SF Symbols) ----------
+  var I = {
+    doc: '<svg width="36" height="44" viewBox="0 0 36 44" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M5 2.5h17l9 9v30H5z"/><path d="M22 2.5v9h9"/></svg>',
+    local: '<svg width="15" height="15" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.5" fill="currentColor"/><path d="M4.6 8.2l2.2 2.2 4.6-4.8" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    loading: function (p) { var c = 2 * Math.PI * 6; return '<svg width="15" height="15" viewBox="0 0 16 16" style="transform:rotate(-90deg)"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-opacity=".3" stroke-width="2.2"/><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="' + (c * p / 100).toFixed(1) + ' ' + c.toFixed(1) + '"/></svg>'; },
+    missing: '<svg width="15" height="15" viewBox="0 0 16 16"><path d="M8 1.2L15.3 14H.7z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/><path d="M8 5.6v4" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/><circle cx="8" cy="11.9" r=".95" fill="#fff"/></svg>',
+    more: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9.5"/><circle cx="7.6" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="16.4" cy="12" r="1.1" fill="currentColor" stroke="none"/></svg>',
+    cancel: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="8" r="7"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5"/></svg>',
+    sub: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5h11M10 2l3 3-3 3"/><path d="M14 11H3M6 8l-3 3 3 3"/></svg>',
+    now: '<svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg>',
+    move: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4v7a4 4 0 0 0 4 4h11"/><path d="M15 10l5 5-5 5"/></svg>',
+    open: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="15" height="15" rx="3.5"/><path d="M13 3h8v8M21 3l-9 9"/></svg>',
+    link: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3.2-3.2a4.5 4.5 0 0 0-6.4-6.4L12 5.6"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3.2 3.2a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg>',
+    plusdoc: '<svg width="26" height="30" viewBox="0 0 26 30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 1.8h12l7 7v19.4H3z" stroke-dasharray="3 2.4"/><path d="M12.5 12.5v9M8 17h9" stroke-linecap="round"/></svg>',
+    cal: '<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M9 14.5l6 4M15 14.5l-6 4"/></svg>'
+  };
+
+  // ---------- Beispieldaten (mockup/LIESMICH.md) ----------
+  var TIMES = { 1: ["7:45", "8:30"], 2: ["8:35", "9:20"], 3: ["9:40", "10:25"], 4: ["10:30", "11:15"], 5: ["11:35", "12:20"], 6: ["12:25", "13:10"] };
+  var TYPES = {
+    pptx: { kind: "PPT", name: "PowerPoint", app: "in PowerPoint" },
+    docx: { kind: "DOC", name: "Word", app: "in Word" },
+    pdf:  { kind: "PDF", name: "PDF", app: "in der Anzeige mit Stift" }
+  };
+  var ORDER = ["16", "17", "18", "19", "20"];
+  var TODAY = "17";
+  var NOW_HOUR = 2; // es ist 8:40, die 2. Stunde läuft
+
+  var days = {
+    "16": { long: "Montag, 16. November", short: "Mo 16.11.", lessons: {
+      1: { cls: "7a", subj: "Deutsch", mats: [] },
+      2: { cls: "9c", subj: "Englisch", mats: [] },
+      5: { cls: "8a", subj: "Englisch", mats: [] } } },
+    "17": { long: "Dienstag, 17. November", short: "Di 17.11.", lessons: {
+      1: { cls: "7a", subj: "Deutsch", mats: [
+           { id: "m1", name: "Arbeitsblatt 3 – Satzglieder", type: "pdf", state: "local" }] },
+      2: { cls: "8b", subj: "Englisch", mats: [
+           { id: "m2", name: "Unit 4 – Präsentation", type: "pptx", state: "local" },
+           { id: "m3", name: "Arbeitsblatt Vokabeln", type: "docx", state: "local" },
+           { id: "m4", name: "Lösung Vokabeln", type: "pdf", state: "loading", progress: 60 }] },
+      4: { cls: "9c", subj: "Englisch", cancelled: true, mats: [
+           { id: "m5", name: "Unit 2 – Hörverstehen", type: "pptx", state: "local" }] },
+      5: { cls: "6c", subj: "Mathe", substitute: true, mats: [] },
+      6: { cls: "8a", subj: "Englisch", mats: [
+           { id: "m6", name: "Unit 4 – Präsentation", type: "pptx", state: "missing" }] } } },
+    "18": { long: "Mittwoch, 18. November", short: "Mi 18.11.", lessons: {
+      3: { cls: "8b", subj: "Englisch", mats: [] },
+      4: { cls: "7a", subj: "Deutsch", mats: [] } } },
+    "19": { long: "Donnerstag, 19. November", short: "Do 19.11.", lessons: {
+      2: { cls: "9c", subj: "Englisch", mats: [] },
+      3: { cls: "8a", subj: "Englisch", mats: [] } } },
+    "20": { long: "Freitag, 20. November", short: "Fr 20.11.", free: "Pädagogischer Tag", lessons: {},
+      unassigned: [ { id: "m7", name: "Lesetext Kapitel 5", type: "pdf", state: "local", was: { cls: "7a", subj: "Deutsch" } } ] }
+  };
+
+  var current = TODAY;
+  var undoSnap = null;
+  var screen = document.getElementById("screen");
+  var content = document.getElementById("content");
+  var menu = document.getElementById("menu");
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  // nächste Unterrichtsstunde derselben Klasse (FR-3.3, FR-8) — ohne Ausfall
+  function nextLesson(cls, dayKey, hour) {
+    var start = ORDER.indexOf(dayKey);
+    for (var d = start; d < ORDER.length; d++) {
+      var day = days[ORDER[d]];
+      for (var h = 1; h <= 6; h++) {
+        if (d === start && h <= hour) continue;
+        var l = day.lessons[h];
+        if (l && l.cls === cls && !l.cancelled) return { day: ORDER[d], hour: h, label: day.short + ", " + h + ". Stunde" };
+      }
+    }
+    return null;
+  }
+
+  function statusHtml(m) {
+    if (m.state === "local") return '<span class="st-local" style="display:flex;gap:5px;align-items:center">' + I.local + "Auf dem Gerät</span>";
+    if (m.state === "loading") return '<span class="st-loading" style="display:flex;gap:5px;align-items:center">' + I.loading(m.progress) + "Wird geladen · " + m.progress + " %</span>";
+    return '<span class="st-missing" style="display:flex;gap:5px;align-items:center">' + I.missing + "Nicht verfügbar</span>";
+  }
+  function statusWord(m) { return m.state === "local" ? "auf dem Gerät" : m.state === "loading" ? "wird geladen, " + m.progress + " Prozent" : "nicht verfügbar"; }
+
+  function tileHtml(m, dayKey, hour) {
+    var t = TYPES[m.type];
+    var ref = 'data-day="' + dayKey + '" data-hour="' + hour + '" data-mat="' + m.id + '"';
+    var h = '<div class="tile' + (m.state === "missing" ? " missing wide" : "") + '">' +
+      '<button class="tile-main" type="button" data-act="open" ' + ref + ' aria-label="' + esc(m.name) + ", " + t.name + ", " + statusWord(m) + '">' +
+        '<span class="ficon">' + I.doc + '<span class="kind">' + t.kind + "</span></span>" +
+        '<span class="ttext"><span class="tname">' + esc(m.name) + '</span>' +
+        '<span class="tmeta">' + t.name + " · " + statusHtml(m) + "</span>" +
+        (m.state === "missing" ? '<span class="tmeta">Verweis in die Ablage löst nicht auf</span>' : "") +
+        "</span></button>";
+    if (m.state === "missing") h += '<button class="btn" type="button" data-act="relink" ' + ref + ' style="margin-right:4px">' + I.link + "Neu verknüpfen</button>";
+    h += '<button class="tile-more" type="button" data-act="menu" ' + ref + ' aria-label="Weitere Aktionen für ' + esc(m.name) + '" aria-haspopup="menu">' + I.more + "</button></div>";
+    return h;
+  }
+
+  function lessonRow(dayKey, h, l) {
+    var cls = "row" + (dayKey === TODAY && h === NOW_HOUR ? " now" : "") + (l.cancelled ? " cancelled" : "");
+    var who = '<div class="cls">' + l.cls + '</div><div class="subj">' + l.subj + "</div>";
+    if (dayKey === TODAY && h === NOW_HOUR) who += '<div class="pill-now">' + I.now + "Jetzt · bis " + TIMES[h][1] + "</div>";
+    if (l.cancelled) who += '<div class="flag cancel">' + I.cancel + 'Ausfall</div><div class="flag" style="margin-top:0"><span class="src">laut Schulmanager</span></div>';
+    if (l.substitute) who += '<div class="flag">' + I.sub + 'Vertretungsstunde</div><div class="flag" style="margin-top:0"><span class="src">laut Schulmanager</span></div>';
+
+    var mats = "";
+    if (l.forwarded) {
+      mats = '<div class="forwarded">' + I.move + "<span>Material weitergereicht in die nächste Stunde der " + l.cls + " (" + l.forwarded + ")</span></div>";
+    } else if (!l.mats.length) {
+      mats = '<div class="nomat"><div class="box">' + I.plusdoc + "<span>Kein Material zugeordnet</span></div>" +
+             '<button class="btn" type="button" data-act="assign" data-day="' + dayKey + '" data-hour="' + h + '">Material zuordnen</button></div>';
+    } else {
+      mats = l.mats.map(function (m) { return tileHtml(m, dayKey, h); }).join("");
+      if (l.cancelled) {
+        var n = nextLesson(l.cls, dayKey, h);
+        if (n) mats += '<div class="btn-stack"><button class="btn prominent" type="button" data-act="forward" data-day="' + dayKey + '" data-hour="' + h + '">' + I.move + "In die nächste Stunde der " + l.cls + '</button><span class="hint">' + n.label + "</span></div>";
+      }
+    }
+    var label = h + ". Stunde, " + TIMES[h][0] + " bis " + TIMES[h][1] + ", " + l.cls + " " + l.subj +
+      (l.cancelled ? ", Ausfall" : "") + (l.substitute ? ", Vertretungsstunde" : "") + (dayKey === TODAY && h === NOW_HOUR ? ", läuft jetzt" : "");
+    return '<section class="' + cls + '" aria-label="' + esc(label) + '">' +
+      '<div class="when"><div class="hour">' + h + '.</div><div class="time">' + TIMES[h][0] + '</div><div class="end">bis ' + TIMES[h][1] + "</div></div>" +
+      '<div class="who">' + who + "</div>" +
+      '<div class="mats">' + mats + "</div></section>";
+  }
+
+  function gapRow(h) {
+    return '<div class="gap" aria-label="' + h + '. Stunde: keine Unterrichtsstunde"><div class="when"><span class="hour">' + h + '.</span>' +
+      '<span class="gtxt">Keine Unterrichtsstunde</span><span class="gtime">' + TIMES[h][0] + "–" + TIMES[h][1] + "</span></div></div>";
+  }
+
+  function render() {
+    closeMenu();
+    var day = days[current];
+    document.getElementById("day-title").textContent = day.long;
+    document.getElementById("day-sub").textContent = "A-Woche · Woche 47" + (day.free ? " · unterrichtsfreier Tag" : "");
+    var todayBtn = document.getElementById("btn-today");
+    todayBtn.setAttribute("aria-disabled", current === TODAY ? "true" : "false");
+    document.getElementById("btn-prev").setAttribute("aria-disabled", ORDER.indexOf(current) === 0 ? "true" : "false");
+    document.getElementById("btn-next").setAttribute("aria-disabled", ORDER.indexOf(current) === ORDER.length - 1 ? "true" : "false");
+
+    if (day.free) {
+      var html = '<div class="free">' + I.cal + "<h2>Unterrichtsfreier Tag</h2><p>" + day.free + " · keine Unterrichtsstunden</p></div>";
+      if (day.unassigned.length) {
+        html += '<div><div class="sect-h">Material ohne Stunde</div><div class="card"><div class="free-mats">';
+        day.unassigned.forEach(function (m) {
+          html += tileHtml(m, current, 0) +
+            '<div class="btn-stack"><button class="btn" type="button" data-act="forward-free" data-mat="' + m.id + '">' + I.move + "In die nächste Stunde der " + m.was.cls + '</button><span class="hint">war ' + m.was.cls + " " + m.was.subj + "</span></div>";
+        });
+        html += '</div></div><div class="sect-f">Das Material bleibt erhalten, bis es einer Unterrichtsstunde zugeordnet wird.</div></div>';
+      }
+      content.innerHTML = html;
+      return;
+    }
+
+    var out = "", open = false;
+    for (var h = 1; h <= 6; h++) {
+      var l = day.lessons[h];
+      if (l) {
+        if (!open) { out += '<div class="card">'; open = true; }
+        out += lessonRow(current, h, l);
+      } else {
+        if (open) { out += "</div>"; open = false; }
+        out += gapRow(h);
+      }
+    }
+    if (open) out += "</div>";
+    content.innerHTML = out;
+  }
+
+  // ---------- Rückmeldung ----------
+  var hud = document.getElementById("hud"), hudText = document.getElementById("hud-text"), hudUndo = document.getElementById("hud-undo"), hudTimer;
+  function toast(text, withUndo) {
+    hudText.innerHTML = '<span class="tag">Im Mockup: was passieren würde</span>' + text;
+    hudUndo.hidden = !withUndo;
+    hud.classList.add("show");
+    clearTimeout(hudTimer);
+    hudTimer = setTimeout(function () { hud.classList.remove("show"); }, withUndo ? 6000 : 3800);
+  }
+  hudUndo.addEventListener("click", function () {
+    if (undoSnap) { days = JSON.parse(undoSnap); undoSnap = null; render(); }
+    hud.classList.remove("show");
+  });
+
+  function findMat(dayKey, hour, id) {
+    var day = days[dayKey];
+    var list = hour ? day.lessons[hour].mats : day.unassigned;
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) return { list: list, idx: i, m: list[i] };
+    return null;
+  }
+
+  function openMaterial(m) {
+    var t = TYPES[m.type];
+    if (m.state === "local") toast("„" + esc(m.name) + "“ öffnet " + t.app + (m.type === "pdf" ? "." : " — zum Präsentieren, Schreiben und Zeichnen."));
+    else if (m.state === "loading") toast("„" + esc(m.name) + "“ wird noch aus der Ablage geladen (" + m.progress + " %). Es öffnet " + t.app + ", sobald es auf dem Gerät liegt.");
+    else toast("„" + esc(m.name) + "“ ist nicht verfügbar: Der Verweis in die Ablage löst nicht auf. „Neu verknüpfen“ wählt die Datei erneut aus.");
+  }
+
+  function moveOne(dayKey, hour, id) {
+    var f = findMat(dayKey, hour, id); if (!f) return;
+    var l = days[dayKey].lessons[hour];
+    var n = nextLesson(l.cls, dayKey, hour); if (!n) return;
+    undoSnap = JSON.stringify(days);
+    f.list.splice(f.idx, 1);
+    days[n.day].lessons[n.hour].mats.push(f.m);
+    render();
+    toast("„" + esc(f.m.name) + "“ liegt jetzt in der nächsten Stunde der " + l.cls + " (" + n.label + "). Die Datei in der Ablage bleibt, wo sie ist.", true);
+  }
+
+  function forwardCancelled(dayKey, hour) {
+    var l = days[dayKey].lessons[hour];
+    var n = nextLesson(l.cls, dayKey, hour); if (!n) return;
+    undoSnap = JSON.stringify(days);
+    var count = l.mats.length;
+    days[n.day].lessons[n.hour].mats = days[n.day].lessons[n.hour].mats.concat(l.mats);
+    l.mats = []; l.forwarded = n.label;
+    render();
+    toast(count + (count === 1 ? " Material liegt" : " Materialien liegen") + " jetzt in der nächsten Stunde der " + l.cls + " (" + n.label + ").", true);
+  }
+
+  // ---------- Menü am Material (Kontextmenü / Pull-down) ----------
+  var menuCtx = null;
+  function openMenu(anchor, dayKey, hour, id) {
+    var f = findMat(dayKey, hour, id); if (!f) return;
+    var m = f.m, items = [];
+    items.push('<button type="button" role="menuitem" data-m="open"><span>Öffnen<span class="msub">' + TYPES[m.type].app + "</span></span>" + I.open + "</button>");
+    if (m.state === "missing") items.push('<button type="button" role="menuitem" data-m="relink"><span>Neu verknüpfen</span>' + I.link + "</button>");
+    if (hour) {
+      var l = days[dayKey].lessons[hour];
+      var n = nextLesson(l.cls, dayKey, hour);
+      if (n) items.push('<button type="button" role="menuitem" data-m="move"><span>In die nächste Stunde der ' + l.cls + ' schieben<span class="msub">' + n.label + "</span></span>" + I.move + "</button>");
+    } else {
+      items.push('<button type="button" role="menuitem" data-m="move-free"><span>In die nächste Stunde der ' + m.was.cls + ' schieben<span class="msub">nächste Woche</span></span>' + I.move + "</button>");
+    }
+    menu.innerHTML = '<div class="mtitle">' + esc(m.name) + "</div>" + items.join("");
+    menuCtx = { dayKey: dayKey, hour: hour, id: id, m: m };
+    menu.classList.add("open");
+    // Position relativ zum Bildschirm (unskaliert rechnen)
+    var s = scale(), sr = screen.getBoundingClientRect(), ar = anchor.getBoundingClientRect();
+    var x = (ar.left - sr.left) / s, y = (ar.bottom - sr.top) / s + 6, w = 320, mh = menu.offsetHeight;
+    x = Math.min(Math.max(12, x - w / 2 + (ar.width / s) / 2), 1194 - w - 12);
+    if (y + mh > 834 - 20) y = (ar.top - sr.top) / s - mh - 6;
+    menu.style.left = x + "px"; menu.style.top = y + "px";
+    var first = menu.querySelector("button"); if (first) first.focus({ preventScroll: true });
+  }
+  function closeMenu() { menu.classList.remove("open"); menuCtx = null; }
+
+  menu.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-m]"); if (!b || !menuCtx) return;
+    var c = menuCtx; closeMenu();
+    if (b.dataset.m === "open") openMaterial(c.m);
+    else if (b.dataset.m === "relink") toast("Öffnet die Dateiauswahl der Ablage (Ordnerfreigabe „Unterricht“), um „" + esc(c.m.name) + "“ neu zu verknüpfen.");
+    else if (b.dataset.m === "move") moveOne(c.dayKey, c.hour, c.id);
+    else if (b.dataset.m === "move-free") forwardFree(c.id);
+  });
+
+  function forwardFree(id) {
+    var f = findMat(current, 0, id); if (!f) return;
+    undoSnap = JSON.stringify(days);
+    f.list.splice(f.idx, 1);
+    render();
+    toast("„" + esc(f.m.name) + "“ liegt jetzt in der nächsten Stunde der " + f.m.was.cls + " (nächste Woche).", true);
+  }
+
+  // ---------- Ereignisse ----------
+  var lp = null, suppressClick = false;
+  content.addEventListener("pointerdown", function (e) {
+    var b = e.target.closest('[data-act="open"]'); if (!b) return;
+    lp = setTimeout(function () { suppressClick = true; openMenu(b, b.dataset.day, +b.dataset.hour, b.dataset.mat); }, 500);
+  });
+  ["pointerup", "pointerleave", "pointercancel"].forEach(function (t) { content.addEventListener(t, function () { clearTimeout(lp); }); });
+  content.addEventListener("contextmenu", function (e) {
+    var b = e.target.closest('[data-act="open"]'); if (!b) return;
+    e.preventDefault(); clearTimeout(lp); openMenu(b, b.dataset.day, +b.dataset.hour, b.dataset.mat);
+  });
+  content.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-act]"); if (!b) return;
+    if (suppressClick) { suppressClick = false; return; }
+    var d = b.dataset, act = d.act;
+    if (act === "open") { var f = findMat(d.day, +d.hour, d.mat); if (f) openMaterial(f.m); }
+    else if (act === "menu") { e.stopPropagation(); if (menuCtx && menuCtx.id === d.mat) closeMenu(); else openMenu(b, d.day, +d.hour, d.mat); }
+    else if (act === "relink") { var g = findMat(d.day, +d.hour, d.mat); toast("Öffnet die Dateiauswahl der Ablage (Ordnerfreigabe „Unterricht“), um „" + esc(g.m.name) + "“ neu zu verknüpfen."); }
+    else if (act === "forward") forwardCancelled(d.day, +d.hour);
+    else if (act === "forward-free") forwardFree(d.mat);
+    else if (act === "assign") toast("Öffnet die Dateiauswahl der Ablage, um dieser Unterrichtsstunde Material zuzuordnen.");
+  });
+  document.addEventListener("click", function (e) { if (menuCtx && !menu.contains(e.target) && !e.target.closest('[data-act="menu"]')) closeMenu(); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") closeMenu();
+    if (e.target.closest && e.target.closest(".menu")) return;
+    if (e.key === "ArrowLeft") step(-1);
+    if (e.key === "ArrowRight") step(1);
+  });
+
+  function step(dir) {
+    var i = ORDER.indexOf(current) + dir;
+    if (i < 0 || i >= ORDER.length) return;
+    current = ORDER[i]; render();
+  }
+  document.getElementById("btn-prev").addEventListener("click", function () { step(-1); });
+  document.getElementById("btn-next").addEventListener("click", function () { step(1); });
+  document.getElementById("btn-today").addEventListener("click", function () { if (current !== TODAY) { current = TODAY; render(); } });
+  document.getElementById("btn-sidebar").addEventListener("click", function () { toast("Seitenleiste mit Vorbereiten und Stundenplan — in diesem Mockup nicht ausgearbeitet."); });
+
+  var refreshBtn = document.getElementById("btn-refresh");
+  refreshBtn.addEventListener("click", function () {
+    if (refreshBtn.classList.contains("busy")) return;
+    refreshBtn.classList.add("busy");
+    document.getElementById("source-stand").textContent = "Wird abgefragt …";
+    setTimeout(function () {
+      refreshBtn.classList.remove("busy");
+      document.getElementById("source-stand").textContent = "Stand: heute 8:40 · keine Änderungen";
+    }, 1400);
+  });
+
+  // ---------- Hell / Dunkel (nur Mockup-Rahmen) ----------
+  document.querySelectorAll("[data-theme-set]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var v = b.dataset.themeSet;
+      if (v === "system") document.documentElement.removeAttribute("data-theme");
+      else document.documentElement.setAttribute("data-theme", v);
+      document.querySelectorAll("[data-theme-set]").forEach(function (o) { o.setAttribute("aria-pressed", o === b ? "true" : "false"); });
+    });
+  });
+
+  // ---------- Einpassen ins Browserfenster ----------
+  var stage = document.getElementById("stage");
+  var _s = 1;
+  function scale() { return _s; }
+  // Skalierung auf den inneren Rahmen anwenden, damit die äußere Box die skalierte Größe hat
+  function fit2() {
+    _s = Math.min((window.innerWidth - 32) / 1242, (window.innerHeight - 44 - 24) / 882, 1.25);
+    stage.style.width = 1242 * _s + "px";
+    stage.style.height = 882 * _s + "px";
+    stage.style.transform = "";
+    var dev = stage.firstElementChild;
+    dev.style.transformOrigin = "top left";
+    dev.style.transform = "scale(" + _s + ")";
+    closeMenu();
+  }
+  window.addEventListener("resize", fit2);
+  fit2();
+  render();
+})();
+</script>
+</body>
+</html>

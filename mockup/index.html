@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tagesmappe – Mockups</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #f2f2f7; --card: #fff; --text: #000; --muted: rgba(60,60,67,.6);
+    --line: rgba(60,60,67,.29); --tint: #007aff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #000; --card: #1c1c1e; --text: #fff; --muted: rgba(235,235,245,.6);
+            --line: rgba(84,84,88,.65); --tint: #0a84ff; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 17px/1.35 -apple-system, "SF Pro Text", system-ui, sans-serif; }
+  main { max-width: 680px; margin: 0 auto; padding: 48px 16px; }
+  h1 { font-size: 34px; margin: 0 0 4px; }
+  p.lead { color: var(--muted); margin: 0 0 28px; }
+  ul { list-style: none; margin: 0; padding: 0; background: var(--card); border-radius: 12px; overflow: hidden; }
+  li + li { border-top: .5px solid var(--line); }
+  a { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 10px 16px;
+      color: inherit; text-decoration: none; }
+  a:hover, a:focus-visible { background: color-mix(in srgb, var(--tint) 10%, transparent); outline: none; }
+  .t { flex: 1; }
+  .t b { display: block; font-weight: 600; }
+  .t span { color: var(--muted); font-size: 15px; }
+  .dev { font-size: 13px; color: var(--muted); border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; }
+  .chev { color: var(--muted); font-size: 22px; }
+  .note { margin-top: 24px; font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <h1>Tagesmappe</h1>
+  <p class="lead">Mockups zur Veranschaulichung – Woche 47, Dienstag, 17.11.2026</p>
+  <ul>
+    <li><a href="tagesansicht.html">
+      <span class="t"><b>Tagesansicht</b><span>Im Unterricht: ein Tag, Material mit einem Tipp öffnen</span></span>
+      <span class="dev">iPad</span><span class="chev" aria-hidden="true">›</span></a></li>
+    <li><a href="vorbereiten.html">
+      <span class="t"><b>Vorbereiten</b><span>Material den Unterrichtsstunden der Woche zuordnen</span></span>
+      <span class="dev">Mac</span><span class="chev" aria-hidden="true">›</span></a></li>
+    <li><a href="einrichten.html">
+      <span class="t"><b>Einrichten</b><span>Stundenplan, Stundenplan-Quelle, unterrichtsfreie Zeiträume, Ablage</span></span>
+      <span class="dev">iPad</span><span class="chev" aria-hidden="true">›</span></a></li>
+  </ul>
+  <p class="note">Kein Gestaltungsbeschluss: Das Aussehen ist der unveränderte Systemstandard als Platzhalter.
+  Beschlüsse entstehen in Design-Runden und stehen in <code>DESIGN.md</code>. Alle Daten sind erfunden.</p>
+</main>
+</body>
+</html>
