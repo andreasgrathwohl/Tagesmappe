@@ -46,6 +46,7 @@ Person (Q-13).
 | Stundenplan-Eintrag | ein Feld im Stundenplan, z. B. „Dienstag, 2. Stunde, 8b, Englisch“ | Unterrichtsstunde |
 | Unterrichtsstunde | ein konkreter Stundenplan-Eintrag an einem bestimmten Datum, z. B. „Di 17.11., 2. Stunde, 8b“ — Material wird Unterrichtsstunden zugeordnet | Stundenplan-Eintrag |
 | Material | eine Datei aus der Ablage der Lehrkraft (z. B. Präsentation, Dokument, PDF, Bild), die einer Unterrichtsstunde zugeordnet ist | Ablage |
+| Zuordnung | der Verweis einer Unterrichtsstunde auf ein Material in der Ablage — nie eine Kopie der Datei | Material |
 | Ablage | der Cloud-Speicher, in dem die Lehrkraft ihr Material hält (z. B. iCloud Drive, OneDrive, Google Drive, Schul-Nextcloud) | Material |
 | Vorbereiten | Material den Unterrichtsstunden kommender Tage zuordnen | Präsentieren |
 | Tagesansicht | die Ansicht im Unterricht: alle Unterrichtsstunden eines Tages mit ihrem Material | Stundenplan |
@@ -100,6 +101,26 @@ Als weitere Stundenplan-Quelle — vom Nutzer genannt („Untis könnte noch ang
 Die Lehrkraft ordnet Material aus ihrer Ablage den Unterrichtsstunden der kommenden Tage zu — für
 die Woche oder für morgen. Vom Nutzer genannt: „am Mac vorbereiten für die Woche oder morgen“.
 Vorbereiten geht am Mac und am Tablet; ein Mac ist nicht Voraussetzung (Q-2).
+
+### FR-3.1 — Mehrere Materialien in fester Reihenfolge [MVP]
+
+Eine Unterrichtsstunde kann mehrere Materialien haben, in einer Reihenfolge, die die Lehrkraft
+festlegt; die Tagesansicht zeigt sie in dieser Reihenfolge (Q-6).
+
+### FR-3.2 — Zuordnung für Parallelklasse übernehmen [MVP]
+
+„Für <Klasse> übernehmen“ kopiert die Zuordnung einer Unterrichtsstunde in die passende
+Unterrichtsstunde einer anderen Klasse (Q-7).
+
+### FR-3.3 — Material in die nächste Stunde der Klasse schieben [MVP]
+
+Nicht behandeltes Material lässt sich mit einem Tipp in die nächste Unterrichtsstunde derselben
+Klasse schieben (Q-7).
+
+### FR-3.4 — Zuordnen kopiert nie Dateien [MVP]
+
+Zuordnen, Übernehmen und Schieben verweisen auf die Datei in der Ablage; es entsteht nie eine Kopie
+der Datei, damit es immer nur einen Stand des Materials gibt (Q-7, NFR-1).
 
 ### FR-4 — Tagesansicht mit Fokus auf den Tag [MVP]
 
@@ -162,8 +183,8 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 
 ## Lieferstufen
 
-- **MVP:** FR-1, FR-1.1, FR-2, FR-3, FR-4, FR-5, FR-5.1, FR-6, FR-7, FR-8, FR-9, NFR-1 bis NFR-4
-  (geprüfte Zahl: 15). Ob FR-2 und FR-5.1 wirklich in den MVP gehören, ist offen (Q-3, Q-4).
+- **MVP:** FR-1, FR-1.1, FR-2, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-7, FR-8, FR-9,
+  NFR-1 bis NFR-4 (geprüfte Zahl: 19). Ob FR-2 und FR-5.1 wirklich in den MVP gehören, ist offen (Q-3, Q-4).
 - **Later:** FR-2.1, FR-7.1.
 
 ## Out of Scope
@@ -210,8 +231,8 @@ verteilen. Umgang: Konto vor dem ersten Test mit Lehrkräften einrichten.
 - Q-3: Gehört der Schulmanager-Import (FR-2) in den MVP oder kommt er danach?
 - Q-4: Gehört die OneDrive-Anbindung mit AutoSpeichern (FR-5.1) in den MVP?
 - ~~Q-5~~: Wie werden A/B-Wochen, Ferien, Feiertage, Ausfall und Vertretungen behandelt? → answered 2026-11-13: Vorschlag angenommen — zwei Wochenvarianten im Wechsel (FR-1.1); unterrichtsfreie Tage von Hand, später aus Ferienkalender (FR-7, FR-7.1); Ausfall je Unterrichtsstunde mit Weiterreichen des Materials (FR-8); Vertretungsstunde frei anlegen (FR-9).
-- Q-6: Wie viel Material hat eine Unterrichtsstunde, und zählt die Reihenfolge?
-- Q-7: Soll Material für Parallelklassen (z. B. 8a und 8b) oder für die Folgewoche einfach wiederverwendet werden können?
+- ~~Q-6~~: Wie viel Material hat eine Unterrichtsstunde, und zählt die Reihenfolge? → answered 2026-11-13: mehrere, in festgelegter Reihenfolge (FR-3.1).
+- ~~Q-7~~: Soll Material für Parallelklassen (z. B. 8a und 8b) oder für die Folgewoche einfach wiederverwendet werden können? → answered 2026-11-13: ja — Zuordnung für Parallelklasse übernehmen (FR-3.2), in die nächste Stunde schieben (FR-3.3), nie Dateien kopieren (FR-3.4).
 - Q-8: Soll das Produkt Daten nach außen anbieten (z. B. Kalender-Abo, lesbare Plan-Datei), damit andere Apps sie nutzen?
 - Q-9: Geschäftsmodell — kostenlos, Einmalkauf oder Abo? (bestimmt u. a. App-Store-Auftritt)
 - Q-10: Zielmarkt — nur deutschsprachige Schulen, oder international?
@@ -229,13 +250,14 @@ Folgen, sobald die MVP-Liste nach Q-3/Q-4 feststeht.
 - 2026-11-13: Nutzerschaft changed — Tablet ist persönlich (Q-13); Out of Scope um geteilte Tablets ergänzt
 - 2026-11-13: FR-3 changed — Vorbereiten auch am Tablet, Mac nicht Voraussetzung (Q-2); Nutzerschaft entsprechend
 - 2026-11-13: FR-1.1, FR-7, FR-7.1, FR-8, FR-9 new — Abweichungen vom Stundenplan (Q-5); Glossar um Wochenvariante, unterrichtsfreier Tag, Ausfall, Vertretungsstunde ergänzt
+- 2026-11-13: FR-3.1 bis FR-3.4 new — Material je Stunde und Wiederverwenden (Q-6, Q-7); Glossar um Zuordnung ergänzt
 
 ## Anhang A — Abdeckung
 
 | Phase | Anforderungen |
 |---|---|
 | 1 Stundenplan einrichten | FR-1, FR-1.1, FR-2, FR-2.1, FR-7, FR-7.1 |
-| 2 Vorbereiten | FR-3, FR-8, FR-9 |
+| 2 Vorbereiten | FR-3, FR-3.1 bis FR-3.4, FR-8, FR-9 |
 | 3 Tagesansicht | FR-4 |
 | 4 Öffnen und präsentieren | FR-5, FR-5.1, FR-6 |
 | 5 Änderungen in der Ablage | FR-5.1, NFR-1 |
