@@ -151,6 +151,19 @@ struct LessonsTests {
     #expect(result[0].isSubstituteLesson)
   }
 
+  @Test("Gleiche Stunde und Klasse: Reihenfolge nach Fach, dann laufender Nummer (AK-1)")
+  func sameSlotOrderedBySubjectThenOrdinal() {
+    let entries = [
+      entry(.tuesday, 2, "8b", "Mathe"), entry(.tuesday, 2, "8b", "Englisch"),
+      entry(.tuesday, 2, "8b", "Mathe"),
+    ]
+    for tt in [timetable(entries), timetable(entries.reversed())] {
+      let result = lessons(d(2026, 11, 17), tt)
+      #expect(result.map(\.key.subject.normalized) == ["englisch", "mathe", "mathe"])
+      #expect(result.map(\.key.ordinal) == [1, 1, 2])
+    }
+  }
+
   @Test("Doppelte Vertretung wird zu einer Stunde (AK-16)")
   func duplicateSubstitutesCollapse() {
     let tt = timetable([])

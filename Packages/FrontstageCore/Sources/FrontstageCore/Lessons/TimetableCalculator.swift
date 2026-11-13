@@ -91,10 +91,12 @@ public enum TimetableCalculator {
           cancellationOrigin: origin))
     }
 
+    // Vollständige Ordnung, damit die Reihenfolge nicht von der Stabilität von `sorted` abhängt.
     return result.sorted {
       if $0.period != $1.period { return $0.period < $1.period }
       if $0.isSubstituteLesson != $1.isSubstituteLesson { return !$0.isSubstituteLesson }
-      return $0.key.schoolClass.normalized < $1.key.schoolClass.normalized
+      return ($0.key.schoolClass.normalized, $0.key.subject.normalized, $0.key.ordinal)
+        < ($1.key.schoolClass.normalized, $1.key.subject.normalized, $1.key.ordinal)
     }
   }
 
