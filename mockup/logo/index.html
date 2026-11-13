@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pult – Logo-Varianten</title>
+<style>
+  :root { color-scheme: light dark; --bg:#f2f2f7; --card:#fff; --text:#000; --muted:rgba(60,60,67,.6); --line:rgba(60,60,67,.18); --tint:#007aff; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#000; --card:#1c1c1e; --text:#fff; --muted:rgba(235,235,245,.6); --line:rgba(84,84,88,.5); --tint:#0a84ff; } }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font:15px/1.4 -apple-system,"SF Pro Text",system-ui,sans-serif; }
+  main { max-width:1180px; margin:0 auto; padding:24px 16px 64px; }
+  a.back { color:var(--tint); text-decoration:none; }
+  h1 { font-size:30px; margin:12px 0 4px; }
+  p.lead { color:var(--muted); margin:0 0 20px; max-width:760px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(360px,1fr)); gap:16px; }
+  .card { background:var(--card); border-radius:16px; padding:18px; }
+  .card h2 { font-size:18px; margin:0 0 2px; display:flex; gap:8px; align-items:baseline; }
+  .card h2 small { font-size:12px; color:var(--muted); font-weight:500; border:1px solid var(--line); border-radius:6px; padding:1px 6px; }
+  .card p { margin:4px 0 12px; color:var(--muted); font-size:13px; }
+  .big { width:200px; height:200px; border-radius:22.37%; overflow:hidden; display:block; box-shadow:0 1px 3px rgba(0,0,0,.15); }
+  .row { display:flex; align-items:flex-end; gap:16px; margin-top:12px; flex-wrap:wrap; }
+  .ic { border-radius:22.37%; overflow:hidden; display:block; }
+  .home { display:flex; gap:12px; padding:12px; border-radius:12px; align-items:center; }
+  .home.light { background:linear-gradient(135deg,#dfe7f2,#f4efe7); }
+  .home.dark { background:linear-gradient(135deg,#121826,#1d1d22); }
+  .tint { width:60px; height:60px; border-radius:22.37%; background:#1b1b1f; display:grid; place-items:center; }
+  .tint img { width:44px; height:44px; filter:invert(78%) sepia(40%) saturate(600%) hue-rotate(5deg); }
+  .lbl { font-size:11px; color:var(--muted); text-align:center; margin-top:4px; }
+  .note { font-size:13px; color:var(--muted); margin-top:24px; }
+</style>
+</head>
+<body>
+<main>
+  <a class="back" href="../index.html">‹ Übersicht</a>
+  <h1>Pult – Logo-Varianten</h1>
+  <p class="lead">Sechs Entwürfe für das App-Icon aus drei Blickwinkeln, je von einem eigenen Subagenten mit genau einem Skill:
+  <b>A</b> Apples Richtlinien für App-Icons, <b>B</b> Markenidentität, <b>C</b> eigenständige Formsprache.
+  Gezeigt groß, auf dem Home-Bildschirm hell und dunkel, in 29&nbsp;pt (kleinste Größe) und eingefärbt.
+  Kein Beschluss – der Gewinner wird als Gestaltungsbeschluss in <code>DESIGN.md</code> festgehalten.</p>
+  <div class="grid" id="grid"></div>
+  <p class="note">Die abgerundete Form schneidet iPadOS/macOS selbst zu; hier ist sie mit CSS nachgestellt. „Eingefärbt“ simuliert den Darstellungsmodus, in dem das System nur die Form in einer Farbe zeigt.</p>
+</main>
+<script>
+const ICONS = [
+  // [Datei ohne .svg, Titel, Blickwinkel, Satz]
+  ["a1-stehpult", "Stehpult", "A · Apple-Richtlinien", "Pult im Profil, auf der schrägen Platte liegt das bereitgelegte Material in Safran."],
+  ["a2-uebertragung", "Übertragung", "A · Apple-Richtlinien", "Vom kleinen Pult geht ein Lichtkegel auf eine große Fläche – dasselbe Quadrat leuchtet dort, wo die Klasse hinsieht."],
+  ["b1-pult", "Pult", "B · Marke", "Schräge Pultfläche mit Ablagekante, darauf genau ein Blatt – alles für die Stunde liegt bereit."],
+  ["b2-lichtpult", "Lichtpult", "B · Marke", "P-Form: Stiel als Ständer, Bogen als leuchtender Bildschirm – von hier aus steuern, was die Klasse sieht."],
+  ["c1-pultkante", "Pultkante", "C · Formsprache", "Stehpult aus vier Flächen in der Seitenansicht, auf der schrägen Platte liegt das iPad."],
+  ["c2-heute", "Heute", "C · Formsprache", "Spalte aus Stundenblöcken; die aktuelle Stunde leuchtet und wird zur großen Fläche – dem Smartboard."],
+];
+const g = document.getElementById("grid");
+for (const [f, t, who, s] of ICONS) {
+  const c = document.createElement("section"); c.className = "card";
+  c.innerHTML = `<h2>${t} <small>${who}</small></h2><p>${s}</p>
+    <img class="big" src="${f}.svg" alt="${t}, groß">
+    <div class="row">
+      <div><div class="home light"><img class="ic" src="${f}.svg" width="60" height="60" alt=""><img class="ic" src="${f}.svg" width="29" height="29" alt=""></div><div class="lbl">hell · 60 und 29 pt</div></div>
+      <div><div class="home dark"><img class="ic" src="${f}.svg" width="60" height="60" alt=""><img class="ic" src="${f}.svg" width="29" height="29" alt=""></div><div class="lbl">dunkel</div></div>
+      <div><div class="tint"><img src="${f}-mono.svg" alt=""></div><div class="lbl">eingefärbt</div></div>
+    </div>`;
+  g.appendChild(c);
+}
+</script>
+</body>
+</html>

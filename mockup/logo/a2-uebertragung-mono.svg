@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Konzept A2 "Übertragung", eingefärbter Modus: nur das Motiv, eine Farbe, Tiefe über Deckkraft. -->
+  <polygon points="392,742 632,742 796,560 228,560" fill="#000" fill-opacity="0.28"/>
+  <rect x="192" y="176" width="640" height="384" rx="56" fill="#000" fill-opacity="0.55"/>
+  <rect x="412" y="268" width="200" height="200" rx="40" fill="#000"/>
+  <rect x="352" y="742" width="320" height="104" rx="52" fill="#000"/>
+</svg>

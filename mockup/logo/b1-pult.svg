@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#1E3B40"/>
+  <g transform="translate(512 548) scale(1.16) translate(-512 -590)">
+    <!-- Fuß des Pults -->
+    <path d="M416 700 H608 L652 830 H372 Z" fill="#8A5A2E"/>
+    <!-- schräge Pultfläche -->
+    <path d="M296 344 H728 L838 640 H186 Z" fill="#C98A4B"/>
+    <!-- Ablagekante vorn -->
+    <rect x="172" y="636" width="680" height="72" rx="14" fill="#8A5A2E"/>
+    <!-- das eine Blatt, das bereitliegt -->
+    <path d="M404 388 H620 L674 604 H350 Z" fill="#F6F0E4"/>
+  </g>
+</svg>

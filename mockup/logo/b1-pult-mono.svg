@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <mask id="m">
+      <rect width="1024" height="1024" fill="#fff"/>
+      <g transform="translate(512 548) scale(1.16) translate(-512 -590)">
+        <path d="M404 388 H620 L674 604 H350 Z" fill="#000"/>
+        <rect x="160" y="622" width="704" height="16" fill="#000"/>
+        <rect x="360" y="708" width="304" height="16" fill="#000"/>
+      </g>
+    </mask>
+  </defs>
+  <g fill="#000" mask="url(#m)" transform="translate(512 548) scale(1.16) translate(-512 -590)">
+    <path d="M416 700 H608 L652 830 H372 Z"/>
+    <path d="M296 344 H728 L838 640 H186 Z"/>
+    <rect x="172" y="636" width="680" height="72" rx="14"/>
+  </g>
+</svg>
