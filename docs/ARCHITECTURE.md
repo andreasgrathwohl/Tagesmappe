@@ -1,5 +1,6 @@
 ---
-status: draft
+status: ready
+ready-since: 2026-11-13
 date: 2026-11-13
 ---
 
@@ -67,9 +68,16 @@ Zugangsdaten verlassen das Gerät nie.
 
 Gemäß ADR-0001: eine native SwiftUI-App in einem Xcode-Projekt mit zwei Zielen, iPadOS und macOS, aus
 gemeinsamem Code. Geräteunterschiede (Stift nur am Tablet, Ziehen aus dem Finder nur am Mac) liegen in
-den Oberflächen, nicht im Datenmodell.
+den Oberflächen, nicht im Datenmodell. Mindestversion iPadOS 26 und macOS 26 gemäß ADR-0007.
 
 ### Bauen und Verteilen
+
+- Gemäß ADR-0008: Das Xcode-Projekt wird aus `project.yml` mit XcodeGen erzeugt und nicht eingecheckt;
+  Logik ohne Oberfläche liegt im Swift-Paket `Packages/FrontstageCore` (Swift Testing, `swift test`;
+  Name gemäß ADR-0009);
+  Sprachmodus Swift 6 strikt.
+- Gemäß ADR-0009: Bezeichner im Code englisch nach der Spalte „Im Code“ des Glossars, Kommentare
+  deutsch.
 
 - Gebaut wird ausschließlich auf macOS – per CI (GitHub Actions, macOS-Runner) oder auf einem Mac. Der
   Entwicklungsrechner ist Windows und kann weder bauen noch testen.
@@ -106,7 +114,7 @@ Vorgabewert, alle Beziehungen sind optional, und kein Modell nutzt Eindeutigkeit
 
 | Modell | Trägt | Hinweis |
 |---|---|---|
-| Stundenplan | Name, gültig ab/bis, Stundenplan-Quelle, Zahl der Wochenvarianten (1 oder 2), Bezugswoche für A | genau einer ist aktiv |
+| Stundenplan | Name, gültig ab/bis, Stundenplan-Quelle, Zahl der Wochenvarianten (1 oder 2), Bezugswoche für A, Zeitraster (je Stunde Beginn und Ende, FR-1.2) | genau einer ist aktiv |
 | Stundenplan-Eintrag | Wochenvariante, Wochentag, Stunde, Klasse, Fach | gehört zu einem Stundenplan |
 | unterrichtsfreier Zeitraum | von, bis, Bezeichnung | FR-7 |
 | Abweichung | Datum, Schlüssel der Unterrichtsstunde, Art (Ausfall, Vertretungsstunde), bei Vertretungsstunde: Stunde, Klasse, Fach | FR-8, FR-9, FR-2.2 |
@@ -369,6 +377,7 @@ gespiegelt (ADR-0002); gemäß FR-6.1 gehören sie zur Zuordnung.
 - ~~Q-14~~: Wovon hängt die Identität einer Unterrichtsstunde ab, damit Zuordnungen eine Änderung des Stundenplans überstehen? → answered 2026-11-13: Datum + Klasse + Fach + laufende Nummer, Material folgt der Klasse (ADR-0005, accepted)
 - ~~Q-15~~: Wie oft und wodurch ausgelöst wird der Schulmanager abgefragt, und wie spät dürfen Vertretungen dort ankommen? → answered 2026-11-13: einmal je Morgen und auf Knopfdruck; Vertretungen am selben Morgen (ADR-0004, accepted)
 - ~~Q-17~~: Wo liegen Stiftnotizen auf PDFs und Bildern – in der Datei in der Ablage (dann sieht sie jede andere App und jedes Gerät, das Original ist aber verändert) oder getrennt in den App-Daten (Original bleibt unberührt, Notizen sieht nur diese App)? Bis zur Klärung wird nichts angenommen; der Bereich `anzeige` bleibt `draft`. → answered 2026-11-13: getrennt in den App-Daten (ADR-0006, accepted); je Zuordnung (FR-6.1, Q-20 im PRD)
+- Q-32: Übergibt `UIDocumentInteractionController` auf iPadOS 26 eine Datei aus der Ablage zum Bearbeiten am Ort, oder öffnet die Ziel-App sie nur lesend bzw. als Kopie? (Gefunden beim Planen von Teilplan 03; Prüfung am Gerät; bei „nur Kopie“ ist FR-3.4/AK-11 ohne OneDrive-Zusatz gefährdet.)
 - Q-18: Öffnet PowerPoint auf iPadOS ein OneDrive-Dokument über die Office-Adresse mit AutoSpeichern, so wie am Mac? (Prüfung auf einem echten iPad nötig; siehe RISK-2.)
 
 ## Changes
@@ -382,4 +391,8 @@ gespiegelt (ADR-0002); gemäß FR-6.1 gehören sie zur Zuordnung.
 - 2026-11-13: anzeige changed — Timer als Schicht über allen Zuständen (FR-11.2); Verbindung wird erkannt, nicht gestartet (FR-11.6)
 - 2026-11-13: plattform changed — Kauf über StoreKit, ohne Server (FR-13); Titel auf „Pult“
 - 2026-11-13: Titel auf „Frontstage“
+- 2026-11-13: plattform changed — Mindestversion (ADR-0007), XcodeGen und Kern-Paket (ADR-0008), beide two-way, Status bleibt ready
+- 2026-11-13: plattform changed — Code-Sprache (ADR-0009): Bezeichner englisch, Kommentare deutsch; Kern-Paket heißt `FrontstageCore`
+- 2026-11-13: Q-32 new — Bearbeiten am Ort über `UIDocumentInteractionController` (aus Teilplan 03)
+- 2026-11-13: Architecture Doc status ready — freigegeben von Andreas; offen bleiben Q-18 (am Gerät) und im PRD Q-22, beide blockieren den Bau nicht, weil für beide ein Rückfall beschrieben ist (Übergabe der Datei bzw. RISK-5)
 - 2026-11-13: anzeige changed — Klassenbildschirm im Verlauf der Stunde (FR-11.7), Kamera, Vorlage, Abdecken (FR-12.5 bis FR-12.7); daten changed — Stundenangaben mit Bereitlegen und Hausaufgabe, Tafelseite mit Bild als Hintergrund

@@ -41,27 +41,39 @@ Person (Q-13).
 
 ## Glossar — bindend
 
-| Begriff | Bedeutung | Nicht zu verwechseln mit |
-|---|---|---|
-| Stundenplan | die wiederkehrende Wochenstruktur einer Lehrkraft: welche Klasse in welchem Fach an welchem Wochentag in welcher Stunde | Tagesansicht |
-| Stundenplan-Eintrag | ein Feld im Stundenplan, z. B. „Dienstag, 2. Stunde, 8b, Englisch“ | Unterrichtsstunde |
-| Unterrichtsstunde | ein konkreter Stundenplan-Eintrag an einem bestimmten Datum, z. B. „Di 17.11., 2. Stunde, 8b“ — Material wird Unterrichtsstunden zugeordnet | Stundenplan-Eintrag |
-| Material | eine Datei aus der Ablage der Lehrkraft (z. B. Präsentation, Dokument, PDF, Bild), die einer Unterrichtsstunde zugeordnet ist | Ablage |
-| Zuordnung | der Verweis einer Unterrichtsstunde auf ein Material in der Ablage — nie eine Kopie der Datei | Material |
-| Ablage | der Cloud-Speicher, in dem die Lehrkraft ihr Material hält (z. B. iCloud Drive, OneDrive, Google Drive, Schul-Nextcloud) | Material |
-| Vorbereiten | Material den Unterrichtsstunden kommender Tage zuordnen | Präsentieren |
-| Tagesansicht | die Ansicht im Unterricht: alle Unterrichtsstunden eines Tages mit ihrem Material | Stundenplan |
-| Präsentieren | Material über die Technik im Klassenraum zeigen (z. B. iPad per Apple TV auf Smartboard) | Öffnen |
-| Wochenvariante | eine von zwei Fassungen des Stundenplans, die sich wöchentlich abwechseln (A-Woche / B-Woche) | Stundenplan-Quelle |
-| unterrichtsfreier Tag | Ferientag oder Feiertag: an ihm gibt es keine Unterrichtsstunden | Ausfall |
-| Ausfall | eine einzelne Unterrichtsstunde, die nicht stattfindet; der Stundenplan-Eintrag bleibt bestehen | unterrichtsfreier Tag |
-| Vertretungsstunde | eine zusätzliche, einmalige Unterrichtsstunde, die nicht aus dem Stundenplan stammt (z. B. Vertretung in einer fremden Klasse) | Unterrichtsstunde aus dem Stundenplan |
-| Stundenplan-Quelle | woher der Stundenplan kommt: von Hand angelegt oder aus einem Schulverwaltungssystem importiert | Ablage |
-| Zweitbildschirm | der Bildschirm im Klassenraum (z. B. Smartboard über Apple TV), wenn er vom Produkt einen eigenen Inhalt erhält statt des Tablet-Bilds | Bildschirmspiegelung (zeigt dasselbe wie das Tablet) |
-| Klassenbildschirm | was der Zweitbildschirm zeigt, solange weder Material noch Tafel gezeigt wird: ein für die Klasse bestimmter Bildschirm zur laufenden Unterrichtsstunde | Tagesansicht (nur für die Lehrkraft) |
-| Tafel | eine leere Seite im Produkt, auf die die Lehrkraft mit dem Stift schreibt und die der Zweitbildschirm zeigt | Material (eine Datei aus der Ablage) |
-| Tafelbild | was in einer Unterrichtsstunde auf die Tafel geschrieben wurde, alle Seiten zusammen; gehört zur Unterrichtsstunde und bleibt erhalten | Stiftnotiz (liegt auf einem Material) |
-| Stiftnotiz | was die Lehrkraft in der Anzeige des Produkts mit dem Stift auf ein PDF oder Bild schreibt oder zeichnet; gehört zu einer Zuordnung, nicht zur Datei | Zeichnungen in einer Präsentation (die gehören zur Datei und landen in der Ablage) |
+| Begriff | Bedeutung | Nicht zu verwechseln mit | Im Code |
+|---|---|---|---|
+| Stundenplan | die wiederkehrende Wochenstruktur einer Lehrkraft: welche Klasse in welchem Fach an welchem Wochentag in welcher Stunde | Tagesansicht | `Timetable` |
+| Stundenplan-Eintrag | ein Feld im Stundenplan, z. B. „Dienstag, 2. Stunde, 8b, Englisch“ | Unterrichtsstunde | `TimetableEntry` |
+| Unterrichtsstunde | ein konkreter Stundenplan-Eintrag an einem bestimmten Datum, z. B. „Di 17.11., 2. Stunde, 8b“ — Material wird Unterrichtsstunden zugeordnet | Stundenplan-Eintrag | `Lesson` |
+| Material | eine Datei aus der Ablage der Lehrkraft (z. B. Präsentation, Dokument, PDF, Bild), die einer Unterrichtsstunde zugeordnet ist | Ablage | `Material` |
+| Zuordnung | der Verweis einer Unterrichtsstunde auf ein Material in der Ablage — nie eine Kopie der Datei | Material | `MaterialLink` |
+| Ablage | der Cloud-Speicher, in dem die Lehrkraft ihr Material hält (z. B. iCloud Drive, OneDrive, Google Drive, Schul-Nextcloud) | Material | `Storage` |
+| Vorbereiten | Material den Unterrichtsstunden kommender Tage zuordnen | Präsentieren | `Preparation` |
+| Tagesansicht | die Ansicht im Unterricht: alle Unterrichtsstunden eines Tages mit ihrem Material | Stundenplan | `DayView` |
+| Präsentieren | Material über die Technik im Klassenraum zeigen (z. B. iPad per Apple TV auf Smartboard) | Öffnen | `present` |
+| Zeitraster | Beginn und Ende jeder Stunde des Schultags (z. B. 2. Stunde 8:35–9:20); gilt für den ganzen Stundenplan | Stundenplan | `BellSchedule` |
+| Wochenvariante | eine von zwei Fassungen des Stundenplans, die sich wöchentlich abwechseln (A-Woche / B-Woche) | Stundenplan-Quelle | `WeekVariant` |
+| unterrichtsfreier Tag | Ferientag oder Feiertag: an ihm gibt es keine Unterrichtsstunden | Ausfall | `NonTeachingDay` (Zeitraum: `NonTeachingPeriod`) |
+| Ausfall | eine einzelne Unterrichtsstunde, die nicht stattfindet; der Stundenplan-Eintrag bleibt bestehen | unterrichtsfreier Tag | `Cancellation` |
+| Vertretungsstunde | eine zusätzliche, einmalige Unterrichtsstunde, die nicht aus dem Stundenplan stammt (z. B. Vertretung in einer fremden Klasse) | Unterrichtsstunde aus dem Stundenplan | `SubstituteLesson` |
+| Stundenplan-Quelle | woher der Stundenplan kommt: von Hand angelegt oder aus einem Schulverwaltungssystem importiert | Ablage | `TimetableSource` |
+| Zweitbildschirm | der Bildschirm im Klassenraum (z. B. Smartboard über Apple TV), wenn er vom Produkt einen eigenen Inhalt erhält statt des Tablet-Bilds | Bildschirmspiegelung (zeigt dasselbe wie das Tablet) | `SecondScreen` |
+| Klassenbildschirm | was der Zweitbildschirm zeigt, solange weder Material noch Tafel gezeigt wird: ein für die Klasse bestimmter Bildschirm zur laufenden Unterrichtsstunde | Tagesansicht (nur für die Lehrkraft) | `ClassScreen` |
+| Tafel | eine leere Seite im Produkt, auf die die Lehrkraft mit dem Stift schreibt und die der Zweitbildschirm zeigt | Material (eine Datei aus der Ablage) | `Board` |
+| Tafelbild | was in einer Unterrichtsstunde auf die Tafel geschrieben wurde, alle Seiten zusammen; gehört zur Unterrichtsstunde und bleibt erhalten | Stiftnotiz (liegt auf einem Material) | `BoardDrawing` |
+| Stiftnotiz | was die Lehrkraft in der Anzeige des Produkts mit dem Stift auf ein PDF oder Bild schreibt oder zeichnet; gehört zu einer Zuordnung, nicht zur Datei | Zeichnungen in einer Präsentation (die gehören zur Datei und landen in der Ablage) | `PenNote` |
+| Stand | Zeitpunkt, zu dem der Stundenplan zuletzt aus der Stundenplan-Quelle geholt wurde; die Tagesansicht zeigt ihn | Datum einer Unterrichtsstunde | `sourceFetchedAt` |
+| Arbeitsform | wie die Klasse gerade arbeitet: Einzelarbeit, Partnerarbeit oder Gruppenarbeit | Fach | `WorkMode` (`individual`, `pairs`, `groups`) |
+| Vorlage | Seite oder Ausschnitt aus Material oder Ablage als Hintergrund einer Tafelseite | Material (bleibt unverändert in der Ablage) | `BoardBackground.image`, erzeugt von `TemplateRenderer` |
+| Standbild | eingefrorenes Bild der Tablet-Kamera als Hintergrund einer Tafelseite | Material | `BoardBackground.image`, erzeugt von `CameraFeed` |
+| Bereithalten | Material der kommenden Unterrichtsstunden vorab auf das Gerät laden | Kopieren (es entsteht keine zweite Datei) | `prefetch` |
+| Neu verknüpfen | einen Verweis, der nicht mehr auflöst, auf die Datei in der Ablage zurückführen | Zuordnen | `relink` |
+| Timer | eine Zeitspanne für eine Arbeitsphase, die der Klassenbildschirm herunterzählt | Uhrzeit | `PhaseTimer` |
+| Abdecken | einen Teil der Tafelseite für die Klasse verdecken und schrittweise freigeben | Löschen | `BoardCover` |
+| Kaufangebot | was statt einer gekauften Funktion erscheint, solange der Einmalkauf fehlt | Abo | `PurchaseOffer` |
+| Zustand des Materials | ob ein Material auf dem Gerät liegt, geladen wird oder nicht verfügbar ist | Ausfall | `MaterialAvailability` |
+| Übergabe | Material zum Bearbeiten an die zuständige App geben, ohne Kopie | Präsentieren | `handOff` |
 
 ## Constraints
 
@@ -93,6 +105,13 @@ Klasse und Fach.
 
 Der Stundenplan kann zwei Wochenvarianten haben, die sich wöchentlich abwechseln (Q-5).
 
+### FR-1.2 — Zeitraster der Stunden [MVP]
+
+Die Lehrkraft legt einmal fest, wann jede Stunde beginnt und endet (z. B. 1. Stunde 7:45–8:30). Liefert
+die Stundenplan-Quelle Zeiten, werden sie übernommen. Abgeleitet am 2026-11-13 aus FR-11 und FR-11.7,
+die Stundenende, „Gleich:“ und die letzten fünf Minuten zeigen und dafür Uhrzeiten brauchen; vom Nutzer
+bestätigt am 2026-11-13.
+
 ### FR-2 — Stundenplan aus Schulmanager Online importieren [MVP]
 
 Die Lehrkraft kann ihren Stundenplan alternativ aus Schulmanager Online übernehmen. Schulmanager
@@ -123,10 +142,18 @@ festlegt; die Tagesansicht zeigt sie in dieser Reihenfolge (Q-6).
 „Für <Klasse> übernehmen“ kopiert die Zuordnung einer Unterrichtsstunde in die passende
 Unterrichtsstunde einer anderen Klasse (Q-7).
 
+Geändert 2026-11-13: Die Lehrkraft wählt die Zielstunde selbst aus einer Liste der kommenden
+Unterrichtsstunden der gewählten Klasse (bis vier Wochen voraus, ohne Ausfälle); es gibt keine
+automatische Zielwahl. Verworfen: automatisch die erste Stunde der Zielklasse im selben Fach – ein Tipp
+weniger, aber die Gefahr, die falsche Stunde zu treffen.
+
 ### FR-3.3 — Material in die nächste Stunde der Klasse schieben [MVP]
 
 Nicht behandeltes Material lässt sich mit einem Tipp in die nächste Unterrichtsstunde derselben
 Klasse schieben (Q-7).
+
+Präzisiert 2026-11-13: „Nächste Unterrichtsstunde“ heißt gleiche Klasse und gleiches Fach, Ausfälle
+übersprungen – Englisch-Material der 8b wandert nicht in deren Mathestunde. Gilt ebenso für FR-8.
 
 ### FR-3.4 — Zuordnen kopiert nie Dateien [MVP]
 
@@ -310,6 +337,12 @@ Apple-ID dauerhaft frei: Klassenbildschirm mit seinen Unterpunkten (FR-11, FR-11
 FR-11.7) und Tafel mit ihren Unterpunkten (FR-12 bis FR-12.7). Es gibt kein Abo. Vom Nutzer:
 Vorschlag am 2026-11-13 angenommen (Q-9).
 
+Geändert 2026-11-13: Kostenlos sind zusätzlich das Eintragen und Anzeigen von Thema, Bereitlegen und
+Hausaufgabe in Tagesansicht und Vorbereiten (FR-11.1) sowie „Dunkel“ (FR-11.4). Zum Kauf gehören die
+Anzeige des Klassenbildschirms auf dem Zweitbildschirm (FR-11, FR-11.7, samt Thema und Hinweisen dort),
+Timer (FR-11.2), Arbeitsform (FR-11.3) und die Tafel (FR-12 bis FR-12.7). Ohne Kauf zeigt der
+Zweitbildschirm im Ruhezustand eine neutrale Fläche.
+
 ### FR-13.1 — Schulmanager-Import ohne Bezahlung und ohne Gewähr [MVP]
 
 Der Import aus Schulmanager Online (FR-2, FR-2.2) gehört immer zum kostenlosen Teil und wird in der
@@ -344,7 +377,7 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 ## Lieferstufen
 
 - **MVP:** FR-1, FR-1.1, FR-2, FR-2.2, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-7, FR-8,
-  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, FR-13.1, NFR-1 bis NFR-4 (geprüfte Zahl: 40). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
+  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, FR-13.1, NFR-1 bis NFR-4, FR-1.2 (geprüfte Zahl: 41). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
 - **Later:** FR-2.1, FR-7.1, FR-10, FR-13.2.
 
 ## Out of Scope
@@ -446,7 +479,7 @@ muss.
 - Q-10: Zielmarkt — nur deutschsprachige Schulen, oder international?
 - ~~Q-11~~: Gehören Android-Tablets und Windows dazu? → answered 2026-11-13: vorerst nein — Andreas stimmte einer nativen Apple-App für iPad und Mac zu, mit der Folge, dass Android-Tablets vorerst wegfallen (wird als ADR festgehalten).
 - Q-12: Woran wird Erfolg gemessen, ohne eigene Server?
-- Q-16: Liefert die inoffizielle Schulmanager-Schnittstelle für Lehrerkonten den Stundenplan und die Vertretungen? (Bisher nur für Eltern-/Schülerkonten belegt; Prüfung mit einem echten Lehrerkonto nötig.) → referred to docs/adr/0004-schulmanager-als-austauschbarer-importbaustein.md
+- Q-16: Liefert die inoffizielle Schulmanager-Schnittstelle für Lehrerkonten den Stundenplan und die Vertretungen? (Bisher nur für Eltern-/Schülerkonten belegt; Prüfung mit einem echten Lehrerkonto nötig.) → referred to docs/adr/0004-schulmanager-als-austauschbarer-importbaustein.md Stand 2026-11-13: Andreas stellt sein eigenes Lehrerkonto für die Prüfung bereit (erste Aufgabe von Teilplan 05; Zugangsdaten nur lokal).
 - ~~Q-13~~: Ist das Tablet persönlich, oder teilen sich Lehrkräfte Geräte? (Wer gilt dann als handelnde Person?) → answered 2026-11-13: persönlich — ein Tablet gehört einer Lehrkraft; handelnde Person ist immer die Besitzerin bzw. der Besitzer des Geräts. Keine Mehrbenutzer-Anmeldung auf einem Gerät.
 - ~~Q-20~~: Woran hängt eine Stiftnotiz – an der Datei (jede Unterrichtsstunde sieht dieselben Notizen) oder an der Zuordnung (jede Unterrichtsstunde hat eigene)? → answered 2026-11-13: an der Zuordnung, je Unterrichtsstunde (FR-6.1).
 - Q-22: Wie verhält sich PowerPoint auf dem Tablet über AirPlay – zeigt es die Folie auf dem Bildschirm im Klassenraum und eine Referentenansicht auf dem Tablet, erscheinen Zeichnungen auf der Folie dort sofort, und was sieht die Klasse beim Wechsel zwischen dem Produkt und PowerPoint? (Prüfung mit echtem Tablet und Apple TV nötig; siehe RISK-5.)
@@ -461,12 +494,13 @@ muss.
 
 - AK-1 (FR-1): Aufbau: leerer Stundenplan. Handlung: Eintrag „Di, 2. Stunde, 8b, Englisch“ anlegen. Ergebnis: Die Tagesansicht jedes Dienstags zeigt in der 2. Stunde „8b Englisch“.
 - AK-2 (FR-1.1): Aufbau: A-Woche Mo 1. Stunde 7a, B-Woche Mo 1. Stunde 9c; Woche vom 16.11. ist A-Woche. Handlung: Tagesansichten Mo 16.11. und Mo 23.11. öffnen. Ergebnis: 16.11. zeigt 7a, 23.11. zeigt 9c.
+- AK-42 (FR-1.2): Aufbau: Stundenplan mit Di 2. Stunde 8b, Zeitraster leer. Handlung: 2. Stunde auf 8:35–9:20 setzen; Klassenbildschirm am Di um 8:40 ansehen. Ergebnis: Er zeigt „bis 9:20“; die Tagesansicht zeigt die Zeit an der 2. Stunde.
 - AK-3 (FR-2): Aufbau: Schulmanager-Testkonto mit Stundenplan (3 Einträge). Handlung: Import auslösen. Ergebnis: Die 3 Einträge stehen im Stundenplan; ein vorher von Hand angelegter Eintrag geht dabei nicht stillschweigend verloren.
 - AK-21 (FR-2.2): Aufbau: Schulmanager-Testkonto; für heute ist dort seit gestern Abend eine Vertretung „3. Stunde 6c“ eingetragen; Tablet war über Nacht gesperrt. Handlung: Tablet um 7:30 Uhr entsperren und Tagesansicht öffnen. Ergebnis: Die Vertretung steht in der 3. Stunde, spätestens wenige Sekunden nach dem Öffnen; die Ansicht zeigt, von wann der Stand ist.
 - AK-4 (FR-3): Aufbau: Stundenplan mit „Di 2. Stunde 8b“, eine Präsentation in der Ablage. Handlung: am Mac die Präsentation der Unterrichtsstunde am kommenden Dienstag zuordnen. Ergebnis: Am Tablet zeigt die Tagesansicht dieses Dienstags die Präsentation in der 2. Stunde.
 - AK-5 (FR-3, Tablet): wie AK-4, Zuordnung aber am Tablet. Ergebnis: am Mac sichtbar.
 - AK-6 (FR-3.1): Aufbau: Unterrichtsstunde mit Präsentation, Arbeitsblatt, Lösung. Handlung: Lösung an Position 1 ziehen. Ergebnis: Tagesansicht zeigt Lösung, Präsentation, Arbeitsblatt.
-- AK-7 (FR-3.2): Aufbau: Di 2. Stunde 8a mit 2 Materialien, Mi 3. Stunde 8b ohne. Handlung: „Für 8b übernehmen“. Ergebnis: Mi 3. Stunde 8b hat dieselben 2 Materialien; in der Ablage liegen keine neuen Dateien.
+- AK-7 (FR-3.2): Aufbau: Di 2. Stunde 8a mit 2 Materialien, Mi 3. Stunde 8b ohne. Handlung: „Für 8b übernehmen“, in der Liste der kommenden 8b-Stunden Mi 3. Stunde wählen. Ergebnis: Mi 3. Stunde 8b hat dieselben 2 Materialien; in der Ablage liegen keine neuen Dateien.
 - AK-8 (FR-3.3): Aufbau: Di 8b mit Material X, nächste 8b-Stunde Do. Handlung: X „in die nächste Stunde“. Ergebnis: X steht am Do, nicht mehr am Di.
 - AK-9 (FR-3.4): Aufbau: Material zugeordnet, übernommen und geschoben. Handlung: Datei in der Ablage am Mac ändern. Ergebnis: Jede Unterrichtsstunde mit dieser Zuordnung öffnet den geänderten Stand; Dateianzahl in der Ablage unverändert.
 - AK-10 (FR-4): Aufbau: Dienstag mit 5 Unterrichtsstunden, davon 3 mit Material. Handlung: Tagesansicht öffnen. Ergebnis: alle 5 Unterrichtsstunden in zeitlicher Reihenfolge, mit Klasse, Fach und Material, ohne Scrollen auf einem 11"-Tablet.
@@ -526,12 +560,18 @@ muss.
 - 2026-11-13: FR-13, FR-13.1 new, FR-13.2 new [Later] — Geschäftsmodell (Q-9); RISK-1 ergänzt, RISK-7 new; AK-40, AK-41, Q-30 new; Lieferstufen (40) und Abdeckung angepasst
 - 2026-11-13: Q-30 answered (14,99–19,99 €); Q-29 um Rechercheergebnis ergänzt, weiter offen; RISK-8 new — „PULT“ als Software-Marke der Pult GmbH in Gebrauch
 - 2026-11-13: Produktname „Frontstage“ statt „Pult“ (Q-1 changed, Q-29 answered); RISK-8 ergänzt; Q-31 new (Markenprüfung Frontstage)
+- 2026-11-13: Glossar changed — Spalte „Im Code“ mit dem englischen Bezeichner je Begriff (ADR-0009)
+- 2026-11-13: Glossar changed — Stand, Arbeitsform, Vorlage, Standbild, Bereithalten, Neu verknüpfen ergänzt (beim Planen gefunden)
+- 2026-11-13: FR-3.2 changed — Zielstunde wählt die Lehrkraft; FR-3.3 präzisiert — gleiche Klasse und gleiches Fach (gilt für FR-8); FR-13 changed — Thema/Bereitlegen/Hausaufgabe eintragen und Dunkel kostenlos
+- 2026-11-13: AK-7 changed (Zielstunde wählen); Glossar: Vorlage und Standbild auf `BoardBackground.image` korrigiert, Timer, Abdecken, Kaufangebot, Zustand des Materials, Übergabe ergänzt
+- 2026-11-13: FR-1.2 new — Zeitraster, abgeleitet aus FR-11 und FR-11.7 (Lücke beim Plan-Cold-Start-Check gefunden); Glossar um Zeitraster ergänzt; AK-42, Lieferstufen (41) und Abdeckung angepasst
+- 2026-11-13: FR-1.2 bestätigt von Andreas
 
 ## Anhang A — Abdeckung
 
 | Phase | Anforderungen |
 |---|---|
-| 1 Stundenplan einrichten | FR-1, FR-1.1, FR-2, FR-2.1, FR-7, FR-7.1 |
+| 1 Stundenplan einrichten | FR-1, FR-1.1, FR-1.2, FR-2, FR-2.1, FR-7, FR-7.1 |
 | 2 Vorbereiten | FR-3, FR-3.1 bis FR-3.4, FR-8, FR-9 |
 | 3 Tagesansicht | FR-4, FR-2.2 |
 | 2 Vorbereiten (Thema und Hinweis) | FR-11.1 |
@@ -545,6 +585,7 @@ nicht (Geschäftsmodell, quer zu allen Phasen).
 |---|---|
 | FR-1 | AK-1 |
 | FR-1.1 | AK-2 |
+| FR-1.2 | AK-42 |
 | FR-2 | AK-3 |
 | FR-2.2 | AK-21 |
 | FR-3 | AK-4, AK-5 |

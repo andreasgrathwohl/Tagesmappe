@@ -13,6 +13,10 @@ Stand jeder Ebene steht im Frontmatter des jeweiligen Dokuments.
   kurz mit erklären.
 - Regeln der iCloud-Spiegelung (ADR-0002): kein `@Attribute(.unique)`/`#Unique`, alle Eigenschaften
   optional oder mit Vorgabewert, alle Beziehungen optional.
+- **Code-Sprache (ADR-0009):** Bezeichner, Dateien, Ordner und Paketnamen englisch; Fachbegriffe exakt
+  nach der Spalte „Im Code“ des Glossars im PRD (neuer Begriff: erst Glossarzeile, dann Code).
+  Kommentare und `///`-Doku deutsch. Oberflächentexte deutsch in `Localizable.xcstrings`, Schlüssel
+  englisch.
 
 ## Skills in diesem Projekt
 
@@ -48,6 +52,8 @@ wie adr-tools und log4brains erwarten diesen Pfad.
 
 **Nie einen Begriff einführen, der dem Glossar widerspricht.** Ist das Glossar falsch, wird das
 Glossar geändert — nicht in einem tieferen Dokument umgangen.
+
+`docs/research/` hält Prüfnotizen (etwa zu einer inoffiziellen Schnittstelle): Befunde mit Quelle, keine Entscheidungen. Eine Entscheidung daraus gehört in ein Dokument der Landkarte.
 
 `wiki/` und `README.md` sind **abgeleitete Darstellungen**: Sie entscheiden nichts und werden beim
 Rückfluss mit aktualisiert.
