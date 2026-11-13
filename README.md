@@ -45,8 +45,9 @@ Maßgeblich sind immer die Dokumente unter `docs/` und `DESIGN.md`; das Wiki ver
 
 ## Entwicklung
 
-- Native Apple-App für iPad und Mac (ADR-0001); Daten im privaten iCloud-Bereich der Lehrkraft
-  (ADR-0002); Material über die Dateien-App, OneDrive zusätzlich direkt (ADR-0003).
+- Native Apple-App für iPad und Mac (ADR-0001); App-Daten wahlweise in iCloud oder in einem Ordner der Ablage
+  (ADR-0010); Stiftnotizen neben dem Dokument (ADR-0011); Material über die Dateien-App, OneDrive
+  zusätzlich direkt (ADR-0003).
 - Projektlokaler Claude-Code-Skill `apple-design` (Apple Human Interface Guidelines). Er ist nicht im
   Repo enthalten (Inhalt ohne Lizenz bzw. Apple-Texte); wiederherstellen mit
   `npx skills add dickwu/apple-design-skill --skill apple-design -y`.
