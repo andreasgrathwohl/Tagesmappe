@@ -2,7 +2,8 @@ import Foundation
 
 /// Unterrichtsfach: Vergleich über den normalisierten Namen, Anzeige in der eingegebenen Schreibweise.
 public struct Subject: Hashable, Codable, Sendable {
-  /// Kleingeschrieben, Leerraum-Folgen zu einem Leerzeichen zusammengefasst.
+  /// Kleingeschrieben, Leerraum-Folgen zu einem Leerzeichen zusammengefasst, in Unicode-NFC
+  /// („ö“ als ein Zeichen, nie als „o“ plus Trema), damit der Speichertext eindeutig ist.
   public let normalized: String
   /// Getrimmte Originalschreibweise für die Anzeige.
   public let display: String
@@ -14,6 +15,7 @@ public struct Subject: Hashable, Codable, Sendable {
     self.normalized = trimmed.lowercased()
       .split(whereSeparator: { $0.isWhitespace })
       .joined(separator: " ")
+      .precomposedStringWithCanonicalMapping
   }
 
   // Gleichheit und Hash nur über `normalized`: Die synthetisierte Gleichheit würde `display` mitzählen,

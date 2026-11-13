@@ -38,9 +38,26 @@ struct LessonKeyTests {
     arguments: [
       "", "2026-11-17|8b|englisch", "2026-13-01|8b|englisch|1", "2026-11-17|8b|englisch|0",
       "2026-11-17|8b|englisch|x", "2026-11-17|8b|englisch|1|extra",
+      "2026-11-17||englisch|1", "2026-11-17|8b||1", "2026-11-17|%20|englisch|1",
     ])
   func storageTextRejectsGarbage(text: String) {
     #expect(LessonKey(storageText: text) == nil)
+  }
+
+  @Test("NFC und NFD ergeben denselben Speichertext, nur ASCII (ADR-0005, AK-1)")
+  func storageTextIsCanonicalAcrossUnicodeForms() {
+    let nfc = "Franz\u{00F6}sisch"
+    let nfd = "Franzo\u{0308}sisch"
+    for raw in [nfc, nfd] {
+      let key = LessonKey(
+        date: d(2026, 11, 17), schoolClass: SchoolClass("9c"), subject: Subject(raw), ordinal: 1)
+      #expect(key.storageText == "2026-11-17|9c|franz%C3%B6sisch|1")
+      #expect(LessonKey(storageText: key.storageText) == key)
+    }
+    #expect(Array(Subject(nfd).normalized.unicodeScalars) == Array("franz\u{00F6}sisch".unicodeScalars))
+    #expect(
+      Array(SchoolClass("A\u{0308}g").normalized.unicodeScalars)
+        == Array("\u{00E4}g".unicodeScalars))
   }
 
   @Test("Schlüsselvergleich nutzt normalisierte Namen (ADR-0005, AK-1)")

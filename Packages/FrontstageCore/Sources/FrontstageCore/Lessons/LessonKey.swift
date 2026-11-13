@@ -17,8 +17,10 @@ public struct LessonKey: Hashable, Codable, Sendable {
   }
 
   /// Dauerhaftes Textformat (steht in jeder gespeicherten Zuordnung, nie ändern):
-  /// `<yyyy-MM-dd>|<Klasse>|<Fach>|<Nummer>`; Klasse und Fach normalisiert und prozentkodiert,
-  /// damit ein `|` im Namen das Format nicht bricht.
+  /// `<yyyy-MM-dd>|<Klasse>|<Fach>|<Nummer>`; Klasse und Fach normalisiert (NFC) und prozentkodiert,
+  /// damit ein `|` im Namen das Format nicht bricht. Unkodiert bleiben nur `a`–`z` und `0`–`9`,
+  /// alles andere wird als UTF-8-Bytes `%XX` (Großbuchstaben-Hex) geschrieben – unabhängig von
+  /// Betriebssystem-Version und Unicode-Tabellen.
   public var storageText: String {
     [
       date.storageText,
@@ -28,7 +30,8 @@ public struct LessonKey: Hashable, Codable, Sendable {
     ].joined(separator: "|")
   }
 
-  /// Liest den Speichertext; `nil` bei falschem Aufbau, ungültigem Datum oder Nummer unter 1.
+  /// Liest den Speichertext; `nil` bei falschem Aufbau, ungültigem Datum, leerer Klasse oder
+  /// leerem Fach (auch nach Normalisierung) oder Nummer unter 1.
   /// Das Fach entsteht aus dem normalisierten Text, `display` ist danach klein geschrieben:
   /// Die Anzeige des Fachs kommt aus der berechneten `Lesson`, nicht aus dem Schlüssel.
   public init?(storageText: String) {
@@ -40,13 +43,27 @@ public struct LessonKey: Hashable, Codable, Sendable {
       parts[3].allSatisfy({ $0.isASCII && $0.isNumber }),
       let ordinal = Int(parts[3]), ordinal >= 1
     else { return nil }
-    self.init(
-      date: date, schoolClass: SchoolClass(className), subject: Subject(subjectName),
-      ordinal: ordinal)
+    let schoolClass = SchoolClass(className)
+    let subject = Subject(subjectName)
+    guard !schoolClass.normalized.isEmpty, !subject.normalized.isEmpty else { return nil }
+    self.init(date: date, schoolClass: schoolClass, subject: subject, ordinal: ordinal)
   }
 
+  /// Prozentkodierung von Hand statt `addingPercentEncoding`: Die erlaubte Menge ist fest
+  /// `a`–`z`, `0`–`9`; jedes andere UTF-8-Byte wird `%XX`.
   private static func encode(_ text: String) -> String {
-    // Mit `.alphanumerics` ist die Kodierung nie `nil`; der Rückfall bleibt nur für den Compiler.
-    text.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? text
+    let hexDigits = Array("0123456789ABCDEF")
+    var result = ""
+    for byte in text.utf8 {
+      switch byte {
+      case UInt8(ascii: "a")...UInt8(ascii: "z"), UInt8(ascii: "0")...UInt8(ascii: "9"):
+        result.append(Character(Unicode.Scalar(byte)))
+      default:
+        result.append("%")
+        result.append(hexDigits[Int(byte >> 4)])
+        result.append(hexDigits[Int(byte & 0x0F)])
+      }
+    }
+    return result
   }
 }
