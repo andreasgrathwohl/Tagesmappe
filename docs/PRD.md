@@ -198,8 +198,8 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 - Ersatz für PowerPoint/Keynote beim Präsentieren — die Lehrkraft präsentiert und zeichnet darin weiter.
 - Eigene Cloud-Ablage für Material — Material bleibt in der Ablage der Lehrkraft (NFR-2).
 - Schüler-, Eltern- und Verwaltungsfunktionen.
-- Geteilte Tablets mit mehreren Lehrkräften (An- und Abmelden je Person) — das Tablet ist persönlich (Q-13); spätere Aufnahme hieße Umbau der Datenhaltung, wird ADR.
-- Android-Tablets und Windows, vorerst — teurer Ausschluss, wird ADR (siehe Q-11).
+- Geteilte Tablets mit mehreren Lehrkräften (An- und Abmelden je Person) — das Tablet ist persönlich (Q-13); siehe ADR-0002.
+- Android-Tablets und Windows, vorerst — siehe ADR-0001.
 
 ## Kennzahlen
 
@@ -276,6 +276,7 @@ verteilen. Umgang: Konto vor dem ersten Test mit Lehrkräften einrichten.
 - 2026-11-13: FR-3 changed — Vorbereiten auch am Tablet, Mac nicht Voraussetzung (Q-2); Nutzerschaft entsprechend
 - 2026-11-13: FR-1.1, FR-7, FR-7.1, FR-8, FR-9 new — Abweichungen vom Stundenplan (Q-5); Glossar um Wochenvariante, unterrichtsfreier Tag, Ausfall, Vertretungsstunde ergänzt
 - 2026-11-13: Lieferstufen changed — FR-2 und FR-5.1 als MVP bestätigt (Q-3, Q-4)
+- 2026-11-13: Out of Scope changed — Verweise auf ADR-0001 (Android/Windows) und ADR-0002 (geteilte Tablets) statt „wird ADR“
 - 2026-11-13: PRD status ready — freigegeben von Andreas; offen bleiben Q-1, Q-9, Q-10, Q-12 (blockieren die ADR-Ebene nicht)
 - 2026-11-13: Abnahmekriterien new — AK-1 bis AK-20 für alle 19 MVP-Anforderungen
 - 2026-11-13: FR-10 new — Kalender-Abo als spätere Schnittstelle nach außen (Q-8)
