@@ -1,0 +1,1228 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tafel iPad</title>
+<!--
+  Mockup, kein Gestaltungsbeschluss. Aussehen = unveränderter Apple-Systemstandard als Platzhalter.
+  Anforderungen: FR-12, FR-12.1 bis FR-12.4, FR-11.2, FR-11.4, FR-11.5, FR-6.2; AK-30 bis AK-34.
+  Vorschläge aus Q-24 (Kamera, Vorlage, Abdecken) sind gezeigt, aber NICHT beschlossen.
+  Nur erfundene Daten (siehe mockup/LIESMICH.md).
+  Gemeinsamer Code (Handschrift, Zeichenfläche, Smartboard-Leiste) ist bewusst in anzeige.html kopiert.
+-->
+<style>
+  /* Systemfarben (iOS/iPadOS-Standardwerte) als Platzhalter — keine eigene Palette. */
+  :root {
+    --page: #D8D8DE;
+    --bg: #F2F2F7;
+    --cell: #FFFFFF;
+    --label: #000000;
+    --label2: rgba(60,60,67,.60);
+    --label3: rgba(60,60,67,.30);
+    --sep: rgba(60,60,67,.29);
+    --fill: rgba(118,118,128,.12);
+    --fill2: rgba(118,118,128,.08);
+    --tint: #007AFF;
+    --red: #FF3B30;
+    --green: #34C759;
+    --bar: rgba(249,249,249,.94);
+    --elev: #FFFFFF;
+    --shadow: 0 8px 40px rgba(0,0,0,.18), 0 0 0 .5px rgba(0,0,0,.08);
+    --hud: rgba(30,30,32,.92);
+    --hud-label: #FFFFFF;
+    /* Papierfläche folgt dem Farbschema (hell/dunkel ist für die Tafel nicht entschieden) */
+    --paper: #FFFFFF;
+    --rule: rgba(60,60,67,.20);
+    --ink-ink: #000000;
+    --ink-blue: #007AFF;
+    --ink-red: #FF3B30;
+    --ink-green: #34C759;
+    --curtain-ss: #D1D1D6;   /* systemGray4: Vorhang auf dem Zweitbildschirm, deckend */
+    --ss-bg: #F2F2F7;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page: #0E0E10; --bg: #000000; --cell: #1C1C1E; --label: #FFFFFF;
+      --label2: rgba(235,235,245,.60); --label3: rgba(235,235,245,.30); --sep: rgba(84,84,88,.60);
+      --fill: rgba(118,118,128,.24); --fill2: rgba(118,118,128,.18); --tint: #0A84FF; --red: #FF453A;
+      --green: #30D158; --bar: rgba(22,22,24,.94); --elev: #2C2C2E;
+      --shadow: 0 8px 40px rgba(0,0,0,.6), 0 0 0 .5px rgba(255,255,255,.12);
+      --hud: rgba(58,58,60,.95); --hud-label: #FFFFFF;
+      --paper: #1C1C1E; --rule: rgba(235,235,245,.16); --ink-ink: #FFFFFF; --ink-blue: #0A84FF;
+      --ink-red: #FF453A; --ink-green: #30D158; --curtain-ss: #3A3A3C; --ss-bg: #000000;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --page: #0E0E10; --bg: #000000; --cell: #1C1C1E; --label: #FFFFFF;
+    --label2: rgba(235,235,245,.60); --label3: rgba(235,235,245,.30); --sep: rgba(84,84,88,.60);
+    --fill: rgba(118,118,128,.24); --fill2: rgba(118,118,128,.18); --tint: #0A84FF; --red: #FF453A;
+    --green: #30D158; --bar: rgba(22,22,24,.94); --elev: #2C2C2E;
+    --shadow: 0 8px 40px rgba(0,0,0,.6), 0 0 0 .5px rgba(255,255,255,.12);
+    --hud: rgba(58,58,60,.95); --hud-label: #FFFFFF;
+    --paper: #1C1C1E; --rule: rgba(235,235,245,.16); --ink-ink: #FFFFFF; --ink-blue: #0A84FF;
+    --ink-red: #FF453A; --ink-green: #30D158; --curtain-ss: #3A3A3C; --ss-bg: #000000;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--page);
+    font-family: -apple-system, "SF Pro Text", system-ui, sans-serif;
+    color: var(--label); -webkit-font-smoothing: antialiased; overflow: hidden;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+  button:focus-visible, a:focus-visible { outline: 3px solid var(--tint); outline-offset: 2px; border-radius: 10px; }
+  svg { display: block; flex: none; }
+
+  /* ---------- Mockup-Rahmen außerhalb des Geräts ---------- */
+  .caption {
+    position: fixed; top: 0; left: 0; right: 0; height: 44px;
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+    font-size: 12px; color: var(--label2); padding: 0 16px 0 120px;
+  }
+  .caption strong { color: var(--label); font-weight: 600; }
+  .caption .seg { display: inline-flex; background: var(--fill); border-radius: 8px; padding: 2px; }
+  .caption .seg button { font-size: 12px; padding: 4px 9px; border-radius: 6px; color: var(--label); }
+  .caption .seg button[aria-pressed="true"] { background: var(--cell); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+  .home-link { position: fixed; top: 0; left: 12px; height: 44px; display: flex; align-items: center; gap: 4px; color: var(--tint); font-size: 15px; text-decoration: none; }
+  .stage-wrap { position: fixed; top: 44px; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; }
+  .stage { width: 1242px; height: 882px; flex: none; }
+  .device {
+    position: relative; width: 1242px; height: 882px; padding: 24px; border-radius: 44px;
+    background: #1D1D1F; box-shadow: 0 0 0 2px #3A3A3C, 0 30px 80px rgba(0,0,0,.25);
+  }
+  .screen {
+    position: relative; width: 1194px; height: 834px; border-radius: 20px; overflow: hidden;
+    background: var(--bg); display: flex; flex-direction: column;
+  }
+  .note-out {
+    position: absolute; left: 1252px; width: 84px; font-size: 12px; line-height: 15px; color: var(--label2);
+  }
+  .note-out b { display: inline-block; color: var(--label); font-weight: 600; border: 1px dashed var(--label2); border-radius: 6px; padding: 1px 5px; margin-bottom: 3px; }
+
+  /* ---------- Statusleiste ---------- */
+  .statusbar { height: 24px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; font-size: 13px; font-weight: 600; }
+  .statusbar .l { display: flex; gap: 8px; }
+  .statusbar .l span + span { font-weight: 500; }
+  .statusbar .r { display: flex; gap: 6px; align-items: center; }
+
+  /* ---------- Navigationsleiste ---------- */
+  .navbar { height: 50px; flex: none; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 8px; }
+  .navbar .r { justify-self: end; display: flex; }
+  .tb-btn {
+    min-width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 2px;
+    color: var(--tint); border-radius: 22px; font-size: 17px; padding: 0 8px; text-decoration: none;
+  }
+  .tb-btn:active { background: var(--fill); }
+  .tb-btn[aria-disabled="true"] { color: var(--label3); cursor: default; }
+  .nav-title { text-align: center; line-height: 1.15; }
+  .nav-title b { display: block; font-size: 17px; font-weight: 600; }
+  .nav-title span { font-size: 12px; color: var(--label2); display: inline-flex; align-items: center; gap: 4px; }
+  .nav-title .saved svg { color: var(--label2); }
+
+  /* ---------- Werkzeugleiste ---------- */
+  .toolrow {
+    height: 52px; flex: none; display: flex; align-items: center; gap: 6px; padding: 0 10px;
+    border-bottom: .5px solid var(--sep); border-top: .5px solid var(--sep); background: var(--bar);
+  }
+  .grp { display: flex; align-items: center; gap: 2px; }
+  .vsep { width: .5px; height: 28px; background: var(--sep); margin: 0 6px; flex: none; }
+  .spacer { flex: 1; }
+  .tool {
+    min-width: 44px; height: 44px; border-radius: 10px; color: var(--tint);
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px; font-size: 15px;
+  }
+  .tool.lab { padding: 0 10px; }
+  .tool[aria-pressed="true"] { background: var(--fill); }
+  .tool[aria-disabled="true"] { color: var(--label3); cursor: default; }
+  .tool:active { background: var(--fill); }
+  .sw { width: 40px; height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+  .sw i { width: 24px; height: 24px; border-radius: 12px; background: var(--c); box-shadow: inset 0 0 0 1px var(--sep); }
+  .sw[aria-pressed="true"] i { box-shadow: 0 0 0 2.5px var(--bar), 0 0 0 4.5px var(--label2); }
+  .pageno { min-width: 112px; text-align: center; font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+  /* ---------- Schreibfläche ---------- */
+  .board { flex: 1; position: relative; background: var(--bg); }
+  .page-wrap {
+    position: absolute; left: 78px; top: 14px; width: 1038px; height: 584px;
+    border-radius: 10px; overflow: hidden; background: var(--paper);
+    box-shadow: 0 1px 4px rgba(0,0,0,.12), 0 0 0 .5px var(--sep);
+  }
+  .page-wrap canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+  .page-wrap.erase canvas { cursor: cell; }
+
+  /* Abdecken (Vorschlag): am iPad durchscheinend */
+  .curtain {
+    position: absolute; left: 0; right: 0; bottom: 0; top: 70%; display: none; pointer-events: none;
+    background:
+      repeating-linear-gradient(135deg, transparent 0 10px, var(--fill) 10px 12px),
+      color-mix(in srgb, var(--paper) 45%, transparent);
+    border-top: 2px solid var(--label2);
+  }
+  .curtain.on { display: block; }
+  .curtain .grip {
+    pointer-events: auto; position: absolute; left: 50%; top: -23px; transform: translateX(-50%);
+    height: 44px; padding: 0 16px; border-radius: 22px; background: var(--elev); box-shadow: var(--shadow);
+    display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; cursor: ns-resize; touch-action: none;
+  }
+  .curtain .grip i { width: 28px; height: 4px; border-radius: 2px; background: var(--label3); }
+  .curtain .ctext { position: absolute; left: 0; right: 0; top: 34px; text-align: center; font-size: 13px; color: var(--label2); }
+
+  /* Kamera (Vorschlag) */
+  .cam-ui { position: absolute; inset: 0; display: none; pointer-events: none; }
+  .cam-ui.on { display: block; }
+  .cam-live { position: absolute; left: 14px; top: 14px; display: flex; align-items: center; gap: 6px; background: rgba(0,0,0,.6); color: #fff; font-size: 13px; font-weight: 600; padding: 5px 10px; border-radius: 13px; }
+  .cam-live i { width: 8px; height: 8px; border-radius: 4px; background: #FF3B30; }
+  .cam-btns { position: absolute; left: 0; right: 0; bottom: 16px; display: flex; justify-content: center; gap: 12px; pointer-events: auto; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 18px;
+    border-radius: 22px; background: var(--fill); color: var(--tint); font-size: 15px; font-weight: 600; white-space: nowrap;
+  }
+  .btn.prominent { background: var(--tint); color: #FFFFFF; }
+  .btn.onimg { background: rgba(255,255,255,.92); color: #007AFF; }
+  .btn.destr { color: var(--red); }
+
+  /* ---------- Smartboard-Leiste (FR-11.5) — in allen iPad-Mockups gleich ---------- */
+  .sbbar {
+    height: 76px; flex: none; display: flex; align-items: center; gap: 12px; padding: 0 16px;
+    border-top: .5px solid var(--sep); background: var(--bar); margin-bottom: 20px;
+  }
+  .sb-cap { font-size: 11px; line-height: 13px; color: var(--label2); width: 62px; text-align: right; }
+  .sb-thumb { position: relative; width: 120px; height: 68px; border-radius: 4px; overflow: hidden; flex: none; background: #000; box-shadow: 0 0 0 .5px var(--sep); }
+  .ss { position: absolute; inset: 0; overflow: hidden; background: #000; }
+  .ss canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .ss .kb {
+    position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform-origin: top left;
+    background: var(--ss-bg); color: var(--label); padding: 90px 110px; display: none; flex-direction: column; justify-content: space-between;
+  }
+  .ss.m-kb .kb { display: flex; }
+  .ss.m-kb canvas { display: none; }
+  .ss.m-dark canvas { display: none; }
+  .kb-head { display: flex; align-items: baseline; gap: 48px; }
+  .kb-cls { font-size: 210px; font-weight: 700; line-height: 1; }
+  .kb-subj { font-size: 120px; font-weight: 500; flex: 1; }
+  .kb-clock { font-size: 120px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; line-height: 1; }
+  .kb-clock small { display: block; font-size: 60px; font-weight: 400; color: var(--label2); margin-top: 14px; }
+  .kb-topic { font-size: 96px; font-weight: 600; }
+  .kb-lines { font-size: 58px; line-height: 1.45; color: var(--label2); }
+  .kb-foot { display: flex; align-items: flex-end; justify-content: space-between; }
+  .kb-form { display: flex; align-items: center; gap: 28px; font-size: 76px; font-weight: 600; }
+  .kb-timer { font-size: 230px; font-weight: 700; line-height: .9; font-variant-numeric: tabular-nums; }
+  .ss-timer {
+    position: absolute; top: 0; left: 0; width: 1920px; height: 1080px; transform-origin: top left; pointer-events: none; display: none;
+  }
+  .ss-timer span {
+    position: absolute; right: 48px; top: 40px; min-width: 320px; text-align: center; padding: 16px 36px; border-radius: 32px;
+    background: rgba(0,0,0,.74); color: #fff; font-size: 120px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1;
+  }
+  .ss.signal .ss-timer span, .ss.signal .kb-timer { color: #FF9F0A; }
+  .ss-hatch {
+    position: absolute; inset: 0; display: none;
+    background: repeating-linear-gradient(135deg, rgba(128,128,128,.85) 0 3px, rgba(60,60,60,.55) 3px 7px);
+  }
+  .ss.off .ss-hatch { display: block; }
+
+  .sb-seg { display: flex; background: var(--fill); border-radius: 10px; padding: 2px; flex: none; }
+  .sb-seg button {
+    height: 44px; padding: 0 11px; border-radius: 8px; display: inline-flex; align-items: center; gap: 5px;
+    font-size: 13px; font-weight: 600; color: var(--label);
+  }
+  .sb-seg button[aria-checked="true"] { background: var(--cell); box-shadow: 0 1px 3px rgba(0,0,0,.14), 0 0 0 .5px rgba(0,0,0,.04); }
+  .sb-seg button[aria-disabled="true"] { color: var(--label3); cursor: default; }
+  .sb-timer { display: flex; align-items: center; gap: 2px; flex: none; }
+  .sb-time { font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; min-width: 52px; display: inline-flex; align-items: center; gap: 5px; padding-left: 4px; }
+  .sb-time svg { color: var(--label2); }
+  .sb-btn {
+    min-width: 44px; height: 44px; border-radius: 22px; display: inline-flex; align-items: center; justify-content: center;
+    gap: 6px; padding: 0 12px; color: var(--tint); font-size: 15px; font-weight: 600; background: var(--fill2); white-space: nowrap;
+  }
+  .sb-btn.icon { padding: 0; background: none; }
+  .sb-conn { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--label2); min-height: 44px; padding: 0 4px; white-space: nowrap; }
+  .sb-conn b { color: var(--label); font-weight: 600; }
+
+  /* ---------- Popover / Menü ---------- */
+  .pop {
+    position: absolute; z-index: 40; background: var(--elev); border-radius: 13px; box-shadow: var(--shadow);
+    overflow: hidden; display: none;
+  }
+  .pop.open { display: block; }
+  .pop .ptitle { font-size: 13px; line-height: 17px; color: var(--label2); padding: 10px 16px 9px; border-bottom: .5px solid var(--sep); }
+  .pop .ptitle b { display: block; color: var(--label); font-weight: 600; }
+  .pop .sect { font-size: 13px; color: var(--label2); padding: 10px 16px 4px; }
+  .pop .item {
+    width: 100%; min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 8px 16px; text-align: left; font-size: 17px;
+  }
+  .pop .item + .item, .pop .sect + .item { border-top: .5px solid var(--sep); }
+  .pop .sect + .item { border-top: 0; }
+  .pop .item:hover, .pop .item:active { background: var(--fill2); }
+  .pop .item[aria-disabled="true"] { color: var(--label3); cursor: default; }
+  .pop .item small { display: block; font-size: 13px; color: var(--label2); }
+  .pop .item.destr { color: var(--red); }
+  .pop .item .ck { color: var(--tint); }
+  .pop .gap { height: 8px; background: var(--fill2); }
+  .share-row { display: flex; gap: 14px; padding: 14px 16px; border-bottom: .5px solid var(--sep); }
+  .share-row button { width: 64px; display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 11px; color: var(--label); }
+  .share-row i { width: 56px; height: 56px; border-radius: 14px; background: var(--fill); display: flex; align-items: center; justify-content: center; color: var(--tint); }
+  .bg-ico { width: 36px; height: 24px; border-radius: 4px; box-shadow: inset 0 0 0 1px var(--sep); background: var(--paper); }
+
+  /* ---------- Sheet und Hinweis ---------- */
+  /* Die Smartboard-Leiste bleibt auch unter Sheets sichtbar und bedienbar (FR-11.5: „jederzeit“) */
+  .scrim { position: absolute; left: 0; right: 0; top: 0; bottom: 96px; z-index: 50; background: rgba(0,0,0,.32); display: none; align-items: center; justify-content: center; }
+  .scrim.open { display: flex; }
+  .alert { width: 300px; background: var(--elev); border-radius: 14px; text-align: center; overflow: hidden; }
+  .alert h3 { margin: 18px 16px 4px; font-size: 17px; }
+  .alert p { margin: 0 16px 16px; font-size: 13px; line-height: 17px; }
+  .alert .ab { display: flex; border-top: .5px solid var(--sep); }
+  .alert .ab button { flex: 1; min-height: 46px; font-size: 17px; color: var(--tint); }
+  .alert .ab button + button { border-left: .5px solid var(--sep); }
+  .alert .ab .destr { color: var(--red); font-weight: 600; }
+  .sheet { width: 1040px; height: 700px; margin-top: 24px; background: var(--bg); border-radius: 14px; overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow); }
+  .sheet.small { width: 760px; height: 690px; }
+  .sheet-bar { height: 56px; flex: none; display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 8px; background: var(--bar); border-bottom: .5px solid var(--sep); }
+  .sheet-bar .r { justify-self: end; display: flex; gap: 6px; align-items: center; }
+  .sheet-body { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 12px; }
+  .old-page { width: 960px; height: 540px; border-radius: 10px; overflow: hidden; background: var(--paper); box-shadow: 0 1px 4px rgba(0,0,0,.12), 0 0 0 .5px var(--sep); position: relative; }
+  .old-page canvas { width: 100%; height: 100%; display: block; }
+  .ro-chip { position: absolute; left: 12px; top: 12px; display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--label2); background: var(--bar); border-radius: 13px; padding: 4px 10px; }
+  .pager { display: flex; align-items: center; gap: 4px; }
+  .tpl-wrap { position: relative; height: 520px; width: 368px; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.15); }
+  .tpl-wrap img { width: 100%; height: 100%; display: block; }
+  .crop { position: absolute; display: none; border: 2px solid var(--tint); box-shadow: 0 0 0 9999px rgba(0,0,0,.35); cursor: move; touch-action: none; }
+  .crop.on { display: block; }
+  .crop .h { position: absolute; right: -22px; bottom: -22px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: nwse-resize; }
+  .crop .h i { width: 18px; height: 18px; border-radius: 9px; background: var(--tint); box-shadow: 0 0 0 3px #fff; }
+  .tpl-hint { font-size: 13px; color: var(--label2); text-align: center; max-width: 560px; }
+  .tpl-btns { display: flex; gap: 10px; }
+
+  /* ---------- Rückmeldung ---------- */
+  .hud {
+    position: absolute; z-index: 60; left: 50%; bottom: 110px; transform: translate(-50%, 20px);
+    max-width: 760px; display: flex; align-items: center; gap: 14px;
+    background: var(--hud); color: var(--hud-label); border-radius: 16px; padding: 12px 18px;
+    font-size: 15px; line-height: 20px; box-shadow: 0 8px 30px rgba(0,0,0,.3);
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+  }
+  .hud.show { opacity: 1; transform: translate(-50%, 0); }
+  .hud .tag { font-size: 11px; text-transform: uppercase; letter-spacing: .4px; opacity: .65; display: block; }
+  @media (prefers-reduced-motion: reduce) { .hud { transition: none; } }
+
+  .bigss { position: fixed; right: 16px; bottom: 16px; z-index: 90; width: 576px; display: none; background: #1D1D1F; border-radius: 12px; padding: 10px; box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+  .bigss.on { display: block; }
+  .bigss .t { color: #fff; font-size: 12px; margin: 0 2px 8px; opacity: .8; }
+  .bigss .ssbox { position: relative; width: 556px; height: 312.75px; border-radius: 4px; overflow: hidden; }
+
+  .home-ind { position: absolute; bottom: 8px; left: 50%; width: 320px; height: 5px; margin-left: -160px; border-radius: 3px; background: var(--label); opacity: .85; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .err { position: fixed; left: 0; right: 0; bottom: 0; z-index: 999; background: #B00020; color: #fff; font: 13px/1.4 monospace; padding: 6px 10px; }
+</style>
+</head>
+<body>
+
+<a class="home-link" href="index.html"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L2 10l8 8"/></svg>Übersicht</a>
+<div class="caption">
+  <span><strong>Tafel</strong> · iPad 11" quer · Di 17.11., 8:40 · Mockup, kein Gestaltungsbeschluss</span>
+  <span class="seg" role="group" aria-label="Darstellung">
+    <button type="button" data-theme-set="system" aria-pressed="true">System</button>
+    <button type="button" data-theme-set="light" aria-pressed="false">Hell</button>
+    <button type="button" data-theme-set="dark" aria-pressed="false">Dunkel</button>
+  </span>
+  <span class="seg" role="group" aria-label="Bildschirm im Klassenraum">
+    <button type="button" data-conn="1" aria-pressed="true">Verbunden</button>
+    <button type="button" data-conn="0" aria-pressed="false">Getrennt</button>
+  </span>
+  <span class="seg"><button type="button" id="cap-big" aria-pressed="false">Zweitbildschirm groß</button></span>
+</div>
+
+<div class="stage-wrap"><div class="stage" id="stage"><div class="device" id="device">
+
+  <div class="note-out" style="top:96px"><b>Vorschlag</b><br>◀ Kamera, Vorlage, Abdecken: Q‑24, nicht beschlossen</div>
+
+  <div class="screen" id="screen">
+
+  <div class="statusbar" aria-hidden="true">
+    <div class="l"><span>8:40</span><span>Di. 17. Nov.</span></div>
+    <div class="r">
+      <svg width="18" height="13" viewBox="0 0 18 13" fill="currentColor"><path d="M9 2.2c2.6 0 5 1 6.8 2.7l1.2-1.3C14.9 1.6 12 .4 9 .4S3.1 1.6 1 3.6l1.2 1.3C4 3.2 6.4 2.2 9 2.2zm0 3.6c1.6 0 3.1.6 4.2 1.6l1.2-1.3C13 4.8 11.1 4 9 4S5 4.8 3.6 6.1l1.2 1.3C5.9 6.4 7.4 5.8 9 5.8zm0 3.6c.7 0 1.3.2 1.8.6L9 12 7.2 10c.5-.4 1.1-.6 1.8-.6z"/></svg>
+      <span>84 %</span>
+      <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="17" height="9" rx="2" fill="currentColor"/><rect x="24.5" y="4.5" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".4"/></svg>
+    </div>
+  </div>
+
+  <div class="navbar">
+    <div><a class="tb-btn" href="tagesansicht.html"><svg width="13" height="22" viewBox="0 0 13 22" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 2L2 11l9 9"/></svg>Tagesansicht</a></div>
+    <div class="nav-title">
+      <b>Tafel · 8b Englisch</b>
+      <span>Tafelbild der Unterrichtsstunde Di 17.11., 2. Stunde ·</span>
+      <span class="saved" id="saved" aria-live="polite"></span>
+    </div>
+    <div class="r">
+      <button class="tb-btn" type="button" id="btn-menu" aria-haspopup="menu" aria-label="Weitere Aktionen zum Tafelbild"></button>
+    </div>
+  </div>
+
+  <div class="toolrow" role="toolbar" aria-label="Werkzeuge der Tafel">
+    <div class="grp" role="group" aria-label="Werkzeug">
+      <button class="tool" type="button" id="t-pen" aria-pressed="true" aria-label="Stift"></button>
+      <button class="tool" type="button" id="t-eraser" aria-pressed="false" aria-label="Radierer"></button>
+    </div>
+    <div class="vsep"></div>
+    <div class="grp" role="group" aria-label="Farbe" id="colors"></div>
+    <div class="vsep"></div>
+    <button class="tool" type="button" id="t-undo" aria-label="Rückgängig"></button>
+    <div class="spacer"></div>
+    <div class="grp" role="group" aria-label="Seiten">
+      <button class="tool" type="button" id="p-prev" aria-label="Vorherige Seite"></button>
+      <div class="pageno" id="pageno" aria-live="polite">Seite 1 von 2</div>
+      <button class="tool" type="button" id="p-next" aria-label="Nächste Seite"></button>
+      <button class="tool" type="button" id="p-add" aria-label="Seite hinzufügen"></button>
+    </div>
+    <div class="vsep"></div>
+    <button class="tool lab" type="button" id="t-bg" aria-haspopup="menu"></button>
+    <div class="spacer"></div>
+    <div class="grp" role="group" aria-label="Vorschläge aus Q-24">
+      <button class="tool lab proposal" type="button" id="t-cam" aria-pressed="false"></button>
+      <button class="tool lab proposal" type="button" id="t-tpl" aria-haspopup="menu"></button>
+      <button class="tool lab proposal" type="button" id="t-cover" aria-pressed="false"></button>
+    </div>
+  </div>
+
+  <div class="board" id="board">
+    <div class="page-wrap" id="page-wrap">
+      <canvas id="cv" aria-label="Tafelseite, mit Stift beschreibbar"></canvas>
+      <div class="curtain" id="curtain">
+        <button class="grip" type="button" id="grip" aria-label="Vorhang verschieben"><i></i>Abdecken · ziehen</button>
+        <div class="ctext">Auf dem Zweitbildschirm verdeckt · hier zum Schreiben durchscheinend</div>
+      </div>
+      <div class="cam-ui" id="cam-ui">
+        <div class="cam-live"><i></i>Kamera des iPad · live</div>
+        <div class="cam-btns">
+          <button class="btn onimg" type="button" id="cam-cancel">Abbrechen</button>
+          <button class="btn prominent" type="button" id="cam-still"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sbbar" role="region" aria-label="Zweitbildschirm">
+    <div class="sb-cap" aria-hidden="true">Das sieht<br>die Klasse</div>
+    <div class="sb-thumb" id="sb-thumb" role="img" aria-label="Vorschaubild des Zweitbildschirms"></div>
+    <div class="sb-seg" role="radiogroup" aria-label="Zweitbildschirm zeigt" id="sb-seg"></div>
+    <div class="sb-timer" id="sb-timer"></div>
+    <button class="sb-btn" type="button" id="sb-form" aria-haspopup="menu"></button>
+    <div class="spacer"></div>
+    <button class="sb-conn" type="button" id="sb-conn"></button>
+  </div>
+
+  <div class="pop" id="pop" role="menu"></div>
+  <div class="scrim" id="scrim"></div>
+  <div class="hud" id="hud" role="status" aria-live="polite"><div id="hud-text"></div></div>
+  <div class="home-ind" aria-hidden="true"></div>
+  </div>
+</div></div></div>
+
+<div class="bigss" id="bigss"><div class="t">Zweitbildschirm (Apple TV Raum 204) · 1920 × 1080, verkleinert · ohne Bedienelemente</div><div class="ssbox" id="big-ss"></div></div>
+
+<script>
+window.addEventListener("error", function (e) {
+  var d = document.createElement("div"); d.className = "err";
+  d.textContent = "Skriptfehler im Mockup: " + e.message + " (Zeile " + e.lineno + ")"; document.body.appendChild(d);
+});
+(function () {
+  "use strict";
+
+  // ======================================================================
+  // Gemeinsamer Teil (identisch in tafel.html und anzeige.html)
+  // ======================================================================
+
+  var I = {
+    pen: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M4 20l1-4.5L15.5 5a2.1 2.1 0 0 1 3 3L8 18.5z"/><path d="M13.5 7l3 3"/></svg>',
+    eraser: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M9 20h11"/><path d="M3.8 14.2l9-9a2 2 0 0 1 2.8 0l3.2 3.2a2 2 0 0 1 0 2.8l-7.8 7.8H8.5l-4.7-4.7a.8.8 0 0 1 0-.1z"/><path d="M9 9l6 6"/></svg>',
+    undo: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>',
+    left: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>',
+    right: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>',
+    plus: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="3" width="13" height="18" rx="2"/><path d="M19 13v8M15 17h8" stroke-width="2.2"/></svg>',
+    more: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9.5"/><circle cx="7.6" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="16.4" cy="12" r="1.1" fill="currentColor" stroke="none"/></svg>',
+    cam: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h2l1.5-2h6l1.5 2h2A2.5 2.5 0 0 1 21 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"/><circle cx="12" cy="12.5" r="3.6"/></svg>',
+    tpl: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><rect x="3" y="5" width="13" height="16" rx="2"/><path d="M8 2.5h11a2 2 0 0 1 2 2V17"/><path d="M6.5 10h6M6.5 13.5h6M6.5 17h4"/></svg>',
+    cover: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 12h18"/><path d="M6 17l3-3M9.5 19l5-5M14 19l5-5" stroke-width="1.3"/></svg>',
+    bg: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3.5" y="3.5" width="17" height="17" rx="2.5"/><path d="M3.5 9.2h17M3.5 14.8h17M9.2 3.5v17M14.8 3.5v17" stroke-width="1.1"/></svg>',
+    down: '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2.5 4.5L6 8l3.5-3.5"/></svg>',
+    kb: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M8.5 20.5h7M12 17v3.5M6.5 8.5h6M6.5 12h9"/></svg>',
+    mat: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M5 2.5h9.5l4.5 4.5v14.5H5z"/><path d="M14.5 2.5V7H19"/></svg>',
+    tafel: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="14" rx="2"/><path d="M6 13c1.5-3 3-3 3.5-1s2 2 3.5-1 3-2 4 0"/><path d="M8 21h8"/></svg>',
+    dark: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>',
+    timer: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 13.5V9.5M10 3h4M18.5 6.5l1.2-1.2"/></svg>',
+    pause: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1.2"/><rect x="14" y="5" width="4" height="14" rx="1.2"/></svg>',
+    play: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l12-7.5z"/></svg>',
+    stop: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>',
+    p1: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="3.5"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/></svg>',
+    p2: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="3"/><circle cx="16" cy="8.5" r="3"/><path d="M2.5 19.5a6 6 0 0 1 12 0M12.5 15a6 6 0 0 1 9 4.5"/></svg>',
+    p3: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="12" cy="7" r="2.8"/><circle cx="5.5" cy="10" r="2.3"/><circle cx="18.5" cy="10" r="2.3"/><path d="M7 20a5 5 0 0 1 10 0M1.5 19a4 4 0 0 1 5-3.8M22.5 19a4 4 0 0 0-5-3.8"/></svg>',
+    air: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M6 17H4.5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h15a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H18"/><path d="M12 14l5 6H7z" fill="currentColor"/></svg>',
+    airoff: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"><path d="M6 17H4.5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h15a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H18"/><path d="M12 14l5 6H7z"/><path d="M3 2.5l18 19"/></svg>',
+    check: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+    checkc: '<svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="8" r="6.8"/><path d="M5 8.3l2 2 4-4.3"/></svg>',
+    trash: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5h16M9.5 6.5V4.5h5v2M6.5 6.5l1 13a1.5 1.5 0 0 0 1.5 1.4h6a1.5 1.5 0 0 0 1.5-1.4l1-13"/><path d="M10 10.5v6M14 10.5v6"/></svg>',
+    hist: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6"/><path d="M3 4v4.5h4.5"/><path d="M12 7.5V12l3 2"/></svg>',
+    share: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7.5 7.5L12 3l4.5 4.5"/><path d="M8 10H6.5A1.5 1.5 0 0 0 5 11.5v8A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5v-8A1.5 1.5 0 0 0 17.5 10H16"/></svg>',
+    eye: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg>',
+    folder: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2.5h8a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>',
+    mail: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="M3.5 6.5l8.5 7 8.5-7"/></svg>',
+    drop: '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M5 15a8 8 0 1 1 14 0"/><path d="M8 15.5a4.6 4.6 0 1 1 8 0"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>',
+    print: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M7 9V3.5h10V9"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14.5h10V21H7z"/></svg>',
+    doc: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M5 2.5h9.5l4.5 4.5v14.5H5z"/><path d="M14.5 2.5V7H19"/></svg>'
+  };
+  var FORM_ICON = { "Einzelarbeit": "p1", "Partnerarbeit": "p2", "Gruppenarbeit": "p3" };
+
+  var screenEl = document.getElementById("screen");
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---------- Farben aus den Systemfarben-Variablen ----------
+  var C = null;
+  function colors() {
+    if (C) return C;
+    var cs = getComputedStyle(document.documentElement);
+    function v(n) { return cs.getPropertyValue(n).trim(); }
+    C = { paper: v("--paper"), rule: v("--rule"), ink: v("--ink-ink"), blue: v("--ink-blue"), red: v("--ink-red"),
+          green: v("--ink-green"), curtain: v("--curtain-ss"), black: "#000000" };
+    return C;
+  }
+  function inkColor(k) { var c = colors(); return c[k] || k; }
+
+  // ---------- Handschrift: einfache Einstrich-Glyphen (Grundlinie y=0, x-Höhe 1) ----------
+  function A(cx, cy, rx, ry, a0, a1) {
+    var n = Math.max(6, Math.ceil(Math.abs(a1 - a0) / 15)), p = [];
+    for (var i = 0; i <= n; i++) { var a = (a0 + (a1 - a0) * i / n) * Math.PI / 180; p.push([cx + rx * Math.cos(a), cy + ry * Math.sin(a)]); }
+    return p;
+  }
+  function DOT(x, y) { return [[x, y], [x + .02, y + .05]]; }
+  var GL = {
+    a: [.85, [A(.38, -.5, .38, .5, -25, -345), [[.76, -1], [.76, 0]]]],
+    b: [.85, [[[0, -1.7], [0, 0]], A(.4, -.5, .4, .5, 180, -180)]],
+    c: [.72, [A(.4, -.5, .4, .5, -40, -320)]],
+    d: [.85, [A(.38, -.5, .38, .5, -25, -345), [[.76, -1.7], [.76, 0]]]],
+    e: [.82, [[[.04, -.5], [.8, -.5]].concat(A(.42, -.5, .38, .5, 0, -320))]],
+    g: [.85, [A(.38, -.5, .38, .5, -25, -345), [[.76, -1], [.76, .4]].concat(A(.42, .4, .34, .22, 0, 160))]],
+    h: [.78, [[[0, -1.7], [0, 0]], [[0, -.55]].concat(A(.35, -.55, .35, .42, 180, 360), [[.7, 0]])]],
+    i: [.25, [[[.1, -1], [.1, 0]], DOT(.1, -1.38)]],
+    j: [.45, [[[.32, -1], [.32, .4]].concat(A(.07, .4, .25, .22, 0, 170)), DOT(.32, -1.38)]],
+    l: [.35, [[[.1, -1.7], [.1, -.1], [.25, 0]]]],
+    m: [1.2, [[[0, -1], [0, 0]], [[0, -.6]].concat(A(.28, -.6, .28, .38, 180, 360), [[.56, 0]]), [[.56, -.6]].concat(A(.84, -.6, .28, .38, 180, 360), [[1.12, 0]])]],
+    n: [.78, [[[0, -1], [0, 0]], [[0, -.55]].concat(A(.35, -.55, .35, .42, 180, 360), [[.7, 0]])]],
+    o: [.82, [A(.4, -.5, .4, .5, -90, -450)]],
+    p: [.85, [[[0, -1], [0, .6]], A(.4, -.5, .4, .5, 180, -180)]],
+    r: [.6, [[[0, -1], [0, 0]], [[0, -.5]].concat(A(.3, -.5, .3, .45, 180, 300))]],
+    s: [.7, [[[.6, -.86], [.45, -1], [.2, -.98], [.05, -.82], [.1, -.62], [.35, -.52], [.58, -.4], [.65, -.2], [.5, -.02], [.25, 0], [.03, -.12]]]],
+    t: [.55, [[[.2, -1.45], [.2, -.12]].concat(A(.4, -.12, .2, .12, 180, 90)), [[0, -1], [.48, -1]]]],
+    u: [.8, [[[0, -1], [0, -.4]].concat(A(.35, -.4, .35, .4, 180, 0)), [[.7, -1], [.7, 0]]]],
+    v: [.75, [[[0, -1], [.35, 0], [.7, -1]]]],
+    w: [1.05, [[[0, -1], [.25, 0], [.5, -.65], [.75, 0], [1, -1]]]],
+    y: [.75, [[[0, -1], [.35, 0]], [[.7, -1], [.22, .62]]]],
+    R: [.85, [[[0, 0], [0, -1.7], [.45, -1.7], [.68, -1.55], [.72, -1.3], [.62, -1.05], [.4, -.92], [0, -.92]], [[.32, -.92], [.75, 0]]]],
+    U: [1, [[[0, -1.7], [0, -.5]].concat(A(.45, -.5, .45, .5, 180, 0), [[.9, -1.7]])]],
+    "3": [.78, [[[0, -1.5], [.2, -1.68], [.5, -1.68], [.68, -1.5], [.65, -1.2], [.4, -.92], [.7, -.72], [.72, -.3], [.5, -.03], [.2, -.03], [0, -.2]]]],
+    "4": [.85, [[[.55, 0], [.55, -1.7], [0, -.55], [.8, -.55]]]],
+    "!": [.3, [[[.12, -1.7], [.1, -.45]], DOT(.1, -.08)]],
+    "?": [.7, [[[.05, -1.4], [.2, -1.66], [.45, -1.7], [.65, -1.5], [.62, -1.2], [.35, -.95], [.33, -.5]], DOT(.33, -.08)]],
+    "–": [.6, [[[0, -.55], [.5, -.55]]]],
+    ".": [.25, [DOT(.08, -.06)]]
+  };
+  GL["ü"] = [.8, GL.u[1].concat([DOT(.18, -1.35), DOT(.52, -1.35)])];
+
+  function rng(seed) {
+    return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
+  }
+  // schreibt Text als Striche; size = x-Höhe in Seiteneinheiten
+  function hand(text, x, y, size, color, width, seed) {
+    var r = rng(seed || 7), out = [], cx = x;
+    for (var k = 0; k < text.length; k++) {
+      var ch = text[k];
+      if (ch === " ") { cx += size * .5; continue; }
+      var g = GL[ch]; if (!g) continue;
+      var dy = (r() - .5) * size * .07, sc = 1 + (r() - .5) * .07;
+      g[1].forEach(function (st) {
+        out.push({ c: color, w: width, p: st.map(function (q) {
+          var gx = q[0] * sc, gy = q[1] * sc;
+          return [cx + (gx - gy * .13) * size + (r() - .5) * size * .015, y + dy + gy * size + (r() - .5) * size * .015];
+        }) });
+      });
+      cx += (g[0] * sc + .2) * size;
+    }
+    return { strokes: out, end: cx };
+  }
+  function handW(text, size) { return hand(text, 0, 0, size, "ink", 1, 1).end; }
+  function hline(pts, c, w, seed, jit) {
+    var r = rng(seed), out = [], j = jit == null ? 2.4 : jit;
+    for (var i = 0; i < pts.length - 1; i++) {
+      var a = pts[i], b = pts[i + 1], n = Math.max(2, Math.round(Math.hypot(b[0] - a[0], b[1] - a[1]) / 40));
+      for (var q = (i ? 1 : 0); q <= n; q++) { var t = q / n; out.push([a[0] + (b[0] - a[0]) * t + (r() - .5) * j, a[1] + (b[1] - a[1]) * t + (r() - .5) * j]); }
+    }
+    return { c: c, w: w, p: out };
+  }
+  function harrow(x1, y, x2, c, w, seed, head) {
+    var hd = head || 22;
+    return [hline([[x1, y], [x2, y + 3]], c, w, seed), hline([[x2 - hd, y - hd * .7], [x2, y + 3], [x2 - hd, y + hd * .85]], c, w, seed + 1)];
+  }
+  function hellipse(cx, cy, rx, ry, c, w, seed) {
+    var r = rng(seed);
+    return { c: c, w: w, p: A(cx, cy, rx, ry, -100, -475).map(function (q, i) { var f = 1 + (r() - .5) * .03 + i * .0012; return [cx + (q[0] - cx) * f, cy + (q[1] - cy) * f]; }) };
+  }
+
+  // ---------- Striche zeichnen (Koordinaten in Seiteneinheiten, ctx bereits skaliert) ----------
+  function strokePath(ctx, p) {
+    ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]);
+    if (p.length === 1) ctx.lineTo(p[0][0] + .01, p[0][1]);
+    for (var i = 1; i < p.length - 1; i++) {
+      var mx = (p[i][0] + p[i + 1][0]) / 2, my = (p[i][1] + p[i + 1][1]) / 2;
+      ctx.quadraticCurveTo(p[i][0], p[i][1], mx, my);
+    }
+    if (p.length > 1) { var l = p[p.length - 1]; ctx.lineTo(l[0], l[1]); }
+    ctx.stroke();
+  }
+  function drawStrokes(ctx, strokes) {
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    for (var i = 0; i < strokes.length; i++) { var s = strokes[i]; ctx.strokeStyle = inkColor(s.c); ctx.lineWidth = s.w; strokePath(ctx, s.p); }
+  }
+  function distSeg(p, a, b) {
+    var dx = b[0] - a[0], dy = b[1] - a[1], l = dx * dx + dy * dy, t = l ? ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l : 0;
+    t = Math.max(0, Math.min(1, t)); return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy);
+  }
+  function hits(s, p, r) {
+    if (s.p.length === 1) return Math.hypot(p[0] - s.p[0][0], p[1] - s.p[0][1]) < r;
+    for (var i = 0; i < s.p.length - 1; i++) if (distSeg(p, s.p[i], s.p[i + 1]) < r) return true;
+    return false;
+  }
+
+  // ---------- Zeichenfläche: Stift (sofort, ohne Moduswechsel) und Radierer (ganze Striche) ----------
+  function Board(o) {
+    var cv = o.canvas, cur = null;
+    function toPage(e) { var r = cv.getBoundingClientRect(), g = o.geom(); return [g.x + (e.clientX - r.left) / r.width * g.w, g.y + (e.clientY - r.top) / r.height * g.h]; }
+    cv.addEventListener("pointerdown", function (e) {
+      if (e.button > 0 || (o.enabled && !o.enabled())) return;
+      closePop();
+      try { cv.setPointerCapture(e.pointerId); } catch (err) { /* synthetische Ereignisse im Selbsttest */ }
+      var pt = toPage(e);
+      if (o.tool() === "pen") { cur = { c: o.color(), w: o.width(), p: [pt] }; o.setLive(cur); }
+      else { cur = { erase: true, removed: [] }; eraseAt(pt); }
+      e.preventDefault(); o.redraw();
+    });
+    cv.addEventListener("pointermove", function (e) {
+      if (!cur) return;
+      var evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e]; if (!evs.length) evs = [e];
+      evs.forEach(function (ev) {
+        var pt = toPage(ev);
+        if (!cur.erase) { var l = cur.p[cur.p.length - 1]; if (Math.hypot(pt[0] - l[0], pt[1] - l[1]) > o.minStep) cur.p.push(pt); }
+        else eraseAt(pt);
+      });
+      o.redraw();
+    });
+    function end() {
+      if (!cur) return;
+      if (!cur.erase) o.commit({ t: "add", s: cur });
+      else if (cur.removed.length) o.commit({ t: "erase", items: cur.removed });
+      cur = null; o.setLive(null); o.redraw();
+    }
+    cv.addEventListener("pointerup", end);
+    cv.addEventListener("pointercancel", end);
+    function eraseAt(pt) {
+      var list = o.strokes(), rad = o.eraser();
+      for (var i = list.length - 1; i >= 0; i--) if (hits(list[i], pt, rad + list[i].w / 2)) { cur.removed.push({ s: list[i], i: i }); list.splice(i, 1); }
+    }
+  }
+  function applyUndo(list, a) {
+    if (a.t === "add") { var k = list.indexOf(a.s); if (k >= 0) list.splice(k, 1); }
+    else if (a.t === "erase") { for (var i = a.items.length - 1; i >= 0; i--) list.splice(a.items[i].i, 0, a.items[i].s); }
+  }
+
+  // ---------- Popover, Hinweis, Rückmeldung ----------
+  var pop = $("pop"), popOwner = null, popCb = null;
+  var _s = 1;
+  function placeAt(el, anchor) {
+    var sr = screenEl.getBoundingClientRect(), ar = anchor.getBoundingClientRect();
+    var w = el.offsetWidth, h = el.offsetHeight;
+    var x = (ar.left - sr.left) / _s + ar.width / _s / 2 - w / 2;
+    x = Math.min(Math.max(12, x), 1194 - w - 12);
+    var below = (ar.bottom - sr.top) / _s + 8, above = (ar.top - sr.top) / _s - h - 8;
+    el.style.left = x + "px"; el.style.top = (below + h < 834 - 24 ? below : Math.max(12, above)) + "px";
+  }
+  function openPop(anchor, html, width, cb) {
+    if (popOwner === anchor) { closePop(); return; }
+    closePop();
+    pop.innerHTML = html; pop.style.width = width + "px"; pop.classList.add("open");
+    popOwner = anchor; popCb = cb; anchor.setAttribute("aria-expanded", "true");
+    placeAt(pop, anchor);
+    var f = pop.querySelector("button:not([aria-disabled='true'])"); if (f && lastKey) f.focus({ preventScroll: true });
+  }
+  var lastKey = false;
+  document.addEventListener("keydown", function () { lastKey = true; }, true);
+  document.addEventListener("pointerdown", function () { lastKey = false; }, true);
+  function closePop() {
+    if (popOwner) popOwner.setAttribute("aria-expanded", "false");
+    pop.classList.remove("open"); popOwner = null; popCb = null;
+  }
+  pop.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-v]"); if (!b || b.getAttribute("aria-disabled") === "true") return;
+    var cb = popCb, anchor = popOwner; closePop(); if (cb) cb(b.dataset.v, anchor);
+  });
+  document.addEventListener("pointerdown", function (e) { if (popOwner && !pop.contains(e.target) && !popOwner.contains(e.target)) closePop(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closePop(); closeScrim(); } });
+
+  var scrim = $("scrim");
+  function openScrim(html) { scrim.innerHTML = html; scrim.classList.add("open"); }
+  function closeScrim() { scrim.classList.remove("open"); scrim.innerHTML = ""; if (window.onScrimClose) window.onScrimClose(); }
+  function confirmDestructive(title, text, action, onOk) {
+    closePop();
+    openScrim('<div class="alert" role="alertdialog" aria-labelledby="al-t"><h3 id="al-t">' + title + "</h3><p>" + text + '</p><div class="ab"><button type="button" id="al-no">Abbrechen</button><button type="button" class="destr" id="al-ok">' + action + "</button></div></div>");
+    $("al-no").focus(); $("al-no").onclick = closeScrim; $("al-ok").onclick = function () { closeScrim(); onOk(); };
+  }
+
+  var hud = $("hud"), hudText = $("hud-text"), hudTimer;
+  function toast(text) {
+    hudText.innerHTML = '<span class="tag">Im Mockup: was passieren würde</span>' + text;
+    hud.classList.add("show"); clearTimeout(hudTimer);
+    hudTimer = setTimeout(function () { hud.classList.remove("show"); }, 4200);
+  }
+
+  // ---------- Zweitbildschirm: Zustand, Vorschaubild, Smartboard-Leiste ----------
+  var SS = { mode: "tafel", connected: true, form: "Partnerarbeit", materialOpen: false, signal: false };
+  var T = { state: "running", end: Date.now() + 252000, left: 0 };   // läuft: 4:12 übrig
+  function tLeft() { return T.state === "running" ? Math.max(0, T.end - Date.now()) : T.state === "paused" ? T.left : 0; }
+  function fmt(ms) { var s = Math.ceil(ms / 1000); return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0"); }
+
+  var outs = [];
+  function kbHtml() {
+    return '<div class="kb"><div class="kb-head"><span class="kb-cls">8b</span><span class="kb-subj">Englisch</span>' +
+      '<span class="kb-clock">8:40<small>bis 9:20</small></span></div>' +
+      '<div class="kb-topic">Unit 4 – Wortschatz</div>' +
+      '<div class="kb-lines">Bitte bereitlegen: Buch, Heft, Vokabelheft<br>Hausaufgabe: Workbook S. 34, Nr. 2 und 3</div>' +
+      '<div class="kb-foot"><span class="kb-form"></span><span class="kb-timer"></span></div></div>';
+  }
+  function makeOut(box, w, h, isPreview) {
+    var el = document.createElement("div"); el.className = "ss"; box.appendChild(el);
+    el.innerHTML = '<canvas></canvas>' + kbHtml() + '<div class="ss-timer"><span></span></div><div class="ss-hatch"></div>';
+    var k = w / 1920;
+    el.querySelector(".kb").style.transform = "scale(" + k + ")";
+    el.querySelector(".ss-timer").style.transform = "scale(" + k + ")";
+    var o = { el: el, cv: el.querySelector("canvas"), w: w, h: h, preview: isPreview, px: isPreview ? 3 : 2 };
+    o.cv.width = Math.round(w * o.px); o.cv.height = Math.round(h * o.px);
+    outs.push(o); return o;
+  }
+  function renderOuts() {
+    var left = tLeft(), showTimer = T.state !== "idle" && SS.mode !== "dark";
+    outs.forEach(function (o) {
+      if (o.el.offsetParent === null && !o.preview) return;
+      var el = o.el;
+      el.className = "ss m-" + SS.mode + (o.preview && !SS.connected ? " off" : "") + (SS.signal ? " signal" : "");
+      var form = el.querySelector(".kb-form");
+      form.innerHTML = SS.form ? I[FORM_ICON[SS.form]].replace(/width="20" height="20"/, 'width="96" height="96"') + SS.form : "";
+      el.querySelector(".kb-timer").textContent = showTimer ? fmt(left) : "";
+      var tl = el.querySelector(".ss-timer"); tl.style.display = showTimer && SS.mode !== "kb" ? "block" : "none";
+      tl.firstChild.textContent = fmt(left);
+      if (SS.mode === "tafel" || SS.mode === "material") {
+        var ctx = o.cv.getContext("2d"), sc = o.cv.width / 1920;
+        ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.fillStyle = "#000"; ctx.fillRect(0, 0, o.cv.width, o.cv.height);
+        ctx.setTransform(sc, 0, 0, sc, 0, 0);
+        window.drawSecond(ctx, SS.mode);
+      }
+    });
+  }
+  var rq = false;
+  function redraw() { if (rq) return; rq = true; requestAnimationFrame(function () { rq = false; window.renderMain(); renderOuts(); }); }
+
+  // Smartboard-Leiste
+  var SEG = [["kb", "Klassenbildschirm", "kb"], ["material", "Material", "mat"], ["tafel", "Tafel", "tafel"], ["dark", "Dunkel", "dark"]];
+  function renderBar() {
+    $("sb-seg").innerHTML = SEG.map(function (s) {
+      var dis = s[0] === "material" && !SS.materialOpen;
+      return '<button type="button" role="radio" data-mode="' + s[0] + '" aria-checked="' + (SS.mode === s[0]) + '"' + (dis ? ' aria-disabled="true" title="Kein Material geöffnet"' : "") + ">" + I[s[2]] + s[1] + "</button>";
+    }).join("");
+    renderTimerUI();
+    $("sb-form").innerHTML = (SS.form ? I[FORM_ICON[SS.form]] + SS.form : "Arbeitsform") + I.down;
+    $("sb-conn").innerHTML = SS.connected ? I.air + "<span><b>Apple TV Raum 204</b></span>" : I.airoff + "<span data-howto>Kein Bildschirm · <b style=\"color:var(--blue,#0a84ff)\">So verbinden</b></span>";
+    $("sb-thumb").setAttribute("aria-label", "Vorschaubild des Zweitbildschirms: " + ({ kb: "Klassenbildschirm", material: "Material", tafel: "Tafel", dark: "dunkel" })[SS.mode] + (SS.connected ? "" : ", kein Bildschirm verbunden"));
+  }
+  function renderTimerUI() {
+    var el = $("sb-timer");
+    if (T.state === "idle") { el.innerHTML = '<button class="sb-btn" type="button" data-tm="menu" aria-haspopup="menu">' + I.timer + "Timer</button>"; return; }
+    var t = el.querySelector(".sb-time");
+    if (t && el.dataset.state === T.state) { t.lastChild.textContent = fmt(tLeft()); return; }
+    el.dataset.state = T.state;
+    el.innerHTML = '<span class="sb-time" role="timer" aria-label="Restzeit">' + I.timer + "<span>" + fmt(tLeft()) + "</span></span>" +
+      (T.state === "running" ? '<button class="sb-btn icon" type="button" data-tm="pause" aria-label="Timer anhalten">' + I.pause + "</button>"
+                             : '<button class="sb-btn icon" type="button" data-tm="resume" aria-label="Timer fortsetzen">' + I.play + "</button>") +
+      '<button class="sb-btn icon" type="button" data-tm="stop" aria-label="Timer beenden">' + I.stop + "</button>";
+  }
+  $("sb-seg").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-mode]"); if (!b || b.getAttribute("aria-disabled") === "true") return;
+    SS.mode = b.dataset.mode; if (window.onModeChange) window.onModeChange(); renderBar(); redraw();
+  });
+  $("sb-timer").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-tm]"); if (!b) return;
+    var a = b.dataset.tm;
+    if (a === "menu") {
+      openPop(b, '<div class="ptitle"><b>Timer</b>Läuft auch über Material und Tafel sichtbar weiter</div>' +
+        [1, 3, 5, 10, 15].map(function (m) { return '<button class="item" type="button" role="menuitem" data-v="' + m + '">' + m + " Minuten" + (m === 5 ? "<small>zuletzt verwendet</small>" : "") + "</button>"; }).join(""), 280,
+        function (v) { T.state = "running"; T.end = Date.now() + v * 60000; SS.signal = false; $("sb-timer").dataset.state = ""; renderTimerUI(); redraw(); });
+    } else if (a === "pause") { T.left = tLeft(); T.state = "paused"; renderTimerUI(); redraw(); }
+    else if (a === "resume") { T.end = Date.now() + T.left; T.state = "running"; renderTimerUI(); redraw(); }
+    else if (a === "stop") { T.state = "idle"; SS.signal = false; $("sb-timer").dataset.state = ""; renderTimerUI(); redraw(); }
+  });
+  $("sb-form").addEventListener("click", function () {
+    var b = $("sb-form");
+    openPop(b, '<div class="ptitle"><b>Arbeitsform</b>Der Klassenbildschirm zeigt sie als Symbol mit Wort</div>' +
+      ["", "Einzelarbeit", "Partnerarbeit", "Gruppenarbeit"].map(function (f) {
+        return '<button class="item" type="button" role="menuitemradio" aria-checked="' + (SS.form === f) + '" data-v="' + (f || "-") + '"><span style="display:flex;gap:10px;align-items:center">' + (f ? I[FORM_ICON[f]] + f : "Keine") + "</span>" + (SS.form === f ? '<span class="ck">' + I.check + "</span>" : "") + "</button>";
+      }).join(""), 280,
+      function (v) { SS.form = v === "-" ? "" : v; renderBar(); redraw(); });
+  });
+  $("sb-conn").addEventListener("click", function () {
+    toast(SS.connected ? "Öffnet die AirPlay-Auswahl des Systems (Apple TV Raum 204 ist verbunden)." : "Öffnet die AirPlay-Auswahl des Systems. Ohne Bildschirm bleibt alles am iPad bedienbar.");
+  });
+  setInterval(function () {
+    if (T.state === "running" && tLeft() <= 0) {
+      T.state = "idle"; SS.signal = true; $("sb-timer").dataset.state = "";
+      toast("Zeit ist um: Signal auf dem Zweitbildschirm, sichtbar und hörbar (FR-11.2).");
+      setTimeout(function () { SS.signal = false; redraw(); }, 6000);
+    }
+    renderTimerUI(); renderOuts();
+  }, 250);
+
+  // ---------- Mockup-Rahmen: Hell/Dunkel, Verbindung, großer Zweitbildschirm, Einpassen ----------
+  function themeChanged() { C = null; redraw(); if (window.onThemeChange) window.onThemeChange(); }
+  document.querySelectorAll("[data-theme-set]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var v = b.dataset.themeSet;
+      if (v === "system") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme", v);
+      document.querySelectorAll("[data-theme-set]").forEach(function (o) { o.setAttribute("aria-pressed", o === b ? "true" : "false"); });
+      themeChanged();
+    });
+  });
+  window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", themeChanged);
+  document.querySelectorAll("[data-conn]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      SS.connected = b.dataset.conn === "1";
+      document.querySelectorAll("[data-conn]").forEach(function (o) { o.setAttribute("aria-pressed", o === b ? "true" : "false"); });
+      renderBar(); redraw();
+    });
+  });
+  $("cap-big").addEventListener("click", function () {
+    var on = !$("bigss").classList.contains("on");
+    $("bigss").classList.toggle("on", on); $("cap-big").setAttribute("aria-pressed", String(on)); redraw();
+  });
+
+  var stage = $("stage");
+  function fit() {
+    _s = Math.min((window.innerWidth - 200) / 1242, (window.innerHeight - 44 - 20) / 882, 1.25);
+    stage.style.width = 1242 * _s + "px"; stage.style.height = 882 * _s + "px";
+    var dev = $("device"); dev.style.transformOrigin = "top left"; dev.style.transform = "scale(" + _s + ")";
+    if (popOwner) placeAt(pop, popOwner);
+    if (window.onFit) window.onFit();
+  }
+  window.addEventListener("resize", fit);
+
+  // ======================================================================
+  // Tafel
+  // ======================================================================
+  var PW = 1920, PH = 1080;                 // Tafelseite = Format des Zweitbildschirms
+  var BGNAME = { blank: "Leer", lined: "Liniert", grid: "Kariert", image: "Vorlage", camera: "Standbild" };
+
+  function tafelPage1() {
+    var S = [], h = hand("Unit 4", 150, 200, 48, "ink", 8, 11);
+    S = S.concat(h.strokes, [hline([[142, 234], [h.end + 6, 230]], "ink", 6, 12)]);
+    [["borrow", "leihen", 360], ["journey", "Reise", 520], ["brave", "mutig", 680]].forEach(function (r, i) {
+      var e = hand(r[0], 200, r[2], 40, "ink", 7, 20 + i);
+      S = S.concat(e.strokes, harrow(e.end + 40, r[2] - 22, 820, "ink", 6, 30 + i));
+      var g = hand(r[1], 870, r[2], 40, "blue", 7, 40 + i);
+      S = S.concat(g.strokes);
+      if (i === 1) S = S.concat(hand("!", g.end + 16, r[2], 40, "red", 7, 50).strokes);
+    });
+    // kleine Skizze: Koffer
+    S.push(hline([[1360, 424], [1660, 428], [1656, 640], [1356, 636], [1360, 424]], "green", 7, 60));
+    S.push({ c: "green", w: 7, p: A(1508, 424, 62, 46, 180, 360) });
+    S.push(hline([[1432, 426], [1430, 638]], "green", 6, 61), hline([[1588, 427], [1586, 638]], "green", 6, 62));
+    return S;
+  }
+  function centered(text, cx, y, size, c, w, seed) { return hand(text, cx - handW(text, size) / 2, y, size, c, w, seed).strokes; }
+  function tafelPage2() {
+    var S = [hellipse(960, 540, 220, 105, "ink", 7, 70)];
+    S = S.concat(centered("travel", 960, 556, 44, "ink", 8, 71));
+    S.push(hline([[790, 470], [560, 300]], "ink", 6, 72), hline([[1130, 470], [1380, 300]], "ink", 6, 73), hline([[960, 648], [960, 820]], "ink", 6, 74));
+    S = S.concat(centered("journey", 470, 270, 40, "blue", 7, 75), centered("trip", 1460, 270, 40, "blue", 7, 76), centered("tour", 960, 900, 40, "blue", 7, 77));
+    return S;
+  }
+  function oldPages() {
+    var a = [], h = hand("Unit 3", 150, 200, 48, "ink", 8, 81);
+    a = a.concat(h.strokes, [hline([[142, 234], [h.end + 6, 230]], "ink", 6, 82)]);
+    [["tired", "müde", 400], ["angry", "wütend", 580]].forEach(function (r, i) {
+      var e = hand(r[0], 200, r[2], 40, "ink", 7, 83 + i);
+      a = a.concat(e.strokes, harrow(e.end + 40, r[2] - 22, 760, "ink", 6, 85 + i), hand(r[1], 810, r[2], 40, "blue", 7, 87 + i).strokes);
+    });
+    var b = harrow(180, 600, 1740, "ink", 7, 90, 30);
+    [460, 960, 1460].forEach(function (x, i) { b.push(hline([[x, 570], [x, 632]], "ink", 7, 91 + i)); });
+    b = b.concat(centered("yesterday", 460, 520, 40, "blue", 7, 94), centered("today", 960, 520, 40, "red", 7, 95), centered("tomorrow", 1460, 520, 40, "blue", 7, 96));
+    return [{ bg: "blank", strokes: a }, { bg: "lined", strokes: b }];
+  }
+
+  // Bilder als SVG (Kamera-Livebild, Arbeitsblatt) — erfundene Inhalte
+  function svgImg(svg) { var im = new Image(); im.onload = redraw; im.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg); return im; }
+  function scribRow(x, y, len, r, col, wd) {
+    var d = "M" + x + " " + y, cx = x;
+    while (cx < x + len) { var s = 14 + r() * 16; d += " q" + (s / 2).toFixed(1) + " " + (-(6 + r() * 12)).toFixed(1) + " " + s.toFixed(1) + " " + ((r() - .5) * 4).toFixed(1); cx += s; if (r() < .12) { cx += 22; d += " m22 0"; } }
+    return '<path d="' + d + '" fill="none" stroke="' + col + '" stroke-width="' + wd + '" stroke-linecap="round"/>';
+  }
+  function cameraSvg() {
+    var r = rng(5), s = '<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">' +
+      '<defs><linearGradient id="d" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8C847B"/><stop offset="1" stop-color="#655D55"/></linearGradient></defs>' +
+      '<rect width="1920" height="1080" fill="url(#d)"/><g transform="rotate(-4 960 540)">' +
+      '<rect x="534" y="88" width="900" height="1000" rx="6" fill="#000" opacity=".22"/>' +
+      '<rect x="520" y="70" width="900" height="1000" rx="6" fill="#FAF8F1"/>';
+    for (var y = 190; y < 1060; y += 52) s += '<line x1="520" x2="1420" y1="' + y + '" y2="' + y + '" stroke="#A9C1E0" stroke-width="2"/>';
+    s += '<line x1="620" x2="620" y1="70" y2="1070" stroke="#E3A3A3" stroke-width="3"/>';
+    s += scribRow(660, 176, 300, r, "#22386A", 6);
+    for (var k = 0; k < 7; k++) s += scribRow(660, 280 + k * 52, 520 + r() * 200, r, "#22386A", 4);
+    s += '<rect x="680" y="690" width="560" height="260" fill="none" stroke="#22386A" stroke-width="4"/><line x1="960" x2="960" y1="690" y2="950" stroke="#22386A" stroke-width="3"/>';
+    for (var q = 0; q < 4; q++) { s += '<line x1="680" x2="1240" y1="' + (742 + q * 52) + '" y2="' + (742 + q * 52) + '" stroke="#22386A" stroke-width="2"/>'; s += scribRow(700, 728 + q * 52, 200, r, "#22386A", 3) + scribRow(980, 728 + q * 52, 200, r, "#22386A", 3); }
+    s += '</g><g transform="rotate(24 1600 820)"><rect x="1470" y="800" width="400" height="28" rx="5" fill="#E2A93F"/><path d="M1470 800 l-46 14 l46 14z" fill="#EBD5A8"/><path d="M1436 810 l-12 4 l12 4z" fill="#333"/></g></svg>';
+    return s;
+  }
+  function worksheetSvg() {
+    var t = function (x, y, txt, size, wt, col) { return '<text x="' + x + '" y="' + y + '" font-family="-apple-system, Helvetica, Arial, sans-serif" font-size="' + size + '" font-weight="' + (wt || 400) + '" fill="' + (col || "#111") + '">' + txt + "</text>"; };
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" width="595" height="842" viewBox="0 0 595 842"><rect width="595" height="842" fill="#fff"/>';
+    s += t(48, 66, "Arbeitsblatt Vokabeln", 22, 700) + t(48, 88, "Unit 4 – Wortschatz · Klasse 8", 12, 400, "#555");
+    s += t(400, 66, "Datum: ____________", 11, 400, "#555") + '<line x1="48" x2="547" y1="102" y2="102" stroke="#999" stroke-width=".8"/>';
+    s += t(48, 136, "1  Übersetze ins Deutsche.", 14, 700);
+    ["to borrow", "journey", "brave", "luggage", "abroad", "to arrive"].forEach(function (w, i) {
+      var y = 168 + i * 34; s += t(70, y, w, 13) + '<line x1="230" x2="520" y1="' + (y + 3) + '" y2="' + (y + 3) + '" stroke="#bbb" stroke-width=".8"/>';
+    });
+    s += t(48, 400, "2  Setze das passende Wort ein.", 14, 700);
+    ["a) We went on a long ____________ to the coast.", "b) Can I ____________ your pen, please?", "c) The firefighters were very ____________.",
+     "d) Our train will ____________ at six o’clock.", "e) Have you ever been ____________?", "f) Don’t forget your ____________!"].forEach(function (w, i) { s += t(70, 434 + i * 30, w, 13); });
+    s += t(48, 640, "3  Schreibe drei eigene Sätze mit Wörtern aus Aufgabe 1.", 14, 700);
+    for (var k = 0; k < 4; k++) s += '<line x1="70" x2="547" y1="' + (680 + k * 32) + '" y2="' + (680 + k * 32) + '" stroke="#bbb" stroke-width=".8"/>';
+    s += t(48, 812, "Seite 1 von 2", 10, 400, "#888") + "</svg>";
+    return s;
+  }
+  var camImg = svgImg(cameraSvg()), wsImg = svgImg(worksheetSvg());
+
+  // Zustand
+  var pages = [{ bg: "lined", strokes: tafelPage1(), undo: [] }, { bg: "grid", strokes: tafelPage2(), undo: [] }];
+  var OLD = oldPages();
+  var curP = 0, tool = "pen", color = "ink", live = null;
+  var cam = { live: false, t0: 0 }, cover = { on: false, y: .7 };
+  var showOld = null;   // Index einer Seite des letzten Tafelbilds, die der Klasse gezeigt wird
+
+  function drawBg(ctx, pg) {
+    var c = colors();
+    ctx.fillStyle = c.paper; ctx.fillRect(0, 0, PW, PH);
+    ctx.strokeStyle = c.rule; ctx.lineCap = "butt";
+    if (pg.bg === "lined") { ctx.lineWidth = 2; for (var y = 120; y < PH; y += 80) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(PW, y); ctx.stroke(); } }
+    if (pg.bg === "grid") { ctx.lineWidth = 1.5; for (var x = 60; x < PW; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, PH); ctx.stroke(); } for (var y2 = 60; y2 < PH; y2 += 60) { ctx.beginPath(); ctx.moveTo(0, y2); ctx.lineTo(PW, y2); ctx.stroke(); } }
+    if ((pg.bg === "image" || pg.bg === "camera") && pg.img && pg.img.complete && pg.img.naturalWidth) {
+      var src = pg.src || [0, 0, pg.img.naturalWidth, pg.img.naturalHeight];
+      var k = Math.min(PW / src[2], PH / src[3]), dw = src[2] * k, dh = src[3] * k;
+      if (pg.bg === "image") { ctx.fillStyle = "#FFFFFF"; ctx.fillRect((PW - dw) / 2, (PH - dh) / 2, dw, dh); }
+      ctx.drawImage(pg.img, src[0], src[1], src[2], src[3], (PW - dw) / 2, (PH - dh) / 2, dw, dh);
+    }
+  }
+  function drawCam(ctx) {
+    if (!camImg.complete || !camImg.naturalWidth) { ctx.fillStyle = "#555"; ctx.fillRect(0, 0, PW, PH); return; }
+    var t = (Date.now() - cam.t0) / 1000, dx = reduceMotion ? 0 : Math.sin(t * 1.3) * 8, dy = reduceMotion ? 0 : Math.cos(t * .9) * 6;
+    ctx.drawImage(camImg, -20 + dx, -12 + dy, PW + 40, PH + 24);
+  }
+  function drawPage(ctx, pg, withLive) { drawBg(ctx, pg); drawStrokes(ctx, pg.strokes); if (withLive && live) drawStrokes(ctx, [live]); }
+
+  var cv = $("cv"), cctx = cv.getContext("2d");
+  window.renderMain = function () {
+    var sc = cv.width / PW; cctx.setTransform(sc, 0, 0, sc, 0, 0);
+    if (cam.live) drawCam(cctx); else drawPage(cctx, pages[curP], true);
+  };
+  window.drawSecond = function (ctx, mode) {
+    if (mode !== "tafel") return;
+    if (showOld !== null) { drawPage(ctx, OLD[showOld], false); return; }
+    if (cam.live) { drawCam(ctx); return; }
+    drawPage(ctx, pages[curP], true);
+    if (cover.on) { ctx.fillStyle = colors().curtain; ctx.fillRect(0, cover.y * PH, PW, PH); }
+  };
+  window.onFit = function () {
+    var px = Math.max(1, window.devicePixelRatio || 1) * Math.max(1, _s);
+    cv.width = Math.round(1038 * px); cv.height = Math.round(584 * px); redraw();
+  };
+
+  Board({
+    canvas: cv, geom: function () { return { x: 0, y: 0, w: PW, h: PH }; },
+    enabled: function () { return !cam.live; },
+    tool: function () { return tool; }, color: function () { return color; }, width: function () { return 7; },
+    eraser: function () { return 26; }, minStep: 2.5,
+    strokes: function () { return pages[curP].strokes; },
+    setLive: function (s) { live = s; }, redraw: redraw,
+    commit: function (a) { if (a.t === "add") pages[curP].strokes.push(a.s); pages[curP].undo.push(a); saved(); updateTools(); }
+  });
+
+  // gesichert-Anzeige
+  var saveT;
+  function saved() {
+    $("saved").innerHTML = "Wird gesichert …"; clearTimeout(saveT);
+    saveT = setTimeout(function () { $("saved").innerHTML = I.checkc + "Von selbst gesichert"; }, 700);
+  }
+  $("saved").innerHTML = I.checkc + "Von selbst gesichert";
+
+  // Werkzeugleiste
+  var COLORS = [["ink", "Standard (folgt der Darstellung)"], ["blue", "Blau"], ["red", "Rot"], ["green", "Grün"]];
+  $("colors").innerHTML = COLORS.map(function (c) { return '<button class="sw" type="button" data-c="' + c[0] + '" aria-label="Farbe ' + c[1] + '" style="--c:var(--ink-' + c[0] + ')"><i></i></button>'; }).join("");
+  $("t-pen").innerHTML = I.pen; $("t-eraser").innerHTML = I.eraser; $("t-undo").innerHTML = I.undo;
+  $("p-prev").innerHTML = I.left; $("p-next").innerHTML = I.right; $("p-add").innerHTML = I.plus;
+  $("btn-menu").innerHTML = I.more;
+  $("t-cam").innerHTML = I.cam + "Kamera"; $("t-tpl").innerHTML = I.tpl + "Vorlage"; $("t-cover").innerHTML = I.cover + "Abdecken";
+  $("cam-still").innerHTML = I.cam + "Standbild";
+
+  function updateTools() {
+    $("t-pen").setAttribute("aria-pressed", String(tool === "pen"));
+    $("t-eraser").setAttribute("aria-pressed", String(tool === "eraser"));
+    $("page-wrap").classList.toggle("erase", tool === "eraser");
+    document.querySelectorAll(".sw").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.c === color && tool === "pen")); });
+    $("t-undo").setAttribute("aria-disabled", String(!pages[curP].undo.length));
+    $("pageno").textContent = "Seite " + (curP + 1) + " von " + pages.length;
+    $("p-prev").setAttribute("aria-disabled", String(curP === 0));
+    $("p-next").setAttribute("aria-disabled", String(curP === pages.length - 1));
+    $("t-bg").innerHTML = I.bg + BGNAME[pages[curP].bg] + I.down;
+    $("t-bg").setAttribute("aria-label", "Hintergrund der Seite: " + BGNAME[pages[curP].bg]);
+    $("t-cam").setAttribute("aria-pressed", String(cam.live));
+    $("t-cover").setAttribute("aria-pressed", String(cover.on));
+    $("curtain").classList.toggle("on", cover.on && !cam.live);
+    $("curtain").style.top = (cover.y * 100) + "%";
+    $("cam-ui").classList.toggle("on", cam.live);
+  }
+  $("t-pen").onclick = function () { tool = "pen"; updateTools(); };
+  $("t-eraser").onclick = function () { tool = "eraser"; updateTools(); };
+  $("colors").addEventListener("click", function (e) { var b = e.target.closest("[data-c]"); if (!b) return; color = b.dataset.c; tool = "pen"; updateTools(); });
+  $("t-undo").onclick = function () {
+    var pg = pages[curP], a = pg.undo.pop(); if (!a) return;
+    if (a.t === "bg") { pg.bg = a.from.bg; pg.img = a.from.img; pg.src = a.from.src; } else applyUndo(pg.strokes, a);
+    saved(); updateTools(); redraw();
+  };
+  function goto(i) { if (i < 0 || i >= pages.length) return; curP = i; updateTools(); redraw(); }
+  $("p-prev").onclick = function () { goto(curP - 1); };
+  $("p-next").onclick = function () { goto(curP + 1); };
+  function addPage(pg) { pages.splice(curP + 1, 0, pg); saved(); goto(curP + 1); }
+  $("p-add").onclick = function () { addPage({ bg: "blank", strokes: [], undo: [] }); };
+
+  $("t-bg").onclick = function () {
+    var pg = pages[curP], sw = { blank: "", lined: "repeating-linear-gradient(transparent 0 5px, var(--rule) 5px 6px)", grid: "repeating-linear-gradient(transparent 0 5px, var(--rule) 5px 6px), repeating-linear-gradient(90deg, transparent 0 5px, var(--rule) 5px 6px)" };
+    var items = ["blank", "lined", "grid"].map(function (b) {
+      return '<button class="item" type="button" role="menuitemradio" aria-checked="' + (pg.bg === b) + '" data-v="' + b + '"><span style="display:flex;gap:12px;align-items:center"><i class="bg-ico" style="background-image:' + sw[b] + '"></i>' + BGNAME[b] + "</span>" + (pg.bg === b ? '<span class="ck">' + I.check + "</span>" : "") + "</button>";
+    }).join("");
+    if (pg.bg === "image" || pg.bg === "camera") items += '<button class="item" type="button" aria-disabled="true" aria-checked="true"><span>' + BGNAME[pg.bg] + "<small>Vorschlag Q-24 · über Leer, Liniert oder Kariert ersetzen</small></span>" + '<span class="ck">' + I.check + "</span></button>";
+    openPop($("t-bg"), '<div class="ptitle"><b>Hintergrund von Seite ' + (curP + 1) + "</b>Gilt nur für diese Seite</div>" + items, 300, function (v) {
+      if (v === pg.bg) return;
+      pg.undo.push({ t: "bg", from: { bg: pg.bg, img: pg.img, src: pg.src } }); pg.bg = v; pg.img = null; pg.src = null;
+      saved(); updateTools(); redraw();
+    });
+  };
+
+  // Vorschlag (a): Kamera als Dokumentenkamera
+  var camLoop = null;
+  function camTick() { if (!cam.live) return; redraw(); camLoop = reduceMotion ? null : requestAnimationFrame(camTick); }
+  function camStart() { closePop(); cam.live = true; cam.t0 = Date.now(); updateTools(); camTick(); }
+  function camStop() { cam.live = false; if (camLoop) cancelAnimationFrame(camLoop); updateTools(); redraw(); }
+  $("t-cam").onclick = function () { if (cam.live) camStop(); else camStart(); };
+  $("cam-cancel").onclick = camStop;
+  $("cam-still").onclick = function () {
+    camStop(); addPage({ bg: "camera", img: camImg, strokes: [], undo: [] });
+    toast("Standbild eingefroren: Es ist der Hintergrund der neuen Seite " + (curP + 1) + " – darauf schreiben. (Vorschlag Q-24)");
+  };
+
+  // Vorschlag (b): Vorlage aus dem Material der Stunde oder aus der Ablage
+  $("t-tpl").onclick = function () {
+    openPop($("t-tpl"), '<div class="ptitle"><b>Vorlage als Seitenhintergrund</b>Wird Hintergrund einer neuen Seite</div>' +
+      '<div class="sect">Material dieser Unterrichtsstunde</div>' +
+      '<button class="item" type="button" role="menuitem" data-v="ws"><span>Arbeitsblatt Vokabeln – Seite 1<small>Word · auf dem Gerät</small></span>' + I.doc + "</button>" +
+      '<button class="item" type="button" role="menuitem" data-v="ws2"><span>Arbeitsblatt Vokabeln – Seite 2<small>Word · auf dem Gerät</small></span>' + I.doc + "</button>" +
+      '<div class="gap"></div><button class="item" type="button" role="menuitem" data-v="ablage"><span>Aus der Ablage wählen …<small>Ordnerfreigabe „Unterricht“</small></span>' + I.folder + "</button>", 340,
+      function (v) { if (v === "ablage") toast("Öffnet die Dateiauswahl der Ablage (Ordnerfreigabe „Unterricht“), z. B. für eine eigene Vorlage."); else if (v === "ws2") toast("Seite 2 ist in diesem Mockup nicht ausgearbeitet – bitte Seite 1 wählen."); else openTemplate(); });
+  };
+  function openTemplate() {
+    openScrim('<div class="sheet small" role="dialog" aria-label="Vorlage wählen">' +
+      '<div class="sheet-bar"><div><button class="tb-btn" type="button" id="tp-x">Abbrechen</button></div>' +
+      '<div class="nav-title"><b>Arbeitsblatt Vokabeln – Seite 1</b><span>Material dieser Unterrichtsstunde · Word</span></div><div class="r"></div></div>' +
+      '<div class="sheet-body"><div class="tpl-wrap" id="tp-wrap"><img alt="Arbeitsblatt Vokabeln, Seite 1" src="' + wsImg.src + '"><div class="crop" id="crop"><span class="h" id="crop-h"><i></i></span></div></div>' +
+      '<div class="tpl-hint" id="tp-hint">Die Datei in der Ablage bleibt unverändert. Ganze Seite oder ein Ausschnitt wird Hintergrund einer neuen Tafelseite.</div>' +
+      '<div class="tpl-btns" id="tp-btns"><button class="btn" type="button" id="tp-crop">Ausschnitt wählen</button><button class="btn prominent" type="button" id="tp-all">Ganze Seite übernehmen</button></div></div></div>');
+    var k = 520 / 842, crop = { x: 34, y: 112, w: 520, h: 270 };
+    function placeCrop() { var c = $("crop"); c.style.left = crop.x * k + "px"; c.style.top = crop.y * k + "px"; c.style.width = crop.w * k + "px"; c.style.height = crop.h * k + "px"; }
+    $("tp-x").onclick = closeScrim;
+    $("tp-all").onclick = function () { closeScrim(); addPage({ bg: "image", img: wsImg, src: null, strokes: [], undo: [] }); toast("Arbeitsblatt Vokabeln, Seite 1 ist Hintergrund der neuen Seite " + (curP + 1) + ". (Vorschlag Q-24)"); };
+    $("tp-crop").onclick = function () {
+      $("crop").classList.add("on"); placeCrop();
+      $("tp-hint").textContent = "Rahmen verschieben, an der Ecke unten rechts die Größe ändern. Der Ausschnitt wird vergrößert.";
+      $("tp-btns").innerHTML = '<button class="btn" type="button" id="tp-back">Ganze Seite</button><button class="btn prominent" type="button" id="tp-take">Ausschnitt übernehmen</button>';
+      $("tp-back").onclick = function () { closeScrim(); openTemplate(); };
+      $("tp-take").onclick = function () { closeScrim(); addPage({ bg: "image", img: wsImg, src: [crop.x, crop.y, crop.w, crop.h], strokes: [], undo: [] }); toast("Ausschnitt aus Arbeitsblatt Vokabeln ist Hintergrund der neuen Seite " + (curP + 1) + ". (Vorschlag Q-24)"); };
+    };
+    var drag = null, cEl = $("crop");
+    cEl.addEventListener("pointerdown", function (e) {
+      cEl.setPointerCapture(e.pointerId);
+      drag = { mode: e.target.closest("#crop-h") ? "size" : "move", x: e.clientX, y: e.clientY, c: Object.assign({}, crop) };
+    });
+    cEl.addEventListener("pointermove", function (e) {
+      if (!drag) return;
+      var dx = (e.clientX - drag.x) / _s / k, dy = (e.clientY - drag.y) / _s / k;
+      if (drag.mode === "move") { crop.x = Math.min(Math.max(0, drag.c.x + dx), 595 - crop.w); crop.y = Math.min(Math.max(0, drag.c.y + dy), 842 - crop.h); }
+      else { crop.w = Math.min(Math.max(120, drag.c.w + dx), 595 - crop.x); crop.h = Math.min(Math.max(80, drag.c.h + dy), 842 - crop.y); }
+      placeCrop();
+    });
+    cEl.addEventListener("pointerup", function () { drag = null; });
+  }
+
+  // Vorschlag (c): Abdecken
+  $("t-cover").onclick = function () { cover.on = !cover.on; updateTools(); redraw(); };
+  (function () {
+    var g = $("grip"), d = null;
+    g.addEventListener("pointerdown", function (e) { g.setPointerCapture(e.pointerId); d = { y: e.clientY, v: cover.y }; e.preventDefault(); });
+    g.addEventListener("pointermove", function (e) { if (!d) return; cover.y = Math.min(.92, Math.max(.12, d.v + (e.clientY - d.y) / _s / 584)); updateTools(); redraw(); });
+    g.addEventListener("pointerup", function () { d = null; });
+    g.addEventListener("keydown", function (e) { if (e.key === "ArrowUp" || e.key === "ArrowDown") { cover.y = Math.min(.92, Math.max(.12, cover.y + (e.key === "ArrowUp" ? -.05 : .05))); updateTools(); redraw(); e.preventDefault(); } });
+  })();
+
+  // Menü: letztes Tafelbild, als PDF sichern, löschen
+  $("btn-menu").onclick = function () {
+    openPop($("btn-menu"), '<div class="ptitle"><b>Tafelbild dieser Unterrichtsstunde</b>8b Englisch · Di 17.11., 2. Stunde · ' + pages.length + " Seiten · bleibt nach der Stunde erhalten</div>" +
+      '<button class="item" type="button" role="menuitem" data-v="old"><span>Letztes Tafelbild der 8b<small>Englisch · Do 12.11., 3. Stunde · 2 Seiten</small></span>' + I.hist + "</button>" +
+      '<button class="item" type="button" role="menuitem" data-v="pdf"><span>Als PDF sichern …<small>' + pages.length + " Seiten mit Hintergrund</small></span>" + I.share + "</button>" +
+      '<div class="gap"></div><button class="item destr" type="button" role="menuitem" data-v="del"><span>Tafelbild löschen</span>' + I.trash + "</button>", 340,
+      function (v, anchor) {
+        if (v === "old") openOld();
+        if (v === "pdf") openShare(anchor);
+        if (v === "del") confirmDestructive("Tafelbild löschen?", "Alle " + pages.length + " Seiten der Tafel dieser Unterrichtsstunde (8b, Di 17.11., 2. Stunde) werden gelöscht. Das lässt sich nicht widerrufen.", "Löschen", function () {
+          pages = [{ bg: "blank", strokes: [], undo: [] }]; curP = 0; cover.on = false; updateTools(); redraw(); saved();
+          toast("Tafelbild gelöscht. Die Tafel dieser Unterrichtsstunde ist leer.");
+        });
+      });
+  };
+  function openShare(anchor) {
+    openPop(anchor, '<div class="ptitle" style="display:flex;gap:12px;align-items:center">' + I.doc.replace(/22/g, "34") + '<span><b>Tafelbild 8b Englisch 2026-11-17.pdf</b>PDF-Dokument · ' + pages.length + " Seiten · Teilen-Dialog des Systems (angedeutet)</span></div>" +
+      '<div class="share-row"><button type="button" data-v="drop"><i>' + I.drop + "</i>AirDrop</button><button type=\"button\" data-v=\"mail\"><i>" + I.mail + "</i>Mail</button></div>" +
+      '<button class="item" type="button" data-v="files"><span>In Dateien sichern</span>' + I.folder + "</button>" +
+      '<button class="item" type="button" data-v="print"><span>Drucken</span>' + I.print + "</button>", 360,
+      function (v) {
+        toast(v === "files" ? "Die Lehrkraft wählt einen Ordner; dort liegt dann ein PDF mit " + pages.length + " Seiten samt Hintergrund. Das Tafelbild in der App bleibt unverändert."
+                            : "Das PDF wird über den Teilen-Dialog des Systems weitergegeben. Das Tafelbild in der App bleibt unverändert.");
+      });
+  }
+
+  // Letztes Tafelbild (FR-12.3): nur ansehen und zeigen
+  var oldIdx = 0, oldCv = null;
+  function openOld() {
+    oldIdx = 0;
+    openScrim('<div class="sheet" role="dialog" aria-label="Letztes Tafelbild der 8b">' +
+      '<div class="sheet-bar"><div><button class="tb-btn" type="button" id="old-done" style="font-weight:600">Fertig</button></div>' +
+      '<div class="nav-title"><b>Tafelbild · 8b Englisch</b><span>Do 12.11., 3. Stunde · 2 Seiten</span></div>' +
+      '<div class="r"><button class="btn" type="button" id="old-show" aria-pressed="false"></button></div></div>' +
+      '<div class="sheet-body"><div class="old-page"><canvas id="old-cv"></canvas><span class="ro-chip">' + I.eye + "Nur ansehen</span></div>" +
+      '<div class="pager"><button class="tool" type="button" id="old-prev" aria-label="Vorherige Seite">' + I.left + '</button><span class="pageno" id="old-no"></span><button class="tool" type="button" id="old-next" aria-label="Nächste Seite">' + I.right + "</button></div></div></div>");
+    oldCv = $("old-cv"); var px = Math.max(1, window.devicePixelRatio || 1) * Math.max(1, _s);
+    oldCv.width = Math.round(960 * px); oldCv.height = Math.round(540 * px);
+    $("old-done").onclick = closeScrim;
+    $("old-prev").onclick = function () { if (oldIdx > 0) { oldIdx--; renderOld(); } };
+    $("old-next").onclick = function () { if (oldIdx < OLD.length - 1) { oldIdx++; renderOld(); } };
+    $("old-show").onclick = function () {
+      if (showOld === null) { showOld = oldIdx; SS.mode = "tafel"; } else showOld = null;
+      renderBar(); renderOld();
+    };
+    renderOld();
+  }
+  function renderOld() {
+    if (!oldCv) return;
+    var c = oldCv.getContext("2d"), sc = oldCv.width / PW; c.setTransform(sc, 0, 0, sc, 0, 0); drawPage(c, OLD[oldIdx], false);
+    if (showOld !== null) showOld = oldIdx;
+    $("old-no").textContent = "Seite " + (oldIdx + 1) + " von " + OLD.length;
+    $("old-prev").setAttribute("aria-disabled", String(oldIdx === 0)); $("old-next").setAttribute("aria-disabled", String(oldIdx === OLD.length - 1));
+    var b = $("old-show"); b.setAttribute("aria-pressed", String(showOld !== null));
+    b.className = "btn" + (showOld !== null ? " prominent" : "");
+    b.innerHTML = I.tafel + (showOld !== null ? "Wird der Klasse gezeigt" : "Der Klasse zeigen");
+    redraw();
+  }
+  window.onScrimClose = function () { if (showOld !== null) { showOld = null; redraw(); } oldCv = null; };
+  window.onModeChange = function () { if (SS.mode !== "tafel" && showOld !== null) { showOld = null; renderOld(); } };
+  window.onThemeChange = function () { renderOld(); };
+
+  // Ausgaben: Vorschaubild in der Leiste und großer Zweitbildschirm (Mockup-Hilfe)
+  makeOut($("sb-thumb"), 120, 67.5, true);
+  makeOut($("big-ss"), 556, 312.75, false);
+
+  // Startzustände über die Adresse (für Screenshots), mit + kombinierbar:
+  // #hell, #dunkel, #klasse, #aus, #abdecken, #kamera, #getrennt, #gross, #alt, #zeigen, #vorlage, #menue
+  var hs = location.hash.slice(1).split("+");
+  function has(k) { return hs.indexOf(k) >= 0; }
+  if (has("hell")) document.querySelector('[data-theme-set="light"]').click();
+  if (has("dunkel")) document.querySelector('[data-theme-set="dark"]').click();
+  if (has("getrennt")) document.querySelector('[data-conn="0"]').click();
+  if (has("klasse")) SS.mode = "kb";
+  if (has("aus")) SS.mode = "dark";
+  if (has("abdecken")) cover.on = true;
+  if (has("gross")) $("cap-big").click();
+  fit(); updateTools(); renderBar(); redraw();
+  if (has("kamera")) camStart();
+  if (has("alt")) { openOld(); if (has("zeigen")) $("old-show").click(); }
+  if (has("vorlage")) { openTemplate(); $("tp-crop").click(); }
+  if (has("menue")) setTimeout(function () { $("btn-menu").click(); }, 400);
+  if (has("selbsttest")) setTimeout(selftest, 300);
+
+  // Selbsttest (nur über #selbsttest): Strich zeichnen, radieren, rückgängig, Seite hinzufügen, kariert wählen
+  function selftest() {
+    var r = cv.getBoundingClientRect();
+    function ev(t, x, y) { cv.dispatchEvent(new PointerEvent(t, { clientX: r.left + x * r.width, clientY: r.top + y * r.height, pointerId: 7, bubbles: true, button: 0, pointerType: "pen" })); }
+    var n0 = pages[0].strokes.length;
+    ev("pointerdown", .55, .86); for (var i = 1; i <= 14; i++) ev("pointermove", .55 + i * .018, .86 + Math.sin(i * .9) * .03); ev("pointerup", .8, .86);
+    var n1 = pages[0].strokes.length;
+    $("t-eraser").click(); ev("pointerdown", .64, .86); ev("pointermove", .66, .87); ev("pointerup", .66, .87);
+    var n2 = pages[0].strokes.length;
+    $("t-undo").click(); var n3 = pages[0].strokes.length;
+    $("t-pen").click(); $("p-add").click(); $("t-bg").click();
+    var g = pop.querySelector('[data-v="grid"]'); if (g) g.click();
+    var ok = n1 === n0 + 1 && n2 <= n0 && n3 === n0 + 1 && pages.length === 3 && pages[2].bg === "grid";
+    var res = "Selbsttest: " + (ok ? "bestanden" : "FEHLER") + " (Striche " + n0 + "→" + n1 + "→" + n2 + "→" + n3 + ", Seiten " + pages.length + ", Hintergrund S.3 " + pages[2].bg + ")";
+    goto(0);
+    var d = document.createElement("span"); d.textContent = res; d.style.color = ok ? "var(--green)" : "var(--red)"; document.querySelector(".caption").appendChild(d);
+  }
+})();
+</script>
+<!-- FR-11.6: „So verbinden“ – Anleitung, kein Start der Verbindung (das lässt das System nicht zu) -->
+<dialog id="howto" aria-labelledby="howto-t" style="border:0;border-radius:14px;padding:0;width:min(440px,92vw);background:Canvas;color:CanvasText;font:15px/1.4 -apple-system,'SF Pro Text',system-ui,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.45)">
+  <div style="padding:20px 22px 8px">
+    <h2 id="howto-t" style="font-size:20px;margin:0 0 4px">Mit dem Bildschirm verbinden</h2>
+    <p style="margin:0 0 14px;opacity:.65;font-size:13px">Tagesmappe erkennt die Verbindung von selbst und zeigt dann den Klassenbildschirm.</p>
+    <h3 style="font-size:15px;margin:0 0 6px">Per AirPlay</h3>
+    <ol style="margin:0 0 14px;padding-left:22px">
+      <li>Von der rechten oberen Ecke nach unten wischen: Das Kontrollzentrum öffnet sich.</li>
+      <li>„Bildschirmsynchronisierung“ antippen.</li>
+      <li>Das Apple TV des Raums wählen, z. B. „Raum 204“.</li>
+    </ol>
+    <h3 style="font-size:15px;margin:0 0 6px">Per Kabel</h3>
+    <p style="margin:0 0 6px">Adapter (USB-C auf HDMI) anstecken – fertig. Das geht ohne Handgriff und auch, wenn das Schulnetz ausfällt.</p>
+  </div>
+  <form method="dialog" style="border-top:.5px solid color-mix(in srgb,CanvasText 25%,transparent);margin-top:10px">
+    <button style="all:unset;display:block;width:100%;text-align:center;min-height:44px;line-height:44px;color:#0a84ff;font-weight:600;cursor:pointer">Fertig</button>
+  </form>
+</dialog>
+<script>
+(function () {
+  var d = document.getElementById("howto");
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest && e.target.closest("[data-howto]");
+    if (!t) return;
+    e.preventDefault(); e.stopPropagation();
+    if (d.showModal) d.showModal(); else d.setAttribute("open", "");
+  }, true);
+  if (location.hash.indexOf("howto") >= 0) setTimeout(function () { d.showModal(); }, 300);
+})();
+</script>
+</body>
+</html>

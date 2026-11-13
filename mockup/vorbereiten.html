@@ -328,6 +328,21 @@ select.pop {
   background: var(--menubar); box-shadow: var(--shadow-small); border-radius: 8px; padding: 8px 14px; font-size: 12px;
   display: none; max-width: 520px;
 }
+/* Für die Klasse, Tafelbild */
+.fld { display: block; margin-top: 8px; }
+.fld > span { display: block; font-size: 11px; color: var(--label2); margin-bottom: 2px; }
+.fld input {
+  font: inherit; width: 100%; height: 24px; border-radius: 5px; border: .5px solid var(--control-border);
+  background: var(--content); color: var(--label); padding: 0 7px;
+}
+.fld input::placeholder { color: var(--label2); opacity: .75; }
+.fld input:focus-visible { outline: 3px solid color-mix(in srgb, var(--blue) 45%, transparent); outline-offset: 0; border-color: var(--blue); }
+.tbrow { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; font-size: 12px; }
+.tbrow svg { color: var(--label2); }
+.btns.h { flex-direction: row; flex-wrap: wrap; }
+.cthema { font-size: 11px; color: var(--label2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 15px; margin-bottom: 1px; }
+.backlink { position: absolute; left: 16px; top: 28px; font-size: 12px; color: var(--blue); text-decoration: none; z-index: 5; }
+.backlink:hover { text-decoration: underline; }
 .caption { position: absolute; left: 236px; top: 852px; width: 1280px; font-size: 12px; color: var(--label2); text-align: center; }
 .spin { animation: spin 1s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
@@ -336,6 +351,7 @@ select.pop {
 </head>
 <body>
 <div id="stage">
+  <a class="backlink" href="index.html">‹ Zur Übersicht</a>
 
   <div class="menubar" aria-hidden="true">
     <b>Tagesmappe</b><span>Ablage</span><span>Bearbeiten</span><span>Darstellung</span><span>Unterrichtsstunde</span><span>Fenster</span><span>Hilfe</span>
@@ -409,6 +425,7 @@ const I = {
   sync: () => S('<path d="M13 6.5A5 5 0 0 0 3.7 5M3 9.5A5 5 0 0 0 12.3 11"/><path d="M3.5 2.5V5.2h2.7M12.5 13.5v-2.7H9.8"/>', 12),
   check: w => S('<path d="m3.5 8.5 3 3 6-7"/>', w || 12),
   spinner: () => S('<path d="M8 2.2a5.8 5.8 0 1 1-5.8 5.8" />', 11, 'class="spin"'),
+  board: w => S('<rect x="1.8" y="2.8" width="12.4" height="8.4" rx="1.2"/><path d="M5 14h6M4.5 6.2h4M4.5 8.6h6"/>', w || 12),
   plus: () => S('<path d="M8 3v10M3 8h10"/>', 13),
 };
 document.querySelectorAll('[data-i]').forEach(el => { el.insertAdjacentHTML('afterbegin', I[el.dataset.i]()); });
@@ -427,6 +444,9 @@ const FREI = { 4: 'Pädagogischer Tag' };
 const PARALLEL = { '8b': '8a', '8a': '8b' };          // Annahme fürs Mockup (Q-7)
 let mid = 0;
 const M = (name, typ, pfad, status = 'geraet') => ({ id: 'm' + (++mid), name, typ, pfad, status });
+const TAFEL = { mo1: 2 };                              // Tafelbild: Seitenzahl je Unterrichtsstunde (FR-12.2)
+const INFO = { di2: { thema: 'Unit 4 – Wortschatz', bereit: 'Buch, Heft, Vokabelheft', haus: 'Workbook S. 34, Nr. 2 und 3' } };  // Für die Klasse (FR-11.1)
+const info = id => INFO[id] || (INFO[id] = { thema: '', bereit: '', haus: '' });
 const L = (id, d, s, k, f, m = [], extra = {}) => ({ id, d, s, k, f, m, ...extra });
 
 const lessons = [
@@ -486,14 +506,17 @@ function card(l) {
   let badge = '';
   if (l.ausfall) badge = `<span class="badge ausfall">${I.xcircle(11)}Ausfall</span>`;
   else if (l.vertretung) badge = `<span class="badge">${I.swap(11)}Vertretung</span>`;
-  let body = '';
+  if (TAFEL[l.id]) badge += `<span class="badge" title="Tafelbild, ${TAFEL[l.id]} Seiten">${I.board(11)}Tafelbild</span>`;
+  const th = info(l.id).thema.trim();
+  const showTh = th && !l.ausfall && l.m.length <= 3 && !l.m.some(m => m.status === 'fehlt') && !(demoDrag && l.id === 'mi3');
+  let body = showTh ? `<div class="cthema" title="Thema: ${esc(th)}">${esc(th)}</div>` : '';
   if (l.m.length) {
-    body = `<ul class="mlist">${l.m.map(m => matRow(l, m)).join('')}</ul>`;
+    body += `<ul class="mlist">${l.m.map(m => matRow(l, m)).join('')}</ul>`;
     if (l.ausfall) { const n = nextOf(l); body += `<div class="sub" style="padding-left:0">${I.next(11)}<button class="link" data-act="pass" data-l="${l.id}">Weiterreichen → ${n ? DAYS[n.d].kurz + ' ' + n.s + '. Std.' : 'Woche 48'}</button></div>`; }
   } else if (l.ausfall) {
-    body = `<div class="leer">kein Material weiterzureichen</div>`;
+    body += `<div class="leer">kein Material weiterzureichen</div>`;
   } else {
-    body = `<div class="leer">${I.tray(13)}Ohne Material</div>`;
+    body += `<div class="leer">${I.tray(13)}Ohne Material</div>`;
   }
   if (demoDrag && l.id === 'mi3') body += `<div class="dropnote">${I.link(12)}<span>Loslassen verknüpft die Datei – keine Kopie</span></div>`;
   const label = `${when(l)}, ${l.k} ${l.f}${l.ausfall ? ', Ausfall' : ''}${l.vertretung ? ', Vertretungsstunde' : ''}, ${l.m.length ? l.m.length + ' Material' : 'ohne Material'}`;
@@ -567,6 +590,20 @@ function renderInsp() {
   }
   h += `<section class="sect"><header><h3>Material (${l.m.length})</h3>${l !== ohne ? `<button class="tbtn" style="height:22px" data-act="add" aria-label="Material hinzufügen …" title="Material hinzufügen …">${I.plus()}</button>` : ''}</header>${matTable(l)}
     ${l.m.length > 1 ? '<div class="foot">Reihenfolge per Ziehen ändern – so erscheint das Material in der Tagesansicht.</div>' : ''}</section>`;
+  if (l !== ohne && !l.ausfall) {
+    const c = info(l.id);
+    h += `<section class="sect"><header><h3>Für die Klasse</h3></header>
+      <label class="fld"><span>Thema</span><input type="text" data-f="thema" value="${esc(c.thema)}" placeholder="z. B. Unit 5 – Einstieg"></label>
+      <label class="fld"><span>Bereitlegen</span><input type="text" data-f="bereit" value="${esc(c.bereit)}" placeholder="z. B. Buch, Heft"></label>
+      <label class="fld"><span>Hausaufgabe</span><input type="text" data-f="haus" value="${esc(c.haus)}" placeholder="z. B. Workbook S. 20"></label>
+      <div class="note">Erscheint auf dem Klassenbildschirm.</div></section>`;
+  }
+  if (TAFEL[l.id]) {
+    h += `<section class="sect"><header><h3>Tafelbild · ${TAFEL[l.id]} Seiten</h3></header>
+      <div class="tbrow">${I.board(14)}<span>Entstanden in dieser Unterrichtsstunde</span></div>
+      <div class="btns h"><button class="pbtn" data-act="tafelsee">Ansehen</button><button class="pbtn" data-act="tafelpdf">Als PDF sichern …</button></div>
+      <div class="note">Am Mac wird nicht gezeichnet, nur angesehen und gesichert.</div></section>`;
+  }
   if (m) {
     h += `<section class="sect"><header><h3>Verweis in der Ablage</h3></header>${pathCtl(m.pfad)}
       <div class="note">${I.link(12)}<span>Zugeordnet ist ein Verweis auf diese Datei, keine Kopie. Änderungen an der Datei gelten überall, wo sie zugeordnet ist.</span></div>`;
@@ -630,6 +667,8 @@ document.addEventListener('click', e => {
     if (a === 'pass') { const n = nextOf(l); if (n) { const k = l.m.length; n.m.push(...l.m.splice(0)); render(); toast(`${k} Material in ${when(n)} der ${l.k} weitergereicht.`); } }
     if (a === 'ausfall') { l.ausfall = 'manuell'; render(); toast(`${when(l)} · ${l.k} als Ausfall markiert.`); }
     if (a === 'unausfall') { delete l.ausfall; render(); }
+    if (a === 'tafelsee') toast('Mockup: zeigt das Tafelbild mit beiden Seiten, nur zum Ansehen.');
+    if (a === 'tafelpdf') toast('Mockup: fragt nach einem Ordner und sichert das Tafelbild als PDF mit 2 Seiten.');
     if (a === 'finder') toast('Mockup: öffnet den Finder am Ort der Datei in der Ablage.');
     if (a === 'add') openPicker(byId(sel));
     if (a === 'relink') openPicker(l, t.dataset.m);
@@ -646,6 +685,10 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => {
   if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-id]')) { e.preventDefault(); sel = e.target.dataset.id; selMat = null; render(); document.querySelector(`[data-id="${sel}"]`).focus(); }
   if (e.key === 'Escape') { closeMenu(); closeSheet(); }
+});
+document.getElementById('insp').addEventListener('input', e => {
+  const f = e.target.dataset.f; if (!f) return;
+  info(sel)[f] = e.target.value; renderGrid();
 });
 document.getElementById('tbAdd').onclick = e => { e.stopPropagation(); openPicker(byId(sel)); };
 document.getElementById('tbVert').onclick = e => { e.stopPropagation(); openVertretung(); };

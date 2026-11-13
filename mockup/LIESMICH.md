@@ -22,7 +22,7 @@ Platzhalter, kein Beschluss: eine Leiste am unteren Rand des iPad-Bildschirms, v
 über dem Home-Indikator, mit Trennlinie nach oben. Von links nach rechts:
 
 1. **Vorschaubild** 16:9, 120 × 68 pt, zeigt verkleinert genau das, was der Zweitbildschirm zeigt;
-   darüber klein „Das sieht die Klasse“.
+   links daneben klein „Das sieht die Klasse“ (darüber passt es bei 76 pt Leistenhöhe nicht).
 2. **Umschalter** als segmentierte Auswahl mit vier Feldern, je Symbol und Wort:
    `Klassenbildschirm` · `Material` · `Tafel` · `Dunkel`. `Material` ist ausgegraut, wenn keines offen ist.
 3. **Timer:** Knopf „Timer“; läuft einer, steht dort die Restzeit (z. B. `4:12`) mit Anhalten und Beenden.
@@ -83,7 +83,15 @@ Stellen, an denen beim Bauen mangels Beschluss eine Annahme nötig war — Kandi
 - **Stand der Stundenplan-Quelle:** Ort, und wie ein veralteter Stand aussieht.
 - **Q-19** (was bei Bildschirmspiegelung sichtbar sein darf) ist in keinem Mockup berücksichtigt.
 - Ort und Form der Smartboard-Leiste (FR-11.5) sind für alle Mockups einheitlich gesetzt, aber frei
-  gewählt.
+  gewählt. Symbol plus Wort im Umschalter weicht von Apples Empfehlung ab (Text oder Bild, nicht
+  beides).
+- **Klassenbildschirm:** Aufbau, Schriftgrößen für die Entfernung, hell oder dunkel, Form des
+  Timer-Signals und wie lange es steht. Der Verlauf vor der Stunde, am Stundenende und ohne Unterricht
+  ist Vorschlag (Q-25), ebenso die Teilung in „Bereitlegen“ und „Hausaufgabe“.
+- **Tafel:** hell oder dunkel, Stiftfarben, Radierer löscht ganze Striche, Seitenformat 16:9. Kamera,
+  Vorlage und Abdecken sind Vorschlag (Q-24).
+- **Anzeige:** Wie der Hinweis „Notizen zu einer früheren Fassung“ aussieht und was er anbietet.
+- „So verbinden“ (FR-11.6) ist in den Mockups ein schlichter Dialog; Wortlaut und Form sind offen.
 
 ## Gemeinsame Beispieldaten
 
