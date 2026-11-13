@@ -379,6 +379,17 @@ verteilen. Kauft eine Schule für ihr Kollegium, erreicht sie die Freischaltung 
 Umgang: Zielgruppe sind zunächst Lehrkräfte mit eigenem Tablet (Q-13), die selbst kaufen; fragen
 Schulen, folgt die Schulversion (FR-13.2).
 
+### RISK-8 — Der Name „Pult“ ist als Software-Marke bereits in Gebrauch
+
+Die Pult GmbH vertreibt unter „PULT“ Software für Arbeitsplatz- und Besuchermanagement, mit Apps im App
+Store (u. a. „PULT Visitors Kiosk“, iPad) und rund 180 Bewertungen auf einem Vergleichsportal (Stand
+2026-11-13). Software gehört zu derselben Markenklasse (9, ggf. 42) wie dieses Produkt; ob die Pult GmbH
+eine eingetragene Marke hält, ist nicht geprüft – die Register DPMA und EUIPO ließen sich nicht
+automatisch abfragen. Folge bei einer Kollision: Umbenennen nach dem Start, mit Verlust von
+App-Store-Auftritt und Bekanntheit. Umgang: vor jedem öffentlichen Auftritt (TestFlight-Einladungen
+außerhalb des eigenen Kreises, App-Store-Eintrag) Register prüfen; bis dahin bleibt „Pult“
+Arbeitsname (Q-29).
+
 ### RISK-2 — Öffnen aus der Ablage ohne AutoSpeichern
 
 Öffnet PowerPoint eine Datei, die über die Dateien-App eines Ablage-Anbieters kommt, möglicherweise
@@ -424,8 +435,8 @@ muss.
 - ~~Q-7~~: Soll Material für Parallelklassen (z. B. 8a und 8b) oder für die Folgewoche einfach wiederverwendet werden können? → answered 2026-11-13: ja — Zuordnung für Parallelklasse übernehmen (FR-3.2), in die nächste Stunde schieben (FR-3.3), nie Dateien kopieren (FR-3.4).
 - ~~Q-8~~: Soll das Produkt Daten nach außen anbieten (z. B. Kalender-Abo, lesbare Plan-Datei), damit andere Apps sie nutzen? → answered 2026-11-13: später als Kalender-Abo (FR-10, Later); in der ersten Version nichts nach außen.
 - ~~Q-9~~: Geschäftsmodell — kostenlos, Einmalkauf oder Abo? (bestimmt u. a. App-Store-Auftritt) → answered 2026-11-13: Kern kostenlos, Klassenbildschirm und Tafel per Einmalkauf, kein Abo; Schulmanager-Import immer kostenlos; Schulversion später (FR-13 bis FR-13.2). Verworfen: Abo (keine laufenden Kosten zu decken, Lehrkräfte zahlen privat), Testzeit mit Kauf für alles (keine dauerhafte Gratisfassung, die sich im Kollegium herumspricht). Andreas antwortete „Modelle finde ich gut“; die Wahl zwischen den beiden Einmalkauf-Varianten ist damit als Zustimmung zur empfohlenen gelesen.
-- Q-29: Ist „Pult“ als Name frei – Markenregister (DPMA, EUIPO) in Klasse 9 (Software) und App-Store-Suche? Bis zur Prüfung ist der Name nur intern festgelegt.
-- Q-30: Was kostet der Einmalkauf? Vorschlag: 14,99–19,99 €; zum Vergleich ein Lehrer-Planer im App Store für 9,99 € einmalig.
+- Q-29: Ist „Pult“ als Name frei – Markenregister (DPMA, EUIPO) in Klasse 9 (Software) und App-Store-Suche? Bis zur Prüfung ist der Name nur intern festgelegt. Stand 2026-11-13 nach Websuche: App Store und Web zeigen eine etablierte Software-Marke „PULT“ der Pult GmbH (Arbeitsplatz- und Besuchermanagement, eigene iPad-App) sowie zwei weitere Apps mit „Pult“ im Namen (TV-Fernbedienung, Mac-Fernsteuerung); siehe RISK-8. Nicht geprüft: die Register selbst – DPMAregister und EUIPO eSearch lassen sich nur von Hand abfragen (Suchbegriff „PULT“, Klassen 9 und 42, auch ähnliche Schreibweisen). Offen bleibt: Registerprüfung von Hand, und ob ein unterscheidungskräftiger Zusatz („Pult für den Unterricht“) oder ein anderer Name nötig ist.
+- ~~Q-30~~: Was kostet der Einmalkauf? Vorschlag: 14,99–19,99 €; zum Vergleich ein Lehrer-Planer im App Store für 9,99 € einmalig. → answered 2026-11-13: Spanne 14,99–19,99 € bestätigt; der genaue Preis wird beim Anlegen des App-Store-Eintrags gewählt.
 - Q-10: Zielmarkt — nur deutschsprachige Schulen, oder international?
 - ~~Q-11~~: Gehören Android-Tablets und Windows dazu? → answered 2026-11-13: vorerst nein — Andreas stimmte einer nativen Apple-App für iPad und Mac zu, mit der Folge, dass Android-Tablets vorerst wegfallen (wird als ADR festgehalten).
 - Q-12: Woran wird Erfolg gemessen, ohne eigene Server?
@@ -507,6 +518,7 @@ muss.
 - 2026-11-13: FR-11.7, FR-12.5 bis FR-12.7 new — Klassenbildschirm im Verlauf der Stunde ohne Countdown (Q-25); Dokumentenkamera, Vorlage, Abdecken (Q-24); FR-11.1 changed — Hinweis geteilt in Bereitlegen und Hausaufgabe; AK-25 changed, AK-36 bis AK-39 new; Out of Scope um Notiz-App-Funktionen ergänzt; Lieferstufen (38) und Abdeckung angepasst
 - 2026-11-13: Produktname „Pult“ (Q-1), Titel angepasst; Q-29 new (Markenprüfung)
 - 2026-11-13: FR-13, FR-13.1 new, FR-13.2 new [Later] — Geschäftsmodell (Q-9); RISK-1 ergänzt, RISK-7 new; AK-40, AK-41, Q-30 new; Lieferstufen (40) und Abdeckung angepasst
+- 2026-11-13: Q-30 answered (14,99–19,99 €); Q-29 um Rechercheergebnis ergänzt, weiter offen; RISK-8 new — „PULT“ als Software-Marke der Pult GmbH in Gebrauch
 
 ## Anhang A — Abdeckung
 

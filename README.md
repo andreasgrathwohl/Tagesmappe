@@ -9,7 +9,8 @@ Stand.
 > **Stand:** Spezifikation. Die Anforderungen sind freigegeben (`docs/PRD.md`, `status: ready`);
 > sechs Architekturentscheidungen sind beschlossen (`docs/adr/`), die Architektur ist für alle Bereiche
 > beschrieben. Es gibt noch keinen Code; unter `mockup/` liegen HTML-Mockups zur Veranschaulichung.
-> Der Name „Pult“ ist intern festgelegt, die Markenprüfung steht aus (Q-29); das Repository heißt
+> Der Name „Pult“ ist Arbeitsname: Eine Software-Marke „PULT“ ist bereits in Gebrauch (RISK-8),
+> die Registerprüfung steht aus (Q-29). Das Repository heißt
 > weiter `Tagesmappe`.
 
 ## Worum es geht
