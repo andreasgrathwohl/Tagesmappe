@@ -24,15 +24,40 @@ targets:
     dependencies: [{ package: FrontstageCore }]
     settings:
       base:
+        CLOUDKIT_CONTAINER_ID: iCloud.com.example.frontstage  # Platzhalter; echte Kennung per CI-Secret
         TARGETED_DEVICE_FAMILY: "2"
         INFOPLIST_KEY_UILaunchScreen_Generation: YES
         INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+    entitlements:
+      path: Config/Frontstage-iOS.entitlements
+      properties:
+        com.apple.developer.icloud-services: [CloudKit]
+        com.apple.developer.icloud-container-identifiers: [$(CLOUDKIT_CONTAINER_ID)]
+        aps-environment: development
+    info:
+      path: Config/Frontstage-iOS-Info.plist
+      properties:
+        FrontstageCloudKitContainer: $(CLOUDKIT_CONTAINER_ID)
+        UIBackgroundModes: [remote-notification]
     scheme: { testTargets: [FrontstageTests] }
   Frontstage-macOS:
     type: application
     platform: macOS
     sources: [Frontstage]
     dependencies: [{ package: FrontstageCore }]
+    settings:
+      base:
+        CLOUDKIT_CONTAINER_ID: iCloud.com.example.frontstage  # Platzhalter; echte Kennung per CI-Secret
+    entitlements:
+      path: Config/Frontstage-macOS.entitlements
+      properties:
+        com.apple.developer.icloud-services: [CloudKit]
+        com.apple.developer.icloud-container-identifiers: [$(CLOUDKIT_CONTAINER_ID)]
+        com.apple.developer.aps-environment: development
+    info:
+      path: Config/Frontstage-macOS-Info.plist
+      properties:
+        FrontstageCloudKitContainer: $(CLOUDKIT_CONTAINER_ID)
     scheme: {}
   FrontstageTests:
     type: bundle.unit-test
