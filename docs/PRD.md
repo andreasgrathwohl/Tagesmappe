@@ -137,10 +137,18 @@ festlegt; die Tagesansicht zeigt sie in dieser Reihenfolge (Q-6).
 „Für <Klasse> übernehmen“ kopiert die Zuordnung einer Unterrichtsstunde in die passende
 Unterrichtsstunde einer anderen Klasse (Q-7).
 
+Geändert 2026-11-13: Die Lehrkraft wählt die Zielstunde selbst aus einer Liste der kommenden
+Unterrichtsstunden der gewählten Klasse (bis vier Wochen voraus, ohne Ausfälle); es gibt keine
+automatische Zielwahl. Verworfen: automatisch die erste Stunde der Zielklasse im selben Fach – ein Tipp
+weniger, aber die Gefahr, die falsche Stunde zu treffen.
+
 ### FR-3.3 — Material in die nächste Stunde der Klasse schieben [MVP]
 
 Nicht behandeltes Material lässt sich mit einem Tipp in die nächste Unterrichtsstunde derselben
 Klasse schieben (Q-7).
+
+Präzisiert 2026-11-13: „Nächste Unterrichtsstunde“ heißt gleiche Klasse und gleiches Fach, Ausfälle
+übersprungen – Englisch-Material der 8b wandert nicht in deren Mathestunde. Gilt ebenso für FR-8.
 
 ### FR-3.4 — Zuordnen kopiert nie Dateien [MVP]
 
@@ -324,6 +332,12 @@ Apple-ID dauerhaft frei: Klassenbildschirm mit seinen Unterpunkten (FR-11, FR-11
 FR-11.7) und Tafel mit ihren Unterpunkten (FR-12 bis FR-12.7). Es gibt kein Abo. Vom Nutzer:
 Vorschlag am 2026-11-13 angenommen (Q-9).
 
+Geändert 2026-11-13: Kostenlos sind zusätzlich das Eintragen und Anzeigen von Thema, Bereitlegen und
+Hausaufgabe in Tagesansicht und Vorbereiten (FR-11.1) sowie „Dunkel“ (FR-11.4). Zum Kauf gehören die
+Anzeige des Klassenbildschirms auf dem Zweitbildschirm (FR-11, FR-11.7, samt Thema und Hinweisen dort),
+Timer (FR-11.2), Arbeitsform (FR-11.3) und die Tafel (FR-12 bis FR-12.7). Ohne Kauf zeigt der
+Zweitbildschirm im Ruhezustand eine neutrale Fläche.
+
 ### FR-13.1 — Schulmanager-Import ohne Bezahlung und ohne Gewähr [MVP]
 
 Der Import aus Schulmanager Online (FR-2, FR-2.2) gehört immer zum kostenlosen Teil und wird in der
@@ -460,7 +474,7 @@ muss.
 - Q-10: Zielmarkt — nur deutschsprachige Schulen, oder international?
 - ~~Q-11~~: Gehören Android-Tablets und Windows dazu? → answered 2026-11-13: vorerst nein — Andreas stimmte einer nativen Apple-App für iPad und Mac zu, mit der Folge, dass Android-Tablets vorerst wegfallen (wird als ADR festgehalten).
 - Q-12: Woran wird Erfolg gemessen, ohne eigene Server?
-- Q-16: Liefert die inoffizielle Schulmanager-Schnittstelle für Lehrerkonten den Stundenplan und die Vertretungen? (Bisher nur für Eltern-/Schülerkonten belegt; Prüfung mit einem echten Lehrerkonto nötig.) → referred to docs/adr/0004-schulmanager-als-austauschbarer-importbaustein.md
+- Q-16: Liefert die inoffizielle Schulmanager-Schnittstelle für Lehrerkonten den Stundenplan und die Vertretungen? (Bisher nur für Eltern-/Schülerkonten belegt; Prüfung mit einem echten Lehrerkonto nötig.) → referred to docs/adr/0004-schulmanager-als-austauschbarer-importbaustein.md Stand 2026-11-13: Andreas stellt sein eigenes Lehrerkonto für die Prüfung bereit (erste Aufgabe von Teilplan 05; Zugangsdaten nur lokal).
 - ~~Q-13~~: Ist das Tablet persönlich, oder teilen sich Lehrkräfte Geräte? (Wer gilt dann als handelnde Person?) → answered 2026-11-13: persönlich — ein Tablet gehört einer Lehrkraft; handelnde Person ist immer die Besitzerin bzw. der Besitzer des Geräts. Keine Mehrbenutzer-Anmeldung auf einem Gerät.
 - ~~Q-20~~: Woran hängt eine Stiftnotiz – an der Datei (jede Unterrichtsstunde sieht dieselben Notizen) oder an der Zuordnung (jede Unterrichtsstunde hat eigene)? → answered 2026-11-13: an der Zuordnung, je Unterrichtsstunde (FR-6.1).
 - Q-22: Wie verhält sich PowerPoint auf dem Tablet über AirPlay – zeigt es die Folie auf dem Bildschirm im Klassenraum und eine Referentenansicht auf dem Tablet, erscheinen Zeichnungen auf der Folie dort sofort, und was sieht die Klasse beim Wechsel zwischen dem Produkt und PowerPoint? (Prüfung mit echtem Tablet und Apple TV nötig; siehe RISK-5.)
@@ -543,6 +557,7 @@ muss.
 - 2026-11-13: Produktname „Frontstage“ statt „Pult“ (Q-1 changed, Q-29 answered); RISK-8 ergänzt; Q-31 new (Markenprüfung Frontstage)
 - 2026-11-13: Glossar changed — Spalte „Im Code“ mit dem englischen Bezeichner je Begriff (ADR-0009)
 - 2026-11-13: Glossar changed — Stand, Arbeitsform, Vorlage, Standbild, Bereithalten, Neu verknüpfen ergänzt (beim Planen gefunden)
+- 2026-11-13: FR-3.2 changed — Zielstunde wählt die Lehrkraft; FR-3.3 präzisiert — gleiche Klasse und gleiches Fach (gilt für FR-8); FR-13 changed — Thema/Bereitlegen/Hausaufgabe eintragen und Dunkel kostenlos
 - 2026-11-13: FR-1.2 new — Zeitraster, abgeleitet aus FR-11 und FR-11.7 (Lücke beim Plan-Cold-Start-Check gefunden); Glossar um Zeitraster ergänzt; AK-42, Lieferstufen (41) und Abdeckung angepasst
 
 ## Anhang A — Abdeckung
