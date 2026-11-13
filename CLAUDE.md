@@ -13,6 +13,10 @@ Stand jeder Ebene steht im Frontmatter des jeweiligen Dokuments.
   kurz mit erklären.
 - Regeln der iCloud-Spiegelung (ADR-0002): kein `@Attribute(.unique)`/`#Unique`, alle Eigenschaften
   optional oder mit Vorgabewert, alle Beziehungen optional.
+- **Code-Sprache (ADR-0009):** Bezeichner, Dateien, Ordner und Paketnamen englisch; Fachbegriffe exakt
+  nach der Spalte „Im Code“ des Glossars im PRD (neuer Begriff: erst Glossarzeile, dann Code).
+  Kommentare und `///`-Doku deutsch. Oberflächentexte deutsch in `Localizable.xcstrings`, Schlüssel
+  englisch.
 
 ## Skills in diesem Projekt
 

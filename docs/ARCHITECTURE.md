@@ -73,8 +73,11 @@ den Oberflächen, nicht im Datenmodell. Mindestversion iPadOS 26 und macOS 26 ge
 ### Bauen und Verteilen
 
 - Gemäß ADR-0008: Das Xcode-Projekt wird aus `project.yml` mit XcodeGen erzeugt und nicht eingecheckt;
-  Logik ohne Oberfläche liegt im Swift-Paket `Packages/FrontstageKern` (Swift Testing, `swift test`);
+  Logik ohne Oberfläche liegt im Swift-Paket `Packages/FrontstageCore` (Swift Testing, `swift test`;
+  Name gemäß ADR-0009);
   Sprachmodus Swift 6 strikt.
+- Gemäß ADR-0009: Bezeichner im Code englisch nach der Spalte „Im Code“ des Glossars, Kommentare
+  deutsch.
 
 - Gebaut wird ausschließlich auf macOS – per CI (GitHub Actions, macOS-Runner) oder auf einem Mac. Der
   Entwicklungsrechner ist Windows und kann weder bauen noch testen.
@@ -388,5 +391,6 @@ gespiegelt (ADR-0002); gemäß FR-6.1 gehören sie zur Zuordnung.
 - 2026-11-13: plattform changed — Kauf über StoreKit, ohne Server (FR-13); Titel auf „Pult“
 - 2026-11-13: Titel auf „Frontstage“
 - 2026-11-13: plattform changed — Mindestversion (ADR-0007), XcodeGen und Kern-Paket (ADR-0008), beide two-way, Status bleibt ready
+- 2026-11-13: plattform changed — Code-Sprache (ADR-0009): Bezeichner englisch, Kommentare deutsch; Kern-Paket heißt `FrontstageCore`
 - 2026-11-13: Architecture Doc status ready — freigegeben von Andreas; offen bleiben Q-18 (am Gerät) und im PRD Q-22, beide blockieren den Bau nicht, weil für beide ein Rückfall beschrieben ist (Übergabe der Datei bzw. RISK-5)
 - 2026-11-13: anzeige changed — Klassenbildschirm im Verlauf der Stunde (FR-11.7), Kamera, Vorlage, Abdecken (FR-12.5 bis FR-12.7); daten changed — Stundenangaben mit Bereitlegen und Hausaufgabe, Tafelseite mit Bild als Hintergrund
