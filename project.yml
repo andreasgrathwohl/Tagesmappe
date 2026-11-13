@@ -44,3 +44,5 @@ targets:
         PRODUCT_NAME: FrontstageTests
         PRODUCT_MODULE_NAME: FrontstageTests
         PRODUCT_BUNDLE_IDENTIFIER: com.example.frontstage.tests
+        TEST_HOST: "$(BUILT_PRODUCTS_DIR)/Frontstage.app/Frontstage"
+        BUNDLE_LOADER: "$(TEST_HOST)"

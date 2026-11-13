@@ -12,6 +12,8 @@ jobs:
       - uses: actions/checkout@v4
       - run: xcodebuild -version && swift --version
       - run: brew install xcodegen
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: 1
       - run: xcodegen generate
       - name: Core tests
         run: swift test --package-path Packages/FrontstageCore
@@ -22,8 +24,18 @@ jobs:
       - name: Pick iPad simulator
         id: sim
         run: |
-          UDID=$(xcrun simctl list devices available --json | jq -r '[.devices | to_entries[] | select(.key | contains("iOS-26")) | .value[] | select(.name | startswith("iPad"))][0].udid')
-          if [ -z "$UDID" ] || [ "$UDID" = "null" ]; then xcrun simctl list devices available; exit 1; fi
+          SDK=$(xcrun --sdk iphonesimulator --show-sdk-version | tr . -)
+          echo "iPhoneSimulator SDK: $SDK"
+          PICK=$(xcrun simctl list devices available --json | jq -r --arg sdk "$SDK" '[.devices | to_entries[] | select(.key | endswith("iOS-" + $sdk)) | .key as $rt | .value[] | select(.name | startswith("iPad")) | "\(.udid) \($rt) \(.name)"][0] // empty')
+          if [ -z "$PICK" ]; then echo "Kein iPad-Simulator für iOS-$SDK gefunden."; xcrun simctl list devices available; exit 1; fi
+          UDID=${PICK%% *}
+          echo "Gewählt: $PICK"
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
       - name: App tests (iPad simulator)
-        run: xcodebuild test -project Frontstage.xcodeproj -scheme Frontstage-iOS -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" CODE_SIGNING_ALLOWED=NO
+        run: xcodebuild test -project Frontstage.xcodeproj -scheme Frontstage-iOS -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestResults
+          path: TestResults.xcresult
