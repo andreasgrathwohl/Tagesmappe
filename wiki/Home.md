@@ -28,5 +28,5 @@ etwas hier von `docs/` oder `DESIGN.md` ab, gilt das Dokument; das Wiki wird im 
 | PRD | ready (2026-11-13) |
 | ADRs | ready (2026-11-13) – ADR-0001 bis ADR-0006 beschlossen |
 | Architecture Doc | Entwurf – alle fünf Bereiche ausgearbeitet, mit Bausteinbild; Freigabe steht aus (offen: Q-18; am Gerät zu prüfen: Q-22) |
-| UI Spec (`DESIGN.md`) | leer angelegt, alle Kategorien offen |
+| UI Spec (`DESIGN.md`) | erster Beschluss: App-Icon (UI-1); alle übrigen Kategorien offen |
 | Mockups | [mockup/](../mockup/LIESMICH.md) – Veranschaulichung von Tagesansicht, Vorbereiten und Einrichten, kein Gestaltungsbeschluss |

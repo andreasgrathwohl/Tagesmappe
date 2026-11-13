@@ -34,7 +34,45 @@ Prüfungen dagegen laufen mit dem projektlokalen Skill `apple-design`.
 
 ---
 
-*(noch keine Beschlüsse — der erste wird `### UI-1 — <Beschluss als Aussage>`)*
+### UI-1 — Das App-Icon zeigt die heutige Stunde, die zur großen Fläche wird
+
+- category: app-icon
+- Constrained by: ADR-0001
+
+**Entscheidung:** Das App-Icon ist der Entwurf „Heute“: auf Petrol eine Spalte aus Stundenblöcken;
+die aktuelle Stunde leuchtet gelb und geht als ein Balken in eine große gelbe Fläche über – das
+Smartboard. Quelle: `design/icon/pult-app-icon.svg`, für den eingefärbten Darstellungsmodus
+`design/icon/pult-app-icon-mono.svg`. Farben: Grund Petrol `#0E4B57`, übrige Stunden Blassgrünblau
+`#8FC3C9`, aktive Stunde und Fläche Signalgelb `#FFC94A`. Gewählt von Andreas am 2026-11-13.
+
+**Kontext:** Auswahl zwischen sechs gerenderten Entwürfen aus drei Blickwinkeln (Apples
+Icon-Richtlinien, Markenidentität, Formsprache), je groß, auf hellem und dunklem Home-Bildschirm, in
+29 pt und eingefärbt (`mockup/logo/index.html`). Das Icon erzählt den Kernablauf des Produkts – die
+heutige Stunde antippen, die Klasse sieht das Material groß – statt den Gegenstand Pult abzubilden.
+Eine Farbe trägt genau eine Bedeutung: Gelb heißt „jetzt, gezeigt“.
+
+**Verworfen, jeweils mit Vorzug:**
+- „Stehpult“ (Pult im Profil, Material in Safran) — erzählt am wörtlichsten „alles liegt bereit“.
+- „Übertragung“ (Lichtkegel vom Pult auf eine Fläche) — zeigt das Steuern des Smartboards am direktesten.
+- „Pult“ (schräge Pultfläche mit einem Blatt) — warm, ruhig, gegenständlich.
+- „Lichtpult“ (P-Form mit leuchtendem Bildschirm) — trug Anfangsbuchstabe und Bedeutung zugleich und war
+  in 29 pt am klarsten; Empfehlung im Gespräch.
+- „Pultkante“ (Stehpult auf Ocker) — stärkste Silhouette, fällt auf dem Home-Bildschirm am meisten auf.
+
+**Konsequenzen mit Kosten:**
+- Kein Bezug zum Wort „Pult“ im Zeichen; Name und Icon müssen sich gegenseitig erklären.
+- Abstrakt: ohne Erklärung auch als Flussdiagramm oder Stecker lesbar.
+- In 29–40 pt verschmelzen die schmalen Stundenblöcke fast zu Strichen; erkennbar bleibt das Muster
+  „Spalte plus großes gelbes Feld“.
+- Die Icon-Farben sind **keine** Palette der Oberfläche. Sie binden die Oberfläche nicht; die Kategorie
+  Farbe bleibt offen. Übernimmt die Oberfläche später Gelb, dann nur mit derselben Bedeutung
+  („jetzt, gezeigt“).
+- Für den Bau ist das Icon in Apples Icon-Werkzeug als Ebenen anzulegen (Hintergrund, Stundenblöcke,
+  gelbe Form), damit das System Glas-Effekte und den dunklen und eingefärbten Modus erzeugen kann –
+  beim ersten Bau zu belegen.
+
+**Revisit if:** Testerinnen erkennen das Icon auf dem Home-Bildschirm nicht als „Pult“ wieder, oder
+die Markenprüfung (Q-29) erzwingt einen anderen Namen, zu dem ein gegenständliches Zeichen besser passt.
 
 ---
 
@@ -58,3 +96,4 @@ Prüfungen dagegen laufen mit dem projektlokalen Skill `apple-design`.
 - 2026-11-13: DESIGN.md new — leer angelegt, alle Kategorien offen
 - 2026-11-13: Q-19 changed, Q-21 new — Zweitbildschirm (FR-6.2) grenzt Q-19 ein und wirft die Frage nach seinem Ruhezustand auf
 - 2026-11-13: Q-21 removed — beantwortet durch FR-11 (Klassenbildschirm)
+- 2026-11-13: UI-1 new — App-Icon „Heute“, gewählt aus sechs Entwürfen

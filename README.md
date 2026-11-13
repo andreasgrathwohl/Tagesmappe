@@ -36,7 +36,7 @@ Stand.
 | [docs/PRD.md](docs/PRD.md) | Was, für wen, warum: Glossar, Anforderungen, Lieferstufen, Risiken, offene Fragen, Abnahmekriterien |
 | [docs/adr/](docs/adr/) | Architekturentscheidungen, je Entscheidung eine Datei |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Wie gebaut wird, je Bereich: Bausteinbild, Datenmodell, Abgleich, Dateizugriff, Stundenplan-Quellen, Anzeige |
-| [DESIGN.md](DESIGN.md) | Gestaltungsbeschlüsse (leer angelegt, alle Kategorien offen) |
+| [DESIGN.md](DESIGN.md) | Gestaltungsbeschlüsse – bisher das App-Icon (UI-1, Quelle in `design/icon/`); alle übrigen Kategorien offen |
 | [mockup/](mockup/LIESMICH.md) | HTML-Mockups von Tagesansicht, Vorbereiten und Einrichten – Veranschaulichung, kein Beschluss |
 | [CLAUDE.md](CLAUDE.md) | Projektregeln: Bauen, Skills, Dokument-Konvention |
 | [wiki/](wiki/Home.md) | Einstieg, Überblick und Wegweiser in die Dokumente |
