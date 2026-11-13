@@ -49,7 +49,8 @@ flowchart TB
     Abl --> OD
     Quel --> Kern
     Quel --> Lokal
-    Daten <-- "Spiegelung, ADR-0002" --> iCloud
+    Daten <-- "Spiegelung (Datenort iCloud), ADR-0010" --> iCloud
+    Daten <-- "Abgleich über Dateien (Datenort Ordner), ADR-0010" --> Files
     Abl -- "ADR-0003" --> Files
     Abl -- "Übergabe der Datei" --> Office
     OD --> Graph
@@ -109,8 +110,9 @@ den Oberflächen, nicht im Datenmodell. Mindestversion iPadOS 26 und macOS 26 ge
 
 ### Datenmodell
 
-Gemäß ADR-0002 (SwiftData, gespiegelt in die private iCloud-Datenbank) und ADR-0005 (Identität der
-Unterrichtsstunde). Wegen der Spiegelung sind alle Eigenschaften optional oder haben einen
+Gemäß ADR-0010 (SwiftData lokal; abgeglichen je nach gewähltem Datenort über die private iCloud-Datenbank
+oder über einen Datenordner in der Ablage; löst ADR-0002 ab) und ADR-0005 (Identität der
+Unterrichtsstunde). Wegen der iCloud-Spiegelung sind alle Eigenschaften optional oder haben einen
 Vorgabewert, alle Beziehungen sind optional, und kein Modell nutzt Eindeutigkeitsregeln.
 
 | Modell | Trägt | Hinweis |
@@ -121,7 +123,7 @@ Vorgabewert, alle Beziehungen sind optional, und kein Modell nutzt Eindeutigkeit
 | Abweichung | Datum, Schlüssel der Unterrichtsstunde, Art (Ausfall, Vertretungsstunde), bei Vertretungsstunde: Stunde, Klasse, Fach | FR-8, FR-9, FR-2.2 |
 | Zuordnung | Schlüssel der Unterrichtsstunde, Position, Verweis auf das Material | FR-3, FR-3.1 |
 | Materialverweis | Ordnerfreigabe, Pfad darin, ggf. OneDrive-Kennung, Anzeigename, Dateiart | gemäß ADR-0003 |
-| Stiftnotiz | Verweis auf die Zuordnung, Seite (bei Bildern 1), Zeichnungsdaten, Seitengröße beim Zeichnen | gemäß ADR-0006, FR-6.1; s. Area anzeige |
+| Stiftnotiz | Verweis auf die Zuordnung, Seite (bei Bildern 1), Zeichnungsdaten, Seitengröße beim Zeichnen | **nur Ersatz** gemäß ADR-0011, wenn der Ordner des Dokuments nicht beschreibbar ist; sonst liegen Stiftnotizen neben dem Dokument (Area anzeige) |
 | Stundenangaben | Schlüssel der Unterrichtsstunde, Thema, Bereitlegen, Hausaufgabe | FR-11.1; höchstens ein Datensatz je Unterrichtsstunde |
 | Tafelseite | Schlüssel der Unterrichtsstunde, Position, Hintergrund (leer, liniert, kariert oder ein Bild: Standbild der Kamera bzw. Vorlage, FR-12.5, FR-12.6), Zeichnungsdaten | FR-12.1, FR-12.2; die Tafelseiten einer Unterrichtsstunde bilden ihr Tafelbild; s. Area anzeige |
 | Ordnerfreigabe | dauerhafter Systemverweis auf einen freigegebenen Ordner | **nur lokal je Gerät**, nicht gespiegelt (s. Area ablage) |
@@ -139,9 +141,36 @@ Fach werden vor dem Vergleich normalisiert (Groß-/Kleinschreibung, Leerzeichen,
 unterrichtsfrei, Klasse fällt an dem Tag weg), bleibt die Zuordnung erhalten und erscheint am
 betreffenden Datum als „ohne Stunde“, bis die Lehrkraft sie verschiebt (FR-7, ADR-0005).
 
+### Datenort
+
+Gemäß ADR-0010 wählt die Lehrkraft beim Einrichten den Datenort (FR-14); er gilt je Gerät und wird
+nicht selbst abgeglichen (`UserDefaults`), auf allen Geräten einer Lehrkraft muss derselbe gewählt sein.
+
+| Datenort | Arbeitsspeicher | Abgleich |
+|---|---|---|
+| iCloud | SwiftData lokal | Spiegelung in die private iCloud-Datenbank durch das System |
+| Ordner in der Ablage | SwiftData lokal, ohne Spiegelung | eigener Baustein „Datenordner-Abgleich“ |
+
+Datenordner-Abgleich:
+
+- Der Datenordner ist eine Ordnerfreigabe wie für Material (Area ablage), aber nur für die App-Daten.
+  Darin `Frontstage/<Modell>/<Kennung>.json` – je Datensatz eine Datei mit Kennung, Änderungszeitpunkt,
+  Gerätekennung und Inhalt; Zeichnungen und Bilder als `<Kennung>.<Feld>.bin` daneben.
+- Schreiben: nach jeder lokalen Änderung den Datensatz als Datei schreiben (über die
+  Dateikoordination des Systems). Löschen schreibt eine Löschmarke (`deleted: true`), damit das andere
+  Gerät das Löschen erfährt; alte Löschmarken räumt die App nach 90 Tagen auf.
+- Lesen: beim Start, beim Wechsel in den Vordergrund und wenn das System Änderungen im Ordner meldet,
+  geänderte Dateien einlesen; je Datensatz gilt der jüngere Änderungszeitpunkt. Konfliktkopien des
+  Anbieters (z. B. „… (1).json“) werden wie ein zweiter Stand desselben Datensatzes behandelt und
+  danach entfernt.
+- Danach läuft dasselbe Zusammenführen wie nach einem iCloud-Abgleich (Nebenläufigkeit unten).
+- Wechsel des Datenorts: alle Datensätze einmal in den neuen Ort schreiben; der alte bleibt unberührt
+  stehen, bis die Lehrkraft ihn selbst löscht.
+- Die App schreibt nur in den Datenordner, nie in Material (FR-3.4, ADR-0006).
+
 ### Nebenläufigkeit
 
-Gemäß ADR-0002 gewinnt bei gleichzeitiger Änderung desselben Datensatzes der zuletzt abgeglichene
+Gemäß ADR-0010 (für beide Datenorte) gewinnt bei gleichzeitiger Änderung desselben Datensatzes der zuletzt abgeglichene
 Stand. Je Datenart:
 
 | Datenart | Verhalten | Unterlegener Wert |
@@ -161,7 +190,8 @@ aufgegebenen vorher an die behaltene gehängt.
 
 ### Betrieb
 
-Sicherung und Wiederherstellung übernimmt iCloud im Konto der Lehrkraft (gemäß ADR-0002). Der zu
+Sicherung und Wiederherstellung übernimmt der Datenort (gemäß ADR-0010): iCloud im Konto der Lehrkraft
+oder der Datenordner beim Ablage-Anbieter. Der zu
 prüfende Wiederherstellungsweg ist: App auf einem zweiten Gerät mit demselben Apple-Konto
 installieren – Stundenplan und Zuordnungen erscheinen ohne Zutun; nur die Ordnerfreigaben müssen dort
 einmal neu erteilt werden.
@@ -352,24 +382,29 @@ Schreiben), und der Übergang zwischen eigener Szene und Spiegelung beim App-Wec
 
 ### Stiftnotizen
 
-Gemäß ADR-0006 liegen Stiftnotizen getrennt von der Datei in den App-Daten und werden wie diese
-gespiegelt (ADR-0002); gemäß FR-6.1 gehören sie zur Zuordnung.
+Gemäß ADR-0011 (löst ADR-0006 ab) liegen Stiftnotizen neben dem Dokument in der Ablage; gemäß FR-6.1
+gehören sie zur Unterrichtsstunde. Das Original wird nie verändert.
 
-- Je Zuordnung und Seite ein Datensatz „Stiftnotiz“ mit den Zeichnungsdaten. Die Zeichnungsdaten
-  werden als ausgelagerter Anhang gespeichert (SwiftData: `@Attribute(.externalStorage)` – der Wert
-  liegt dann nicht in der Datenbankzeile, sondern als eigene Datei, und wird beim Spiegeln als Anhang
-  übertragen), damit große Zeichnungen den Abgleich der übrigen Daten nicht bremsen.
-- Gespeichert wird beim Absetzen des Stifts mit kurzer Verzögerung und sicher beim Schließen (AK-13).
-- „In die nächste Stunde schieben“ und das Weiterreichen bei Ausfall ändern nur den Schlüssel der
-  Unterrichtsstunde an der bestehenden Zuordnung – die Stiftnotizen hängen weiter daran und wandern
-  mit. „Für <Klasse> übernehmen“ legt eine neue Zuordnung an, ohne Stiftnotizen (FR-6.1, AK-22).
-- Wird eine Zuordnung gelöscht, werden ihre Stiftnotizen mitgelöscht.
-- Die Stiftnotiz merkt sich die Seitengröße, auf der gezeichnet wurde. Weicht die Seite beim Öffnen
-  davon ab oder gibt es die Seite nicht mehr (Datei in der Ablage ersetzt oder umgebaut), zeigt die
-  Anzeige die Notiz weiter an und weist darauf hin, dass sie zu einer früheren Fassung gehört – sie
-  wird nie stillschweigend verworfen (Kosten gemäß ADR-0006).
-- Löst der Materialverweis nicht auf, bleiben die Stiftnotizen an der Zuordnung erhalten und sind nach
-  dem Neuverknüpfen wieder da.
+- **Notiz-Datei:** neben `<Name>.<Endung>` der Ordner `<Name>.frontstage-notizen/`, darin je
+  Unterrichtsstunde `<Schlüssel der Unterrichtsstunde>.json` (Text des Schlüssels gemäß ADR-0005) mit
+  Zeichnungsdaten je Seite (PencilKit-Daten, Base64) und der Seitengröße beim Zeichnen. Je Stunde eine
+  Datei, damit zwei Geräte nur bei derselben Stunde dieselbe Datei schreiben.
+- **Lesbares PDF:** beim Schließen der Anzeige `<Name> – Notizen <Klasse> <JJJJ-MM-TT>.pdf` daneben,
+  erzeugt mit PDFKit: Seiten des Originals plus die Striche als Ink-Anmerkungen (bei Bildern: das Bild
+  als PDF-Seite). Wird bei jedem Schließen neu geschrieben; maßgeblich bleibt die Notiz-Datei.
+- Geschrieben wird über den Baustein „Ablage“ (Ordnerfreigabe des Materials, Dateikoordination des
+  Systems); gespeichert beim Absetzen des Stifts mit kurzer Verzögerung und sicher beim Schließen
+  (AK-13). Der Abgleich zwischen Geräten läuft über den Ablage-Anbieter, unabhängig vom Datenort.
+- „In die nächste Stunde schieben“ und Weiterreichen bei Ausfall benennen die Stunden-Datei und das PDF
+  auf den neuen Schlüssel um. „Für <Klasse> übernehmen“ legt nichts an (FR-6.1, AK-22). Wird die letzte
+  Zuordnung eines Dokuments zu einer Stunde gelöscht, bleiben Notiz-Datei und PDF erhalten – sie
+  gehören der Lehrkraft, nicht der App.
+- Ist der Ordner des Dokuments nicht beschreibbar, liegen die Notizen der Stunde ersatzweise im
+  Datenort (Area daten, Modell Stiftnotiz) und die Anzeige sagt das.
+- Seitengröße weicht ab oder Seite fehlt (Dokument ersetzt oder umgebaut): Notiz bleibt sichtbar mit
+  Hinweis auf eine frühere Fassung, wird nie stillschweigend verworfen.
+- Neu verknüpfen: Die App sucht Notiz-Ordner und PDFs am alten Ort und bietet an, sie neben die neue
+  Datei zu verschieben.
 
 ---
 
@@ -377,7 +412,7 @@ gespiegelt (ADR-0002); gemäß FR-6.1 gehören sie zur Zuordnung.
 
 - ~~Q-14~~: Wovon hängt die Identität einer Unterrichtsstunde ab, damit Zuordnungen eine Änderung des Stundenplans überstehen? → answered 2026-11-13: Datum + Klasse + Fach + laufende Nummer, Material folgt der Klasse (ADR-0005, accepted)
 - ~~Q-15~~: Wie oft und wodurch ausgelöst wird der Schulmanager abgefragt, und wie spät dürfen Vertretungen dort ankommen? → answered 2026-11-13: einmal je Morgen und auf Knopfdruck; Vertretungen am selben Morgen (ADR-0004, accepted)
-- ~~Q-17~~: Wo liegen Stiftnotizen auf PDFs und Bildern – in der Datei in der Ablage (dann sieht sie jede andere App und jedes Gerät, das Original ist aber verändert) oder getrennt in den App-Daten (Original bleibt unberührt, Notizen sieht nur diese App)? Bis zur Klärung wird nichts angenommen; der Bereich `anzeige` bleibt `draft`. → answered 2026-11-13: getrennt in den App-Daten (ADR-0006, accepted); je Zuordnung (FR-6.1, Q-20 im PRD)
+- ~~Q-17~~: Wo liegen Stiftnotizen auf PDFs und Bildern – in der Datei in der Ablage (dann sieht sie jede andere App und jedes Gerät, das Original ist aber verändert) oder getrennt in den App-Daten (Original bleibt unberührt, Notizen sieht nur diese App)? Bis zur Klärung wird nichts angenommen; der Bereich `anzeige` bleibt `draft`. → answered 2026-11-13: getrennt in den App-Daten (ADR-0006, accepted); je Zuordnung (FR-6.1, Q-20 im PRD) → changed 2026-11-14: neben dem Dokument, Notiz-Datei plus lesbares PDF (ADR-0011 löst ADR-0006 ab)
 - Q-32: Übergibt `UIDocumentInteractionController` auf iPadOS 26 eine Datei aus der Ablage zum Bearbeiten am Ort, oder öffnet die Ziel-App sie nur lesend bzw. als Kopie? (Gefunden beim Planen von Teilplan 03; Prüfung am Gerät; bei „nur Kopie“ ist FR-3.4/AK-11 ohne OneDrive-Zusatz gefährdet.)
 - Q-18: Öffnet PowerPoint auf iPadOS ein OneDrive-Dokument über die Office-Adresse mit AutoSpeichern, so wie am Mac? (Prüfung auf einem echten iPad nötig; siehe RISK-2.)
 
@@ -396,5 +431,7 @@ gespiegelt (ADR-0002); gemäß FR-6.1 gehören sie zur Zuordnung.
 - 2026-11-13: plattform changed — Code-Sprache (ADR-0009): Bezeichner englisch, Kommentare deutsch; Kern-Paket heißt `FrontstageCore`
 - 2026-11-13: Q-32 new — Bearbeiten am Ort über `UIDocumentInteractionController` (aus Teilplan 03)
 - 2026-11-13: plattform changed — Kern-Paket lokal mit Swift für Windows testbar (`scripts/swift-test.ps1`), App weiter nur auf macOS
+- 2026-11-14: daten changed — Datenort wählbar (ADR-0010 löst ADR-0002 ab, FR-14): Abschnitt Datenort, Datenordner-Abgleich, Betrieb; Bausteinbild ergänzt
+- 2026-11-14: anzeige changed — Stiftnotizen neben dem Dokument (ADR-0011 löst ADR-0006 ab): Notiz-Datei je Stunde und lesbares PDF; daten changed — Modell Stiftnotiz nur noch Ersatz
 - 2026-11-13: Architecture Doc status ready — freigegeben von Andreas; offen bleiben Q-18 (am Gerät) und im PRD Q-22, beide blockieren den Bau nicht, weil für beide ein Rückfall beschrieben ist (Übergabe der Datei bzw. RISK-5)
 - 2026-11-13: anzeige changed — Klassenbildschirm im Verlauf der Stunde (FR-11.7), Kamera, Vorlage, Abdecken (FR-12.5 bis FR-12.7); daten changed — Stundenangaben mit Bereitlegen und Hausaufgabe, Tafelseite mit Bild als Hintergrund
