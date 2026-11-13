@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Klassenbildschirm (Verlauf der Stunde, Timer, Arbeitsform, Dunkel), Tafel (Seiten, Hintergründe, Tafelbild je Unterrichtsstunde, letztes Tafelbild, PDF, Kamera, Vorlage, Abdecken) und den Einmalkauf, der beides freischaltet, bauen.
+**Goal:** Klassenbildschirm (Verlauf der Stunde, Timer, Arbeitsform; „Dunkel“ liefert Teilplan 06), Tafel (Seiten, Hintergründe, Tafelbild je Unterrichtsstunde, letztes Tafelbild, PDF, Kamera, Vorlage, Abdecken) und den Einmalkauf, der beides freischaltet, bauen.
 
 **Architecture:** Reine Regeln (was der Klassenbildschirm zeigt, Timer aus Endzeitpunkt, letztes Tafelbild, Abdeckung) liegen in `FrontstageCore` und sind dort voll getestet. Die App-Seite hängt Klassenbildschirm und Tafel in die Zweitbildschirm-Szene aus Teilplan 06 ein, speichert Tafelseiten als `BoardPageRecord` (Teilplan 02) und fragt die Freischaltung an genau einer Stelle (`Unlock`, StoreKit 2, ohne Server) ab. Flüchtiges (Timer, Arbeitsform, Abdeckung, Livebild) lebt nur im Speicher.
 
@@ -16,12 +16,13 @@ Es gelten **alle** Zeilen aus `docs/superpowers/plans/2026-11-13-00-uebersicht.m
 
 - Klassenbildschirm-Ansichten bekommen **nur** einen `ClassScreenDisplay` (Daten der einen Unterrichtsstunde) – nie `Lesson`-Listen, Zuordnungen oder Dateinamen (FR-11).
 - **Kein Countdown bis Stundenbeginn** (FR-11.7, vom Nutzer verworfen).
-- Timer, Arbeitsform, Abdeckung, Dunkel-Zustand, Livebild der Kamera: **flüchtig**, nie in SwiftData, nie gespiegelt. Timer rechnet aus einem Endzeitpunkt (`Date`), nie aus gezählten Sekunden.
+- Timer, Arbeitsform, Abdeckung, Livebild der Kamera: **flüchtig**, nie in SwiftData, nie gespiegelt. Timer rechnet aus einem Endzeitpunkt (`Date`), nie aus gezählten Sekunden.
 - Tafelseiten liegen in den App-Daten (`BoardPageRecord`), nie in der Ablage. Einziger Weg nach außen: PDF über den Teilen-Dialog (FR-12.4).
 - Vorlage (FR-12.6) und Standbild (FR-12.5) werden **einmal als Bild gerendert** und als Hintergrund gespeichert (JPEG, `2400 × 1350` px, Qualität `0.8`); kein Verweis auf die Datei, kein Schreiben in die Ablage.
 - Logische Tafelseite: `1600 × 900` pt (16:9); Tablet und Zweitbildschirm skalieren sie einpassend. Alle Strich- und Hintergrundkoordinaten beziehen sich darauf.
 - Kaufstand nur aus StoreKit (`Transaction.currentEntitlements`, `Transaction.updates`), nie gespeichert, nie gespiegelt. Nur **verifizierte**, **nicht widerrufene** Transaktionen des einen Produkts schalten frei.
-- Ohne Kauf: Klassenbildschirm, Timer, Arbeitsform, Dunkel, Stundenangaben-Eingabe und Tafel zeigen ein Kaufangebot; der Zweitbildschirm zeigt statt des Klassenbildschirms eine neutrale Fläche; **Material am Zweitbildschirm bleibt frei** (FR-13, Area plattform › Kauf).
+- **Freischaltung (FR-13, Nutzerentscheidung 2026-11-13):** Zum Kauf gehören nur die Anzeige des Klassenbildschirms auf dem Zweitbildschirm (FR-11, FR-11.7, mit Thema und Hinweisen darauf), Timer (FR-11.2), Arbeitsform (FR-11.3) und die Tafel (FR-12 ff.). **Kostenlos** bleiben Material am Zweitbildschirm, „Dunkel“ (`SecondScreenContent.dark`, Teilplan 06) und Eintragen/Anzeigen von Thema, Bereitlegen, Hausaufgabe in Tagesansicht und Vorbereiten (Teilplan 04). Ohne Kauf zeigt der Zweitbildschirm im Ruhezustand eine neutrale Fläche; Timer, Arbeitsform und Tafel zeigen am Tablet ein Kaufangebot.
+- **Einhängepunkte (Übersicht, Abstimmung Punkt 8):** Dieser Teilplan ändert **keine** Datei von Teilplan 06. Er füllt nur die Platzhalter, die 06 in seinen Ordnern anlegt und deren Besitzer er ist: `Frontstage/ClassScreen/ClassScreenView.swift` (`ClassScreenView()`), `ClassScreenOverlay.swift` (`ClassScreenOverlay()`), `ClassroomControls.swift` (`ClassroomControls()`), `ClassroomEnvironment.swift` (`classroomEnvironment()`), `Frontstage/Board/BoardView.swift` (`BoardView()`). Namen und `init()` bleiben.
 - Platzhalter-Produktkennung `frontstage.classroom` (Non-Consumable, nicht familienfreigebbar); die echte Kennung legt der App-Store-Eintrag fest.
 - Stift nur am Tablet (`#if os(iOS)`); am Mac Tafelbilder nur ansehen und als PDF sichern. Kamera nur iOS. Zweitbildschirm-Code nur iOS.
 - Offene Gestaltungskategorien (Farben, Schriftgrößen, Symbole der Arbeitsform, Linienabstand, Deckkraft der Abdeckung am Tablet, Wortlaut, Signalton) bekommen den **Systemstandard bzw. den hier genannten Platzhalterwert** und werden im Abschlussbericht je Aufgabe in einer Zeile als Lücke genannt.
@@ -44,73 +45,45 @@ Quellen für Apple-APIs, die dieser Plan festlegt (gelesen 2026-11-13):
 
 ## Interfaces dieses Teilplans
 
-### Konsumiert aus der Übersicht (Teilplan 01, verbindlich)
+### Consumes – Teilplan 01 (Kern)
 
-`CalendarDay`, `TimeOfDay`, `SchoolClass`, `Subject`, `LessonKey`, `Lesson`, `ClassScreenPhase`, `ClassScreenCalculator.phase(now:lessons:finalMinutes:)`, `TimetableCalculator.lessons(on:timetable:nonTeachingPeriods:changes:)`, `WorkMode` (Code-Name festgelegt, Typ hier angelegt), `Unlock` (Code-Name festgelegt, Typ hier angelegt), `BoardPageRecord`/`BoardPage` (Code-Name festgelegt).
+`CalendarDay` (inkl. `init(year:month:day:)`, `init(_:calendar:)`, Comparable), `TimeOfDay` (inkl. `init(hour:minute:)`, `init(_:calendar:)`), `SchoolClass`, `Subject`, `LessonKey` (inkl. `init(date:schoolClass:subject:ordinal:)`, `storageText`, `init?(storageText:)`), `Lesson` (inkl. öffentlichem Initialisierer), `ClassScreenPhase`, `ClassScreenCalculator.phase(now:lessons:finalMinutes:)`.
 
-### Erwartet von Teilplan 01
+### Consumes – Teilplan 02 (Daten)
+
+Kern: `LessonInfo` (`topic`, `toPrepare`, `homework`, alle `String?`), `BoardBackground` (`blank`, `lined`, `grid`, `image`), `MaterialReference` (`displayName`, `fileKind`), `MaterialFileKind`. App: `BoardPageRecord` (`id`, `lessonKeyText`, `position`, `backgroundRaw`, `background`, `backgroundImageData`, `drawingData`, `updatedAt`, `createdAt`) und die `DataStore`-Methoden `lessons(on:)`, `lessonInfo(for:)`, `links(for:)` (`.reference` je Zuordnung, für die Vorlage), `boardPages(for:)`, `addBoardPage(for:background:backgroundImageData:)`, `setBoardPageBackground(_:background:imageData:)`, `saveBoardPageDrawing(_:drawingData:)`, `deleteBoardPage(_:)`, `deleteBoardDrawing(for:)`, `lessonKeysWithBoardPages()`; Test-Hilfe `makeStore()`.
+
+### Consumes – Teilplan 03 (Ablage)
+
+`StorageService.reference(forPickedFile:)` und `StorageService.withFileURL(for:_:)` (liest nur lesend mit Ordnerfreigabe, schließt den Zugriff selbst).
+
+### Consumes – Teilplan 04 (Oberfläche Kern)
+
+`AppEnvironment` (`store`, `today`), `DayView`, `LessonDetailView` (`Frontstage/UI/Preparation/LessonDetailView.swift`), `SetupView`, `LessonInfoEditor` (Eingabe von Thema/Bereitlegen/Hausaufgabe – kostenlos, gehört 04). Dieser Teilplan ergänzt in `DayView`, `LessonDetailView` und `SetupView` je einen Knopf bzw. Abschnitt (`Modify`).
+
+### Consumes – Teilplan 06 (Anzeige und Zweitbildschirm)
 
 ```swift
-// öffentliche Initialisierer (für Tests und App-Code nötig; Swift erzeugt sie für public structs nicht)
-public init(year: Int, month: Int, day: Int)                                         // CalendarDay
-public init(hour: Int, minute: Int)                                                  // TimeOfDay
-public init(date: CalendarDay, schoolClass: SchoolClass, subject: Subject, ordinal: Int)   // LessonKey
-public init(key: LessonKey, period: Int, time: ClosedRange<TimeOfDay>?, isSubstituteLesson: Bool, isCancelled: Bool, cancellationOrigin: Origin?)   // Lesson
-// Umrechnung aus Date (Kalender/Zeitzone des Geräts)
-extension CalendarDay { public init(_ date: Date, calendar: Calendar) }
-extension TimeOfDay  { public init(_ date: Date, calendar: Calendar) }
-```
-
-### Erwartet von Teilplan 02
-
-```swift
-// FrontstageCore – Stundenangaben als Werttyp (FR-11.1)
-public struct LessonInfo: Hashable, Sendable { public var topic: String?; public var toPrepare: String?; public var homework: String?; public init(topic: String?, toPrepare: String?, homework: String?) }
-
-// App, Frontstage/Data/
-@Model final class LessonInfoRecord { var lessonKeyText: String = ""; var topic: String?; var toPrepare: String?; var homework: String?; var lessonInfo: LessonInfo { get } }
-@Model final class BoardPageRecord {
-  var lessonKeyText: String = ""          // LessonKey.storageText
-  var position: Int = 0
-  var backgroundRaw: String = "blank"     // BoardBackground.rawValue
-  @Attribute(.externalStorage) var backgroundImageData: Data?   // Standbild/Vorlage, JPEG
-  @Attribute(.externalStorage) var drawingData: Data?           // PKDrawing.dataRepresentation()
-  var createdAt: Date = Date()
+enum SecondScreenContent: Hashable, Sendable { case classScreen, material, board, dark }      // Kern
+@MainActor @Observable final class SecondScreenState {                                        // parameterloses init
+  static let shared: SecondScreenState; init()
+  var content: SecondScreenContent { get }; private(set) var isConnected: Bool
+  func select(_ content: SecondScreenContent); func toggleDark()
+  func setBoardLesson(_ key: LessonKey?); private(set) var boardLessonKey: LessonKey?; func setBoardAvailable(_ available: Bool)
 }
-struct ScheduleSnapshot: Sendable { var timetable: Timetable?; var nonTeachingPeriods: [NonTeachingPeriod]; var changes: [ScheduleChange] }
-@MainActor func loadScheduleSnapshot(in context: ModelContext) throws -> ScheduleSnapshot
-// Materialverweis (für Vorlage): Anzeigename und Dateiart
-extension MaterialReference { var displayName: String { get }; var fileKind: MaterialFileKind { get } }   // MaterialFileKind: .pdf, .image, .other
-@MainActor func materialReferences(for key: LessonKey, in context: ModelContext) throws -> [MaterialReference]   // Reihenfolge der Zuordnungen
+struct SecondScreenRootView: View; struct SmartboardBar: View                                  // zeigen die Einhängepunkte unten
+struct PenCanvas: UIViewRepresentable { init(drawing: Binding<PKDrawing>, isEditable: Bool, contentSize: CGSize, onStrokeEnded: @escaping () -> Void = {}) }   // nur iOS
+// Einhängepunkte – von 06 als Platzhalter angelegt, Besitzer dieser Teilplan, Inhalt hier:
+struct ClassScreenView: View { init() }; struct BoardView: View { init() }
+struct ClassScreenOverlay: View { init() }; struct ClassroomControls: View { init() }
+extension View { func classroomEnvironment() -> some View }
 ```
-
-### Erwartet von Teilplan 03
-
-```swift
-// Frontstage/Storage/ – liest eine Datei aus der Ablage nur lesend, mit Ordnerfreigabe
-protocol StorageAccess: Sendable { func withFileURL<T: Sendable>(for reference: MaterialReference, _ body: @Sendable (URL) throws -> T) async throws -> T }
-```
-
-### Erwartet von Teilplan 04
-
-`Frontstage/UI/DayView/DayView.swift` mit einer Zeile je Unterrichtsstunde (`LessonRow`, kennt `LessonKey`), `Frontstage/UI/Preparation/PreparationLessonDetail.swift` (Detail einer Unterrichtsstunde beim Vorbereiten), `Frontstage/UI/Setup/SetupView.swift` (Einstellungen). Dieser Teilplan fügt dort Knöpfe bzw. Abschnitte ein.
-
-### Erwartet von Teilplan 06
-
-```swift
-// Frontstage/SecondScreen/
-enum SecondScreenContent: Hashable, Sendable { case classScreen, material, board, dark }
-@MainActor @Observable final class SecondScreenState { var content: SecondScreenContent = .classScreen; private(set) var isConnected: Bool }
-struct SecondScreenRootView: View      // zeichnet `content`; das Vorschaubild am Tablet ist dieselbe View verkleinert (FR-11.5)
-struct SmartboardBar: View             // Leiste am Tablet: Umschalten der vier Zustände
-// Frontstage/Viewer/  (nur iOS)
-struct PenCanvas: UIViewRepresentable  // PKCanvasView: drawing: Binding<PKDrawing>, isEditable: Bool, contentSize: CGSize, onStrokeEnded: () -> Void
-```
+„Dunkel“ (FR-11.4) liefert 06 vollständig (`SecondScreenContent.dark`, `toggleDark()`, Knopf in der `SmartboardBar`) – hier nichts dazu.
 
 ### Erzeugt von diesem Teilplan (Kern, `Packages/FrontstageCore/Sources/FrontstageCore/`)
 
 ```swift
-public enum WorkMode: String, CaseIterable, Codable, Sendable { case individual, pair, group }              // FR-11.3
+public enum WorkMode: String, CaseIterable, Codable, Sendable { case individual, pairs, groups }            // FR-11.3 (Glossar)
 
 public struct ClassScreenDisplay: Hashable, Sendable {                                                       // FR-11, FR-11.1, FR-11.7
   public enum Kind: Hashable, Sendable { case upcoming, inLesson, finalMinutes, clockOnly }
@@ -137,7 +110,6 @@ public struct PhaseTimer: Hashable, Sendable {                                  
   public static func format(_ remaining: TimeInterval) -> String   // „m:ss“, aufgerundet auf volle Sekunden
 }
 
-public enum BoardBackground: String, CaseIterable, Codable, Sendable { case blank, lined, grid, image }     // FR-12.1, FR-12.5, FR-12.6
 public enum BoardHistory { public static func previousLessonKey(before key: LessonKey, among keysWithPages: [LessonKey]) -> LessonKey? }   // FR-12.3
 public struct BoardCover: Hashable, Sendable {                                                               // FR-12.7
   public enum Audience: Sendable { case tablet, secondScreen }
@@ -154,19 +126,24 @@ public enum UnlockRules { public static func grantsUnlock(productID: String, isV
 ```swift
 // Purchase/
 @MainActor @Observable final class Unlock { static let productID = "frontstage.classroom"; private(set) var isUnlocked: Bool; init(listenForUpdates: Bool = true); func refresh() async; func handle(_ result: VerificationResult<Transaction>) async; func restore() async throws }
-enum PaidFeature: Sendable { case classScreen, board }
+enum PaidFeature: Sendable { case classScreen, timer, workMode, board }   // FR-13: nur diese vier
 struct PaidGate<Content: View>: View { init(_ feature: PaidFeature, @ViewBuilder content: () -> Content) }
 struct PurchaseOfferView: View
-// SecondScreen/
+/// Reine Regel: was ClassScreenView/BoardView am Zweitbildschirm zeigen (06-Dateien bleiben unberührt).
 enum SecondScreenRendering: Hashable { case classScreen, neutral, material, board, dark; static func resolve(_ content: SecondScreenContent, isUnlocked: Bool) -> SecondScreenRendering }
+/// Ein Bündel für beide Szenen; classroomEnvironment() hängt es an.
+@MainActor final class ClassroomServices { static func configure(store: DataStore); static var shared: ClassroomServices { get }; let unlock: Unlock; let session: LessonSessionState; let board: BoardSession }
 // ClassScreen/
 @MainActor @Observable final class LessonSessionState { var timer: PhaseTimer; var workMode: WorkMode?; private(set) var lessonKey: LessonKey?; func lessonDidChange(to key: LessonKey?); func startTimer(minutes: Int, now: Date); func pauseTimer(now: Date); func resumeTimer(now: Date); func stopTimer() }
-struct ClassScreenView: View { init(display: ClassScreenDisplay, now: Date) }
-struct ClassScreenHost: View
+struct ClassScreenContentView: View { init(display: ClassScreenDisplay, now: Date) }   // reine Darstellung
+struct ClassScreenView: View { init() }        // Einhängepunkt aus 06: holt Daten, ohne Kauf neutrale Fläche
+struct ClassScreenOverlay: View { init() }     // Einhängepunkt aus 06: Timer-Schicht (PhaseTimerOverlay)
+struct ClassroomControls: View { init() }      // Einhängepunkt aus 06: Timer, Arbeitsform in der SmartboardBar
 struct PhaseTimerOverlay: View
 @MainActor final class TimerSignalPlayer { func play() }
 // Board/
-@MainActor struct BoardStore { init(context: ModelContext); … }        // Aufgabe 8
+@MainActor struct BoardStore { init(store: DataStore); … }             // Aufgabe 8, dünn über DataStore (02)
+struct BoardView: View { init() }                                      // Einhängepunkt aus 06: Tafel am Zweitbildschirm
 @MainActor @Observable final class BoardSession { … }                   // Aufgabe 9
 enum BoardGeometry { static let canvasSize = CGSize(width: 1600, height: 900); static let lineSpacing: CGFloat = 60; static let gridSpacing: CGFloat = 50 }
 struct BoardPageSnapshot: Equatable, Sendable { var background: BoardBackground; var backgroundImageData: Data?; var drawingData: Data? }
@@ -183,16 +160,16 @@ enum TemplateRenderer { static let outputPixelSize = (width: 2400, height: 1350)
 | `Packages/FrontstageCore/Sources/FrontstageCore/ClassScreen/WorkMode.swift` | Arbeitsform |
 | `…/ClassScreen/ClassScreenDisplay.swift` | Was der Klassenbildschirm zeigt, aus Phase + Stundenangaben |
 | `…/ClassScreen/PhaseTimer.swift` | Timer aus Endzeitpunkt |
-| `…/Board/BoardBackground.swift`, `…/Board/BoardHistory.swift`, `…/Board/BoardCover.swift` | Tafel-Regeln |
+| `…/Board/BoardHistory.swift`, `…/Board/BoardCover.swift` | Tafel-Regeln (`BoardBackground` kommt aus Teilplan 02) |
 | `…/Purchase/UnlockRules.swift` | Regel „schaltet frei“ |
 | `Frontstage/Purchase/Unlock.swift`, `PaidGate.swift`, `PurchaseOfferView.swift` | Freischaltung, Kaufangebot |
 | `Frontstage/Resources/Frontstage.storekit` | StoreKit-Konfiguration für Tests und Läufe aus Xcode |
 | `Frontstage/ClassScreen/LessonSessionState.swift`, `TimerSignalPlayer.swift` | flüchtiger Zustand der laufenden Unterrichtsstunde, Signalton |
-| `Frontstage/ClassScreen/ClassScreenView.swift`, `ClassScreenHost.swift`, `PhaseTimerOverlay.swift` | Klassenbildschirm-Ansicht, Datenbeschaffung, Timer-Schicht |
-| `Frontstage/ClassScreen/ClassroomControls.swift`, `LessonInfoEditor.swift` | Bedienung am Tablet: Timer, Arbeitsform, Dunkel; Thema/Bereitlegen/Hausaufgabe |
-| `Frontstage/SecondScreen/SecondScreenRendering.swift` | Abbildung Zustand → Darstellung inkl. Freischaltung |
+| `Frontstage/ClassScreen/ClassScreenContentView.swift`, `PhaseTimerOverlay.swift` | Klassenbildschirm-Darstellung, Timer-Schicht |
+| `Frontstage/ClassScreen/ClassScreenView.swift`, `ClassScreenOverlay.swift`, `ClassroomControls.swift`, `ClassroomEnvironment.swift`, `Frontstage/Board/BoardView.swift` | **Einhängepunkte** (Platzhalter aus 06, Inhalt hier – Modify nur dieser Dateien) |
+| `Frontstage/ClassScreen/ClassroomServices.swift`, `SecondScreenRendering.swift` | Bündel für beide Szenen; Abbildung Zustand → Darstellung inkl. Freischaltung |
 | `Frontstage/Board/BoardStore.swift`, `BoardSession.swift`, `BoardGeometry.swift`, `BoardPageRenderer.swift` | Tafelseiten speichern, Sitzung, Geometrie, Zeichnen |
-| `Frontstage/Board/BoardScreen.swift`, `BoardPageSurface.swift`, `BoardSecondScreenView.swift` | Tafel am Tablet/Mac, Seite mit Hintergrund, Tafel am Zweitbildschirm |
+| `Frontstage/Board/BoardScreen.swift`, `BoardPageSurface.swift` | Tafel am Tablet/Mac, Seite mit Hintergrund (Tafel am Zweitbildschirm: `BoardView`, Einhängepunkt) |
 | `Frontstage/Board/BoardPDFExporter.swift`, `BoardDrawingPDF.swift` | PDF erzeugen, Teilen-Dialog |
 | `Frontstage/Board/BoardCoverHandle.swift` | Abdecken am Tablet |
 | `Frontstage/Board/TemplateRenderer.swift`, `TemplatePicker.swift` | Vorlage rendern und wählen |
@@ -262,12 +239,12 @@ func finalMinutesWithoutHomeworkFallsBackToLessonContent() {
 }
 @Test("AK-27: Partnerarbeit wird gezeigt, ohne Auswahl keine") func workModeIsPassedThrough() {
   let phase = ClassScreenCalculator.phase(now: TimeOfDay(hour: 8, minute: 40), lessons: lessons)
-  #expect(ClassScreenDisplayBuilder.display(phase: phase, info: nil, workMode: .pair).workMode == .pair)
+  #expect(ClassScreenDisplayBuilder.display(phase: phase, info: nil, workMode: .pairs).workMode == .pairs)
   #expect(ClassScreenDisplayBuilder.display(phase: phase, info: nil, workMode: nil).workMode == nil)
 }
 ```
 
-- [ ] **Step 3: Diff durchsehen** – Tests kompilieren erst nach Step 4; prüfen, dass alle verwendeten Kern-Initialisierer öffentlich sind (Abstimmungsbedarf 01).
+- [ ] **Step 3: Diff durchsehen** – Tests kompilieren erst nach Step 4; alle verwendeten Kern-Initialisierer sind öffentlich (Teilplan 01, Abstimmung Punkt 1).
 
 - [ ] **Step 4: Implementieren** – `ClassScreenDisplayBuilder.display` nach den Regeln aus den Tests: Texte trimmen (`whitespacesAndNewlines`), leer → `nil`; `schoolClass` = `SchoolClass.normalized`, `subject` = `Subject.display`; `endTime` = `lesson.time?.upperBound`; `workMode` nur bei `kind != .clockOnly`. `///`-Doku deutsch mit Verweis auf FR-11.7.
 
@@ -336,12 +313,12 @@ let t0 = Date(timeIntervalSinceReferenceDate: 800_000_000)
 ### Task 3: Tafel-Regeln im Kern (FR-12.1, FR-12.3, FR-12.7)
 
 **Files:**
-- Create: `Packages/FrontstageCore/Sources/FrontstageCore/Board/BoardBackground.swift`, `BoardHistory.swift`, `BoardCover.swift`
+- Create: `Packages/FrontstageCore/Sources/FrontstageCore/Board/BoardHistory.swift`, `BoardCover.swift`
 - Test: `Packages/FrontstageCore/Tests/FrontstageCoreTests/BoardRulesTests.swift`
 
 **Interfaces:**
-- Consumes: `LessonKey`, `CalendarDay` (Comparable), `SchoolClass`, `Subject`.
-- Produces: `BoardBackground`, `BoardHistory.previousLessonKey(before:among:)`, `BoardCover` (s. Interfaces-Block).
+- Consumes: `LessonKey`, `CalendarDay` (Comparable), `SchoolClass`, `Subject` (01). `BoardBackground` legt Teilplan 02 an (samt Test der Rohwerte) – hier nicht.
+- Produces: `BoardHistory.previousLessonKey(before:among:)`, `BoardCover` (s. Interfaces-Block).
 
 - [ ] **Step 1: Failing tests schreiben**
 
@@ -369,15 +346,12 @@ func previousBoardDrawingWithinSameDayUsesLowerOrdinal() {
 @Test("AK-39: deckend am Zweitbildschirm, durchscheinend am Tablet") func coverOpacityPerAudience() {
   #expect(BoardCover.opacity(for: .secondScreen) == 1.0); #expect(BoardCover.opacity(for: .tablet) == 0.4)
 }
-@Test("Hintergründe als Text stabil (gespeichert in BoardPageRecord)") func backgroundRawValues() {
-  #expect(BoardBackground.allCases.map(\.rawValue) == ["blank", "lined", "grid", "image"])
-}
 ```
 
 - [ ] **Step 2: Diff durchsehen.**
 - [ ] **Step 3: Implementieren** – `previousLessonKey`: Filter gleiche `schoolClass` und `subject`, streng früher nach `(date, ordinal)`, Maximum davon.
 - [ ] **Step 4: Diff durchsehen** – `BoardCover.opacity(.tablet)` als benannte Konstante mit Kommentar „Platzhalter, Design-Runde offen“.
-- [ ] **Step 5: Commit** – `feat(core): board background, previous board drawing, cover rules (FR-12.1, FR-12.3, FR-12.7)`.
+- [ ] **Step 5: Commit** – `feat(core): previous board drawing and cover rules (FR-12.3, FR-12.7)`.
 
 ### Task 4: Freischaltung mit StoreKit 2 (FR-13)
 
@@ -387,16 +361,17 @@ func previousBoardDrawingWithinSameDayUsesLowerOrdinal() {
 - Create: `Packages/FrontstageCore/Sources/FrontstageCore/Purchase/UnlockRules.swift`
 - Create: `Frontstage/Purchase/Unlock.swift`, `Frontstage/Purchase/PaidGate.swift`, `Frontstage/Purchase/PurchaseOfferView.swift`
 - Create: `Frontstage/Resources/Frontstage.storekit`
-- Create: `Frontstage/SecondScreen/SecondScreenRendering.swift`
+- Create: `Frontstage/ClassScreen/SecondScreenRendering.swift`, `Frontstage/ClassScreen/ClassroomServices.swift`
 - Modify: `project.yml` (Test-Ziel: Ressource `Frontstage/Resources/Frontstage.storekit`, Abhängigkeit `- sdk: StoreKitTest.framework`; Schema `run.storeKitConfiguration: Frontstage/Resources/Frontstage.storekit`)
-- Modify: `Frontstage/App/FrontstageApp.swift` (ein `Unlock` als `@State`, per `.environment(unlock)` in alle Szenen inkl. Zweitbildschirm-Szene)
+- Modify (Einhängepunkt aus 06): `Frontstage/ClassScreen/ClassroomEnvironment.swift` – `classroomEnvironment()` hängt `ClassroomServices.shared.unlock`, `.session` und `.board` per `.environment(_:)` an; 06 ruft es über `secondScreenEnvironment()` in **beiden** Szenen auf.
+- Modify: `Frontstage/App/FrontstageApp.swift` (Teilplan 04) – nur die Zeile `ClassroomServices.configure(store: dataStore)` beim Start.
 - Modify: `Frontstage/UI/Setup/SetupView.swift` (Abschnitt „Kauf“ mit „Käufe wiederherstellen“)
 - Modify: `Frontstage/Resources/Localizable.xcstrings`
 - Test: `Packages/FrontstageCore/Tests/FrontstageCoreTests/UnlockRulesTests.swift`, `FrontstageTests/UnlockTests.swift`, `FrontstageTests/SecondScreenRenderingTests.swift`
 
 **Interfaces:**
-- Consumes: `SecondScreenContent` (Teilplan 06).
-- Produces: `UnlockRules`, `Unlock`, `PaidFeature`, `PaidGate`, `PurchaseOfferView`, `SecondScreenRendering.resolve(_:isUnlocked:)`.
+- Consumes: `SecondScreenContent`, `classroomEnvironment()` (Einhängepunkt, Teilplan 06); `SetupView` (Teilplan 04).
+- Produces: `UnlockRules`, `Unlock`, `PaidFeature`, `PaidGate`, `PurchaseOfferView`, `SecondScreenRendering.resolve(_:isUnlocked:)`, `ClassroomServices`.
 
 - [ ] **Step 1: StoreKit-Konfiguration anlegen** – `Frontstage.storekit` (JSON) mit genau einem Produkt: `type: "NonConsumable"`, `productID: "frontstage.classroom"`, `referenceName: "Classroom unlock"`, `familyShareable: false`, `displayPrice: "14.99"`, Lokalisierung `de`: `displayName` „Klassenbildschirm und Tafel“, `description` „Einmalkauf, kein Abo“. Format nach Xcode-Vorlage (`version.major 4`); lässt CI das Laden scheitern, die Datei einmal an einem Mac in Xcode öffnen und speichern.
 
@@ -431,7 +406,7 @@ func previousBoardDrawingWithinSameDayUsesLowerOrdinal() {
   }
 }
 
-@Test("AK-40: ohne Kauf neutrale Fläche statt Klassenbildschirm, Material bleibt frei") func secondScreenRenderingRespectsUnlock() {
+@Test("AK-40: ohne Kauf neutrale Fläche statt Klassenbildschirm, Material und Dunkel bleiben frei") func secondScreenRenderingRespectsUnlock() {
   #expect(SecondScreenRendering.resolve(.classScreen, isUnlocked: false) == .neutral)
   #expect(SecondScreenRendering.resolve(.material, isUnlocked: false) == .material)
   #expect(SecondScreenRendering.resolve(.board, isUnlocked: false) == .neutral)
@@ -448,23 +423,24 @@ func previousBoardDrawingWithinSameDayUsesLowerOrdinal() {
   - `handle(_:)`: bei `.verified` `await transaction.finish()`, danach `await refresh()` (Widerruf kommt so ebenfalls an).
   - `restore()`: `try await AppStore.sync()`, danach `refresh()`.
   - `PurchaseOfferView`: StoreKit-`ProductView(id: Unlock.productID)` (Systemdarstellung, kein eigenes Design) plus Knopf „Käufe wiederherstellen“; `.onInAppPurchaseCompletion { _, result in if case .success(.success(let v)) = result { await unlock.handle(v) } }` – Signatur beim Bau gegen die Xcode-Doku prüfen. Hinweistext „Einmalkauf, kein Abo, auf allen Geräten derselben Apple-ID“ (Wortlaut Platzhalter).
-  - `PaidGate`: zeigt `content` bei `unlock.isUnlocked`, sonst `PurchaseOfferView`.
+  - `PaidGate`: zeigt `content` bei `unlock.isUnlocked`, sonst `PurchaseOfferView`. Nur für `PaidFeature` (Klassenbildschirm, Timer, Arbeitsform, Tafel); nie um Material, „Dunkel“ oder Stundenangaben.
+  - `ClassroomServices.shared` legt `Unlock(listenForUpdates: true)`, `LessonSessionState(signal: TimerSignalPlayer())` und `BoardSession(store: BoardStore(store: <DataStore der App>), secondScreen: .shared)` einmal an (der `DataStore` wird beim App-Start über `ClassroomServices.configure(store:)` gesetzt – einzige Zeile in `FrontstageApp`, Teilplan 04/06 bleiben sonst unberührt); `classroomEnvironment()` hängt die drei per `.environment(_:)` an.
 - [ ] **Step 5: Texte** in `Localizable.xcstrings`: `purchase.offer.title` = „Klassenbildschirm und Tafel freischalten“, `purchase.offer.note` = „Einmalkauf, kein Abo – gilt auf allen Geräten mit derselben Apple-ID.“, `purchase.restore` = „Käufe wiederherstellen“, `purchase.restore.failed` = „Wiederherstellen ist fehlgeschlagen.“, `secondScreen.neutral.accessibility` = „Kein Inhalt“.
 - [ ] **Step 6: Diff durchsehen** – Kaufstand nirgends in SwiftData/`UserDefaults`; keine Netzwerkaufrufe außer StoreKit (NFR-2); `.storekit` nur in Test-Ziel und Schema, nicht in der App-Ressourcenliste.
 - [ ] **Step 7: Prüfung mit `apple-design`** (Design-Takt voll) auf `PurchaseOfferView`; Lücken (Wortlaut, Anordnung) im Bericht nennen.
 - [ ] **Step 8: Commit** – `feat(purchase): one-time unlock with StoreKit 2 and purchase offer (FR-13)`.
 
-### Task 5: Flüchtiger Zustand der Unterrichtsstunde und Signalton (FR-11.2, FR-11.3, FR-11.4)
+### Task 5: Flüchtiger Zustand der Unterrichtsstunde und Signalton (FR-11.2, FR-11.3)
 
 **Files:**
 - Create: `Frontstage/ClassScreen/LessonSessionState.swift`, `Frontstage/ClassScreen/TimerSignalPlayer.swift`
-- Modify: `Frontstage/SecondScreen/SecondScreenState.swift` (Teilplan 06): `private var contentBeforeDark: SecondScreenContent?`, `func toggleDark()`
-- Modify: `Frontstage/App/FrontstageApp.swift` (ein `LessonSessionState` per `.environment` in beide Szenen)
 - Test: `FrontstageTests/LessonSessionStateTests.swift`
 
+„Dunkel“ (FR-11.4) baut Teilplan 06 vollständig (`SecondScreenContent.dark`, `toggleDark()`); dieser Teilplan ändert dort nichts. `LessonSessionState` kommt über `ClassroomServices.shared` und `classroomEnvironment()` (Task 4) in beide Szenen – ohne weitere Änderung an `FrontstageApp`.
+
 **Interfaces:**
-- Consumes: `PhaseTimer`, `WorkMode`, `SecondScreenState`.
-- Produces: `LessonSessionState` (s. Interfaces-Block), `TimerSignalPlayer.play()`, `SecondScreenState.toggleDark()`.
+- Consumes: `PhaseTimer`, `WorkMode`.
+- Produces: `LessonSessionState` (s. Interfaces-Block), `TimerSignalPlayer.play()`.
 
 - [ ] **Step 1: Failing tests schreiben**
 
@@ -473,8 +449,8 @@ func previousBoardDrawingWithinSameDayUsesLowerOrdinal() {
   let a = LessonKey(date: CalendarDay(year: 2026, month: 11, day: 17), schoolClass: SchoolClass("8b"), subject: Subject("Englisch"), ordinal: 1)
   let b = LessonKey(date: CalendarDay(year: 2026, month: 11, day: 17), schoolClass: SchoolClass("9c"), subject: Subject("Mathe"), ordinal: 1)
   @Test("Arbeitsform gilt nur für die laufende Unterrichtsstunde") func workModeResetsOnLessonChange() {
-    let s = LessonSessionState(signal: nil); s.lessonDidChange(to: a); s.workMode = .pair
-    s.lessonDidChange(to: a); #expect(s.workMode == .pair)
+    let s = LessonSessionState(signal: nil); s.lessonDidChange(to: a); s.workMode = .pairs
+    s.lessonDidChange(to: a); #expect(s.workMode == .pairs)
     s.lessonDidChange(to: b); #expect(s.workMode == nil)
   }
   @Test("Laufender Timer überdauert den Stundenwechsel") func timerSurvivesLessonChange() {
@@ -482,63 +458,56 @@ func previousBoardDrawingWithinSameDayUsesLowerOrdinal() {
     s.lessonDidChange(to: a); s.startTimer(minutes: 5, now: now); s.lessonDidChange(to: b)
     #expect(s.timer.remaining(at: now) == 300)
   }
-  @Test("AK-28: Dunkel und zurück zeigt wieder dasselbe") func toggleDarkRestoresPreviousContent() {
-    let st = SecondScreenState(); st.content = .material
-    st.toggleDark(); #expect(st.content == .dark)
-    st.toggleDark(); #expect(st.content == .material)
-  }
 }
 ```
 
-- [ ] **Step 2: Diff durchsehen** – `SecondScreenState()` braucht einen parameterlosen Initialisierer (Abstimmungsbedarf 06).
+- [ ] **Step 2: Diff durchsehen.**
 - [ ] **Step 3: Implementieren**
   - `LessonSessionState(signal: TimerSignalPlayer?)`: `startTimer` setzt `timer.start(duration: minutes*60, now:)` und plant einen `Task`, der bis `endDate` schläft (`Task.sleep(until:)` mit `ContinuousClock` ist nicht an `Date` gebunden – daher `Task.sleep(for: .seconds(endDate.timeIntervalSinceNow))`), danach `if timer.shouldPlaySignal(at: .now) { signal?.play() }`. `pause`/`stop` brechen den Task ab; `resume` plant neu.
   - Kehrt die App zurück (`scenePhase == .active`), wird nicht nachgespielt – Review Focus 1 hält `shouldPlaySignal` dafür.
   - `TimerSignalPlayer`: `AVAudioEngine` + `AVAudioPlayerNode` mit einem selbst erzeugten `AVAudioPCMBuffer` (Sinus 880 Hz, drei Töne je 0,3 s mit 0,2 s Pause, Platzhalter); unter iOS vorher `AVAudioSession.sharedInstance().setCategory(.playback)` und `setActive(true)`, damit der Ton auch bei Stummschalter und über AirPlay am Bildschirm im Klassenraum kommt (Area anzeige › Klassenbildschirm). Keine Tondatei im Repo.
-  - `toggleDark()`: aus jedem Zustand außer `.dark` → merkt `content`, setzt `.dark`; aus `.dark` → stellt gemerkten Zustand her (Vorgabe `.classScreen`). Blättern/Seite des Materials bleibt unberührt, weil sie im Anzeige-Zustand von Teilplan 06 liegt.
 - [ ] **Step 4: Diff durchsehen** – Swift 6: `LessonSessionState` und `TimerSignalPlayer` `@MainActor`; der Sleep-`Task` erbt den MainActor; kein `Timer.scheduledTimer`.
-- [ ] **Step 5: Commit** – `feat(class-screen): ephemeral lesson session, timer signal, dark toggle (FR-11.2–FR-11.4)`.
+- [ ] **Step 5: Commit** – `feat(class-screen): ephemeral lesson session and timer signal (FR-11.2, FR-11.3)`.
 
-### Task 6: Klassenbildschirm am Zweitbildschirm mit Timer-Schicht (FR-11, FR-11.1, FR-11.2, FR-11.4, FR-11.7)
+### Task 6: Klassenbildschirm am Zweitbildschirm mit Timer-Schicht (FR-11, FR-11.1, FR-11.2, FR-11.7)
 
 **Design-Takt:** voll (neue Oberfläche, für die Klasse sichtbar)
 
 **Files:**
-- Create: `Frontstage/ClassScreen/ClassScreenView.swift`, `ClassScreenHost.swift`, `PhaseTimerOverlay.swift`
-- Modify: `Frontstage/SecondScreen/SecondScreenRootView.swift` (Teilplan 06): Darstellung über `SecondScreenRendering.resolve(state.content, isUnlocked:)`; `.classScreen` → `ClassScreenHost()`, `.neutral` → neutrale Fläche (Systemhintergrund), `.dark` → `Color.black` ohne Overlay; über allen anderen Zuständen `.overlay(alignment: .topTrailing) { PhaseTimerOverlay() }`
+- Create: `Frontstage/ClassScreen/ClassScreenContentView.swift`, `PhaseTimerOverlay.swift`
+- Modify (Einhängepunkte aus 06, Besitzer dieser Teilplan): `Frontstage/ClassScreen/ClassScreenView.swift` – `ClassScreenView()` zeigt über `SecondScreenRendering.resolve(.classScreen, isUnlocked:)` den Klassenbildschirm oder ohne Kauf die neutrale Fläche (FR-13, AK-40); `Frontstage/ClassScreen/ClassScreenOverlay.swift` – `ClassScreenOverlay()` = `PhaseTimerOverlay()` oben rechts, ohne Kauf leer. `SecondScreenRootView` (06) bleibt unverändert; sie legt die Schicht nie über `.dark`.
 - Modify: `Frontstage/Resources/Localizable.xcstrings`
 
 **Interfaces:**
-- Consumes: `ClassScreenDisplayBuilder`, `ClassScreenCalculator`, `TimetableCalculator.lessons(on:…)`, `loadScheduleSnapshot(in:)`, `LessonInfoRecord` (02), `LessonSessionState`, `Unlock`, `CalendarDay(_:calendar:)`, `TimeOfDay(_:calendar:)` (01).
-- Produces: `ClassScreenView(display:now:)`, `ClassScreenHost`, `PhaseTimerOverlay`.
+- Consumes: `ClassScreenDisplayBuilder`, `ClassScreenCalculator`, `CalendarDay(_:calendar:)`, `TimeOfDay(_:calendar:)` (01); `DataStore.lessons(on:)`, `.lessonInfo(for:)`, `.revision` (02); `LessonSessionState`, `Unlock` (über `classroomEnvironment()`).
+- Produces: `ClassScreenContentView(display:now:)`, Inhalt von `ClassScreenView()` und `ClassScreenOverlay()`, `PhaseTimerOverlay`.
 
-- [ ] **Step 1: `ClassScreenHost` schreiben** – `TimelineView(.periodic(from: .now, by: 1))`; Unterrichtsstunden des Tages werden nur neu berechnet, wenn sich Tag oder Minute ändern (Cache-Schlüssel `CalendarDay` + `TimeOfDay`); `@Query private var infos: [LessonInfoRecord]` (Änderungen, auch gespiegelte, kommen sofort an – AK-25), Zuordnung per `lessonKeyText == key.storageText`. Die Phase-`Lesson` meldet ihren Schlüssel an `LessonSessionState.lessonDidChange(to:)` (`.onChange`). Weitergereicht wird **nur** der `ClassScreenDisplay`.
-- [ ] **Step 2: `ClassScreenView(display:now:)`** – zeigt je `kind`: `upcoming` „Gleich:“ + Klasse + Fach + Bereitlegen; `inLesson` Klasse, Fach, „bis HH:mm“, Thema, Bereitlegen; `finalMinutes` Hausaufgabe groß (fehlt sie, wie `inLesson`); `clockOnly` Uhrzeit und Datum. Uhrzeit immer sichtbar (AK-24). Arbeitsform als `Label(text, systemImage:)` mit Platzhalter-Symbolen `person` / `person.2` / `person.3`. Leere Felder erzeugen keine Zeile. Schriftgrößen: Systemstile (`.largeTitle` u. a.), Lücke melden.
+- [ ] **Step 1: `ClassScreenView()` füllen** – `TimelineView(.periodic(from: .now, by: 1))`; Unterrichtsstunden des Tages über `DataStore.lessons(on:)` nur neu berechnen, wenn sich Tag, Minute oder `DataStore.revision` ändern (Änderungen, auch gespiegelte, kommen über `revision` an – AK-25); Stundenangaben über `DataStore.lessonInfo(for:)`. Die Phase-`Lesson` meldet ihren Schlüssel an `LessonSessionState.lessonDidChange(to:)` (`.onChange`). Weitergereicht an `ClassScreenContentView` wird **nur** der `ClassScreenDisplay`. Ohne Kauf: neutrale Fläche (Systemhintergrund), keine Daten.
+- [ ] **Step 2: `ClassScreenContentView(display:now:)`** – zeigt je `kind`: `upcoming` „Gleich:“ + Klasse + Fach + Bereitlegen; `inLesson` Klasse, Fach, „bis HH:mm“, Thema, Bereitlegen; `finalMinutes` Hausaufgabe groß (fehlt sie, wie `inLesson`); `clockOnly` Uhrzeit und Datum. Uhrzeit immer sichtbar (AK-24). Arbeitsform als `Label(text, systemImage:)` mit Platzhalter-Symbolen `person` / `person.2` / `person.3`. Leere Felder erzeugen keine Zeile. Schriftgrößen: Systemstile (`.largeTitle` u. a.), Lücke melden.
 - [ ] **Step 3: `PhaseTimerOverlay`** – liest `LessonSessionState.timer`; bei `idle` nichts; sonst Restzeit `PhaseTimer.format` groß; abgelaufen → `0:00` plus Text „Zeit ist um“ (statisch, nicht nur Bewegung – DESIGN.md „Wiederkehrende Fallen“); eigene `TimelineView(.periodic(by: 1))`.
-- [ ] **Step 4: Texte**: `classScreen.upcoming` = „Gleich:“, `classScreen.until %@` = „bis %@“, `classScreen.toPrepare %@` = „Bereitlegen: %@“, `classScreen.homework %@` = „Hausaufgabe: %@“, `workMode.individual` = „Einzelarbeit“, `workMode.pair` = „Partnerarbeit“, `workMode.group` = „Gruppenarbeit“, `timer.expired` = „Zeit ist um“.
-- [ ] **Step 5: Diff durchsehen** – `ClassScreenView` hat keine Parameter außer `display` und `now`; kein `Button` in Zweitbildschirm-Views; keine Dateinamen.
+- [ ] **Step 4: Texte**: `classScreen.upcoming` = „Gleich:“, `classScreen.until %@` = „bis %@“, `classScreen.toPrepare %@` = „Bereitlegen: %@“, `classScreen.homework %@` = „Hausaufgabe: %@“, `workMode.individual` = „Einzelarbeit“, `workMode.pairs` = „Partnerarbeit“, `workMode.groups` = „Gruppenarbeit“, `timer.expired` = „Zeit ist um“.
+- [ ] **Step 5: Diff durchsehen** – `ClassScreenContentView` hat keine Parameter außer `display` und `now`; keine Datei von Teilplan 06 im Diff; kein `Button` in Zweitbildschirm-Views; keine Dateinamen.
 - [ ] **Step 6: Prüfung mit `apple-design`** (Lesbarkeit aus Entfernung, Kontrast, Dynamic Type); Lücken nennen (Farbe, Größen, Symbole, Wortlaut).
 - [ ] **Step 7: Commit** – `feat(class-screen): class screen on second screen with timer overlay (FR-11, FR-11.7)`.
 
-### Task 7: Bedienung am Tablet – Timer, Arbeitsform, Dunkel, Stundenangaben (FR-11.1–FR-11.4)
+### Task 7: Bedienung am Tablet – Timer und Arbeitsform (FR-11.2, FR-11.3)
 
 **Design-Takt:** Hauptstufe
 
 **Files:**
-- Create: `Frontstage/ClassScreen/ClassroomControls.swift`, `Frontstage/ClassScreen/LessonInfoEditor.swift`
-- Modify: `Frontstage/SecondScreen/SmartboardBar.swift` (Teilplan 06): `ClassroomControls()` einhängen; „Dunkel“ ruft `toggleDark()`
-- Modify: `Frontstage/UI/DayView/DayView.swift` und `Frontstage/UI/Preparation/PreparationLessonDetail.swift` (Teilplan 04): `LessonInfoEditor(lessonKey:)` je Unterrichtsstunde
+- Modify (Einhängepunkt aus 06, Besitzer dieser Teilplan): `Frontstage/ClassScreen/ClassroomControls.swift` – `ClassroomControls()` füllen; `SmartboardBar` (06) zeigt es bereits.
 - Modify: `Frontstage/Resources/Localizable.xcstrings`
 
-**Interfaces:**
-- Consumes: `LessonSessionState`, `SecondScreenState.toggleDark()`, `LessonInfoRecord`, `PaidGate`.
-- Produces: `ClassroomControls`, `LessonInfoEditor(lessonKey: LessonKey)`.
+Thema, Bereitlegen und Hausaufgabe trägt die Lehrkraft kostenlos mit `LessonInfoEditor` aus Teilplan 04 (Vorbereiten, Tagesansicht) ein; „Dunkel“ schaltet die `SmartboardBar` aus 06 – beides gehört nicht hierher (Nutzerentscheidung 2026-11-13).
 
-- [ ] **Step 1: `ClassroomControls`** in `PaidGate(.classScreen)`: Timer – Dauer per `Stepper` in Minuten (1…60, Vorgabe 5, zuletzt verwendet im flüchtigen Zustand), Start/Anhalten/Weiter/Beenden; Arbeitsform – `Picker` mit „Keine“ + drei Fällen; Dunkel – Umschalter. Alles am Tablet, nichts davon am Zweitbildschirm.
-- [ ] **Step 2: `LessonInfoEditor(lessonKey:)`** in `PaidGate(.classScreen)`: drei `TextField` (Thema, Bereitlegen, Hausaufgabe); holt oder legt **einen** `LessonInfoRecord` je `lessonKeyText` an; speichert beim Verlassen des Felds (`.onSubmit` und `.onChange(of: focus)`); leerer Text wird als `nil` gespeichert.
-- [ ] **Step 3: Texte**: `timer.title` = „Timer“, `timer.start` = „Starten“, `timer.pause` = „Anhalten“, `timer.resume` = „Weiter“, `timer.stop` = „Beenden“, `timer.minutes %lld` = „%lld Minuten“, `workMode.title` = „Arbeitsform“, `workMode.none` = „Keine“, `secondScreen.dark` = „Dunkel“, `lessonInfo.topic` = „Thema“, `lessonInfo.toPrepare` = „Bereitlegen“, `lessonInfo.homework` = „Hausaufgabe“.
-- [ ] **Step 4: Diff durchsehen** – kein zweiter `LessonInfoRecord` je Schlüssel (vorher abfragen); Zusammenführen doppelter Datensätze nach Abgleich bleibt Teilplan 02.
-- [ ] **Step 5: Commit** – `feat(class-screen): tablet controls and lesson info editor (FR-11.1–FR-11.4)`.
+**Interfaces:**
+- Consumes: `LessonSessionState`, `PaidGate` (Task 4/5).
+- Produces: Inhalt von `ClassroomControls()`.
+
+- [ ] **Step 1: `ClassroomControls`**: Timer in `PaidGate(.timer)` – Dauer per `Stepper` in Minuten (1…60, Vorgabe 5, zuletzt verwendet im flüchtigen Zustand), Start/Anhalten/Weiter/Beenden; Arbeitsform in `PaidGate(.workMode)` – `Picker` mit „Keine“ + drei Fällen. Ohne Kauf ein kompakter Hinweis mit Kaufangebot statt der Knöpfe. Alles am Tablet, nichts davon am Zweitbildschirm.
+- [ ] **Step 2: Texte**: `timer.title` = „Timer“, `timer.start` = „Starten“, `timer.pause` = „Anhalten“, `timer.resume` = „Weiter“, `timer.stop` = „Beenden“, `timer.minutes %lld` = „%lld Minuten“, `workMode.title` = „Arbeitsform“, `workMode.none` = „Keine“.
+- [ ] **Step 3: Diff durchsehen** – keine Datei von Teilplan 06 außer dem Einhängepunkt im Diff.
+- [ ] **Step 4: Commit** – `feat(class-screen): tablet controls for timer and work mode (FR-11.2, FR-11.3)`.
 
 ### Task 8: Tafelseiten speichern (FR-12.1, FR-12.2, FR-12.3)
 
@@ -547,30 +516,34 @@ func previousBoardDrawingWithinSameDayUsesLowerOrdinal() {
 - Test: `FrontstageTests/BoardStoreTests.swift`
 
 **Interfaces:**
-- Consumes: `BoardPageRecord` (02), `BoardBackground`, `BoardHistory`, `LessonKey.storageText`/`init?(storageText:)`.
-- Produces:
+- Consumes: `BoardPageRecord`, `BoardBackground`, `DataStore.boardPages(for:)`, `.addBoardPage(for:background:backgroundImageData:)`, `.setBoardPageBackground(_:background:imageData:)`, `.saveBoardPageDrawing(_:drawingData:)`, `.deleteBoardPage(_:)`, `.deleteBoardDrawing(for:)`, `.lessonKeysWithBoardPages()` (Teilplan 02); `BoardHistory` (Task 3).
+- Produces (dünne Hülle über dem einzigen Datenzugang `DataStore`, Übersicht Abstimmung Punkt 4):
 
 ```swift
 @MainActor struct BoardStore {
-  init(context: ModelContext)
-  func pages(for key: LessonKey) throws -> [BoardPageRecord]        // sortiert nach position, dann createdAt
-  @discardableResult func addPage(for key: LessonKey, background: BoardBackground, backgroundImageData: Data? = nil) throws -> BoardPageRecord   // position = max + 1
-  func setBackground(_ background: BoardBackground, of page: BoardPageRecord) throws
+  init(store: DataStore)
+  func pages(for key: LessonKey) throws -> [BoardPageRecord]        // = store.boardPages(for:)
+  @discardableResult func addPage(for key: LessonKey, background: BoardBackground, backgroundImageData: Data? = nil) throws -> BoardPageRecord
+  func setBackground(_ background: BoardBackground, imageData: Data?, of page: BoardPageRecord) throws
   func saveDrawing(_ data: Data, to page: BoardPageRecord) throws
   func deleteBoardDrawing(for key: LessonKey) throws                // alle Seiten dieser Unterrichtsstunde
+  /// FR-12.3: store.lessonKeysWithBoardPages() → BoardHistory.previousLessonKey(before:among:).
   func previousBoardDrawingKey(before key: LessonKey) throws -> LessonKey?
 }
 ```
 
-- [ ] **Step 1: Failing tests schreiben** (Container auf Datei im temporären Ordner, `ModelConfiguration(url:cloudKitDatabase: .none)`, damit ein „Neustart“ prüfbar ist)
+- [ ] **Step 1: Failing tests schreiben** (Container auf Datei im temporären Ordner mit `ModelContainerFactory.modelTypes` und `ModelConfiguration(url:cloudKitDatabase: .none)` aus Teilplan 02, `DataStore(modelContext:)` darauf, damit ein „Neustart“ prüfbar ist)
 
 ```swift
 @MainActor @Suite struct BoardStoreTests {
   let tue8b = LessonKey(date: CalendarDay(year: 2026, month: 11, day: 17), schoolClass: SchoolClass("8b"), subject: Subject("Englisch"), ordinal: 1)
-  func container(_ url: URL) throws -> ModelContainer { try ModelContainer(for: BoardPageRecord.self, configurations: ModelConfiguration(url: url, cloudKitDatabase: .none)) }
+  func dataStore(_ url: URL) throws -> DataStore {
+    let schema = Schema(ModelContainerFactory.modelTypes)
+    return DataStore(modelContext: ModelContext(try ModelContainer(for: schema, configurations: ModelConfiguration(schema: schema, url: url, cloudKitDatabase: .none))))
+  }
 
   @Test("AK-31: neue Seite kariert und leer, Seite 1 unverändert") func addPageKeepsFirstPage() throws {
-    let store = BoardStore(context: ModelContext(try container(.temporaryDirectory.appending(path: UUID().uuidString + ".store"))))
+    let store = BoardStore(store: try dataStore(.temporaryDirectory.appending(path: UUID().uuidString + ".store")))
     let p1 = try store.addPage(for: tue8b, background: .blank); try store.saveDrawing(Data([1, 2, 3]), to: p1)
     try store.addPage(for: tue8b, background: .grid)
     let pages = try store.pages(for: tue8b)
@@ -579,8 +552,8 @@ func previousBoardDrawingWithinSameDayUsesLowerOrdinal() {
   }
   @Test("AK-32: zwei Seiten überstehen den Neustart; Löschen leert die Tafel") func boardDrawingPersistsAndDeletes() throws {
     let url = URL.temporaryDirectory.appending(path: UUID().uuidString + ".store")
-    do { let s = BoardStore(context: ModelContext(try container(url))); try s.addPage(for: tue8b, background: .blank); try s.addPage(for: tue8b, background: .lined) }   // Kontext speichert in addPage
-    let s2 = BoardStore(context: ModelContext(try container(url)))
+    do { let s = BoardStore(store: try dataStore(url)); try s.addPage(for: tue8b, background: .blank); try s.addPage(for: tue8b, background: .lined) }   // DataStore speichert in addBoardPage
+    let s2 = BoardStore(store: try dataStore(url))
     #expect(try s2.pages(for: tue8b).count == 2)
     try s2.deleteBoardDrawing(for: tue8b); #expect(try s2.pages(for: tue8b).isEmpty)
   }
@@ -590,8 +563,8 @@ func previousBoardDrawingWithinSameDayUsesLowerOrdinal() {
 ```
 
 - [ ] **Step 2: Diff durchsehen.**
-- [ ] **Step 3: Implementieren** – `FetchDescriptor` mit `#Predicate { $0.lessonKeyText == text }` und `SortDescriptor(\.position)`, `SortDescriptor(\.createdAt)`; jede schreibende Methode ruft `context.save()`. `previousBoardDrawingKey`: alle `lessonKeyText` holen, über `LessonKey(storageText:)` zurückwandeln (unlesbare überspringen), dann `BoardHistory.previousLessonKey`.
-- [ ] **Step 4: Diff durchsehen** – kein `#Unique`; alle Felder aus 02 optional/mit Vorgabe.
+- [ ] **Step 3: Implementieren** – jede Methode ruft genau die genannte `DataStore`-Methode (Sortierung, Speichern und Schlüssel-Rückwandlung liegen dort); `previousBoardDrawingKey`: `Array(store.lessonKeysWithBoardPages())` → `BoardHistory.previousLessonKey`.
+- [ ] **Step 4: Diff durchsehen** – kein direkter `ModelContext`-Zugriff außerhalb der Test-Hilfe; kein `#Unique`.
 - [ ] **Step 5: Commit** – `feat(board): board page store per lesson (FR-12.1–FR-12.3)`.
 
 ### Task 9: Tafel am Tablet, am Mac und am Zweitbildschirm (FR-12, FR-12.1, FR-12.2, FR-12.3)
@@ -599,15 +572,16 @@ func previousBoardDrawingWithinSameDayUsesLowerOrdinal() {
 **Design-Takt:** voll (neue Oberfläche)
 
 **Files:**
-- Create: `Frontstage/Board/BoardGeometry.swift`, `BoardPageRenderer.swift`, `BoardSession.swift`, `BoardScreen.swift`, `BoardPageSurface.swift`, `BoardSecondScreenView.swift`
-- Modify: `Frontstage/SecondScreen/SecondScreenRootView.swift`: `.board` → `BoardSecondScreenView()`
-- Modify: `Frontstage/UI/DayView/DayView.swift` (Teilplan 04): Knopf „Tafel“ je `LessonRow` öffnet `BoardScreen(lessonKey:)` als Vollbild-Cover (iOS) bzw. Fenster-Sheet (macOS), in `PaidGate(.board)`
-- Modify: `Frontstage/App/FrontstageApp.swift` (ein `BoardSession` per `.environment` in beide Szenen)
+- Create: `Frontstage/Board/BoardGeometry.swift`, `BoardPageRenderer.swift`, `BoardSession.swift`, `BoardScreen.swift`, `BoardPageSurface.swift`
+- Modify (Einhängepunkt aus 06, Besitzer dieser Teilplan): `Frontstage/Board/BoardView.swift` – `BoardView()` zeigt die aktuelle Seite aus `BoardSession` ohne Bedienelemente; ohne Kauf neutrale Fläche (`SecondScreenRendering.resolve(.board, isUnlocked:)`). `SecondScreenRootView` (06) bleibt unverändert.
+- Modify: `Frontstage/UI/DayView/DayView.swift` (Teilplan 04): Knopf „Tafel“ je `LessonRow` öffnet `BoardScreen(lessonKey:)` als Vollbild-Cover (iOS) bzw. Fenster-Sheet (macOS), in `PaidGate(.board)`; `Frontstage/UI/Preparation/LessonDetailView.swift` (Teilplan 04): Tafelbilder der Stunde ansehen und als PDF sichern (Aufgabe 10)
 - Modify: `Frontstage/Resources/Localizable.xcstrings`
-- Test: `FrontstageTests/BoardSessionTests.swift`, `FrontstageTests/BoardTestSupport.swift` (`tue8b`, `wed8b`, `tue8a` als `LessonKey`; `@MainActor func makeSession() throws -> (BoardSession, SecondScreenState)` mit In-Memory-Container `ModelConfiguration(isStoredInMemoryOnly: true)`; auch von Aufgaben 10 und 13 genutzt)
+- Test: `FrontstageTests/BoardSessionTests.swift`, `FrontstageTests/BoardTestSupport.swift` (`tue8b`, `wed8b`, `tue8a` als `LessonKey`; `@MainActor func makeSession() throws -> (BoardSession, SecondScreenState)` mit `makeStore()` aus Teilplan 02 und `SecondScreenState()`; auch von Aufgaben 10 und 13 genutzt)
+
+`BoardSession` kommt über `ClassroomServices.shared` und `classroomEnvironment()` (Task 4) in beide Szenen; keine weitere Änderung an `FrontstageApp`.
 
 **Interfaces:**
-- Consumes: `BoardStore`, `PenCanvas` (06), `SecondScreenState`, `BoardBackground`, `BoardCover`.
+- Consumes: `BoardStore`, `PenCanvas`, `SecondScreenState.select(_:)`, `.setBoardLesson(_:)`, `.setBoardAvailable(_:)` (06), `BoardBackground` (02), `BoardCover`.
 - Produces:
 
 ```swift
@@ -619,8 +593,8 @@ func previousBoardDrawingWithinSameDayUsesLowerOrdinal() {
   var cover: BoardCover?                     // Aufgabe 11
   var isCameraLive: Bool                     // Aufgabe 13
   init(store: BoardStore, secondScreen: SecondScreenState)
-  func open(_ key: LessonKey) throws         // legt Seite 1 (blank) an, wenn keine existiert; secondScreen.content = .board
-  func close() throws                        // speichert sofort; secondScreen.content = .classScreen
+  func open(_ key: LessonKey) throws         // legt Seite 1 (blank) an, wenn keine existiert; setBoardLesson(key), setBoardAvailable(true), select(.board)
+  func close() throws                        // speichert sofort; setBoardAvailable(false) → 06 fällt auf .classScreen zurück
   func addPage(background: BoardBackground, imageData: Data? = nil) throws
   func setBackground(_ background: BoardBackground) throws
   func goToPage(_ index: Int)                // speichert vorher, setzt cover = nil
@@ -661,7 +635,7 @@ func previousBoardDrawingWithinSameDayUsesLowerOrdinal() {
   - `BoardPageRenderer.draw(_:in:size:)`: Weiß füllen, Linien, ggf. Hintergrundbild (`CGImageSource` aus `backgroundImageData`, einpassend), dann Zeichnung: `PKDrawing(data:)` → `image(from: CGRect(origin: .zero, size: BoardGeometry.canvasSize), scale:)` → `CGImage` (iOS `.cgImage`, macOS `cgImage(forProposedRect:context:hints:)`). Unlesbare Zeichnungsdaten: Seite ohne Zeichnung zeichnen, nie abstürzen.
   - `BoardPageSurface(page:drawing:cover:audience:)`: Hintergrund (`Canvas`) + Zeichnung; am Tablet darüber `PenCanvas` (iOS, `isEditable` nur in `.own`), am Mac und am Zweitbildschirm das gerenderte Bild. Seitenverhältnis 16:9, einpassend.
   - `BoardScreen` (Tablet/Mac): Seitenleiste „Seite n von m“, blättern, „Seite hinzufügen“ mit Hintergrundwahl (Leer/Liniert/Kariert), Hintergrund der aktuellen Seite ändern, „Letztes Tafelbild“, „Tafelbild löschen“ (Bestätigung), PencilKit-Werkzeugleiste (Stift, Radierer, Farben aus `PKToolPicker`) – das genügt FR-12 „Radierer und einige Farben“ ohne eigene Farbwahl.
-  - `BoardSecondScreenView`: aktuelle Seite aus `BoardSession` ohne Bedienelemente; `liveDrawing` für Echtzeit; Abdeckung deckend (Aufgabe 11); Livebild bei `isCameraLive` (Aufgabe 13).
+  - `BoardView()` (Einhängepunkt): aktuelle Seite aus `BoardSession` ohne Bedienelemente; `liveDrawing` für Echtzeit; Abdeckung deckend (Aufgabe 11); Livebild bei `isCameraLive` (Aufgabe 13).
   - Am Mac: kein `PenCanvas`, `isEditable == false`, Bedienung auf Blättern, PDF, Löschen beschränkt (Area anzeige › Tafel).
 - [ ] **Step 4: Texte**: `board.title` = „Tafel“, `board.page %lld %lld` = „Seite %lld von %lld“, `board.addPage` = „Seite hinzufügen“, `board.background.blank` = „Leer“, `board.background.lined` = „Liniert“, `board.background.grid` = „Kariert“, `board.previous` = „Letztes Tafelbild“, `board.previous.none` = „Kein früheres Tafelbild dieser Klasse in diesem Fach“, `board.backToOwn` = „Zurück zur Tafel dieser Stunde“, `board.delete` = „Tafelbild löschen“, `board.delete.confirm` = „Alle Seiten dieser Unterrichtsstunde löschen?“.
 - [ ] **Step 5: Diff durchsehen** – `#if os(iOS)` um PencilKit-Zeichenfläche; Speichern sicher beim Schließen (`close`, `scenePhase` → `.background` ruft `flush`).
@@ -757,7 +731,7 @@ func previousBoardDrawingWithinSameDayUsesLowerOrdinal() {
 - Test: `FrontstageTests/TemplateRendererTests.swift`
 
 **Interfaces:**
-- Consumes: `materialReferences(for:in:)`, `MaterialReference.fileKind`/`displayName` (02), `StorageAccess.withFileURL` (03), `BoardSession.addPage(background:imageData:)`.
+- Consumes: `DataStore.links(for:)` → `.reference` je Zuordnung in Reihenfolge, `MaterialReference.fileKind`/`displayName` (02), `StorageService.reference(forPickedFile:)` und `StorageService.withFileURL(for:_:)` (03), `BoardSession.addPage(background:imageData:)`.
 - Produces: `TemplateRenderer.renderPDFPage(at:pageIndex:crop:)`, `TemplateRenderer.renderImage(at:crop:)` → JPEG `Data`, immer `2400 × 1350` px; `crop` normiert 0…1, Ursprung oben links; `nil` = ganze Seite.
 
 - [ ] **Step 1: Failing tests schreiben**
@@ -793,7 +767,7 @@ func previousBoardDrawingWithinSameDayUsesLowerOrdinal() {
 **Files:**
 - Create: `Frontstage/Board/CameraFeed.swift`, `Frontstage/Board/CameraAvailability.swift`
 - Modify: `project.yml` (iOS-Ziel `info.properties`: `NSCameraUsageDescription` = „Die Kamera zeigt Heft, Buchseite oder Versuch an der Tafel.“ – Wortlaut Platzhalter)
-- Modify: `Frontstage/Board/BoardScreen.swift` (Knopf „Kamera“ → Livebild als Hintergrund, Knöpfe „Standbild“ und „Abbrechen“), `Frontstage/Board/BoardSecondScreenView.swift` (bei `isCameraLive` Livebild statt Seite)
+- Modify: `Frontstage/Board/BoardScreen.swift` (Knopf „Kamera“ → Livebild als Hintergrund, Knöpfe „Standbild“ und „Abbrechen“), `Frontstage/Board/BoardView.swift` (Einhängepunkt, Besitzer dieser Teilplan: bei `isCameraLive` Livebild statt Seite)
 - Modify: `Frontstage/Resources/Localizable.xcstrings`
 - Test: `FrontstageTests/CameraTests.swift`
 
@@ -877,10 +851,10 @@ Abzuhaken am TestFlight-Bau, Ergebnis je Zeile eintragen (`ok` / Befund).
 | Anforderung | AK | Aufgaben | Beleg |
 |---|---|---|---|
 | FR-11 | AK-24 | 1, 6 | Kern-Test + `apple-design`-Prüfung; Gesamtablauf am Gerät (Checkliste 06) |
-| FR-11.1 | AK-25 | 1, 6, 7 | Kern-Test |
+| FR-11.1 | AK-25 | 1, 6 | Kern-Test (Anzeige am Zweitbildschirm); Eingabe kostenlos in Teilplan 04 |
 | FR-11.2 | AK-26 | 2, 5, 6, 7 | Kern-Tests; Ton am Gerät (Aufgabe 15) |
 | FR-11.3 | AK-27 | 1, 6, 7 | Kern-Test |
-| FR-11.4 | AK-28 | 5, 6, 7 | App-Test `toggleDarkRestoresPreviousContent` |
+| FR-11.4 | AK-28 | – | Teilplan 06 (`darkRestoresPreviousMode`); hier nur: Timer-Schicht nie über `.dark` |
 | FR-11.7 | AK-36, AK-42 (Anzeige „bis 9:20“) | 1, 6 | Kern-Tests |
 | FR-12 | AK-30 | 9 | App-Test; Schreiben/Radieren am Gerät |
 | FR-12.1 | AK-31 | 3, 8, 9 | App-Test |
@@ -896,17 +870,13 @@ Nicht in diesem Teilplan: FR-11.5 und FR-11.6 (AK-29, AK-35) – Teilplan 06; FR
 
 ## Abstimmungsbedarf
 
-- **Teilplan 01:** öffentliche Initialisierer für `CalendarDay`, `TimeOfDay`, `LessonKey`, `Lesson`; `CalendarDay(_:calendar:)` und `TimeOfDay(_:calendar:)` aus `Date`. `ClassScreenCalculator` muss bei 8:31 (vor der 1. Unterrichtsstunde des Tages) `.upcoming` und nach der letzten nicht ausgefallenen `.noMoreLessons` liefern (AK-36).
-- **Teilplan 02:** `LessonInfo` (in `FrontstageCore`), `LessonInfoRecord`, `BoardPageRecord` mit den Feldern oben (`backgroundRaw`, `backgroundImageData` und `drawingData` als `.externalStorage`), `ScheduleSnapshot` + `loadScheduleSnapshot(in:)`, `MaterialReference.displayName`/`fileKind` mit `MaterialFileKind`, `materialReferences(for:in:)`; Zusammenführen doppelter `LessonInfoRecord` nach Abgleich.
-- **Teilplan 03:** `StorageAccess.withFileURL(for:_:)`.
-- **Teilplan 04:** Einhängepunkte `LessonRow` (Tafel-Knopf, `LessonInfoEditor`), `PreparationLessonDetail`, `SetupView` (Kauf-Abschnitt).
-- **Teilplan 06:** `SecondScreenContent`, `SecondScreenState` (parameterloser `init`, `content` setzbar), `SecondScreenRootView` (wird hier um Klassenbildschirm, Tafel, Timer-Schicht, Dunkel, Neutral-Fläche ergänzt), `SmartboardBar` (Einhängepunkt), `PenCanvas` mit `isEditable` und `contentSize`; Abgrenzung: FR-11.4 (Dunkel) baut dieser Teilplan über `toggleDark()` in 06s Datei.
-- **Glossar (PRD, Spalte „Im Code“), neue Code-Namen zur Aufnahme:** Timer für Arbeitsphasen `PhaseTimer`, Abdeckung `BoardCover`, Tafelhintergrund `BoardBackground`, Vorlage (Template, `TemplateRenderer`), Standbild (still, `CameraFeed.stillJPEG`), Kaufangebot `PurchaseOfferView`, flüchtiger Stundenzustand `LessonSessionState`, Anzeige des Klassenbildschirms `ClassScreenDisplay`. Bis zur Aufnahme gelten diese Namen als Vorschlag.
+- Keiner offen gegenüber 01–06 (abgeglichen nach Übersicht, Abschnitt „Abstimmung“): Kern aus 01; `LessonInfo`, `BoardBackground`, `MaterialReference` und alle Datenzugriffe über `DataStore` (02); `withFileURL` an `StorageService` (03); `LessonDetailView`, `DayView`, `SetupView`, `LessonInfoEditor` aus 04; Einhängepunkte und „Dunkel“ aus 06 (Punkt 8); Freischaltung nach Nutzerentscheidung 2026-11-13.
+- **Glossar (PRD, Spalte „Im Code“):** Die Spalte führt Vorlage als `BoardTemplate` und Standbild als `CameraStill`; dieser Plan hat dafür keine eigenen Typen, sondern `BoardBackground.image` plus `TemplateRenderer` bzw. `CameraFeed.stillJPEG()`. **Offen:** entweder die Typen `BoardTemplate`/`CameraStill` einführen oder die Glossar-Spalte auf die tatsächlichen Code-Namen ändern. Fachbegriffe ohne Glossarzeile, die eine Lehrkraft sagen würde: Timer (`PhaseTimer`), Abdecken (`BoardCover`), Kaufangebot (`PurchaseOfferView`). Rein technisch und ohne Zeile (Punkt 10): `LessonSessionState`, `ClassScreenDisplay`, `ClassroomServices`, `SecondScreenRendering`.
 
 ## Annahmen, die ein Mensch bestätigen sollte
 
 1. Logische Tafelseite 16:9 (`1600 × 900`), PDF-Seite `842 × 473,6` pt (Breite A4 quer).
-2. Ohne Kauf sind auch die Eingabe von Thema/Bereitlegen/Hausaufgabe und „Dunkel“ gesperrt (FR-13 zählt FR-11.1 und FR-11.4 zum Kauf).
+2. ~~Ohne Kauf sind auch Thema/Bereitlegen/Hausaufgabe und „Dunkel“ gesperrt~~ → Nutzerentscheidung 2026-11-13: beides kostenlos; zum Kauf gehören nur Klassenbildschirm am Zweitbildschirm, Timer, Arbeitsform und Tafel.
 3. Arbeitsform wird beim Wechsel der Unterrichtsstunde zurückgesetzt, ein laufender Timer nicht.
 4. Vorlagen nur aus PDF und Bild; Word/PowerPoint-Seiten erst als PDF (das Mockup zeigt „Arbeitsblatt Vokabeln – Word“).
 5. Am Mac bietet der Teilen-Dialog keinen „Sichern in Ordner“-Weg wie „In Dateien sichern“ am iPad; AK-34 wird am iPad belegt. Soll der Mac zusätzlich „Sichern unter …“ (`fileExporter`) bekommen, ist das eine Erweiterung der Global-Constraint-Ausnahme.

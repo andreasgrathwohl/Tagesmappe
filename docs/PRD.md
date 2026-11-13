@@ -65,10 +65,15 @@ Person (Q-13).
 | Stiftnotiz | was die Lehrkraft in der Anzeige des Produkts mit dem Stift auf ein PDF oder Bild schreibt oder zeichnet; gehört zu einer Zuordnung, nicht zur Datei | Zeichnungen in einer Präsentation (die gehören zur Datei und landen in der Ablage) | `PenNote` |
 | Stand | Zeitpunkt, zu dem der Stundenplan zuletzt aus der Stundenplan-Quelle geholt wurde; die Tagesansicht zeigt ihn | Datum einer Unterrichtsstunde | `sourceFetchedAt` |
 | Arbeitsform | wie die Klasse gerade arbeitet: Einzelarbeit, Partnerarbeit oder Gruppenarbeit | Fach | `WorkMode` (`individual`, `pairs`, `groups`) |
-| Vorlage | Seite oder Ausschnitt aus Material oder Ablage als Hintergrund einer Tafelseite | Material (bleibt unverändert in der Ablage) | `BoardTemplate` |
-| Standbild | eingefrorenes Bild der Tablet-Kamera als Hintergrund einer Tafelseite | Material | `CameraStill` |
+| Vorlage | Seite oder Ausschnitt aus Material oder Ablage als Hintergrund einer Tafelseite | Material (bleibt unverändert in der Ablage) | `BoardBackground.image`, erzeugt von `TemplateRenderer` |
+| Standbild | eingefrorenes Bild der Tablet-Kamera als Hintergrund einer Tafelseite | Material | `BoardBackground.image`, erzeugt von `CameraFeed` |
 | Bereithalten | Material der kommenden Unterrichtsstunden vorab auf das Gerät laden | Kopieren (es entsteht keine zweite Datei) | `prefetch` |
 | Neu verknüpfen | einen Verweis, der nicht mehr auflöst, auf die Datei in der Ablage zurückführen | Zuordnen | `relink` |
+| Timer | eine Zeitspanne für eine Arbeitsphase, die der Klassenbildschirm herunterzählt | Uhrzeit | `PhaseTimer` |
+| Abdecken | einen Teil der Tafelseite für die Klasse verdecken und schrittweise freigeben | Löschen | `BoardCover` |
+| Kaufangebot | was statt einer gekauften Funktion erscheint, solange der Einmalkauf fehlt | Abo | `PurchaseOffer` |
+| Zustand des Materials | ob ein Material auf dem Gerät liegt, geladen wird oder nicht verfügbar ist | Ausfall | `MaterialAvailability` |
+| Übergabe | Material zum Bearbeiten an die zuständige App geben, ohne Kopie | Präsentieren | `handOff` |
 
 ## Constraints
 
@@ -495,7 +500,7 @@ muss.
 - AK-4 (FR-3): Aufbau: Stundenplan mit „Di 2. Stunde 8b“, eine Präsentation in der Ablage. Handlung: am Mac die Präsentation der Unterrichtsstunde am kommenden Dienstag zuordnen. Ergebnis: Am Tablet zeigt die Tagesansicht dieses Dienstags die Präsentation in der 2. Stunde.
 - AK-5 (FR-3, Tablet): wie AK-4, Zuordnung aber am Tablet. Ergebnis: am Mac sichtbar.
 - AK-6 (FR-3.1): Aufbau: Unterrichtsstunde mit Präsentation, Arbeitsblatt, Lösung. Handlung: Lösung an Position 1 ziehen. Ergebnis: Tagesansicht zeigt Lösung, Präsentation, Arbeitsblatt.
-- AK-7 (FR-3.2): Aufbau: Di 2. Stunde 8a mit 2 Materialien, Mi 3. Stunde 8b ohne. Handlung: „Für 8b übernehmen“. Ergebnis: Mi 3. Stunde 8b hat dieselben 2 Materialien; in der Ablage liegen keine neuen Dateien.
+- AK-7 (FR-3.2): Aufbau: Di 2. Stunde 8a mit 2 Materialien, Mi 3. Stunde 8b ohne. Handlung: „Für 8b übernehmen“, in der Liste der kommenden 8b-Stunden Mi 3. Stunde wählen. Ergebnis: Mi 3. Stunde 8b hat dieselben 2 Materialien; in der Ablage liegen keine neuen Dateien.
 - AK-8 (FR-3.3): Aufbau: Di 8b mit Material X, nächste 8b-Stunde Do. Handlung: X „in die nächste Stunde“. Ergebnis: X steht am Do, nicht mehr am Di.
 - AK-9 (FR-3.4): Aufbau: Material zugeordnet, übernommen und geschoben. Handlung: Datei in der Ablage am Mac ändern. Ergebnis: Jede Unterrichtsstunde mit dieser Zuordnung öffnet den geänderten Stand; Dateianzahl in der Ablage unverändert.
 - AK-10 (FR-4): Aufbau: Dienstag mit 5 Unterrichtsstunden, davon 3 mit Material. Handlung: Tagesansicht öffnen. Ergebnis: alle 5 Unterrichtsstunden in zeitlicher Reihenfolge, mit Klasse, Fach und Material, ohne Scrollen auf einem 11"-Tablet.
@@ -558,6 +563,7 @@ muss.
 - 2026-11-13: Glossar changed — Spalte „Im Code“ mit dem englischen Bezeichner je Begriff (ADR-0009)
 - 2026-11-13: Glossar changed — Stand, Arbeitsform, Vorlage, Standbild, Bereithalten, Neu verknüpfen ergänzt (beim Planen gefunden)
 - 2026-11-13: FR-3.2 changed — Zielstunde wählt die Lehrkraft; FR-3.3 präzisiert — gleiche Klasse und gleiches Fach (gilt für FR-8); FR-13 changed — Thema/Bereitlegen/Hausaufgabe eintragen und Dunkel kostenlos
+- 2026-11-13: AK-7 changed (Zielstunde wählen); Glossar: Vorlage und Standbild auf `BoardBackground.image` korrigiert, Timer, Abdecken, Kaufangebot, Zustand des Materials, Übergabe ergänzt
 - 2026-11-13: FR-1.2 new — Zeitraster, abgeleitet aus FR-11 und FR-11.7 (Lücke beim Plan-Cold-Start-Check gefunden); Glossar um Zeitraster ergänzt; AK-42, Lieferstufen (41) und Abdeckung angepasst
 
 ## Anhang A — Abdeckung

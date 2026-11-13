@@ -5,7 +5,7 @@
 
 **Goal:** PDFs und Bilder zeigt Frontstage selbst an, mit Stiftnotizen je Zuordnung und Seite; ein verbundener Bildschirm erhält als Zweitbildschirm einen eigenen, nicht bedienbaren Inhalt (Klassenbildschirm, Material, Tafel, Dunkel), den die Lehrkraft am Tablet über die Smartboard-Leiste mit Vorschaubild sieht und umschaltet.
 
-**Architecture:** Die reine Zustandslogik des Zweitbildschirms (`SecondScreenState`) und die Passungsprüfung einer Stiftnotiz (`PenNoteFit`) liegen im Kern-Paket. In der App hält ein `@Observable`-Objekt `SecondScreenModel` den gemeinsamen Zustand, den die Tablet-Szene ändert und die Szene des Zweitbildschirms zeichnet; das Vorschaubild ist dieselbe SwiftUI-Ansicht verkleinert. Die Szene für den verbundenen Bildschirm entsteht in UIKit (`ExternalDisplaySceneDelegate` mit `UIHostingController`) – ab iOS 27 über ein an der Hauptansicht angemeldetes `UISceneAccessory`, auf 26 über `application(_:configurationForConnecting:options:)`. Die Anzeige nutzt `PDFView` mit je Seite einer `PKCanvasView` als Überlagerung (`PDFPageOverlayViewProvider`); Stiftnotizen liegen als `PenNoteRecord` (Teilplan 02) mit ausgelagerten Zeichnungsdaten in den App-Daten.
+**Architecture:** Die reine Zustandslogik des Zweitbildschirms (`SecondScreenSelection`) und die Passungsprüfung einer Stiftnotiz (`PenNoteFit`) liegen im Kern-Paket. In der App hält ein `@Observable`-Objekt `SecondScreenState` den gemeinsamen Zustand, den die Tablet-Szene ändert und die Szene des Zweitbildschirms zeichnet; das Vorschaubild ist dieselbe SwiftUI-Ansicht verkleinert. Die Szene für den verbundenen Bildschirm entsteht in UIKit (`ExternalDisplaySceneDelegate` mit `UIHostingController`) – ab iOS 27 über ein an der Hauptansicht angemeldetes `UISceneAccessory`, auf 26 über `application(_:configurationForConnecting:options:)`. Die Anzeige nutzt `PDFView` mit je Seite einer `PKCanvasView` als Überlagerung (`PDFPageOverlayViewProvider`); Stiftnotizen liegen als `PenNoteRecord` (Teilplan 02) mit ausgelagerten Zeichnungsdaten in den App-Daten.
 
 **Tech Stack:** Swift 6, SwiftUI, UIKit-Szenen (`UISceneAccessory`, iOS 27), PDFKit, PencilKit, SwiftData, Swift Testing.
 
@@ -48,9 +48,9 @@ Es gelten **alle** Global Constraints der Übersicht (`2026-11-13-00-uebersicht.
 
 | Datei | Verantwortung |
 |---|---|
-| `Packages/FrontstageCore/Sources/FrontstageCore/SecondScreenState.swift` | Modus des Zweitbildschirms und seine Übergänge (rein) |
+| `Packages/FrontstageCore/Sources/FrontstageCore/SecondScreenSelection.swift` | Modus des Zweitbildschirms und seine Übergänge (rein) |
 | `Packages/FrontstageCore/Sources/FrontstageCore/PenNoteFit.swift` | `PageSize`, Passungsprüfung Stiftnotiz ↔ Seite |
-| `Packages/FrontstageCore/Tests/FrontstageCoreTests/SecondScreenStateTests.swift` | Tests Zustand |
+| `Packages/FrontstageCore/Tests/FrontstageCoreTests/SecondScreenSelectionTests.swift` | Tests Zustand |
 | `Packages/FrontstageCore/Tests/FrontstageCoreTests/PenNoteFitTests.swift` | Tests Passung |
 | `Frontstage/Viewer/DrawingGeometry.swift` | `PKDrawing` ↔ Seitenkoordinaten, Seitengröße aus `PDFPage` |
 | `Frontstage/Viewer/PenNoteStore.swift` | Laden, verzögertes Speichern, Sofort-Speichern von Stiftnotizen |
@@ -59,22 +59,26 @@ Es gelten **alle** Global Constraints der Übersicht (`2026-11-13-00-uebersicht.
 | `Frontstage/Viewer/PDFCanvasView.swift` | iPad: `PDFView` + `PKCanvasView` je Seite (`#if os(iOS)`) |
 | `Frontstage/Viewer/PDFDisplayView.swift` | nur anzeigen: eine Seite + Zeichnung (Zweitbildschirm, Vorschau, Mac) |
 | `Frontstage/Viewer/ViewerView.swift` | Bildschirm „Anzeige“ |
-| `Frontstage/SecondScreen/SecondScreenModel.swift` | `@Observable` gemeinsamer Zustand beider Szenen |
-| `Frontstage/SecondScreen/SecondScreenView.swift` | Inhalt des Zweitbildschirms (auch Vorschaubild) |
+| `Frontstage/SecondScreen/SecondScreenState.swift` | `@Observable` gemeinsamer Zustand beider Szenen |
+| `Frontstage/SecondScreen/SecondScreenRootView.swift` | Inhalt des Zweitbildschirms (auch Vorschaubild) |
 | `Frontstage/SecondScreen/SecondScreenEnvironment.swift` | eine Stelle für die Umgebung beider Szenen |
-| `Frontstage/SecondScreen/SecondScreenOverlayView.swift` | Platzhalter Schicht über allen Modi außer Dunkel (Timer, Teilplan 07) |
+| `Frontstage/Viewer/PenCanvas.swift` | `PKCanvasView` als SwiftUI-Ansicht (nur iOS) – auch für die Tafel in Teilplan 07 |
 | `Frontstage/SecondScreen/ExternalDisplaySceneDelegate.swift` | UIKit-Szene des Zweitbildschirms |
 | `Frontstage/SecondScreen/SceneAccessoryRegistrar.swift` | Anmelden des Szenen-Zubehörs ab iOS 27 |
 | `Frontstage/App/AppDelegate.swift` | Szene annehmen auf iOS 26 |
 | `Frontstage/SecondScreen/SmartboardBar.swift` | Leiste am Tablet: Vorschaubild, Umschalter, Verbindungsstand |
-| `Frontstage/SecondScreen/SmartboardBarAccessories.swift` | Platzhalter für Timer- und Arbeitsform-Knöpfe (Teilplan 07) |
 | `Frontstage/SecondScreen/ConnectHowToView.swift` | „So verbinden“ |
-| `Frontstage/ClassScreen/ClassScreenDisplayView.swift` | Platzhalter Klassenbildschirm (Teilplan 07 ersetzt den Körper) |
-| `Frontstage/Board/BoardDisplayView.swift` | Platzhalter Tafel auf dem Zweitbildschirm (Teilplan 07 ersetzt den Körper) |
-| `Frontstage/App/FrontstageApp.swift` | **Modify** (aus Teilplan 01/04): App-Delegate, Zubehör an der Hauptansicht, Umgebung |
+| `Frontstage/Viewer/ScopedFileReader.swift` | `MaterialFileReading` über `StorageService.readableFile(for:)` (03) |
+| **Einhängepunkte für Teilplan 07** (Übersicht, Abstimmung Punkt 8) – dieser Teilplan legt sie als Platzhalter in den Ordnern von 07 an; **Besitzer ist 07**, das nur ihren Inhalt ersetzt und keine andere Datei dieses Teilplans ändert: | |
+| `Frontstage/ClassScreen/ClassScreenView.swift` | `ClassScreenView()` – Inhalt `.classScreen` des Zweitbildschirms (Platzhalter: neutrale Fläche) |
+| `Frontstage/Board/BoardView.swift` | `BoardView()` – Inhalt `.board` des Zweitbildschirms (Platzhalter: neutrale Fläche) |
+| `Frontstage/ClassScreen/ClassScreenOverlay.swift` | `ClassScreenOverlay()` – Schicht über allen Inhalten außer `.dark` (Platzhalter: leer; 07: Timer) |
+| `Frontstage/ClassScreen/ClassroomControls.swift` | `ClassroomControls()` – Knöpfe in der Smartboard-Leiste (Platzhalter: leer; 07: Timer, Arbeitsform) |
+| `Frontstage/ClassScreen/ClassroomEnvironment.swift` | `extension View { func classroomEnvironment() -> some View }` (Platzhalter: `self`; 07: eigene Modelle in die Umgebung beider Szenen) |
+| `Frontstage/App/FrontstageApp.swift` | **Modify** (Platzhalter aus 01, Inhalt aus 04): App-Delegate, Zubehör an der Hauptansicht, Umgebung |
 | `Frontstage/UI/DayView/DayView.swift` | **Modify** (aus Teilplan 04): Smartboard-Leiste unten, Öffnen von PDF/Bild in der Anzeige |
 | `Frontstage/Resources/Localizable.xcstrings` | **Modify**: Schlüssel dieses Teilplans |
-| `FrontstageTests/DrawingGeometryTests.swift`, `FrontstageTests/PenNoteStoreTests.swift`, `FrontstageTests/ViewerModelTests.swift`, `FrontstageTests/SecondScreenModelTests.swift` | App-Tests (Simulator) |
+| `FrontstageTests/DrawingGeometryTests.swift`, `FrontstageTests/PenNoteStoreTests.swift`, `FrontstageTests/ViewerModelTests.swift`, `FrontstageTests/SecondScreenStateTests.swift` | App-Tests (Simulator) |
 
 ---
 
@@ -82,14 +86,14 @@ Es gelten **alle** Global Constraints der Übersicht (`2026-11-13-00-uebersicht.
 
 ```swift
 // ── Kern (FrontstageCore) ──
-public enum SecondScreenMode: Hashable, Sendable { case classScreen, material, board, dark }
-public struct SecondScreenState: Hashable, Sendable {
+public enum SecondScreenContent: Hashable, Sendable { case classScreen, material, board, dark }
+public struct SecondScreenSelection: Hashable, Sendable {
   public init()
-  public private(set) var mode: SecondScreenMode            // Start: .classScreen
+  public private(set) var mode: SecondScreenContent            // Start: .classScreen
   public private(set) var isMaterialOpen: Bool               // Start: false
   public private(set) var isBoardAvailable: Bool             // Start: false
-  public var availableModes: Set<SecondScreenMode> { get }   // .classScreen, .dark immer; .material/.board nur wenn verfügbar
-  @discardableResult public mutating func select(_ mode: SecondScreenMode) -> Bool   // false = nicht verfügbar, unverändert
+  public var availableModes: Set<SecondScreenContent> { get }   // .classScreen, .dark immer; .material/.board nur wenn verfügbar
+  @discardableResult public mutating func select(_ mode: SecondScreenContent) -> Bool   // false = nicht verfügbar, unverändert
   public mutating func toggleDark()
   public mutating func materialOpened()
   public mutating func materialClosed()
@@ -104,34 +108,48 @@ public enum PenNoteFit: Hashable, Sendable {
 }
 
 // ── App ──
-@MainActor @Observable final class SecondScreenModel {
-  static let shared: SecondScreenModel
+/// Gemeinsamer, flüchtiger Zustand beider Szenen (Übersicht, Abstimmung Punkt 8).
+@MainActor @Observable final class SecondScreenState {
+  static let shared: SecondScreenState
   init()
-  private(set) var state: SecondScreenState
+  private(set) var state: SecondScreenSelection
+  var content: SecondScreenContent { get }                    // = state.mode; „Dunkel“ ist .dark und gehört diesem Teilplan (FR-11.4)
   private(set) var isConnected: Bool
   private(set) var screenAspectRatio: Double                 // Breite/Höhe, Vorgabe 16/9
   private(set) var material: MaterialPresentation?
   private(set) var boardLessonKey: LessonKey?
-  func select(_ mode: SecondScreenMode)
+  func select(_ mode: SecondScreenContent)
   func toggleDark()
   func openMaterial(_ presentation: MaterialPresentation)
   func closeMaterial()
   func showPage(_ pageIndex: Int, visibleRect: CGRect?)       // visibleRect in Seitenkoordinaten, nil = ganze Seite
   func updateDrawing(_ drawing: PKDrawing, pageIndex: Int)   // Seitenkoordinaten
   func setBoardLesson(_ key: LessonKey?)                      // Teilplan 07 und Anzeige
+  func setBoardAvailable(_ available: Bool)                   // reicht an SecondScreenSelection durch (Teilplan 07)
   func displayConnected(aspectRatio: Double)
   func displayDisconnected()
 }
 struct MaterialPresentation: Equatable {
-  let linkID: UUID; let documentData: Data; let kind: MaterialKind
+  let linkID: UUID; let documentData: Data; let kind: MaterialFileKind
   var pageIndex: Int; var visibleRect: CGRect?; var drawings: [Int: PKDrawing]
 }
+/// Verzögertes Speichern über den DataStore (Teilplan 02) – kein eigener Zugriff auf ModelContext.
 @MainActor final class PenNoteStore {
-  init(context: ModelContext, saveDelay: Duration = .milliseconds(500))
+  init(store: DataStore, saveDelay: Duration = .milliseconds(500))
   func loadAll(for link: MaterialLinkRecord) -> [Int: StoredPenNote]
   func scheduleSave(_ drawing: PKDrawing, pageIndex: Int, pageSize: PageSize, for link: MaterialLinkRecord)
   func flush()
 }
+/// Liest Material nur lesend; Umsetzung `ScopedFileReader` über StorageService.readableFile(for:) → ScopedFile,
+/// koordiniertes Lesen, danach close() (Übersicht, Abstimmung Punkt 9).
+protocol MaterialFileReading: Sendable { func readData(for reference: MaterialReference) async throws -> Data }
+struct ScopedFileReader: MaterialFileReading { init(storage: StorageService) }
+#if os(iOS)
+/// PKCanvasView als SwiftUI-Ansicht; Werkzeuge über PKToolPicker. Auch Teilplan 07 (Tafel) nutzt sie.
+struct PenCanvas: UIViewRepresentable {
+  init(drawing: Binding<PKDrawing>, isEditable: Bool, contentSize: CGSize, onStrokeEnded: @escaping () -> Void = {})
+}
+#endif
 struct StoredPenNote: Equatable { let drawing: PKDrawing; let savedSize: PageSize? }
 enum DrawingGeometry {
   static func pageSize(of page: PDFPage) -> PageSize                         // .mediaBox, Drehung angewandt
@@ -140,11 +158,11 @@ enum DrawingGeometry {
 }
 enum MaterialDocumentLoader {
   enum LoadError: Error, Equatable { case unreadable, unsupportedKind }
-  static func makeDocument(from data: Data, kind: MaterialKind) throws(LoadError) -> PDFDocument
+  static func makeDocument(from data: Data, kind: MaterialFileKind) throws(LoadError) -> PDFDocument
 }
 @MainActor @Observable final class ViewerModel {
   enum Phase: Equatable { case loading, ready, unavailable }
-  init(link: MaterialLinkRecord, store: PenNoteStore, fileReader: any MaterialFileReading, secondScreen: SecondScreenModel)
+  init(link: MaterialLinkRecord, store: PenNoteStore, fileReader: any MaterialFileReading, secondScreen: SecondScreenState)   // Dateiart aus link.reference.fileKind
   private(set) var phase: Phase
   private(set) var document: PDFDocument?
   private(set) var pageIndex: Int
@@ -156,66 +174,40 @@ enum MaterialDocumentLoader {
   func pageChanged(to pageIndex: Int, visibleRect: CGRect?)
   func close()                                                // flush + secondScreen.closeMaterial()
 }
-struct ViewerView: View { init(linkID: UUID) }                // sucht den MaterialLinkRecord selbst im ModelContext
-struct SecondScreenView: View { init(model: SecondScreenModel) }
-struct SmartboardBar: View { init() }                         // liest SecondScreenModel aus der Umgebung
-struct ClassScreenDisplayView: View { init(model: SecondScreenModel) }   // Platzhalter → Teilplan 07
-struct BoardDisplayView: View { init(model: SecondScreenModel) }         // Platzhalter → Teilplan 07
-struct SecondScreenOverlayView: View { init(model: SecondScreenModel) }  // Platzhalter (leer) → Teilplan 07
-struct SmartboardBarAccessories: View { init() }                         // Platzhalter (leer) → Teilplan 07
-extension View { func secondScreenEnvironment() -> some View }           // eine Stelle für beide Szenen
+struct ViewerView: View { init(linkID: UUID) }                // holt den MaterialLinkRecord über DataStore.link(id:) (Teilplan 02)
+struct SecondScreenRootView: View { init(state: SecondScreenState) }   // zeichnet content; .dark = Schwarz ohne Schicht
+struct SmartboardBar: View { init() }                         // liest SecondScreenState aus der Umgebung; Umschalter inkl. „Dunkel“
+// Einhängepunkte – Platzhalter dieses Teilplans, Besitzer und Inhalt: Teilplan 07
+struct ClassScreenView: View { init() }                       // Inhalt .classScreen
+struct BoardView: View { init() }                             // Inhalt .board
+struct ClassScreenOverlay: View { init() }                    // Schicht über allen Inhalten außer .dark
+struct ClassroomControls: View { init() }                     // Knöpfe in der SmartboardBar
+extension View { func classroomEnvironment() -> some View }   // Modelle von 07 in die Umgebung beider Szenen
+extension View { func secondScreenEnvironment() -> some View }           // eine Stelle für beide Szenen; ruft classroomEnvironment()
 extension View { func registersSecondScreenAccessory() -> some View }    // nur iOS, an der Hauptansicht
 ```
 
-**Erwartet von Teilplan 01** (Kern):
-- `public init(date: CalendarDay, schoolClass: SchoolClass, subject: Subject, ordinal: Int)` für `LessonKey` und `public init(year: Int, month: Int, day: Int)` für `CalendarDay` (die Übersicht nennt nur die Eigenschaften; öffentliche Strukturen haben keinen öffentlichen Memberwise-Init).
+**Consumes – Teilplan 01** (Kern): `LessonKey` (inkl. `init(date:schoolClass:subject:ordinal:)`, `storageText`), `CalendarDay` (inkl. `init(year:month:day:)`).
 
-**Erwartet von Teilplan 02** (Daten):
-```swift
-@Model final class MaterialLinkRecord {
-  var id: UUID = UUID()
-  var lessonKeyText: String = ""          // LessonKey.storageText
-  @Relationship(deleteRule: .cascade, inverse: \PenNoteRecord.materialLink) var penNotes: [PenNoteRecord]? = []
-  var reference: MaterialReference? { get }   // berechnet oder gespeichert; Teilplan 02/03 entscheiden
-}
-@Model final class PenNoteRecord {
-  var materialLink: MaterialLinkRecord?
-  var pageIndex: Int = 0
-  @Attribute(.externalStorage) var drawingData: Data?
-  var pageWidth: Double = 0               // 0 = unbekannt
-  var pageHeight: Double = 0
-  var updatedAt: Date = Date()
-  init(materialLink: MaterialLinkRecord?, pageIndex: Int)
-}
-```
+**Consumes – Teilplan 02** (Daten): `MaterialFileKind` (`.pdf`, `.image`, `opensInViewer`), `MaterialReference` (`fileKind`, `displayName`); `MaterialLinkRecord` (`id`, `lessonKey`, `reference`, `penNotes`), `PenNoteRecord` (`materialLink`, `pageIndex`, `drawingData`, `pageWidth`, `pageHeight`, `updatedAt`); `DataStore.link(id:)`, `.penNotes(for:)`, `.savePenNote(for:pageIndex:drawingData:pageWidth:pageHeight:)`, `.copyMaterialLinks(from:to:)`, `.moveLink(_:to:)`, `.assign(_:to:at:)`; Test-Hilfe `makeStore()`.
 
-**Erwartet von Teilplan 03** (Ablage):
-```swift
-enum MaterialKind: String, Codable, Sendable { case pdf, image, presentation, document, spreadsheet, other }
-// MaterialReference trägt `kind: MaterialKind` und `displayName: String`
-protocol MaterialFileReading: Sendable {
-  /// Liest die Datei nur lesend (Ordnerfreigabe, koordiniertes Lesen); wirft, wenn der Verweis nicht auflöst oder die Datei nicht geladen werden kann.
-  func readData(for reference: MaterialReference) async throws -> Data
-}
-```
+**Consumes – Teilplan 03** (Ablage): `StorageService.readableFile(for:) -> ScopedFile?`, `ScopedFile.url`/`.close()`, `OpenOutcome.showInViewer(ScopedFile)`.
 
-**Erwartet von Teilplan 04** (Oberfläche Kern):
-- `Frontstage/App/FrontstageApp.swift` mit `@main struct FrontstageApp: App` und `WindowGroup { RootView() }`; `Frontstage/UI/DayView/DayView.swift` mit `struct DayView: View`; die Tagesansicht ruft für Material mit `kind == .pdf || kind == .image` die Anzeige statt der Übergabe an eine andere App auf.
-- Für AK-22: `MaterialLinkActions.copy(_ link: MaterialLinkRecord, to key: LessonKey, in context: ModelContext) -> MaterialLinkRecord` (FR-3.2, neue Zuordnung **ohne** Stiftnotizen) und `MaterialLinkActions.move(_ link: MaterialLinkRecord, to key: LessonKey)` (FR-3.3/FR-8, ändert nur `lessonKeyText`).
+**Consumes – Teilplan 04** (Oberfläche Kern): `FrontstageApp` mit `WindowGroup { RootView() }`, `RootView`, `DayView`, `AppEnvironment.viewerAvailable`, `MaterialOpenAction.viewer(MaterialLinkItem)` – die Tagesansicht zeigt für `fileKind.opensInViewer` die Anzeige statt der Übergabe.
 
-**Für Teilplan 07 bereitgestellt:** `SecondScreenModel` (inkl. `setBoardLesson`, `state.mode == .board`), die Platzhalter `ClassScreenDisplayView`, `BoardDisplayView`, `SecondScreenOverlayView`, `SmartboardBarAccessories` (Teilplan 07 ersetzt deren Körper, Name und `init` bleiben), `secondScreenEnvironment()` (Teilplan 07 hängt dort eigene `@Observable`-Modelle an, damit sie auch in der Zweitbildschirm-Szene ankommen – die hat eine eigene SwiftUI-Umgebung).
+**Für Teilplan 07 bereitgestellt (Übersicht, Abstimmung Punkt 8):** `SecondScreenContent` (`classScreen`, `material`, `board`, `dark`), `SecondScreenState` (parameterloses `init`, `content`, `select(_:)`, `toggleDark()`, `setBoardLesson(_:)`, `boardLessonKey`, `isConnected`), `SecondScreenRootView`, `SmartboardBar`, `PenCanvas(drawing:isEditable:contentSize:onStrokeEnded:)` und die Einhängepunkte `ClassScreenView()`, `BoardView()`, `ClassScreenOverlay()`, `ClassroomControls()`, `classroomEnvironment()` – Platzhalter in den Ordnern von 07, deren Inhalt 07 ersetzt (Name und `init` bleiben). 07 ändert keine andere Datei dieses Teilplans. „Dunkel“ (FR-11.4) gehört als `.dark` diesem Teilplan und ist kostenlos (FR-13, Nutzerentscheidung 2026-11-13).
 
 ---
 
 ### Task 1: Zustand des Zweitbildschirms im Kern
 
 **Files:**
-- Create: `Packages/FrontstageCore/Sources/FrontstageCore/SecondScreenState.swift`
-- Test: `Packages/FrontstageCore/Tests/FrontstageCoreTests/SecondScreenStateTests.swift`
+- Create: `Packages/FrontstageCore/Sources/FrontstageCore/SecondScreenSelection.swift`
+- Test: `Packages/FrontstageCore/Tests/FrontstageCoreTests/SecondScreenSelectionTests.swift`
 
 **Interfaces:**
 - Consumes: –
-- Produces: `SecondScreenMode`, `SecondScreenState` (siehe Interfaces-Block).
+- Produces: `SecondScreenContent`, `SecondScreenSelection` (siehe Interfaces-Block).
 
 - [ ] **Step 1: Tests schreiben**
 
@@ -223,17 +215,17 @@ protocol MaterialFileReading: Sendable {
 import Testing
 @testable import FrontstageCore
 
-struct SecondScreenStateTests {
+struct SecondScreenSelectionTests {
   @Test("Startzustand ist Klassenbildschirm (FR-11)")
   func startsWithClassScreen() {
-    let s = SecondScreenState()
+    let s = SecondScreenSelection()
     #expect(s.mode == .classScreen)
     #expect(s.availableModes == [.classScreen, .dark])
   }
 
   @Test("Öffnen zeigt Material, Schließen den Klassenbildschirm – nie die Tagesansicht (AK-23)")
   func openAndCloseMaterial() {
-    var s = SecondScreenState()
+    var s = SecondScreenSelection()
     s.materialOpened();  #expect(s.mode == .material)
     s.materialClosed();  #expect(s.mode == .classScreen)
     #expect(!s.availableModes.contains(.material))
@@ -241,7 +233,7 @@ struct SecondScreenStateTests {
 
   @Test("Dunkel und zurück zeigt wieder dasselbe Material (AK-28)")
   func darkRestoresPreviousMode() {
-    var s = SecondScreenState()
+    var s = SecondScreenSelection()
     s.materialOpened()
     s.toggleDark();  #expect(s.mode == .dark)
     s.toggleDark();  #expect(s.mode == .material)
@@ -249,23 +241,23 @@ struct SecondScreenStateTests {
 
   @Test("Umschalten Klassenbildschirm, Material, Tafel, Dunkel (AK-29)")
   func switchesThroughAllFourModes() {
-    var s = SecondScreenState()
+    var s = SecondScreenSelection()
     s.materialOpened(); s.setBoardAvailable(true)
-    for m in [SecondScreenMode.classScreen, .material, .board, .dark] {
+    for m in [SecondScreenContent.classScreen, .material, .board, .dark] {
       #expect(s.select(m)); #expect(s.mode == m)
     }
   }
 
   @Test("Nicht verfügbare Modi lassen den Zustand unverändert")
   func unavailableSelectionIsRejected() {
-    var s = SecondScreenState()
+    var s = SecondScreenSelection()
     #expect(s.select(.material) == false); #expect(s.mode == .classScreen)
     #expect(s.select(.board) == false);    #expect(s.mode == .classScreen)
   }
 
   @Test("Material schließen während Dunkel: Dunkel bleibt, Rückweg führt zum Klassenbildschirm")
   func closeMaterialWhileDark() {
-    var s = SecondScreenState()
+    var s = SecondScreenSelection()
     s.materialOpened(); s.toggleDark(); s.materialClosed()
     #expect(s.mode == .dark)
     s.toggleDark(); #expect(s.mode == .classScreen)
@@ -273,7 +265,7 @@ struct SecondScreenStateTests {
 
   @Test("Material öffnen während Dunkel: bleibt dunkel, Rückweg zeigt das Material")
   func openMaterialWhileDark() {
-    var s = SecondScreenState()
+    var s = SecondScreenSelection()
     s.toggleDark(); s.materialOpened()
     #expect(s.mode == .dark)
     s.toggleDark(); #expect(s.mode == .material)
@@ -281,37 +273,37 @@ struct SecondScreenStateTests {
 
   @Test("Tafel nicht mehr verfügbar → Klassenbildschirm")
   func boardUnavailableFallsBack() {
-    var s = SecondScreenState()
+    var s = SecondScreenSelection()
     s.setBoardAvailable(true); s.select(.board); s.setBoardAvailable(false)
     #expect(s.mode == .classScreen)
   }
 
   @Test("Verbinden hebt Dunkel auf, damit der Inhalt ohne Handgriff erscheint (AK-35)")
   func connectingClearsDark() {
-    var s = SecondScreenState()
+    var s = SecondScreenSelection()
     s.toggleDark(); s.displayConnected()
     #expect(s.mode == .classScreen)
   }
 
   @Test("Verbinden lässt einen sichtbaren Modus unverändert (Review Focus 1)")
   func connectingKeepsVisibleMode() {
-    var s = SecondScreenState()
+    var s = SecondScreenSelection()
     s.materialOpened(); s.displayConnected()
     #expect(s.mode == .material)
   }
 }
 ```
 
-- [ ] **Step 2: Diff durchsehen** – Tests kompilieren gegen die Signaturen im Interfaces-Block; erwartetes Ergebnis im CI-Lauf vor Step 3: Kompilierfehler „cannot find SecondScreenState“.
+- [ ] **Step 2: Diff durchsehen** – Tests kompilieren gegen die Signaturen im Interfaces-Block; erwartetes Ergebnis im CI-Lauf vor Step 3: Kompilierfehler „cannot find SecondScreenSelection“.
 
-- [ ] **Step 3: `SecondScreenState` implementieren** in `SecondScreenState.swift`. Ein privates Feld `modeBeforeDark: SecondScreenMode` (Start `.classScreen`) trägt den Rückweg aus Dunkel. `select(.dark)` verhält sich wie `toggleDark()` aus einem hellen Modus; `select` eines hellen Modus aus Dunkel hebt Dunkel auf. `materialClosed()`/`setBoardAvailable(false)` korrigieren sowohl `mode` als auch `modeBeforeDark`, wenn sie auf den weggefallenen Modus zeigen. `///`-Doku deutsch mit Verweis auf FR-11.4, FR-11.5, FR-6.2.
+- [ ] **Step 3: `SecondScreenSelection` implementieren** in `SecondScreenSelection.swift`. Ein privates Feld `modeBeforeDark: SecondScreenContent` (Start `.classScreen`) trägt den Rückweg aus Dunkel. `select(.dark)` verhält sich wie `toggleDark()` aus einem hellen Modus; `select` eines hellen Modus aus Dunkel hebt Dunkel auf. `materialClosed()`/`setBoardAvailable(false)` korrigieren sowohl `mode` als auch `modeBeforeDark`, wenn sie auf den weggefallenen Modus zeigen. `///`-Doku deutsch mit Verweis auf FR-11.4, FR-11.5, FR-6.2.
 
 - [ ] **Step 4: Diff durchsehen** – alle Zweige aus Step 1 abgedeckt; keine Importe außer `Foundation`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add Packages/FrontstageCore/Sources/FrontstageCore/SecondScreenState.swift Packages/FrontstageCore/Tests/FrontstageCoreTests/SecondScreenStateTests.swift
+git add Packages/FrontstageCore/Sources/FrontstageCore/SecondScreenSelection.swift Packages/FrontstageCore/Tests/FrontstageCoreTests/SecondScreenSelectionTests.swift
 git commit -m "feat(core): second screen state with four modes"
 ```
 
@@ -370,7 +362,7 @@ struct PenNoteFitTests {
 - Test: `FrontstageTests/DrawingGeometryTests.swift`, `FrontstageTests/PenNoteStoreTests.swift`
 
 **Interfaces:**
-- Consumes: `PenNoteRecord`, `MaterialLinkRecord` (Teilplan 02, siehe „Erwartet“), `PageSize` (Task 2), `MaterialLinkActions` (Teilplan 04, nur im AK-22-Test).
+- Consumes: `PenNoteRecord`, `MaterialLinkRecord`, `DataStore.penNotes(for:)`, `.savePenNote(for:pageIndex:drawingData:pageWidth:pageHeight:)`, im AK-22-Test `.copyMaterialLinks(from:to:)`, `.moveLink(_:to:)`, `.links(for:)` (Teilplan 02), `PageSize` (Task 2).
 - Produces: `DrawingGeometry`, `PenNoteStore`, `StoredPenNote`.
 
 Hinweis Swift/SwiftData: Tests bauen einen `ModelContainer` mit `ModelConfiguration(isStoredInMemoryOnly: true)` – so laufen sie ohne iCloud und ohne Datei. `PKDrawing` lässt sich im Test aus `PKStroke`s bauen; als Prüfwert dient `drawing.strokes.count` und `drawing.bounds`.
@@ -407,10 +399,10 @@ import Testing, PencilKit, SwiftData
   @Test("Notiz übersteht Schließen und erneutes Öffnen (AK-13)")
   func savedNoteIsLoadedAgain() throws {
     let (ctx, link) = try TestStore.contextWithLink()
-    let store = PenNoteStore(context: ctx)
+    let store = PenNoteStore(store: ctx)
     store.scheduleSave(TestDrawings.word, pageIndex: 0, pageSize: .a4, for: link)
     store.flush()
-    let reopened = PenNoteStore(context: ctx).loadAll(for: link)
+    let reopened = PenNoteStore(store: ctx).loadAll(for: link)
     #expect(reopened[0]?.drawing.strokes.count == TestDrawings.word.strokes.count)
     #expect(reopened[0]?.savedSize == .a4)
   }
@@ -418,27 +410,27 @@ import Testing, PencilKit, SwiftData
   @Test("flush schreibt eine ausstehende Notiz sofort (Review Focus 3)")
   func flushWritesPendingDrawingImmediately() throws {
     let (ctx, link) = try TestStore.contextWithLink()
-    let store = PenNoteStore(context: ctx, saveDelay: .seconds(60))
+    let store = PenNoteStore(store: ctx, saveDelay: .seconds(60))
     store.scheduleSave(TestDrawings.word, pageIndex: 1, pageSize: .a4, for: link)
-    #expect(try ctx.fetchCount(FetchDescriptor<PenNoteRecord>()) == 0)
+    #expect(try ctx.modelContext.fetchCount(FetchDescriptor<PenNoteRecord>()) == 0)
     store.flush()
-    #expect(try ctx.fetchCount(FetchDescriptor<PenNoteRecord>()) == 1)
+    #expect(try ctx.modelContext.fetchCount(FetchDescriptor<PenNoteRecord>()) == 1)
   }
 
   @Test("Wiederholtes Speichern derselben Seite legt keinen zweiten Datensatz an")
   func repeatedSaveUpdatesSameRecord() throws {
     let (ctx, link) = try TestStore.contextWithLink()
-    let store = PenNoteStore(context: ctx)
+    let store = PenNoteStore(store: ctx)
     store.scheduleSave(TestDrawings.word, pageIndex: 0, pageSize: .a4, for: link); store.flush()
     store.scheduleSave(TestDrawings.twoWords, pageIndex: 0, pageSize: .a4, for: link); store.flush()
-    #expect(try ctx.fetchCount(FetchDescriptor<PenNoteRecord>()) == 1)
+    #expect(try ctx.modelContext.fetchCount(FetchDescriptor<PenNoteRecord>()) == 1)
     #expect(store.loadAll(for: link)[0]?.drawing.strokes.count == TestDrawings.twoWords.strokes.count)
   }
 
   @Test("Gespeicherte Seitengröße bleibt beim Weiterschreiben auf geänderter Seite erhalten")
   func savedSizeIsKeptOnLaterSaves() throws {
     let (ctx, link) = try TestStore.contextWithLink()
-    let store = PenNoteStore(context: ctx)
+    let store = PenNoteStore(store: ctx)
     store.scheduleSave(TestDrawings.word, pageIndex: 0, pageSize: .a4, for: link); store.flush()
     store.scheduleSave(TestDrawings.twoWords, pageIndex: 0, pageSize: PageSize(width: 842, height: 595), for: link); store.flush()
     #expect(store.loadAll(for: link)[0]?.savedSize == .a4)
@@ -448,7 +440,7 @@ import Testing, PencilKit, SwiftData
   func otherLinkStartsEmpty() throws {
     let (ctx, link8a) = try TestStore.contextWithLink()
     let link8b = TestStore.addLink(to: ctx, sameFileAs: link8a)
-    let store = PenNoteStore(context: ctx)
+    let store = PenNoteStore(store: ctx)
     store.scheduleSave(TestDrawings.word, pageIndex: 0, pageSize: .a4, for: link8a); store.flush()
     #expect(store.loadAll(for: link8b).isEmpty)
   }
@@ -456,10 +448,11 @@ import Testing, PencilKit, SwiftData
   @Test("Übernehmen ohne Notizen, Schieben mit Notizen (AK-22)")
   func copyDropsNotesMoveKeepsThem() throws {
     let (ctx, link) = try TestStore.contextWithLink(key: TestKeys.tue8aEnglish)
-    let store = PenNoteStore(context: ctx)
+    let store = PenNoteStore(store: ctx)
     store.scheduleSave(TestDrawings.word, pageIndex: 0, pageSize: .a4, for: link); store.flush()
-    let copy = MaterialLinkActions.copy(link, to: TestKeys.wed8bEnglish, in: ctx)
-    MaterialLinkActions.move(link, to: TestKeys.thu8aEnglish)
+    try ctx.copyMaterialLinks(from: TestKeys.tue8aEnglish, to: TestKeys.wed8bEnglish)   // DataStore, Teilplan 02
+    let copy = try ctx.links(for: TestKeys.wed8bEnglish)[0]
+    try ctx.moveLink(link, to: TestKeys.thu8aEnglish)
     #expect(store.loadAll(for: copy).isEmpty)
     #expect(link.lessonKeyText == TestKeys.thu8aEnglish.storageText)
     #expect(store.loadAll(for: link)[0] != nil)
@@ -470,35 +463,35 @@ import Testing, PencilKit, SwiftData
     let (ctx, link) = try TestStore.contextWithLink()
     TestStore.addNote(to: ctx, link: link, page: 0, drawing: TestDrawings.word, updatedAt: .distantPast)
     TestStore.addNote(to: ctx, link: link, page: 0, drawing: TestDrawings.twoWords, updatedAt: .now)
-    let store = PenNoteStore(context: ctx)
+    let store = PenNoteStore(store: ctx)
     #expect(store.loadAll(for: link)[0]?.drawing.strokes.count == TestDrawings.twoWords.strokes.count)
     store.scheduleSave(TestDrawings.word, pageIndex: 0, pageSize: .a4, for: link); store.flush()
-    #expect(try ctx.fetchCount(FetchDescriptor<PenNoteRecord>()) == 2)
+    #expect(try ctx.modelContext.fetchCount(FetchDescriptor<PenNoteRecord>()) == 2)
   }
 
   @Test("Unlesbare Zeichnungsdaten werden übersprungen, der Datensatz bleibt")
   func corruptDataIsSkippedNotDeleted() throws {
     let (ctx, link) = try TestStore.contextWithLink()
     TestStore.addNote(to: ctx, link: link, page: 0, rawData: Data([0x00, 0x01]), updatedAt: .now)
-    #expect(PenNoteStore(context: ctx).loadAll(for: link)[0] == nil)
-    #expect(try ctx.fetchCount(FetchDescriptor<PenNoteRecord>()) == 1)
+    #expect(PenNoteStore(store: ctx).loadAll(for: link)[0] == nil)
+    #expect(try ctx.modelContext.fetchCount(FetchDescriptor<PenNoteRecord>()) == 1)
   }
 }
 ```
 
-`TestDrawings`, `TestDocuments`, `TestStore`, `TestKeys` legt dieser Task in `FrontstageTests/TestSupport/ViewerTestSupport.swift` an (Create). `TestKeys` nutzt nur Klassen `8a`/`8b`, Fach „Englisch“, Daten 17.–19.11.2026. `PageSize.a4` ist eine Test-Erweiterung (`595 × 842`).
+`TestDrawings`, `TestDocuments`, `TestStore`, `TestKeys` legt dieser Task in `FrontstageTests/TestSupport/ViewerTestSupport.swift` an (Create). `TestStore.contextWithLink(key:kind:)` liefert `(DataStore, MaterialLinkRecord)` – den `DataStore` aus `makeStore()` (Teilplan 02, In-Memory) und eine über `assign(_:to:at:)` angelegte Zuordnung; `ctx` heißt in den Tests der `DataStore`. `addLink`/`addNote` schreiben über `DataStore` bzw. für doppelte Notizen direkt in `ctx.modelContext` (Abgleich nachstellen). `TestKeys` nutzt nur Klassen `8a`/`8b`, Fach „Englisch“, Daten 17.–19.11.2026. `PageSize.a4` ist eine Test-Erweiterung (`595 × 842`).
 
 - [ ] **Step 2: Diff durchsehen** (erwartet ohne Step 3: Kompilierfehler).
 
 - [ ] **Step 3: `DrawingGeometry` implementieren.** `pageSize(of:)`: `page.bounds(for: .mediaBox).size`, bei `page.rotation` 90/270 Breite und Höhe tauschen. `toPageSpace`/`toViewSpace`: `drawing.transformed(using: CGAffineTransform(scaleX:y:))` mit dem Verhältnis Seitengröße ÷ Darstellungsgröße bzw. umgekehrt, je Achse getrennt.
 
 - [ ] **Step 4: `PenNoteStore` implementieren.**
-  - `loadAll`: alle `link.penNotes`, je `pageIndex` der Datensatz mit dem jüngsten `updatedAt`; `PKDrawing(data:)` in `do/catch` – bei Fehler Seite auslassen, Datensatz nicht anfassen. `savedSize` = `nil`, wenn Breite oder Höhe 0.
-  - `scheduleSave`: ausstehende Zeichnung je `(link.id, pageIndex)` im Speicher merken, vorhandenen Verzögerungs-`Task` abbrechen, neuen starten (`try await Task.sleep(for: saveDelay)`, dann `flush()`). Swift-Hinweis: `Task {}` erbt hier den `@MainActor`, deshalb ist der Zugriff auf `ModelContext` sicher.
-  - `flush`: für jede ausstehende Seite den jüngsten Datensatz aktualisieren oder `PenNoteRecord(materialLink:pageIndex:)` anlegen; `drawingData = drawing.dataRepresentation()`, `updatedAt = .now`; `pageWidth/pageHeight` **nur** setzen, wenn der Datensatz neu ist oder bisher eine leere Zeichnung trug; danach `try context.save()` (Fehler mit `Logger` aus `os` protokollieren, ausstehende Zeichnung behalten).
+  - `loadAll`: alle `store.penNotes(for: link)`, je `pageIndex` der Datensatz mit dem jüngsten `updatedAt`; `PKDrawing(data:)` in `do/catch` – bei Fehler Seite auslassen, Datensatz nicht anfassen. `savedSize` = `nil`, wenn Breite oder Höhe 0.
+  - `scheduleSave`: ausstehende Zeichnung je `(link.id, pageIndex)` im Speicher merken, vorhandenen Verzögerungs-`Task` abbrechen, neuen starten (`try await Task.sleep(for: saveDelay)`, dann `flush()`). Swift-Hinweis: `Task {}` erbt hier den `@MainActor`, deshalb ist der Zugriff auf den `DataStore` sicher.
+  - `flush`: für jede ausstehende Seite `store.savePenNote(for:pageIndex:drawingData: drawing.dataRepresentation(), pageWidth:pageHeight:)` (Teilplan 02 überschreibt den jüngsten Datensatz und setzt die Seitengröße nur bei neuem Datensatz oder Größe 0); Fehler mit `Logger` aus `os` protokollieren, ausstehende Zeichnung behalten.
   - Keine Zeile löscht einen `PenNoteRecord` (Löschen nur über `deleteRule: .cascade` der Zuordnung, Teilplan 02).
 
-- [ ] **Step 5: Diff durchsehen** – kein Schreibzugriff außerhalb von `ModelContext`; keine Datei-API.
+- [ ] **Step 5: Diff durchsehen** – Schreiben nur über `DataStore`; kein direkter `ModelContext`-Zugriff außerhalb der Test-Hilfen; keine Datei-API.
 
 - [ ] **Step 6: Commit** – `git commit -m "feat(viewer): pen note store with debounced save and page-space geometry"`
 
@@ -511,7 +504,7 @@ import Testing, PencilKit, SwiftData
 - Test: `FrontstageTests/ViewerModelTests.swift`
 
 **Interfaces:**
-- Consumes: `MaterialFileReading`, `MaterialKind`, `MaterialReference` (Teilplan 03); `PenNoteStore`, `DrawingGeometry` (Task 3); `PenNoteFit` (Task 2); `SecondScreenModel.openMaterial/closeMaterial/showPage/updateDrawing/setBoardLesson` (Task 5 – Task 5 vor Task 4 umsetzen oder beide im selben Lauf; die Signaturen stehen im Interfaces-Block).
+- Consumes: `MaterialFileReading` (dieser Teilplan, Interfaces-Block), `MaterialFileKind`, `MaterialReference` (Teilplan 02); `PenNoteStore`, `DrawingGeometry` (Task 3); `PenNoteFit` (Task 2); `SecondScreenState.openMaterial/closeMaterial/showPage/updateDrawing/setBoardLesson` (Task 5 – Task 5 vor Task 4 umsetzen oder beide im selben Lauf; die Signaturen stehen im Interfaces-Block).
 - Produces: `MaterialDocumentLoader.makeDocument(from:kind:)`, `ViewerModel`.
 
 - [ ] **Step 1: Tests schreiben**
@@ -533,16 +526,16 @@ import Testing, PencilKit, SwiftData
   func unreadableDataFailsWithoutTouchingNotes() async throws {
     let (ctx, link) = try TestStore.contextWithLink(kind: .pdf)
     TestStore.addNote(to: ctx, link: link, page: 0, drawing: TestDrawings.word, updatedAt: .now)
-    let model = ViewerModel(link: link, store: PenNoteStore(context: ctx), fileReader: StubReader(result: .success(Data("kein PDF".utf8))), secondScreen: SecondScreenModel())
+    let model = ViewerModel(link: link, store: PenNoteStore(store: ctx), fileReader: StubReader(result: .success(Data("kein PDF".utf8))), secondScreen: SecondScreenState())
     await model.load()
     #expect(model.phase == .unavailable)
-    #expect(try ctx.fetchCount(FetchDescriptor<PenNoteRecord>()) == 1)
+    #expect(try ctx.modelContext.fetchCount(FetchDescriptor<PenNoteRecord>()) == 1)
   }
   @Test("Verweis löst nicht auf → nicht verfügbar, Zweitbildschirm bleibt beim Klassenbildschirm")
   func loadFailureSetsUnavailable() async throws {
     let (ctx, link) = try TestStore.contextWithLink(kind: .pdf)
-    let screen = SecondScreenModel()
-    let model = ViewerModel(link: link, store: PenNoteStore(context: ctx), fileReader: StubReader(result: .failure(StubError.unresolvable)), secondScreen: screen)
+    let screen = SecondScreenState()
+    let model = ViewerModel(link: link, store: PenNoteStore(store: ctx), fileReader: StubReader(result: .failure(StubError.unresolvable)), secondScreen: screen)
     await model.load()
     #expect(model.phase == .unavailable)
     #expect(screen.state.mode == .classScreen)
@@ -551,8 +544,8 @@ import Testing, PencilKit, SwiftData
   func openingPresentsMaterialWithNotes() async throws {
     let (ctx, link) = try TestStore.contextWithLink(kind: .pdf)
     TestStore.addNote(to: ctx, link: link, page: 0, drawing: TestDrawings.word, updatedAt: .now, size: .a4)
-    let screen = SecondScreenModel()
-    let model = ViewerModel(link: link, store: PenNoteStore(context: ctx), fileReader: StubReader(result: .success(TestDocuments.pdfData(pages: 2, size: .a4))), secondScreen: screen)
+    let screen = SecondScreenState()
+    let model = ViewerModel(link: link, store: PenNoteStore(store: ctx), fileReader: StubReader(result: .success(TestDocuments.pdfData(pages: 2, size: .a4))), secondScreen: screen)
     await model.load()
     #expect(model.phase == .ready)
     #expect(screen.state.mode == .material)
@@ -564,21 +557,21 @@ import Testing, PencilKit, SwiftData
     let (ctx, link) = try TestStore.contextWithLink(kind: .pdf)
     TestStore.addNote(to: ctx, link: link, page: 0, drawing: TestDrawings.word, updatedAt: .now, size: PageSize(width: 842, height: 595))
     TestStore.addNote(to: ctx, link: link, page: 4, drawing: TestDrawings.word, updatedAt: .now, size: .a4)
-    let model = ViewerModel(link: link, store: PenNoteStore(context: ctx), fileReader: StubReader(result: .success(TestDocuments.pdfData(pages: 2, size: .a4))), secondScreen: SecondScreenModel())
+    let model = ViewerModel(link: link, store: PenNoteStore(store: ctx), fileReader: StubReader(result: .success(TestDocuments.pdfData(pages: 2, size: .a4))), secondScreen: SecondScreenState())
     await model.load()
     #expect(model.outdatedPages == [0])
     #expect(model.missingPages == [4])
-    #expect(try ctx.fetchCount(FetchDescriptor<PenNoteRecord>()) == 2)
+    #expect(try ctx.modelContext.fetchCount(FetchDescriptor<PenNoteRecord>()) == 2)
   }
   @Test("Schließen speichert sofort und gibt den Zweitbildschirm frei (AK-13, AK-23)")
   func closeFlushesAndReturnsToClassScreen() async throws {
     let (ctx, link) = try TestStore.contextWithLink(kind: .pdf)
-    let screen = SecondScreenModel()
-    let model = ViewerModel(link: link, store: PenNoteStore(context: ctx, saveDelay: .seconds(60)), fileReader: StubReader(result: .success(TestDocuments.pdfData(pages: 1, size: .a4))), secondScreen: screen)
+    let screen = SecondScreenState()
+    let model = ViewerModel(link: link, store: PenNoteStore(store: ctx, saveDelay: .seconds(60)), fileReader: StubReader(result: .success(TestDocuments.pdfData(pages: 1, size: .a4))), secondScreen: screen)
     await model.load()
     model.drawingChanged(TestDrawings.word, pageIndex: 0)
     model.close()
-    #expect(try ctx.fetchCount(FetchDescriptor<PenNoteRecord>()) == 1)
+    #expect(try ctx.modelContext.fetchCount(FetchDescriptor<PenNoteRecord>()) == 1)
     #expect(screen.state.mode == .classScreen && screen.material == nil)
   }
 }
@@ -601,66 +594,66 @@ import Testing, PencilKit, SwiftData
 
 ---
 
-### Task 5: `SecondScreenModel` – gemeinsamer Zustand beider Szenen
+### Task 5: `SecondScreenState` – gemeinsamer Zustand beider Szenen
 
 **Files:**
-- Create: `Frontstage/SecondScreen/SecondScreenModel.swift`
-- Test: `FrontstageTests/SecondScreenModelTests.swift`
+- Create: `Frontstage/SecondScreen/SecondScreenState.swift`
+- Test: `FrontstageTests/SecondScreenStateTests.swift`
 
 **Interfaces:**
-- Consumes: `SecondScreenState` (Task 1), `LessonKey` (Teilplan 01).
-- Produces: `SecondScreenModel`, `MaterialPresentation` (Interfaces-Block).
+- Consumes: `SecondScreenSelection` (Task 1), `LessonKey` (Teilplan 01).
+- Produces: `SecondScreenState`, `MaterialPresentation` (Interfaces-Block).
 
-Swift-Hinweis: `@Observable` (Framework Observation) macht jede gespeicherte Eigenschaft beobachtbar; eine SwiftUI-Ansicht, die sie im `body` liest, wird bei Änderung neu gezeichnet – in **beiden** Szenen, weil beide dasselbe Objekt (`SecondScreenModel.shared`) halten. `@MainActor` sorgt unter Swift 6 dafür, dass nur der Haupt-Thread es ändert.
+Swift-Hinweis: `@Observable` (Framework Observation) macht jede gespeicherte Eigenschaft beobachtbar; eine SwiftUI-Ansicht, die sie im `body` liest, wird bei Änderung neu gezeichnet – in **beiden** Szenen, weil beide dasselbe Objekt (`SecondScreenState.shared`) halten. `@MainActor` sorgt unter Swift 6 dafür, dass nur der Haupt-Thread es ändert.
 
 - [ ] **Step 1: Tests schreiben**
 
 ```swift
-@MainActor struct SecondScreenModelTests {
+@MainActor struct SecondScreenStateTests {
   let presentation = MaterialPresentation(linkID: UUID(), documentData: Data(), kind: .pdf, pageIndex: 0, visibleRect: nil, drawings: [:])
 
   @Test("Material öffnen und schließen (AK-23)")
   func openAndClose() {
-    let m = SecondScreenModel()
+    let m = SecondScreenState()
     m.openMaterial(presentation); #expect(m.state.mode == .material && m.material != nil)
     m.closeMaterial();            #expect(m.state.mode == .classScreen && m.material == nil)
   }
   @Test("Verbinden lässt den aktuellen Modus stehen (Review Focus 1)")
   func connectingKeepsCurrentMode() {
-    let m = SecondScreenModel()
+    let m = SecondScreenState()
     m.openMaterial(presentation); m.displayConnected(aspectRatio: 16.0 / 9.0)
     #expect(m.isConnected && m.state.mode == .material)
   }
   @Test("Trennen behält Zustand und Zeichnungen (Review Focus 2)")
   func disconnectKeepsStateAndDrawings() {
-    let m = SecondScreenModel()
+    let m = SecondScreenState()
     m.openMaterial(presentation); m.updateDrawing(TestDrawings.word, pageIndex: 0); m.displayDisconnected()
     #expect(!m.isConnected && m.state.mode == .material)
     #expect(m.material?.drawings[0]?.strokes.count == TestDrawings.word.strokes.count)
   }
   @Test("Seitenwechsel und Zoom werden übertragen")
   func showPageUpdatesPresentation() {
-    let m = SecondScreenModel()
+    let m = SecondScreenState()
     m.openMaterial(presentation); m.showPage(1, visibleRect: CGRect(x: 0, y: 0, width: 200, height: 100))
     #expect(m.material?.pageIndex == 1 && m.material?.visibleRect?.width == 200)
   }
   @Test("Bildformat des Bildschirms wird übernommen, Vorgabe 16:9")
   func aspectRatio() {
-    let m = SecondScreenModel()
+    let m = SecondScreenState()
     #expect(abs(m.screenAspectRatio - 16.0 / 9.0) < 0.001)
     m.displayConnected(aspectRatio: 4.0 / 3.0)
     #expect(abs(m.screenAspectRatio - 4.0 / 3.0) < 0.001)
   }
   @Test("Tafel wählbar nur mit Unterrichtsstunde")
   func boardRequiresLesson() {
-    let m = SecondScreenModel()
+    let m = SecondScreenState()
     m.select(.board);                     #expect(m.state.mode == .classScreen)
     m.setBoardLesson(TestKeys.tue8aEnglish); m.select(.board); #expect(m.state.mode == .board)
     m.setBoardLesson(nil);                #expect(m.state.mode == .classScreen)
   }
   @Test("Zeichnung ohne offenes Material wird ignoriert")
   func drawingWithoutMaterialIsIgnored() {
-    let m = SecondScreenModel()
+    let m = SecondScreenState()
     m.updateDrawing(TestDrawings.word, pageIndex: 0)
     #expect(m.material == nil)
   }
@@ -668,7 +661,7 @@ Swift-Hinweis: `@Observable` (Framework Observation) macht jede gespeicherte Eig
 ```
 
 - [ ] **Step 2: Diff durchsehen.**
-- [ ] **Step 3: `SecondScreenModel` implementieren** – dünne Hülle um `SecondScreenState`; `static let shared = SecondScreenModel()`; `displayConnected` ruft `state.displayConnected()`; `screenAspectRatio` nur übernehmen, wenn Wert > 0. `MaterialPresentation` in derselben Datei.
+- [ ] **Step 3: `SecondScreenState` implementieren** – dünne Hülle um `SecondScreenSelection`; `static let shared = SecondScreenState()`; `displayConnected` ruft `state.displayConnected()`; `screenAspectRatio` nur übernehmen, wenn Wert > 0. `MaterialPresentation` in derselben Datei.
 - [ ] **Step 4: Diff durchsehen** – Datei kompiliert auch für macOS (nur `PencilKit`, `Foundation`, `Observation`, `FrontstageCore`).
 - [ ] **Step 5: Commit** – `git commit -m "feat(second-screen): observable shared state for both scenes"`
 
@@ -679,12 +672,12 @@ Swift-Hinweis: `@Observable` (Framework Observation) macht jede gespeicherte Eig
 Design-Takt: voll
 
 **Files:**
-- Create: `Frontstage/Viewer/PDFCanvasView.swift`, `Frontstage/Viewer/PDFDisplayView.swift`, `Frontstage/Viewer/ViewerView.swift`
-- Modify: `Frontstage/UI/DayView/DayView.swift` (Teilplan 04) – PDF/Bild öffnet `ViewerView(linkID:)` als `.fullScreenCover` (iOS) bzw. `.sheet` (macOS)
+- Create: `Frontstage/Viewer/PDFCanvasView.swift`, `Frontstage/Viewer/PDFDisplayView.swift`, `Frontstage/Viewer/ViewerView.swift`, `Frontstage/Viewer/ScopedFileReader.swift`, `Frontstage/Viewer/PenCanvas.swift`
+- Modify: `Frontstage/UI/DayView/DayView.swift` (Teilplan 04) – `MaterialOpenAction.viewer(item)` öffnet `ViewerView(linkID: item.id)` als `.fullScreenCover` (iOS) bzw. `.sheet` (macOS); `Frontstage/App/FrontstageApp.swift` – `environment.viewerAvailable = true`
 - Modify: `Frontstage/Resources/Localizable.xcstrings`
 
 **Interfaces:**
-- Consumes: `ViewerModel` (Task 4), `SecondScreenModel` aus der Umgebung (Task 5), `SmartboardBar` (Task 8 – bis dahin `EmptyView()`), `MaterialFileReading`-Instanz aus der Umgebung (Teilplan 03; Name dort festlegen, siehe Abstimmungsbedarf).
+- Consumes: `ViewerModel` (Task 4), `SecondScreenState` aus der Umgebung (Task 5), `SmartboardBar` (Task 8 – bis dahin `EmptyView()`), `ScopedFileReader(storage:)` mit dem `StorageService` aus der Umgebung (Teilplan 03, `readableFile(for:)`); `DataStore.link(id:)` (02). Diese Aufgabe legt auch `Frontstage/Viewer/ScopedFileReader.swift` und `Frontstage/Viewer/PenCanvas.swift` an (Signaturen im Interfaces-Block; `PenCanvas` teilt die Einrichtung von `PKCanvasView` und `PKToolPicker` mit `PDFCanvasView`).
 - Produces: `ViewerView(linkID: UUID)`, `PDFDisplayView(documentData: Data, pageIndex: Int, drawing: PKDrawing?, visibleRect: CGRect?)`.
 
 - [ ] **Step 1: Skill `apple-design` laden** (projektlokal; Hauptstufe vor dem Editieren).
@@ -699,7 +692,7 @@ Design-Takt: voll
 
 - [ ] **Step 3: `PDFDisplayView` (iOS und macOS) – nur anzeigen.** Eigenes `PDFDocument(data:)` je Instanz (ein Dokument nicht zwischen mehreren `PDFView`s teilen), im Coordinator nach `documentData` zwischengespeichert; `isUserInteractionEnabled = false` (iOS); Seite per `go(to:)`, Ausschnitt per `go(to:on:)`, wenn `visibleRect` gesetzt. Überlagerung: iOS eine nicht bedienbare `PKCanvasView` (`isUserInteractionEnabled = false`), macOS ein `NSImageView` mit `drawing.image(from:scale:)` (PencilKit hat am Mac keine Zeichenfläche, `PKDrawing` gibt es dort – Quelle oben). Zeichnung jeweils mit `toViewSpace` auf die Größe der Überlagerung.
 
-- [ ] **Step 4: `ViewerView`.** Holt den `MaterialLinkRecord` per `@Query`/`FetchDescriptor` mit `#Predicate { $0.id == linkID }`, baut `ViewerModel`, ruft `.task { await model.load() }`.
+- [ ] **Step 4: `ViewerView`.** Holt den `MaterialLinkRecord` über `DataStore.link(id:)` (Teilplan 02; `DataStore` aus der Umgebung), baut `ViewerModel` mit `PenNoteStore(store:)` und `ScopedFileReader(storage:)`, ruft `.task { await model.load() }`. `ScopedFileReader.readData`: `storage.readableFile(for:)` → `nil` wirft; sonst koordiniert lesen (`NSFileCoordinator`, `.withoutChanges`) außerhalb des Hauptthreads, danach in jedem Fall `close()`.
   - Inhalt: iOS `PDFCanvasView`, macOS `PDFDisplayView` + Seiten-Knöpfe; `.loading` → `ProgressView`, `.unavailable` → `ContentUnavailableView` (Systemstandard) mit Text `viewer.unavailable`.
   - Navigationsleiste: Titel = `displayName` des Materials, Zurück/„Fertig“ → `model.close()` und schließen; Seitenanzeige `viewer.pageOfPages` („Seite %lld von %lld“), vorige/nächste Seite.
   - Hinweis bei `outdatedPages` nicht leer: Banner `viewer.outdatedNotes.title` / `.body` mit Seitenzahlen, Knopf `viewer.outdatedNotes.hide` (blendet für diese Sitzung aus; Notizen bleiben). Bei `missingPages` nicht leer: Banner `viewer.missingPages` mit Knopf `viewer.missingPages.show`, der die Notizen dieser Seiten als Bild (`PKDrawing.image(from: bounds, scale:)`) in einem Blatt zeigt.
@@ -707,7 +700,7 @@ Design-Takt: voll
   - Unten: `SmartboardBar()` nur `#if os(iOS)`.
   - Offene Kategorien (Systemstandard nehmen, im Abschlussbericht nennen): Wortlaut aller Texte, Darstellung des Hinweis-Banners, Seitenübersicht (Mockup zeigt eine; hier **nicht** gebaut – Abschlussbericht).
 
-- [ ] **Step 5: `DayView` anpassen** – beim Tipp auf Material mit `kind == .pdf || .image` statt der Übergabe `ViewerView(linkID: link.id)` öffnen (genau eine Stelle, die Teilplan 04 dafür vorsieht).
+- [ ] **Step 5: `DayView` anpassen** – `MaterialOpenAction.viewer(item)` (Teilplan 04, gilt für `fileKind.opensInViewer`) öffnet `ViewerView(linkID: item.id)`; ebenso `OpenOutcome.showInViewer(file)` aus `StorageService.open` (dann `file.close()` und `ViewerView` liest selbst). In `FrontstageApp` `environment.viewerAvailable = true` setzen.
 
 - [ ] **Step 6: Texte** in `Localizable.xcstrings` (Schlüssel englisch, Werte deutsch, Platzhalter-Wortlaut aus dem Mockup): `viewer.unavailable` = „Material nicht verfügbar“, `viewer.pageOfPages` = „Seite %1$lld von %2$lld“, `viewer.outdatedNotes.title` = „Notizen zu einer früheren Fassung“, `viewer.outdatedNotes.body` = „Die Datei wurde in der Ablage geändert. Die Notizen dieser Stunde bleiben erhalten, liegen aber womöglich nicht mehr an der richtigen Stelle.“, `viewer.outdatedNotes.hide` = „Ausblenden“, `viewer.missingPages` = „Notizen zu Seiten, die es nicht mehr gibt“, `viewer.missingPages.show` = „Notizen ansehen“, `viewer.done` = „Fertig“.
 
@@ -724,26 +717,27 @@ Design-Takt: voll
 Design-Takt: Hauptstufe
 
 **Files:**
-- Create: `Frontstage/SecondScreen/SecondScreenView.swift`, `Frontstage/SecondScreen/SecondScreenEnvironment.swift`, `Frontstage/SecondScreen/SecondScreenOverlayView.swift`, `Frontstage/SecondScreen/ExternalDisplaySceneDelegate.swift`, `Frontstage/SecondScreen/SceneAccessoryRegistrar.swift`, `Frontstage/App/AppDelegate.swift`, `Frontstage/ClassScreen/ClassScreenDisplayView.swift`, `Frontstage/Board/BoardDisplayView.swift`
-- Modify: `Frontstage/App/FrontstageApp.swift` (Teilplan 01/04)
+- Create: `Frontstage/SecondScreen/SecondScreenRootView.swift`, `Frontstage/SecondScreen/SecondScreenEnvironment.swift`, `Frontstage/SecondScreen/ExternalDisplaySceneDelegate.swift`, `Frontstage/SecondScreen/SceneAccessoryRegistrar.swift`, `Frontstage/App/AppDelegate.swift`
+- Create (Einhängepunkte, Besitzer Teilplan 07): `Frontstage/ClassScreen/ClassScreenView.swift`, `Frontstage/ClassScreen/ClassScreenOverlay.swift`, `Frontstage/ClassScreen/ClassroomEnvironment.swift`, `Frontstage/Board/BoardView.swift`
+- Modify: `Frontstage/App/FrontstageApp.swift` (Platzhalter aus 01, Inhalt aus 04)
 
 **Interfaces:**
-- Consumes: `SecondScreenModel` (Task 5), `PDFDisplayView` (Task 6).
-- Produces: `SecondScreenView(model:)`, `secondScreenEnvironment()`, `registersSecondScreenAccessory()`, Platzhalter für Teilplan 07.
+- Consumes: `SecondScreenState` (Task 5), `PDFDisplayView` (Task 6).
+- Produces: `SecondScreenRootView(state:)`, `secondScreenEnvironment()`, `registersSecondScreenAccessory()`, Platzhalter für Teilplan 07.
 
 Hintergrund: Eine „Szene“ ist in UIKit eine eigene Instanz der Oberfläche mit eigenem Fenster. SwiftUI hat für die nicht bedienbare Szene des Zweitbildschirms keinen eigenen Baustein; sie wird in UIKit angelegt und zeigt die SwiftUI-Ansicht über `UIHostingController`. Die neue Szene hat **eine eigene SwiftUI-Umgebung** – deshalb `secondScreenEnvironment()` als einzige Stelle, an der beide Szenen ihre Umgebung bekommen.
 
 - [ ] **Step 1: Skill `apple-design` laden.**
 
-- [ ] **Step 2: `SecondScreenView(model:)`** – `switch model.state.mode`: `.classScreen` → `ClassScreenDisplayView(model:)`, `.material` → `PDFDisplayView(documentData:pageIndex:drawing: material.drawings[pageIndex], visibleRect:)` vollflächig, `.board` → `BoardDisplayView(model:)`, `.dark` → `Color.black`. Über allen Modi außer `.dark`: `SecondScreenOverlayView(model:)`. Keine Knöpfe, keine Gesten, `.allowsHitTesting(false)`, `.ignoresSafeArea()`. Ist `.material` gewählt, aber `material == nil`, zeigt sie den Klassenbildschirm (nie leer).
+- [ ] **Step 2: `SecondScreenRootView(state:)`** – `switch state.content`: `.classScreen` → `ClassScreenView()`, `.material` → `PDFDisplayView(documentData:pageIndex:drawing: material.drawings[pageIndex], visibleRect:)` vollflächig, `.board` → `BoardView()`, `.dark` → `Color.black` (FR-11.4, kostenlos). Über allen Inhalten außer `.dark`: `ClassScreenOverlay()`. Keine Knöpfe, keine Gesten, `.allowsHitTesting(false)`, `.ignoresSafeArea()`. Ist `.material` gewählt, aber `material == nil`, zeigt sie den Klassenbildschirm (nie leer).
 
-- [ ] **Step 3: Platzhalter** – `ClassScreenDisplayView`: neutrale Fläche (`Color(.systemBackground)` bzw. Systemstandard) mit Kommentar `// Teilplan 07 ersetzt den Körper; Name und init bleiben.`; `BoardDisplayView`: neutrale Fläche, gleicher Kommentar; `SecondScreenOverlayView`: `EmptyView()`, Kommentar „Timer-Schicht (FR-11.2), Teilplan 07“. Der Platzhalter-Klassenbildschirm zeigt **nichts** außer der Fläche (FR-11: nichts, was nicht für die Klasse bestimmt ist).
+- [ ] **Step 3: Einhängepunkte für Teilplan 07** (Übersicht, Abstimmung Punkt 8) – `ClassScreenView()`: neutrale Fläche (Systemhintergrund) mit Kommentar `// Einhängepunkt – Teilplan 07 ersetzt den Inhalt; Name und init bleiben.`; `BoardView()`: neutrale Fläche, gleicher Kommentar; `ClassScreenOverlay()`: `EmptyView()`, Kommentar „Timer-Schicht (FR-11.2), Teilplan 07“; `classroomEnvironment()`: gibt `self` zurück, Kommentar „Teilplan 07 hängt hier seine Modelle an“. Der Platzhalter-Klassenbildschirm zeigt **nichts** außer der Fläche (FR-11; entspricht zugleich dem Ruhezustand ohne Kauf, FR-13).
 
-- [ ] **Step 4: `secondScreenEnvironment()`** in `SecondScreenEnvironment.swift`: `.environment(SecondScreenModel.shared)`; `///`-Doku: „Teilplan 07 hängt hier seine Modelle an.“
+- [ ] **Step 4: `secondScreenEnvironment()`** in `SecondScreenEnvironment.swift`: `.environment(SecondScreenState.shared).classroomEnvironment()`; `///`-Doku: „Eine Stelle für die Umgebung beider Szenen; Modelle von Teilplan 07 kommen über classroomEnvironment().“
 
 - [ ] **Step 5: `ExternalDisplaySceneDelegate` (nur `#if os(iOS)`)** – `final class ExternalDisplaySceneDelegate: UIResponder, UIWindowSceneDelegate`, `var window: UIWindow?`.
-  - `scene(_:willConnectTo:options:)`: `guard let windowScene = scene as? UIWindowScene, session.role == .windowExternalDisplayNonInteractive`; `UIWindow(windowScene:)`, `rootViewController = UIHostingController(rootView: SecondScreenView(model: .shared).secondScreenEnvironment())`, `makeKeyAndVisible()`; `SecondScreenModel.shared.displayConnected(aspectRatio: windowScene.screen.bounds.width / windowScene.screen.bounds.height)`.
-  - `sceneDidDisconnect(_:)`: `window = nil`, `SecondScreenModel.shared.displayDisconnected()`.
+  - `scene(_:willConnectTo:options:)`: `guard let windowScene = scene as? UIWindowScene, session.role == .windowExternalDisplayNonInteractive`; `UIWindow(windowScene:)`, `rootViewController = UIHostingController(rootView: SecondScreenRootView(state: .shared).secondScreenEnvironment())`, `makeKeyAndVisible()`; `SecondScreenState.shared.displayConnected(aspectRatio: windowScene.screen.bounds.width / windowScene.screen.bounds.height)`.
+  - `sceneDidDisconnect(_:)`: `window = nil`, `SecondScreenState.shared.displayDisconnected()`.
   - `windowScene(_:didUpdate:interfaceOrientation:traitCollection:)`: Seitenverhältnis neu melden.
   - Quelle: Apple, „Presenting content on a connected display“, Abschnitte „Attach a window to a scene“, „Handle disconnection“.
 
@@ -789,19 +783,20 @@ registration = target.registerSceneAccessory(.externalNonInteractive(sceneConfig
 Design-Takt: voll
 
 **Files:**
-- Create: `Frontstage/SecondScreen/SmartboardBar.swift`, `Frontstage/SecondScreen/SmartboardBarAccessories.swift`, `Frontstage/SecondScreen/ConnectHowToView.swift`
+- Create: `Frontstage/SecondScreen/SmartboardBar.swift`, `Frontstage/SecondScreen/ConnectHowToView.swift`
+- Create (Einhängepunkt, Besitzer Teilplan 07): `Frontstage/ClassScreen/ClassroomControls.swift`
 - Modify: `Frontstage/Viewer/ViewerView.swift` (Platzhalter durch `SmartboardBar()` ersetzen), `Frontstage/UI/DayView/DayView.swift` (Teilplan 04: `.safeAreaInset(edge: .bottom) { SmartboardBar() }` nur `#if os(iOS)`), `Frontstage/Resources/Localizable.xcstrings`
 
 **Interfaces:**
-- Consumes: `SecondScreenModel` aus der Umgebung, `SecondScreenView` (Task 7).
-- Produces: `SmartboardBar()`, `SmartboardBarAccessories()` (Platzhalter für Teilplan 07), `ConnectHowToView()`.
+- Consumes: `SecondScreenState` aus der Umgebung, `SecondScreenRootView` (Task 7).
+- Produces: `SmartboardBar()`, `ClassroomControls()` (Platzhalter für Teilplan 07), `ConnectHowToView()`.
 
 - [ ] **Step 1: Skill `apple-design` laden.**
 
 - [ ] **Step 2: `SmartboardBar`** – eine Zeile mit:
-  - **Vorschaubild** (FR-11.5): `SecondScreenView(model:)` – dieselbe Ansicht, kein Bildschirmfoto – in einem Rahmen mit `model.screenAspectRatio`, gezeichnet in einer festen virtuellen Größe von 960 Punkten Breite und per `.scaleEffect` auf die Vorschaubreite verkleinert, damit Schriftgrößen des Klassenbildschirms im selben Verhältnis erscheinen; `.allowsHitTesting(false)`; Bedienungshilfe-Text `secondScreen.preview.accessibility` mit dem Modusnamen und, wenn getrennt, `secondScreen.disconnected`. Das Vorschaubild ist auch ohne verbundenen Bildschirm sichtbar.
-  - **Umschalter**: `Picker` mit `.segmented` über `[.classScreen, .material, .board, .dark]`, Bindung liest `model.state.mode` und ruft `model.select(_:)`; nicht verfügbare Modi `.disabled` (Systemstandard; Darstellung ist offene Kategorie).
-  - `SmartboardBarAccessories()` (Platzhalter `EmptyView()`, Kommentar „Timer und Arbeitsform, Teilplan 07“).
+  - **Vorschaubild** (FR-11.5): `SecondScreenRootView(state:)` – dieselbe Ansicht, kein Bildschirmfoto – in einem Rahmen mit `model.screenAspectRatio`, gezeichnet in einer festen virtuellen Größe von 960 Punkten Breite und per `.scaleEffect` auf die Vorschaubreite verkleinert, damit Schriftgrößen des Klassenbildschirms im selben Verhältnis erscheinen; `.allowsHitTesting(false)`; Bedienungshilfe-Text `secondScreen.preview.accessibility` mit dem Modusnamen und, wenn getrennt, `secondScreen.disconnected`. Das Vorschaubild ist auch ohne verbundenen Bildschirm sichtbar.
+  - **Umschalter**: `Picker` mit `.segmented` über `[.classScreen, .material, .board, .dark]`, Bindung liest `state.content` und ruft `state.select(_:)`; nicht verfügbare Inhalte `.disabled` (Systemstandard; Darstellung ist offene Kategorie). „Dunkel“ ist immer verfügbar und kostenlos (FR-11.4, FR-13).
+  - `ClassroomControls()` (Einhängepunkt: Platzhalter `EmptyView()`, Kommentar „Timer und Arbeitsform, Teilplan 07“).
   - **Verbindungsstand**: verbunden → Symbol + `secondScreen.connected`; getrennt → `secondScreen.disconnected` und Knopf `secondScreen.howTo`, der `ConnectHowToView` als `.sheet` öffnet. Der Name des Apple TV wird nicht gezeigt (keine Schnittstelle dafür; Mockup zeigt ihn nur zur Veranschaulichung).
   - Änderungen erscheinen ohne Zutun, weil die Leiste `model.isConnected` beobachtet (AK-35: „wenige Sekunden nach dem Verbinden“).
 
@@ -809,7 +804,7 @@ Design-Takt: voll
 
 - [ ] **Step 4: Texte** (Platzhalter-Wortlaut aus `mockup/anzeige.html`, unpersönlich): `secondScreen.mode.classScreen` = „Klassenbildschirm“, `secondScreen.mode.material` = „Material“, `secondScreen.mode.board` = „Tafel“, `secondScreen.mode.dark` = „Dunkel“, `secondScreen.connected` = „Bildschirm verbunden“, `secondScreen.disconnected` = „Kein Bildschirm verbunden“, `secondScreen.howTo` = „So verbinden“, `secondScreen.howTo.title` = „Mit dem Bildschirm verbinden“, `secondScreen.howTo.autoDetect` = „Frontstage erkennt die Verbindung von selbst und zeigt dann den Klassenbildschirm.“, `secondScreen.howTo.airplay` = „Per AirPlay“, `secondScreen.howTo.step1` = „Von der rechten oberen Ecke nach unten wischen: Das Kontrollzentrum öffnet sich.“, `secondScreen.howTo.step2` = „„Bildschirmsynchronisierung“ antippen.“, `secondScreen.howTo.step3` = „Das Apple TV des Raums wählen.“, `secondScreen.howTo.cable` = „Per Kabel“, `secondScreen.howTo.cableText` = „Adapter (USB-C auf HDMI) anstecken – fertig. Das geht ohne Handgriff und auch, wenn das Schulnetz ausfällt.“, `secondScreen.preview.accessibility` = „Vorschaubild des Zweitbildschirms: %@“.
 
-- [ ] **Step 5: Diff durchsehen** – Leiste und Anleitung nur `#if os(iOS)`; Vorschaubild nutzt `SecondScreenView`, keine zweite Darstellungslogik.
+- [ ] **Step 5: Diff durchsehen** – Leiste und Anleitung nur `#if os(iOS)`; Vorschaubild nutzt `SecondScreenRootView`, keine zweite Darstellungslogik.
 
 - [ ] **Step 6: Prüfung mit `apple-design` als Prüfer** (Design-Takt voll) auf Leiste und Anleitung; offene Kategorien (Platz der Leiste, Dichte, Wortlaut, Darstellung von „nicht verbunden“) nicht entscheiden, im Abschlussbericht als Kandidaten für `/design:design-runde` nennen.
 
@@ -830,7 +825,7 @@ gh workflow run ci.yml --ref "$(git branch --show-current)"
 gh run watch "$(gh run list --workflow ci.yml --branch "$(git branch --show-current)" --limit 1 --json databaseId --jq '.[0].databaseId')"
 ```
 
-Erwartet: Job `core` (`swift test --package-path Packages/FrontstageCore`) grün mit `SecondScreenStateTests` (10 Tests) und `PenNoteFitTests` (5); Job `app` (`xcodebuild test`, iPad-Simulator) grün mit `DrawingGeometryTests` (3), `PenNoteStoreTests` (8), `ViewerModelTests` (7), `SecondScreenModelTests` (7); macOS-Ziel baut.
+Erwartet: Job `core` (`swift test --package-path Packages/FrontstageCore`) grün mit `SecondScreenSelectionTests` (10 Tests) und `PenNoteFitTests` (5); Job `app` (`xcodebuild test`, iPad-Simulator) grün mit `DrawingGeometryTests` (3), `PenNoteStoreTests` (8), `ViewerModelTests` (7), `SecondScreenStateTests` (7); macOS-Ziel baut.
 - [ ] **Step 3: Bei Fehlschlag** `gh run view --log-failed`, Ursache mit superpowers:systematic-debugging klären, alle Korrekturen sammeln, Diff durchsehen, **ein** neuer Lauf.
 
 ---
@@ -866,20 +861,17 @@ Nach grünem CI über TestFlight auf ein iPad mit **iPadOS 26** und eines mit **
 | FR-6 | 3, 4, 6 | AK-13 | `savedNoteIsLoadedAgain`, `closeFlushesAndReturnsToClassScreen`; Gerät 13, 13-b |
 | FR-6.1 | 3 | AK-22 | `otherLinkStartsEmpty`, `copyDropsNotesMoveKeepsThem`; Gerät 22 |
 | FR-6.2 | 1, 5, 7 | AK-23 | `openAndCloseMaterial`, `openingPresentsMaterialWithNotes`; Gerät 23–23-e |
-| FR-11.4 (nur Umschalten) | 1 | AK-28 | `darkRestoresPreviousMode`; Gerät 28 |
+| FR-11.4 (Dunkel, vollständig, kostenlos) | 1, 7, 8 | AK-28 | `darkRestoresPreviousMode`; Gerät 28 |
 | FR-11.5 | 1, 8 | AK-29 | `switchesThroughAllFourModes`; Gerät 29 |
 | FR-11.6 | 1, 7, 8 | AK-35 | `connectingClearsDark`; Gerät 35 |
 
-Nicht in diesem Teilplan: FR-11, FR-11.1–11.3, FR-11.7 (Inhalt des Klassenbildschirms, Timer, Arbeitsform) und FR-12 ff. (Tafel) – Teilplan 07 über die Platzhalter; FR-13 (Kaufangebot statt Klassenbildschirm ohne Kauf) – Teilplan 07, der `ClassScreenDisplayView` füllt. Material am Zweitbildschirm bleibt hier ohne Kaufprüfung (FR-13 „kostenlos“).
+Nicht in diesem Teilplan: FR-11, FR-11.1–11.3, FR-11.7 (Inhalt des Klassenbildschirms, Timer, Arbeitsform) und FR-12 ff. (Tafel) – Teilplan 07 über die Einhängepunkte; FR-13 (neutrale Fläche statt Klassenbildschirm ohne Kauf) – Teilplan 07 in `ClassScreenView`. Material und „Dunkel“ am Zweitbildschirm bleiben hier ohne Kaufprüfung (FR-13, Nutzerentscheidung 2026-11-13).
 
 ## Abstimmungsbedarf
 
-- **Teilplan 01:** öffentliche Initialisierer `LessonKey(date:schoolClass:subject:ordinal:)` und `CalendarDay(year:month:day:)` (für Tests).
-- **Teilplan 02:** `MaterialLinkRecord.id: UUID`, `.lessonKeyText`, `.penNotes` mit `deleteRule: .cascade`; `PenNoteRecord` mit `materialLink`, `pageIndex`, `@Attribute(.externalStorage) drawingData`, `pageWidth`, `pageHeight`, `updatedAt`, `init(materialLink:pageIndex:)`; Zusammenführen doppelter `PenNoteRecord` derselben Zuordnung und Seite (behält den jüngsten Inhalt, Area daten).
-- **Teilplan 03:** `MaterialKind` (mit `.pdf`, `.image`), `MaterialReference.kind`, `.displayName`; Protokoll `MaterialFileReading.readData(for:)` und wie eine Instanz in die SwiftUI-Umgebung kommt (Vorschlag: `@Environment(\.materialFileReader)`).
-- **Teilplan 04:** Dateinamen `Frontstage/App/FrontstageApp.swift` (oder Teilplan 01), `Frontstage/UI/DayView/DayView.swift`; Abzweig „PDF/Bild → `ViewerView(linkID:)`“ in der Tagesansicht; `MaterialLinkActions.copy(_:to:in:)` und `.move(_:to:)`; Platz für `SmartboardBar` unten in der Tagesansicht.
-- **Teilplan 07:** ersetzt die Körper von `ClassScreenDisplayView`, `BoardDisplayView`, `SecondScreenOverlayView`, `SmartboardBarAccessories` (Namen und `init(model:)`/`init()` bleiben); hängt eigene Modelle in `secondScreenEnvironment()` an; ruft `SecondScreenModel.setBoardLesson(_:)` und, für die geöffnete Tafel, `select(.board)`; Kaufprüfung im Klassenbildschirm. Falls die Tafel am Tablet eigene Übergänge braucht (`boardOpened`/`boardClosed`), ergänzt Teilplan 07 sie in `SecondScreenState` mit Tests.
-- **Glossar:** keine neuen Fachbegriffe; `SecondScreenMode`, `PenNoteFit`, `PageSize`, `MaterialPresentation` sind technische Namen ohne Fachbedeutung. Falls „Smartboard-Leiste“ als Begriff in Dokumente eingeht, braucht sie eine Glossar-Zeile (Code-Name hier: `SmartboardBar`).
+- Keiner offen gegenüber 01–05 (abgeglichen nach Übersicht, Abschnitt „Abstimmung“): Stiftnotizen über `DataStore` (02), Lesen über `StorageService.readableFile(for:)`/`ScopedFile` (03), Einbindung in `DayView`/`FrontstageApp` aus 04, AK-22-Test mit `copyMaterialLinks(from:to:)`/`moveLink(_:to:)` aus 02.
+- **Teilplan 07** füllt nur die Einhängepunkte `ClassScreenView`, `BoardView`, `ClassScreenOverlay`, `ClassroomControls`, `classroomEnvironment()` (Namen und `init()` bleiben); ruft `SecondScreenState.setBoardLesson(_:)` und, für die geöffnete Tafel, `select(.board)` sowie `setBoardAvailable(_:)` (Task 5; Regel getestet in `boardUnavailableFallsBack`, Task 1).
+- **Glossar:** keine neuen Fachbegriffe; `SecondScreenContent`, `PenNoteFit`, `PageSize`, `MaterialPresentation` sind technische Namen ohne Fachbedeutung. Falls „Smartboard-Leiste“ als Begriff in Dokumente eingeht, braucht sie eine Glossar-Zeile (Code-Name hier: `SmartboardBar`).
 
 ## Annahmen, die ein Mensch bestätigen sollte
 

@@ -25,7 +25,8 @@ AK-14, AK-15, AK-16, AK-36, AK-42), `docs/adr/0005`, `0007`, `0008`, `0009`, `do
   App-Abhängigkeit automatisch gesetzt; `.xcstrings` landet automatisch in der Resources-Phase).
 - Runner-Label `macos-26` (arm64, = `macos-latest`): github.com/actions/runner-images, README.
 - `workflow_dispatch` „will only trigger a workflow run if the workflow file exists on the default
-  branch“: docs.github.com, „Events that trigger workflows“ – betrifft Task 10.
+  branch“: docs.github.com, „Events that trigger workflows“ – deshalb Task 10 (kleiner PR mit `ci.yml` nach `main`)
+  vor dem ersten Lauf in Task 11 (Übersicht, Abstimmung Punkt 7).
 
 ## Global Constraints
 
@@ -66,10 +67,10 @@ Datenhygiene, Bundle-ID-Platzhalter, Commits). Teilplan-eigene Ergänzungen:
 ## Dateistruktur
 
 ```
-project.yml                                   Task 9
+project.yml                                   Task 9 (nach main: Task 10)
 .gitignore                                    Task 9 (ergänzt)
-.github/workflows/ci.yml                      Task 9
-Frontstage/App/FrontstageApp.swift            Task 9 (Platzhalter)
+.github/workflows/ci.yml                      Task 9 (nach main: Task 10)
+Frontstage/App/FrontstageApp.swift            Task 9 (Platzhalter; 04 ersetzt den Inhalt durch RootView)
 Frontstage/Resources/Localizable.xcstrings    Task 9
 FrontstageTests/AppSmokeTests.swift           Task 9
 Packages/FrontstageCore/Package.swift         Task 1
@@ -106,12 +107,13 @@ Eine Datei je Typ; `TimetableCalculator` wächst über Task 4–6 (je eine `stat
   public struct CalendarDay: Hashable, Comparable, Codable, Sendable {
     public let year: Int; public let month: Int; public let day: Int
     public init(year: Int, month: Int, day: Int)          // precondition: gültiges Datum
-    public init?(isoString: String)                         // "2026-11-17"
-    public var isoString: String { get }                    // "2026-11-17", Monat/Tag zweistellig
+    public init?(storageText: String)                       // "2026-11-17"; nil bei falschem Format oder ungültigem Datum
+    public var storageText: String { get }                  // ISO "yyyy-MM-dd", Monat/Tag zweistellig – sortiert als Text wie als Datum
     public init(dayNumber: Int)                             // Tage seit 1970-01-01
     public var dayNumber: Int { get }
     public func adding(days: Int) -> CalendarDay
     public var weekday: Weekday { get }
+    public var mondayOfWeek: CalendarDay { get }            // Montag der Woche, die diesen Tag enthält
     public init(_ date: Date, calendar: Calendar)           // Grenze App → Kern
   }
   public enum Weekday: Int, CaseIterable, Codable, Sendable { case monday = 1, tuesday, wednesday, thursday, friday, saturday, sunday }
@@ -156,8 +158,11 @@ Eine Datei je Typ; `TimetableCalculator` wächst über Task 4–6 (je eine `stat
     `d(2024,2,28).adding(days: 1) == d(2024,2,29)`, `d(2026,12,31).adding(days: 1) == d(2027,1,1)`,
     `d(2026,11,23).adding(days: -7) == d(2026,11,16)`.
   - `comparableOrdersByDate` – `d(2026,11,16) < d(2026,11,17)`, `d(2026,12,1) > d(2026,11,30)`.
-  - `isoStringRoundTrip` – `d(2026,11,3).isoString == "2026-11-03"`, `CalendarDay(isoString: "2026-11-03") == d(2026,11,3)`,
-    `CalendarDay(isoString: "2026-02-30") == nil`, `CalendarDay(isoString: "x") == nil`.
+  - `storageTextRoundTrip` – `d(2026,11,3).storageText == "2026-11-03"`, `CalendarDay(storageText: "2026-11-03") == d(2026,11,3)`,
+    `CalendarDay(storageText: "2026-02-30") == nil`, `CalendarDay(storageText: "2026-13-01") == nil`,
+    `CalendarDay(storageText: "17.11.2026") == nil`, `CalendarDay(storageText: "x") == nil`.
+  - `mondayOfWeek` – `d(2026,11,17).mondayOfWeek == d(2026,11,16)`, `d(2026,11,22).mondayOfWeek == d(2026,11,16)`
+    (Sonntag gehört zur laufenden Woche), `d(2026,11,16).mondayOfWeek == d(2026,11,16)`, `d(2027,1,1).mondayOfWeek == d(2026,12,28)`.
   - `dateConversionUsesGivenTimeZone` – `Date` 2026-03-28T23:30:00Z, Kalender gregorianisch mit
     `TimeZone(identifier: "Europe/Berlin")` → `CalendarDay == d(2026,3,29)`, `TimeOfDay == t(0,30)`;
     mit `TimeZone(identifier: "UTC")` → `d(2026,3,28)`, `t(23,30)`.
@@ -166,7 +171,7 @@ Eine Datei je Typ; `TimetableCalculator` wächst über Task 4–6 (je eine `stat
   Alle `@Test`-Beschreibungen deutsch, z. B. `@Test("Wochentag bekannter Daten")`.
 
 - [ ] **Step 3: Diff durchsehen** – jeder Test referenziert nur Signaturen aus dem Interfaces-Block
-  (sie fehlen noch: das ist der rote Zustand; ausgeführt wird im CI-Lauf, Task 10).
+  (sie fehlen noch: das ist der rote Zustand; ausgeführt wird im CI-Lauf, Task 11).
 
 - [ ] **Step 4: Implementieren**
 
@@ -187,8 +192,10 @@ Eine Datei je Typ; `TimetableCalculator` wächst über Task 4–6 (je eine `stat
   // day = doy - (153*mp + 2)/5 + 1; month = mp < 10 ? mp + 3 : mp - 9; year = yoe + era*400 + (month <= 2 ? 1 : 0)
   ```
   `weekday`: 1970-01-01 war Donnerstag → `Weekday(rawValue: floorMod(dayNumber + 3, 7) + 1)!`
-  mit `floorMod(a, n) = ((a % n) + n) % n`. Gültigkeit in `init(year:month:day:)`/`init?(isoString:)`
-  über Rundreise `CalendarDay(dayNumber: dayNumber)` prüfen. `Comparable` über `dayNumber`.
+  mit `floorMod(a, n) = ((a % n) + n) % n`. `mondayOfWeek` = `CalendarDay(dayNumber: dayNumber - (weekday.rawValue - 1))`.
+  Gültigkeit in `init(year:month:day:)`/`init?(storageText:)` über Rundreise `CalendarDay(dayNumber: dayNumber)`
+  prüfen. `Comparable` über `dayNumber`. Andere Teilpläne legen **keine** eigene Tagesrechnung an
+  (Übersicht, Abstimmung Punkt 1) – diese API ist die einzige.
   `init(_ date:calendar:)` über `calendar.dateComponents([.year, .month, .day], from: date)`.
   `///`-Doku deutsch: „Kalendertag ohne Zeitzone; zwei Geräte in verschiedenen Zeitzonen meinen mit
   demselben Wert denselben Schultag.“
@@ -233,7 +240,7 @@ Eine Datei je Typ; `TimetableCalculator` wächst über Task 4–6 (je eine `stat
     `Subject(" Englisch ").display == "Englisch"`; `Subject("Bildende  Kunst").normalized == "bildende kunst"`;
     `Set([Subject("Englisch"), Subject("ENGLISCH")]).count == 1`.
 
-- [ ] **Step 2: Diff durchsehen** (roter Zustand, Ausführung in Task 10).
+- [ ] **Step 2: Diff durchsehen** (roter Zustand, Ausführung in Task 11).
 
 - [ ] **Step 3: Implementieren**
   - `SchoolClass.init(_:)`: `lowercased()`, alle Zeichen aus `CharacterSet.whitespacesAndNewlines`
@@ -241,7 +248,7 @@ Eine Datei je Typ; `TimetableCalculator` wächst über Task 4–6 (je eine `stat
     (so bleibt `"0"` erhalten und `"10a"` unberührt).
   - `Subject.init(_:)`: `display` = getrimmt; `normalized` = `display.lowercased()` mit
     Leerraum-Folgen zu einem Leerzeichen zusammengefasst. **Keine** Abkürzungs-Zuordnung („E“ →
-    „Englisch“) – siehe Abstimmungsbedarf mit Teilplan 05.
+    „Englisch“); Teilplan 05 nimmt aus der Quelle den Fachnamen und nur ersatzweise das Kürzel.
   - `Subject`: `static func ==` und `hash(into:)` von Hand über `normalized`; ohne das zählte die
     synthetisierte Gleichheit `display` mit und „Englisch“ ≠ „englisch“ würde jeden Schlüssel brechen.
     Kommentar deutsch mit genau dieser Begründung.
@@ -271,7 +278,7 @@ Eine Datei je Typ; `TimetableCalculator` wächst über Task 4–6 (je eine `stat
   public enum Origin: String, Codable, Sendable { case manual, source }
   ```
   **Format `storageText` (dauerhaft, steht in jeder gespeicherten Zuordnung):**
-  `"<isoString>|<Klasse>|<Fach>|<ordinal>"`, Klasse und Fach jeweils `normalized`, prozentkodiert mit
+  `"<date.storageText>|<Klasse>|<Fach>|<ordinal>"`, Klasse und Fach jeweils `normalized`, prozentkodiert mit
   `addingPercentEncoding(withAllowedCharacters: .alphanumerics)`. Beispiel:
   `"2026-11-17|8b|englisch|1"`, `"2026-11-17|8b|bildende%20kunst|1"`.
 
@@ -286,7 +293,7 @@ Eine Datei je Typ; `TimetableCalculator` wächst über Task 4–6 (je eine `stat
 - [ ] **Step 2: Diff durchsehen.**
 
 - [ ] **Step 3: Implementieren** – `init?(storageText:)`: genau vier Teile nach `"|"`, Datum über
-  `CalendarDay(isoString:)`, Teile 2–3 per `removingPercentEncoding`, `ordinal >= 1`. Aus dem Text
+  `CalendarDay(storageText:)`, Teile 2–3 per `removingPercentEncoding`, `ordinal >= 1`. Aus dem Text
   entsteht `Subject(normalized)`; `display` ist dann klein geschrieben (dokumentieren: Anzeige des
   Fachs kommt aus der berechneten `Lesson`, nicht aus dem Schlüssel).
 
@@ -310,13 +317,15 @@ Eine Datei je Typ; `TimetableCalculator` wächst über Task 4–6 (je eine `stat
   public enum WeekVariant: String, Codable, Sendable { case a, b }
   public struct BellSchedule: Hashable, Codable, Sendable { public var periods: [Int: ClosedRange<TimeOfDay>]; public init(periods: [Int: ClosedRange<TimeOfDay>] = [:]) }
   public struct TimetableEntry: Hashable, Codable, Sendable { …; public init(weekVariant: WeekVariant? = nil, weekday: Weekday, period: Int, schoolClass: SchoolClass, subject: Subject) }
-  public struct Timetable: Codable, Sendable { …; public init(weekVariantCount: Int = 1, referenceWeekA: CalendarDay, bellSchedule: BellSchedule = BellSchedule(), entries: [TimetableEntry] = []) }
+  public struct Timetable: Codable, Sendable { …; public init(weekVariantCount: Int = 1, referenceWeekA: CalendarDay, bellSchedule: BellSchedule = BellSchedule(), entries: [TimetableEntry] = []); public static let empty: Timetable }   // empty: eine Variante, Bezugswoche 1970-01-01 (Montag-Rechnung egal bei einer Variante), leeres Zeitraster, keine Einträge
   public struct NonTeachingPeriod: Hashable, Codable, Sendable { …; public init(from: CalendarDay, to: CalendarDay, title: String); public func contains(_ day: CalendarDay) -> Bool }   // beide Enden einschließlich
   public enum ScheduleChange: Hashable, Codable, Sendable { case cancellation(LessonKey, Origin); case substituteLesson(date: CalendarDay, period: Int, schoolClass: SchoolClass, subject: Subject, Origin) }
   public struct Lesson: Hashable, Sendable { …; public init(key: LessonKey, period: Int, time: ClosedRange<TimeOfDay>?, isSubstituteLesson: Bool, isCancelled: Bool, cancellationOrigin: Origin?) }
   public enum TimetableCalculator { public static func weekVariant(for day: CalendarDay, timetable: Timetable) -> WeekVariant? }
   ```
-  `TimetableEntry.weekVariant == nil` heißt „gilt in jeder Woche“.
+  `TimetableEntry.weekVariant == nil` heißt „gilt in A- und B-Woche“ (bei einer Variante: in jeder Woche).
+  Jeder öffentliche Typ dieses Teilplans hat einen öffentlichen Initialisierer mit allen Eigenschaften
+  (Übersicht, Abstimmung Punkt 1).
 
 - [ ] **Step 1: Fehlschlagende Tests schreiben**
   - `weekVariantAlternatesFromReference` (**AK-2**) – `weekVariantCount: 2`, `referenceWeekA: d(2026,11,16)`:
@@ -326,13 +335,14 @@ Eine Datei je Typ; `TimetableCalculator` wächst über Task 4–6 (je eine `stat
     `d(2026,11,16) → .a`, `d(2026,11,23) → .b`.
   - `singleVariantHasNoWeekVariant` – `weekVariantCount: 1` → `nil` für `d(2026,11,16)`.
   - `nonTeachingPeriodIsInclusive` – Zeitraum 2.–6.11.2026: `contains` wahr für `d(2026,11,2)`, `d(2026,11,6)`; falsch für `d(2026,11,1)`, `d(2026,11,7)`.
+  - `emptyTimetableHasNoLessons` – `Timetable.empty.entries.isEmpty`, `.weekVariantCount == 1`,
+    `TimetableCalculator.weekVariant(for: d(2026,11,16), timetable: .empty) == nil`.
   - `timetableCodableRoundTrip` – `Timetable` mit Zeitraster `[2: t(8,35)...t(9,20)]` und einem Eintrag: `JSONEncoder` → `JSONDecoder` ergibt gleiches `bellSchedule` und gleiche `entries`.
 
 - [ ] **Step 2: Diff durchsehen.**
 
 - [ ] **Step 3: Implementieren `weekVariant(for:timetable:)`** – `nil`, wenn `weekVariantCount != 2`;
-  sonst Montag der Woche = `dayNumber - (weekday.rawValue - 1)` für Tag und Bezugswoche,
-  `weeks = floorDiv(mondayDay - mondayRef, 7)`, gerade → `.a`, ungerade → `.b` (Abrundung, nicht
+  sonst `weeks = floorDiv(day.mondayOfWeek.dayNumber - referenceWeekA.mondayOfWeek.dayNumber, 7)`, gerade → `.a`, ungerade → `.b` (Abrundung, nicht
   Abschneiden: `floorDiv(a, n) = (a - floorMod(a, n)) / n`). Helfer `floorMod`/`floorDiv` als
   `internal` in `Calendar/CalendarDay.swift` (wiederverwendet aus Task 1).
 
@@ -502,11 +512,12 @@ Di 2. Stunde 8b Englisch, Di 4. Stunde 9c Deutsch als Ausfall markiert. `lessons
   }
   public enum ImportDiffer { public static func compare(existing: [TimetableEntry], manuallyEdited: Set<TimetableEntry>, imported: [TimetableEntry]) -> ImportDiff }
   ```
-  **Bedeutung für Teilplan 02/05 (Übernahme):** Was nicht in `removed` steht, bleibt. Von Hand
-  angelegte oder geänderte Einträge (`manuallyEdited`) erscheinen **nie** in `removed` und **nie** in
-  `changed`; fehlen sie im Import, bleiben sie ohne Eintrag im Diff stehen (AK-3: „geht nicht
-  stillschweigend verloren“). Weicht der Import an ihrem Platz ab, landen sie in `manualConflicts` und
-  die Vorschau fragt.
+  **Regel (Übersicht, Abstimmung Punkt 2; Bedeutung für Teilplan 02/05):** Was nicht in `removed` steht,
+  bleibt. `manuallyEdited` enthält alle Einträge mit `Origin.manual` **und** alle Quell-Einträge, die von
+  Hand geändert wurden (Teilplan 02: `DataStore.manuallyEditedEntries()` aus `originRaw` und
+  `isManuallyEdited`). Diese Einträge erscheinen **nie** in `removed` und **nie** in `changed`; fehlen sie
+  im Import, bleiben sie ohne Eintrag im Diff stehen (AK-3: „geht nicht stillschweigend verloren“).
+  Weicht der Import an ihrem Platz ab, landen sie **nur** in `manualConflicts`, und die Vorschau fragt.
 
 - [ ] **Step 1: Fehlschlagende Tests schreiben** (Tupel sind nicht `Equatable` – Vergleich über
   `diff.changed.map(\.old)` / `.map(\.new)`)
@@ -520,6 +531,12 @@ Di 2. Stunde 8b Englisch, Di 4. Stunde 9c Deutsch als Ausfall markiert. `lessons
   - `missingSourceEntryIsRemoved` – existing Fr 5. 9c Mathe (nicht von Hand), fehlt im Import → `removed == [Fr 5. 9c Mathe]`.
   - `normalizedNamesAreNoChange` (Review Focus 2) – existing Di 2. „8b“ „Englisch“, imported Di 2. „8 b“ „englisch“ → `isEmpty`.
   - `duplicateImportedEntriesCountOnce` – Import enthält Di 2. 8b Englisch doppelt, existing leer → `added.count == 1`.
+  - `manualEntriesNeverRemovedOrChanged` (**Abstimmung Punkt 2**, `@Test("Von Hand angelegte und von Hand
+    geänderte Einträge erscheinen nie in removed oder changed (AK-3)")`) – existing = [Mo 1. 7a Deutsch
+    (manuell angelegt, fehlt im Import), Di 2. 8b Englisch (Quell-Eintrag, von Hand geändert), Mi 3. 9c Mathe
+    (Quelle, unverändert)], `manuallyEdited` = die ersten beiden, imported = [Di 2. 8a Englisch, Mi 3. 9c Mathe]
+    → `removed.isEmpty`, `changed.isEmpty`, `manualConflicts.map(\.mine) == [Di 2. 8b Englisch]`,
+    `manualConflicts.map(\.source) == [Di 2. 8a Englisch]`; kein Teil des Diffs enthält Mo 1. 7a Deutsch.
 
 - [ ] **Step 2: Diff durchsehen.**
 
@@ -553,8 +570,11 @@ Design-Takt: keiner (Platzhalter-Bildschirm mit einem Text; die echte Oberfläch
 - Produces: Ziele `Frontstage-iOS` (iPadOS 26), `Frontstage-macOS` (macOS 26), beide
   `PRODUCT_NAME`/`PRODUCT_MODULE_NAME` = `Frontstage`, gleiche Bundle-ID `com.example.frontstage`
   (gleiche ID für beide Plattformen = Voraussetzung für den gemeinsamen Kauf aus FR-13); Testziel
-  `FrontstageTests` (iOS, Host `Frontstage-iOS`); Schemes `Frontstage-iOS` (mit Tests), `Frontstage-macOS`.
-  Teilpläne 02/03/06/07 ergänzen Berechtigungen (iCloud, Sandbox, Kamera …) **in `project.yml`**.
+  `FrontstageTests` (iOS, Host `Frontstage-iOS`); Schemes `Frontstage-iOS` (mit Tests), `Frontstage-macOS`
+  (Übersicht, Abstimmung Punkt 6). `Frontstage/App/FrontstageApp.swift` ist ein **Platzhalter**: 02, 05
+  und 06 ergänzen ihre Einbindung, 04 ersetzt den Körper durch `RootView` und legt `AppEnvironment` an.
+  Spätere Teilpläne ergänzen `project.yml` und `ci.yml` nur um ihre eigenen Einträge (Berechtigungen,
+  Pakete, Info-Schlüssel) und führen beide im Files-Block als `Modify`.
 
 - [ ] **Step 1: `.gitignore` ergänzen**
   ```
@@ -620,7 +640,8 @@ Design-Takt: keiner (Platzhalter-Bildschirm mit einem Text; die echte Oberfläch
   Testziel Name, Modul und ID. `TEST_HOST` setzt XcodeGen selbst, weil das Testziel von einer App abhängt.
 
 - [ ] **Step 3: Platzhalter-App und Texte**
-  - `Frontstage/App/FrontstageApp.swift`: `@main struct FrontstageApp: App` mit `WindowGroup { Text("app.placeholder.title") }`.
+  - `Frontstage/App/FrontstageApp.swift`: `@main struct FrontstageApp: App` mit `WindowGroup { Text("app.placeholder.title") }`
+    und dem deutschen Kommentar `// Platzhalter – Teilplan 04 ersetzt den Inhalt durch RootView.`
     Ein Zeichenketten-Literal in `Text` ist ein `LocalizedStringKey` und wird in der Übersetzungstabelle
     nachgeschlagen. `import FrontstageCore` noch nicht nötig.
   - `Frontstage/Resources/Localizable.xcstrings`: JSON mit `"sourceLanguage": "de"`, `"version": "1.0"`,
@@ -676,17 +697,33 @@ Design-Takt: keiner (Platzhalter-Bildschirm mit einem Text; die echte Oberfläch
 
 ---
 
-### Task 10: CI-Lauf (workflow_dispatch) und Ergebnis prüfen
+### Task 10: CI-Workflow nach `main` bringen (kleiner PR, vor dem ersten CI-Lauf)
+
+Design-Takt: keiner. Übersicht, Abstimmung Punkt 7: `workflow_dispatch` startet nur, wenn `ci.yml` auf
+dem Hauptbranch liegt. Danach laufen alle CI-Läufe aller Teilpläne per `gh workflow run ci.yml --ref <branch>`.
+
+**Files:** – (nur Git: `.github/workflows/ci.yml` und `project.yml` aus Task 9 auf einem eigenen Branch)
+
+- [ ] **Step 1: Eigenen Branch von `main` anlegen** – `git switch -c ci/bootstrap main`;
+  `git checkout <teilplan-branch> -- .github/workflows/ci.yml project.yml`; Commit
+  `git commit -m "ci: add CI workflow (bootstrap for workflow_dispatch)"`. Ohne App-Quellen: Der Workflow
+  läuft auf `main` nur bei Tags und per Hand, ein Push nach `main` startet also keinen Lauf.
+- [ ] **Step 2: PR öffnen** – `git push -u origin ci/bootstrap`;
+  `gh pr create --base main --title "ci: add CI workflow" --body "Bringt nur ci.yml und project.yml nach main, damit workflow_dispatch auf Feature-Branches startbar ist (Übersicht, Abstimmung Punkt 7)."`
+- [ ] **Step 3: Anhalten – Merge braucht die Bestätigung eines Menschen** (Git-Regel: Merge in den
+  Hauptbranch nur nach Bestätigung). Nach dem Merge: `gh workflow list` zeigt `CI`.
+- [ ] **Step 4: Teilplan-Branch auf den neuen Stand von `main` bringen** (`git merge main` auf dem
+  Teilplan-Branch; Konflikte gibt es nicht, die Dateien sind gleich).
+
+---
+
+### Task 11: CI-Lauf (workflow_dispatch) und Ergebnis prüfen
 
 **Files:** – (nur bei Fehlern: die betroffenen Dateien aus Task 1–9)
 
 - [ ] **Step 1: Branch pushen** – `git push -u origin <branch>`.
 
-- [ ] **Step 2: Prüfen, ob der Workflow startbar ist** – `gh workflow list` muss `CI` zeigen. Fehlt er:
-  `workflow_dispatch` startet nur, wenn `ci.yml` auf dem Hauptbranch liegt (GitHub-Doku, s. Quellen).
-  **Anhalten und den Menschen entscheiden lassen** (Merge in `main` braucht Bestätigung): (a) nur
-  `.github/workflows/ci.yml` per kleinem PR nach `main` bringen, oder (b) einmalig ein Tag
-  `v0.0.0-ci.1` auf den Branch setzen und pushen (löst `push: tags` aus).
+- [ ] **Step 2: Prüfen, ob der Workflow startbar ist** – `gh workflow list` muss `CI` zeigen (Task 10).
 
 - [ ] **Step 3: Lauf starten und beobachten**
   ```bash
@@ -721,28 +758,23 @@ Design-Takt: keiner (Platzhalter-Bildschirm mit einem Text; die echte Oberfläch
 | AK-3 | 8 | Abgleich; Vorschau 04/05, Übernahme 02/05 |
 | ADR-0005, 0007, 0008, 0009 | 1–9 | Schlüssel, Mindestversion, XcodeGen/Paket, Benennung |
 
+## Produziert für spätere Teilpläne (Zusammenfassung)
+
+Alle Typen der Übersicht („Schnittstellen“) plus: öffentliche Initialisierer aller Kern-Typen,
+`Timetable.empty`, `CalendarDay.init(_:calendar:)`, `.adding(days:)`, `.weekday`, `.mondayOfWeek`,
+`.storageText`, `init?(storageText:)`, `.dayNumber`, `TimeOfDay.init(_:calendar:)`, `.minutesSinceMidnight`,
+`NonTeachingPeriod.contains(_:)`, `ImportDiff.isEmpty`; Ziele `Frontstage-iOS`, `Frontstage-macOS`,
+`FrontstageTests`; Platzhalter `Frontstage/App/FrontstageApp.swift`; `ci.yml` auf `main` (Task 10).
+`LessonKey.storageText` ist das gespeicherte Feld jeder Zuordnung – nie ohne Migration ändern.
+
 ## Abstimmungsbedarf
 
-- **Teilplan 02/04/05:** Zusätzliche Kern-API aus diesem Plan nutzen statt eigene zu bauen –
-  `CalendarDay.init(_:calendar:)`, `TimeOfDay.init(_:calendar:)`, `CalendarDay.adding(days:)`,
-  `.isoString`, `.weekday`, `NonTeachingPeriod.contains(_:)`, `ImportDiff.isEmpty`.
-- **Teilplan 02/05 (Übernahme nach `ImportDiffer`):** Regel „was nicht in `removed` steht, bleibt;
-  `manuallyEdited` nie in `removed`/`changed`“. 02 muss je `TimetableEntryRecord` eine Hand-Markierung
-  führen, aus der `manuallyEdited` entsteht – Feldname dort festlegen.
-- **Teilplan 05:** `Subject` bildet keine Abkürzungen ab („E“ ≠ „Englisch“). Liefert Schulmanager
-  Kürzel, braucht 05 eine Zuordnung vor dem Abgleich – sonst erzeugt ein Import lauter `changed`.
-- **Teilplan 02:** `LessonKey.storageText`-Format (Task 3) ist das gespeicherte Feld jeder Zuordnung –
-  nicht ändern, ohne Migration.
-- **Teilpläne 02/03/06/07:** Berechtigungen und Entitlements (iCloud/CloudKit, App-Sandbox mit
-  Dateizugriff, Kamera, StoreKit-Konfiguration) werden in `project.yml` an den Zielen ergänzt, nicht im
-  erzeugten Projekt.
-- **Teilplan 04:** TestFlight-Bau ergänzt `ci.yml` um Signieren mit `APPLE_TEAM_ID`/`BUNDLE_ID_PREFIX`.
+- Keiner offen (abgeglichen nach Übersicht, Abschnitt „Abstimmung zwischen den Teilplänen“).
 
 ## Annahmen, die ein Mensch bestätigen sollte
 
-- **A1 — „Nächste Stunde“ heißt gleiche Klasse *und* gleiches Fach** (Übersicht). FR-3.3 und FR-8
-  sagen nur „derselben Klasse“; unterrichtet die Lehrkraft eine Klasse in zwei Fächern, wandert
-  Englisch-Material sonst in die Mathestunde.
+- ~~**A1 — „Nächste Stunde“ heißt gleiche Klasse *und* gleiches Fach**~~ → vom Nutzer bestätigt
+  (2026-11-13), so umgesetzt in Task 6.
 - **A2 — An unterrichtsfreien Tagen erscheinen auch Vertretungsstunden nicht** (Übersicht: „leer an
   unterrichtsfreien Tagen“).
 - **A3 — Vertretungsstunden zählen bei der laufenden Nummer hinter den Stunden aus dem Stundenplan.**
@@ -750,5 +782,5 @@ Design-Takt: keiner (Platzhalter-Bildschirm mit einem Text; die echte Oberfläch
   haben Nummer 2 bzw. 1 – stabil, aber nicht zeitlich.
 - **A4 — Klassenbildschirm übergeht Stunden ohne Zeit im Zeitraster**; fehlt das Zeitraster ganz,
   zeigt er immer „kein Unterricht mehr“ (nur Uhrzeit und Datum).
-- **A5 — Der erste CI-Lauf** braucht entweder `ci.yml` auf `main` oder ein Tag `v0.0.0-ci.1` (Task 10).
+- ~~**A5 — Der erste CI-Lauf**~~ → festgelegt: kleiner PR mit `ci.yml` nach `main` (Task 10, Übersicht Punkt 7).
 - **A6 — Beide App-Ziele tragen dieselbe Bundle-ID** (gemeinsamer Kauf über Plattformen, FR-13).

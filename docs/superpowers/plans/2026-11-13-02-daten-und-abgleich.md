@@ -26,7 +26,10 @@ Alle Zeilen der Übersicht gelten (Abschnitt „Global Constraints“). Zusätzl
 - **Kein Teilplan-02-Task berührt Oberfläche → `Design-Takt: keiner`** für alle Aufgaben.
 - Jede gespeicherte Eigenschaft hat einen Vorgabewert oder ist optional; jede Beziehung ist optional **und hat eine Gegenrichtung** (`inverse:`), weil die CloudKit-Spiegelung Beziehungen ohne Gegenrichtung nicht abbildet.
 - Aufzählungen werden als Rohwert gespeichert (`String`/`Int`), nie als Swift-`enum`-Attribut; Kern-Werte (`CalendarDay`, `LessonKey`) als Text (`dayText`, `lessonKeyText`).
-- Jeder Record trägt `recordID: UUID = UUID()` (fachlich bedeutungslos, nicht eindeutig erzwungen) und `createdAt: Date = .now`. `recordID` ist die Kennung, über die Schnappschüsse und `MergePlan` sprechen.
+- Jeder Record trägt `id: UUID = UUID()` (fachlich bedeutungslos, nicht eindeutig erzwungen) und `createdAt: Date = .now`. `id` ist die Kennung, über die Schnappschüsse, `MergePlan` und die Oberfläche (`MaterialLinkRecord.id`) sprechen. Swift-Hinweis: Eine eigene Eigenschaft `id: UUID` in einer `@Model`-Klasse ersetzt für `Identifiable` die vom Framework gelieferte `persistentModelID`-Kennung; das ist zulässig und in Apples Beispielen üblich.
+- Feldnamen der Records folgen der Übersicht, Abstimmung Punkt 5; was darüber hinausgeht, steht in Task 4 mit Begründung.
+- **Besitz (Übersicht, Abstimmung Punkte 3 und 4):** Dieser Teilplan legt die Kern-Typen `LessonInfo`, `MaterialReference`, `MaterialFileKind`, `BoardBackground`, `ParallelLessonFinder` an und die einzige Datenklasse `DataStore`. Die Verbraucher-Protokolle (`MaterialReferenceStore` in 03, `TimetableRepository` in 05, `PreparationStore` in 04) und ihre `extension DataStore: …` legen die Verbraucher selbst an; jede dort aufgerufene Methode steht hier mit genauer Signatur.
+- Tagesrechnung nur über die Kern-API aus Teilplan 01 (`adding(days:)`, `weekday`, `mondayOfWeek`, `storageText`); keine eigene.
 - **Schema nach der ersten Freigabe der CloudKit-Produktionsumgebung nur additiv ändern** (neue optionale Eigenschaften, neue Modelle); nie umbenennen oder löschen.
 - Jede Schreiboperation des `DataStore` endet mit `modelContext.save()`; keine Operation schreibt in die Ablage oder kopiert Dateien (FR-3.4).
 - App-Tests laufen mit `ModelContainerFactory.makeInMemoryContainer()` (ohne Spiegelung); kein Test braucht ein iCloud-Konto.
@@ -46,10 +49,11 @@ Alle Zeilen der Übersicht gelten (Abschnitt „Global Constraints“). Zusätzl
 
 | Datei | Verantwortung |
 |---|---|
-| `Packages/FrontstageCore/Sources/FrontstageCore/Data/CalendarDay+StorageText.swift` | `CalendarDay` ↔ `"JJJJ-MM-TT"` |
-| `Packages/FrontstageCore/Sources/FrontstageCore/Data/MaterialReference.swift` | Wert des Materialverweises, `fileIdentity` |
+| `Packages/FrontstageCore/Sources/FrontstageCore/Data/MaterialFileKind.swift` | Dateiart aus der Endung |
+| `Packages/FrontstageCore/Sources/FrontstageCore/Data/MaterialReference.swift` | Wert des Materialverweises, `fileIdentity`, `locationKey` |
 | `Packages/FrontstageCore/Sources/FrontstageCore/Data/LessonInfo.swift` | Stundenangaben als Wert, Normalisierung |
-| `Packages/FrontstageCore/Sources/FrontstageCore/Data/ParallelLessonFinder.swift` | passende Unterrichtsstunde einer anderen Klasse (FR-3.2) |
+| `Packages/FrontstageCore/Sources/FrontstageCore/Data/BoardBackground.swift` | Hintergrund einer Tafelseite |
+| `Packages/FrontstageCore/Sources/FrontstageCore/Data/ParallelLessonFinder.swift` | wählbare Zielstunden einer anderen Klasse (FR-3.2) |
 | `Packages/FrontstageCore/Sources/FrontstageCore/Merge/SyncSnapshot.swift` | Schnappschuss-Werte und `MergePlan` |
 | `Packages/FrontstageCore/Sources/FrontstageCore/Merge/SyncMerger.swift` | reine Zusammenführ-Logik |
 | `Packages/FrontstageCore/Tests/FrontstageCoreTests/DataValuesTests.swift`, `ParallelLessonFinderTests.swift`, `SyncMergerTests.swift` | Kern-Tests |
@@ -60,6 +64,7 @@ Alle Zeilen der Übersicht gelten (Abschnitt „Global Constraints“). Zusätzl
 | `Frontstage/Data/DataStore+Merge.swift` | `MergePlan` anwenden |
 | `Frontstage/Data/DataStore+MaterialLinks.swift` | Zuordnungen, Stiftnotizen |
 | `Frontstage/Data/DataStore+LessonData.swift` | Stundenangaben, Tafelseiten |
+| `Frontstage/Data/DataStore+Sources.swift` | Stundenplan-Quelle, Stand, Übernahme eines Imports (für 05) |
 | `Frontstage/Data/SyncMergeTrigger.swift` | Auslöser für das Zusammenführen |
 | `FrontstageTests/Data/*.swift` | App-Tests (Simulator) |
 | `project.yml` (ändern) | Entitlements, Info-Schlüssel, Build-Einstellung `CLOUDKIT_CONTAINER_ID` |
@@ -72,31 +77,40 @@ Alle Zeilen der Übersicht gelten (Abschnitt „Global Constraints“). Zusätzl
 Design-Takt: keiner
 
 **Files:**
-- Create: `Packages/FrontstageCore/Sources/FrontstageCore/Data/CalendarDay+StorageText.swift`, `.../Data/MaterialReference.swift`, `.../Data/LessonInfo.swift`
+- Create: `Packages/FrontstageCore/Sources/FrontstageCore/Data/MaterialFileKind.swift`, `.../Data/MaterialReference.swift`, `.../Data/LessonInfo.swift`, `.../Data/BoardBackground.swift`
 - Test: `Packages/FrontstageCore/Tests/FrontstageCoreTests/DataValuesTests.swift`
 
 **Interfaces:**
-- Consumes: `CalendarDay` (Teilplan 01)
-- Produces:
+- Consumes: – (`CalendarDay.storageText`/`init?(storageText:)` kommen aus Teilplan 01)
+- Produces (Besitzer 02, Übersicht Abstimmung Punkt 3):
 
 ```swift
-extension CalendarDay {
-    /// „JJJJ-MM-TT“, mit führenden Nullen – sortiert als Text wie als Datum.
-    public var storageText: String { get }
-    public init?(storageText: String)          // nil bei falschem Format oder ungültigem Datum (gregorianisch)
+/// Dateiart des Materials; entscheidet Anzeige (06) oder Übergabe (03). Die Namen FileKind/MaterialKind gibt es nicht.
+public enum MaterialFileKind: String, Codable, Sendable, CaseIterable {
+    case pdf, image, presentation, document, spreadsheet, other
+    public init(fileExtension: String)            // ohne Punkt, Groß-/Kleinschreibung egal; unbekannt → .other
+    public var opensInViewer: Bool { get }        // .pdf, .image
 }
 
-/// Materialverweis gemäß ADR-0003: gespiegelter Name der Ordnerfreigabe + Pfad darin, ggf. OneDrive-Kennung.
+/// Materialverweis gemäß ADR-0003: gespiegelter Name der Ordnerfreigabe + Pfad darin, ggf. OneDrive-Kennungen.
 public struct MaterialReference: Hashable, Codable, Sendable {
     public var folderGrantName: String
-    public var relativePath: String
-    public var oneDriveItemID: String?
+    public var relativePath: String               // NFC, "/"-getrennt, ohne führenden "/" (Teilplan 03 erzeugt ihn so)
     public var displayName: String
-    public var fileType: String                // UTType-Kennung, z. B. "com.adobe.pdf"
-    public init(folderGrantName: String, relativePath: String, oneDriveItemID: String? = nil, displayName: String, fileType: String)
+    public var fileKind: MaterialFileKind
+    public var oneDriveItemID: String?
+    public var oneDriveDriveID: String?
+    public init(folderGrantName: String, relativePath: String, displayName: String, fileKind: MaterialFileKind,
+                oneDriveItemID: String? = nil, oneDriveDriveID: String? = nil)
     /// Fachlicher Schlüssel „dieselbe Datei“: "onedrive:<id>" wenn eine nicht leere OneDrive-Kennung da ist, sonst "path:<Freigabe>/<Pfad>".
     public var fileIdentity: String { get }
+    /// Ort ohne OneDrive-Kennung: Schlüssel für Zustände und für Neu verknüpfen (Teilplan 03).
+    public var locationKey: String { get }        // folderGrantName + "\u{1F}" + relativePath.lowercased()
+    public var fileExtension: String { get }      // Endung von relativePath, klein geschrieben
 }
+
+/// Hintergrund einer Tafelseite (FR-12.1, FR-12.5, FR-12.6); gespeichert als BoardPageRecord.backgroundRaw.
+public enum BoardBackground: String, CaseIterable, Codable, Sendable { case blank, lined, grid, image }
 
 public enum LessonInfoField: String, CaseIterable, Codable, Sendable { case topic, toPrepare, homework }
 
@@ -115,30 +129,40 @@ public struct LessonInfo: Hashable, Codable, Sendable {
 - [ ] **Step 1: Failing Tests schreiben**
 
 ```swift
-@Test("CalendarDay als Text mit führenden Nullen, hin und zurück")
-func calendarDayStorageTextRoundTrip() {
-    let day = CalendarDay(year: 2026, month: 11, day: 9)
-    #expect(day.storageText == "2026-11-09")
-    #expect(CalendarDay(storageText: "2026-11-17") == CalendarDay(year: 2026, month: 11, day: 17))
-    #expect("2026-11-09" < "2026-11-17")   // Text sortiert wie das Datum
-}
-
-@Test("Ungültiger Datumstext ergibt nil")
-func calendarDayRejectsInvalidText() {
-    #expect(CalendarDay(storageText: "") == nil)
-    #expect(CalendarDay(storageText: "2026-13-01") == nil)
-    #expect(CalendarDay(storageText: "2026-02-30") == nil)
-    #expect(CalendarDay(storageText: "17.11.2026") == nil)
+@Test("Dateiart aus der Endung, unabhängig von Groß-/Kleinschreibung (FR-5, FR-6)")
+func fileKindFromExtension() {
+    #expect(MaterialFileKind(fileExtension: "PPTX") == .presentation)
+    #expect(MaterialFileKind(fileExtension: "key") == .presentation)
+    #expect(MaterialFileKind(fileExtension: "pages") == .document)
+    #expect(MaterialFileKind(fileExtension: "docx") == .document)
+    #expect(MaterialFileKind(fileExtension: "numbers") == .spreadsheet)
+    #expect(MaterialFileKind(fileExtension: "pdf") == .pdf)
+    for ext in ["png", "jpg", "jpeg", "heic"] { #expect(MaterialFileKind(fileExtension: ext) == .image) }
+    #expect(MaterialFileKind(fileExtension: "txt") == .other)
+    #expect(MaterialFileKind.pdf.opensInViewer && MaterialFileKind.image.opensInViewer && !MaterialFileKind.presentation.opensInViewer)
 }
 
 @Test("Dieselbe Datei: OneDrive-Kennung vor Pfad")
 func materialReferenceFileIdentity() {
-    let a = MaterialReference(folderGrantName: "Unterricht", relativePath: "Englisch/Vokabeln.pdf", displayName: "Vokabeln.pdf", fileType: "com.adobe.pdf")
+    let a = MaterialReference(folderGrantName: "Unterricht", relativePath: "Englisch/Vokabeln.pdf", displayName: "Vokabeln", fileKind: .pdf)
     #expect(a.fileIdentity == "path:Unterricht/Englisch/Vokabeln.pdf")
     var b = a; b.oneDriveItemID = "01ABC"
     #expect(b.fileIdentity == "onedrive:01ABC")
     b.oneDriveItemID = ""
     #expect(b.fileIdentity == a.fileIdentity)
+}
+
+@Test("locationKey ignoriert OneDrive-Kennung und Groß-/Kleinschreibung des Pfads (ADR-0003, Neu verknüpfen)")
+func locationKeyIgnoresOneDriveID() {
+    let a = MaterialReference(folderGrantName: "Unterricht", relativePath: "8b/Vokabeln Unit 4.pptx", displayName: "Vokabeln Unit 4", fileKind: .presentation)
+    var b = a; b.oneDriveItemID = "01ABC"; b.relativePath = "8b/vokabeln unit 4.pptx"
+    #expect(a.locationKey == b.locationKey)
+    #expect(a.fileExtension == "pptx")
+}
+
+@Test("Tafelhintergründe in fester Reihenfolge")
+func boardBackgroundRawValues() {
+    #expect(BoardBackground.allCases.map(\.rawValue) == ["blank", "lined", "grid", "image"])
 }
 
 @Test("AK-25: leere Stundenangaben gelten als nicht vorhanden")
@@ -158,78 +182,78 @@ func lessonInfoTreatsWhitespaceAsEmpty() {
 }
 ```
 
-- [ ] **Step 2: Diff durchsehen** – nur `import Foundation`; `CalendarDay(year:month:day:)` ist im Paket erreichbar (Tests mit `@testable import FrontstageCore`); Prüfung des Datums über `DateComponents.isValidDate(in: Calendar(identifier: .gregorian))`.
+- [ ] **Step 2: Diff durchsehen** – nur `import Foundation`; jeder öffentliche Typ mit öffentlichem Initialisierer. Endungen in `MaterialFileKind`: presentation `ppt pptx pps ppsx key odp`, document `doc docx pages odt rtf`, spreadsheet `xls xlsx numbers ods csv`, pdf `pdf`, image `png jpg jpeg heic gif tif tiff`.
 - [ ] **Step 3: Implementieren** gemäß Interfaces.
 - [ ] **Step 4: Diff durchsehen** – alle öffentlichen Typen `Sendable`, deutsche `///`-Kommentare, keine Zeitzone im Spiel.
 - [ ] **Step 5: Commit**
 
 ```bash
 git add Packages/FrontstageCore/Sources/FrontstageCore/Data Packages/FrontstageCore/Tests/FrontstageCoreTests/DataValuesTests.swift
-git commit -m "core: add storage text, MaterialReference and LessonInfo values"
+git commit -m "core: add MaterialFileKind, MaterialReference, LessonInfo and BoardBackground values"
 ```
 
 ---
 
-### Task 2: Passende Unterrichtsstunde einer anderen Klasse (FR-3.2)
+### Task 2: Wählbare Zielstunden einer anderen Klasse (FR-3.2)
 
 Design-Takt: keiner
+
+Nutzerentscheidung 2026-11-13: Bei „Für <Klasse> übernehmen“ **wählt die Lehrkraft** die Zielstunde aus einer
+Liste der kommenden Unterrichtsstunden der Zielklasse (höchstens 28 Tage voraus, Ausfälle nicht wählbar).
+Klassen zur Wahl sind alle Klassen im Stundenplan außer der eigenen. Es gibt **keine** automatische Zielwahl.
+Die Auswahlliste baut Teilplan 04.
 
 **Files:**
 - Create: `Packages/FrontstageCore/Sources/FrontstageCore/Data/ParallelLessonFinder.swift`
 - Test: `Packages/FrontstageCore/Tests/FrontstageCoreTests/ParallelLessonFinderTests.swift`
 
 **Interfaces:**
-- Consumes: `TimetableCalculator.lessons(on:timetable:nonTeachingPeriods:changes:)`, `LessonKey`, `SchoolClass`, `Timetable` (Teilplan 01)
+- Consumes: `TimetableCalculator.lessons(on:timetable:nonTeachingPeriods:changes:)`, `CalendarDay.adding(days:)`, `LessonKey`, `Lesson`, `SchoolClass`, `Timetable` (Teilplan 01)
 - Produces:
 
 ```swift
 public enum ParallelLessonFinder {
-    /// Erste nicht ausgefallene Unterrichtsstunde von `targetClass` im selben Fach wie `key`,
-    /// ab dem Tag von `key` (derselbe Tag zählt, auch eine frühere Stunde), höchstens `maxDays` Tage weit.
-    public static func matchingLesson(for key: LessonKey, targetClass: SchoolClass, timetable: Timetable,
-                                      nonTeachingPeriods: [NonTeachingPeriod], changes: [ScheduleChange],
-                                      maxDays: Int = 28) -> LessonKey?
-    /// Klassen, die im Stundenplan dasselbe Fach haben, ohne die Klasse von `key`; sortiert nach `normalized`.
-    public static func parallelClasses(for key: LessonKey, timetable: Timetable) -> [SchoolClass]
+    /// Kandidaten für „Für <Klasse> übernehmen“: alle nicht ausgefallenen Unterrichtsstunden von `schoolClass`
+    /// (jedes Fach) ab `day` einschließlich bis `day + maxDays - 1`, in Tages- und Kern-Reihenfolge.
+    public static func candidates(for schoolClass: SchoolClass, from day: CalendarDay, timetable: Timetable,
+                                  nonTeachingPeriods: [NonTeachingPeriod], changes: [ScheduleChange],
+                                  maxDays: Int = 28) -> [Lesson]
+    /// Klassen zur Wahl: alle Klassen mit Einträgen im Stundenplan außer `excluding`; sortiert nach `normalized`.
+    public static func selectableClasses(in timetable: Timetable, excluding: SchoolClass) -> [SchoolClass]
 }
 ```
 
-Fixture A (auch in Task 8): eine Wochenvariante, Bezugswoche 16.11.2026, Einträge Di 2. Stunde 8a Englisch, Mi 3. Stunde 8b Englisch, Do 1. Stunde 8a Englisch.
+Fixture A (auch in Task 8): eine Wochenvariante, Bezugswoche 16.11.2026, Einträge Di 2. Stunde 8a Englisch, Mi 3. Stunde 8b Englisch, Do 1. Stunde 8a Englisch, Fr 4. Stunde 8b Mathe, Mo 5. Stunde 9c Deutsch.
 
 - [ ] **Step 1: Failing Tests schreiben**
 
 ```swift
-@Test("AK-7: Di 8a findet Mi 3. Stunde 8b")
-func matchingLessonFindsNextLessonOfParallelClass() {
-    let di8a = lessonKey(fixtureA, on: .init(year: 2026, month: 11, day: 17), class: "8a")
-    let target = ParallelLessonFinder.matchingLesson(for: di8a, targetClass: SchoolClass("8b"), timetable: fixtureA, nonTeachingPeriods: [], changes: [])
-    #expect(target?.date == CalendarDay(year: 2026, month: 11, day: 18))
-    #expect(target?.schoolClass == SchoolClass("8b"))
-    #expect(target?.subject == Subject("Englisch"))
-    #expect(target?.ordinal == 1)
+@Test("AK-7: Kandidaten der 8b ab Di 17.11. – Mi 3. Stunde Englisch zuerst, jedes Fach")
+func candidatesListUpcomingLessonsOfTargetClass() {
+    let list = ParallelLessonFinder.candidates(for: SchoolClass("8b"), from: CalendarDay(year: 2026, month: 11, day: 17),
+                                               timetable: fixtureA, nonTeachingPeriods: [], changes: [])
+    #expect(list.first?.key == LessonKey(date: CalendarDay(year: 2026, month: 11, day: 18), schoolClass: SchoolClass("8b"), subject: Subject("Englisch"), ordinal: 1))
+    #expect(list.dropFirst().first?.key.subject == Subject("Mathe"))        // Fr 20.11., anderes Fach ist wählbar
+    #expect(list.allSatisfy { $0.key.schoolClass == SchoolClass("8b") })
+    #expect(list.last.map { $0.key.date <= CalendarDay(year: 2026, month: 12, day: 14) } == true)   // höchstens 28 Tage
 }
 
-@Test("Ausgefallene Stunde der Zielklasse wird übersprungen")
-func matchingLessonSkipsCancelledLesson() {
-    // Mi 18.11. 8b als Ausfall → nächste 8b-Englisch-Stunde Mi 25.11.
-    #expect(target?.date == CalendarDay(year: 2026, month: 11, day: 25))
-}
+@Test("Ausgefallene Stunden sind nicht wählbar")
+func candidatesSkipCancelledLessons()               // Mi 18.11. 8b als Ausfall → erster Kandidat Fr 20.11. Mathe
 
-@Test("Keine Stunde der Zielklasse in 28 Tagen ergibt nil")
-func matchingLessonReturnsNilWithoutLesson()       // Zielklasse "9c" ohne Eintrag → nil
+@Test("Klasse ohne Eintrag hat keine Kandidaten")
+func candidatesEmptyWithoutLessons()                // "6c" → []
 
-@Test("Parallelklassen im selben Fach")
-func parallelClassesListsOtherClassesWithSameSubject() {
-    #expect(ParallelLessonFinder.parallelClasses(for: di8a, timetable: fixtureA) == [SchoolClass("8b")])
+@Test("Klassen zur Wahl: alle außer der eigenen")
+func selectableClassesExcludeOwnClass() {
+    #expect(ParallelLessonFinder.selectableClasses(in: fixtureA, excluding: SchoolClass("8a")) == [SchoolClass("8b"), SchoolClass("9c")])
 }
 ```
 
-`lessonKey(_:on:class:)` ist ein Test-Helfer, der den Schlüssel aus `TimetableCalculator.lessons(on:…)` holt.
-
-- [ ] **Step 2: Diff durchsehen** – Tagesweiterzählung über `Calendar(identifier: .gregorian)` als `private`-Helfer in dieser Datei (keine öffentliche Erweiterung von `CalendarDay`, um Teilplan 01 nicht zu überschneiden).
+- [ ] **Step 2: Diff durchsehen** – Tage nur über `CalendarDay.adding(days:)` (Teilplan 01), keine eigene Tagesrechnung.
 - [ ] **Step 3: Implementieren** gemäß Interfaces; Reihenfolge: Tage aufsteigend, innerhalb eines Tages die Reihenfolge von `lessons(on:)`.
 - [ ] **Step 4: Diff durchsehen.**
-- [ ] **Step 5: Commit** – `git commit -m "core: find matching lesson of a parallel class"`
+- [ ] **Step 5: Commit** – `git commit -m "core: list selectable target lessons of another class"`
 
 ---
 
@@ -249,8 +273,8 @@ Design-Takt: keiner
 public struct TimetableSnapshot: Hashable, Sendable { public var id: UUID; public var isActive: Bool; public var createdAt: Date }
 public struct TimetableEntrySnapshot: Hashable, Sendable { public var id: UUID; public var timetableID: UUID?; public var entry: TimetableEntry; public var createdAt: Date }
 public struct MaterialLinkSnapshot: Hashable, Sendable { public var id: UUID; public var lessonKeyText: String; public var fileIdentity: String?; public var createdAt: Date }
-public struct PenNoteSnapshot: Hashable, Sendable { public var id: UUID; public var linkID: UUID?; public var page: Int; public var createdAt: Date; public var modifiedAt: Date }
-public struct LessonInfoSnapshot: Hashable, Sendable { public var id: UUID; public var lessonKeyText: String; public var createdAt: Date; public var fieldModifiedAt: [LessonInfoField: Date] }
+public struct PenNoteSnapshot: Hashable, Sendable { public var id: UUID; public var linkID: UUID?; public var pageIndex: Int; public var createdAt: Date; public var updatedAt: Date }
+public struct LessonInfoSnapshot: Hashable, Sendable { public var id: UUID; public var lessonKeyText: String; public var createdAt: Date; public var fieldUpdatedAt: [LessonInfoField: Date] }
 public struct ScheduleChangeSnapshot: Hashable, Sendable { public var id: UUID; public var change: ScheduleChange; public var createdAt: Date }
 public struct NonTeachingPeriodSnapshot: Hashable, Sendable { public var id: UUID; public var period: NonTeachingPeriod; public var createdAt: Date }
 
@@ -280,15 +304,15 @@ public enum SyncMerger {
 }
 ```
 
-Regeln (Architecture Doc, Nebenläufigkeit): je fachlichem Schlüssel bleibt der **älteste** Datensatz (`createdAt`, bei Gleichstand die kleinere `id.uuidString`). Inhalt mit „zuletzt gilt“ (Stiftnotiz, Stundenangaben je Feld) kommt vom jüngsten `modifiedAt` der Gruppe – die Hülle bleibt die älteste.
+Regeln (Architecture Doc, Nebenläufigkeit): je fachlichem Schlüssel bleibt der **älteste** Datensatz (`createdAt`, bei Gleichstand die kleinere `id.uuidString`). Inhalt mit „zuletzt gilt“ (Stiftnotiz, Stundenangaben je Feld) kommt vom jüngsten `updatedAt` bzw. Feld-Zeitstempel der Gruppe – die Hülle bleibt die älteste.
 
 | Daten | fachlicher Schlüssel | Besonderheit |
 |---|---|---|
 | Stundenplan | nur aktive; alle aktiven bilden eine Gruppe | Einträge aufgegebener Stundenpläne → `entryTimetableChanges` |
 | Stundenplan-Eintrag | (wirksame `timetableID`, `entry`) | wirksam = nach `entryTimetableChanges` |
 | Zuordnung | (`lessonKeyText`, `fileIdentity`) | `fileIdentity == nil` (Verweis noch nicht abgeglichen) → nie zusammenführen |
-| Stiftnotiz | (wirksame `linkID`, `page`) | Notizen aufgegebener Zuordnungen → `penNoteLinkChanges`; Zeichnung vom jüngsten `modifiedAt` |
-| Stundenangaben | `lessonKeyText` | je Feld die Quelle mit jüngstem `fieldModifiedAt[field]` (fehlend = `.distantPast`) |
+| Stiftnotiz | (wirksame `linkID`, `pageIndex`) | Notizen aufgegebener Zuordnungen → `penNoteLinkChanges`; Zeichnung vom jüngsten `updatedAt` |
+| Stundenangaben | `lessonKeyText` | je Feld die Quelle mit jüngstem `fieldUpdatedAt[field]` (fehlend = `.distantPast`) |
 | Abweichung | `change` (inkl. `Origin` – Hand und Quelle werden nie zusammengeführt) | |
 | unterrichtsfreier Zeitraum | `period` | |
 | Tafelseite | – | wird nicht zusammengeführt; gleiche Positionen löst die Sortierung nach `createdAt` |
@@ -316,7 +340,7 @@ Eine Stiftnotiz, die selbst aufgegeben wird, steht nur in `deletions`, nicht zus
 ```swift
 @Test("Nebenläufigkeit: doppelte Datei in derselben Stunde → ältere bleibt, Stiftnotizen wandern")
 func mergesDuplicateLinksAndMovesPenNotes() {
-    // link1 (t1) und link2 (t2): gleiche lessonKeyText, gleiche fileIdentity; note5 an link2, Seite 2
+    // link1 (t1) und link2 (t2): gleiche lessonKeyText, gleiche fileIdentity; note5 an link2, pageIndex 1
     let plan = SyncMerger.plan(for: snapshot)
     #expect(plan.deletions == [id(2)])
     #expect(plan.penNoteLinkChanges == [id(5): id(1)])
@@ -324,7 +348,7 @@ func mergesDuplicateLinksAndMovesPenNotes() {
 
 @Test("Nebenläufigkeit: beide Zuordnungen haben Seite 1 – älteste Notiz bleibt, jüngste Zeichnung gilt")
 func mergesPenNotesOnSamePageKeepingLatestDrawing() {
-    // note4 an link1 Seite 1 (createdAt t1, modifiedAt t1); note5 an link2 Seite 1 (createdAt t2, modifiedAt t3)
+    // note4 an link1 pageIndex 0 (createdAt t1, updatedAt t1); note5 an link2 pageIndex 0 (createdAt t2, updatedAt t3)
     #expect(plan.deletions == [id(2), id(5)])
     #expect(plan.penNoteLinkChanges.isEmpty)
     #expect(plan.penNoteDrawingSources == [id(4): id(5)])
@@ -384,27 +408,26 @@ func cleanSnapshotYieldsEmptyPlan()
 Design-Takt: keiner
 
 **Files:**
-- Create: `Frontstage/Data/Records/TimetableRecord.swift`, `TimetableEntryRecord.swift`, `NonTeachingPeriodRecord.swift`, `ScheduleChangeRecord.swift`, `MaterialLinkRecord.swift`, `MaterialReferenceRecord.swift`, `PenNoteRecord.swift`, `LessonInfoRecord.swift`, `BoardPageRecord.swift`
+- Create: `Frontstage/Data/Records/TimetableRecord.swift`, `TimetableEntryRecord.swift`, `NonTeachingPeriodRecord.swift`, `ScheduleChangeRecord.swift`, `MaterialLinkRecord.swift`, `PenNoteRecord.swift`, `LessonInfoRecord.swift`, `BoardPageRecord.swift`
 - Create: `Frontstage/Data/ModelContainerFactory.swift`
 - Modify: `project.yml` (beide App-Ziele)
 - Test: `FrontstageTests/Data/RecordSchemaTests.swift`, `FrontstageTests/Data/Fixtures.swift`
 
 **Interfaces:**
-- Produces (jede Klasse `@Model final class`, jede Eigenschaft wie angegeben mit Vorgabe; dazu immer `var recordID: UUID = UUID()`, `var createdAt: Date = Date.now`; ein `init` mit den fachlichen Feldern):
+- Produces (jede Klasse `@Model final class`, jede Eigenschaft wie angegeben mit Vorgabe; dazu immer `var id: UUID = UUID()`, `var createdAt: Date = Date.now`; ein `init` mit den fachlichen Feldern):
 
 | Klasse | Eigenschaften |
 |---|---|
-| `TimetableRecord` | `name: String = ""`, `validFromText: String?`, `validToText: String?`, `sourceKind: String = "manual"`, `weekVariantCount: Int = 1`, `referenceWeekAText: String?`, `bellScheduleData: Data?` (JSON von `BellSchedule`), `isActive: Bool = false`, `@Relationship(deleteRule: .cascade, inverse: \TimetableEntryRecord.timetable) entries: [TimetableEntryRecord]? = []` |
-| `TimetableEntryRecord` | `weekVariantRaw: String?`, `weekdayRaw: Int = 1`, `period: Int = 1`, `schoolClassText: String = ""`, `subjectText: String = ""`, `originRaw: String = "manual"`, `timetable: TimetableRecord?` |
+| `TimetableRecord` | `name: String = ""`, `validFromText: String?`, `validToText: String?`, `sourceKindRaw: String = "manual"` (`TimetableSourceKind.rawValue` aus Teilplan 05: `manual` \| `schulmanager`), `sourceFetchedAt: Date?` (Glossar „Stand“, gespiegelt), `weekVariantCount: Int = 1`, `referenceWeekAText: String?`, `bellScheduleData: Data?` (JSON von `BellSchedule`), `isActive: Bool = false`, `@Relationship(deleteRule: .cascade, inverse: \TimetableEntryRecord.timetable) entries: [TimetableEntryRecord]? = []` |
+| `TimetableEntryRecord` | `weekVariantRaw: String?`, `weekdayRaw: Int = 1`, `period: Int = 1`, `schoolClassText: String = ""`, `subjectText: String = ""`, `originRaw: String = "manual"`, `isManuallyEdited: Bool = false` (Quell-Eintrag von Hand geändert), `timetable: TimetableRecord?` |
 | `NonTeachingPeriodRecord` | `fromText: String = ""`, `toText: String = ""`, `title: String = ""` |
 | `ScheduleChangeRecord` | `kindRaw: String = "cancellation"` (`cancellation` \| `substituteLesson`), `originRaw: String = "manual"`, `dayText: String = ""`, `lessonKeyText: String?`, `period: Int?`, `schoolClassText: String?`, `subjectText: String?` |
-| `MaterialLinkRecord` | `lessonKeyText: String = ""`, `dayText: String = ""`, `position: Int = 0`, `@Relationship(deleteRule: .cascade, inverse: \MaterialReferenceRecord.link) reference: MaterialReferenceRecord?`, `@Relationship(deleteRule: .cascade, inverse: \PenNoteRecord.link) penNotes: [PenNoteRecord]? = []` |
-| `MaterialReferenceRecord` | `folderGrantName: String = ""`, `relativePath: String = ""`, `oneDriveItemID: String?`, `displayName: String = ""`, `fileType: String = ""`, `link: MaterialLinkRecord?` |
-| `PenNoteRecord` | `modifiedAt: Date = Date.now`, `page: Int = 1`, `@Attribute(.externalStorage) drawingData: Data?`, `pageWidth: Double = 0`, `pageHeight: Double = 0`, `link: MaterialLinkRecord?` |
-| `LessonInfoRecord` | `lessonKeyText: String = ""`, `topic: String?`, `toPrepare: String?`, `homework: String?`, `topicModifiedAt: Date?`, `toPrepareModifiedAt: Date?`, `homeworkModifiedAt: Date?` |
-| `BoardPageRecord` | `modifiedAt: Date = Date.now`, `lessonKeyText: String = ""`, `dayText: String = ""`, `position: Int = 0`, `backgroundKind: String = "blank"` (`blank` \| `lined` \| `grid` \| `image`), `@Attribute(.externalStorage) backgroundImageData: Data?`, `@Attribute(.externalStorage) drawingData: Data?` |
+| `MaterialLinkRecord` | `lessonKeyText: String = ""`, `dayText: String = ""` (zusätzlich zu Punkt 5: Abfrage je Tag, s. u.), `position: Int = 0`, Felder des Verweises direkt am Datensatz: `folderGrantName: String = ""`, `relativePath: String = ""`, `displayName: String = ""`, `fileKindRaw: String = "other"`, `oneDriveItemID: String?`, `oneDriveDriveID: String?`; `@Relationship(deleteRule: .cascade, inverse: \PenNoteRecord.materialLink) penNotes: [PenNoteRecord]? = []` |
+| `PenNoteRecord` | `materialLink: MaterialLinkRecord?`, `pageIndex: Int = 0` (0-basiert; Bild = Seite 0), `@Attribute(.externalStorage) drawingData: Data?`, `pageWidth: Double = 0`, `pageHeight: Double = 0` (PDF-Punkte, 0 = unbekannt), `updatedAt: Date = Date.now`; `init(materialLink: MaterialLinkRecord?, pageIndex: Int)` |
+| `LessonInfoRecord` | `lessonKeyText: String = ""`, `topic: String?`, `toPrepare: String?`, `homework: String?`, `updatedAt: Date = Date.now`; zusätzlich zu Punkt 5: `topicUpdatedAt: Date?`, `toPrepareUpdatedAt: Date?`, `homeworkUpdatedAt: Date?` (Zusammenführen je Feld, Task 3) |
+| `BoardPageRecord` | `lessonKeyText: String = ""`, `position: Int = 0`, `backgroundRaw: String = "blank"` (`BoardBackground.rawValue`), `@Attribute(.externalStorage) backgroundImageData: Data?`, `@Attribute(.externalStorage) drawingData: Data?`, `updatedAt: Date = Date.now` |
 
-Entscheidung Materialverweis: eigenes Modell gemäß Tabelle, **1:1 an der Zuordnung, mit ihr gelöscht**. „Für Klasse übernehmen“ legt einen neuen `MaterialReferenceRecord` mit denselben Werten an – das ist ein Verweis, keine Dateikopie (FR-3.4).
+Entscheidung Materialverweis (Übersicht, Abstimmung Punkt 5): **kein eigenes Modell** – die Felder von `MaterialReference` stehen direkt am `MaterialLinkRecord`. „Für Klasse übernehmen“ legt eine neue Zuordnung mit denselben Werten an – das ist ein Verweis, keine Dateikopie (FR-3.4). `dayText` (Tag als Text) bleibt zusätzlich am `MaterialLinkRecord`, weil „Material ohne Stunde“ je Tag abgefragt wird, ohne das Format von `LessonKey.storageText` in einem `#Predicate` zu zerlegen. Die Ordnerfreigabe (`FolderGrant`) ist **kein** SwiftData-Modell (nur lokal je Gerät, Teilplan 03).
 
 ```swift
 enum ModelContainerFactory {
@@ -455,11 +478,10 @@ Beide Ziele nutzen **dieselbe** Container-Kennung, sonst gleichen iPad und Mac n
         #expect(try context.fetchCount(FetchDescriptor<PenNoteRecord>()) == 1)
     }
 
-    @Test("Zuordnung löschen löscht Verweis und Stiftnotizen mit (Area anzeige, Stiftnotizen)")
-    func deletingLinkCascadesToReferenceAndPenNotes() throws {
-        // Zuordnung mit Verweis und zwei Stiftnotizen; Zuordnung löschen
+    @Test("Zuordnung löschen löscht ihre Stiftnotizen mit (Area anzeige, Stiftnotizen)")
+    func deletingLinkCascadesToPenNotes() throws {
+        // Zuordnung mit zwei Stiftnotizen; Zuordnung löschen
         #expect(try context.fetchCount(FetchDescriptor<PenNoteRecord>()) == 0)
-        #expect(try context.fetchCount(FetchDescriptor<MaterialReferenceRecord>()) == 0)
     }
 
     @Test("Stundenplan löschen löscht seine Einträge mit")
@@ -470,7 +492,7 @@ Beide Ziele nutzen **dieselbe** Container-Kennung, sonst gleichen iPad und Mac n
 }
 ```
 
-`Fixtures.swift`: `func makeStore() throws -> DataStore` (In-Memory), `fixtureA`, `fixtureB` (Stundenpläne als Kern-Werte), `func reference(_ name: String) -> MaterialReference` mit `folderGrantName: "Unterricht"`, `relativePath: "Englisch/\(name)"`, `fileType: "com.adobe.pdf"`, Tage `tue17`, `wed18`, `thu19`.
+`Fixtures.swift`: `func makeStore() throws -> DataStore` (In-Memory), `fixtureA`, `fixtureB` (Stundenpläne als Kern-Werte), `func reference(_ name: String) -> MaterialReference` mit `folderGrantName: "Unterricht"`, `relativePath: "Englisch/\(name)"`, `displayName: name`, `fileKind: .pdf`, Tage `tue17`, `wed18`, `thu19`. Teilpläne 04, 06 und 07 nutzen `makeStore()` für ihre App-Tests mit echtem `DataStore` im Speicher.
 
 - [ ] **Step 2: Diff durchsehen**
   - Suche `#Unique|\.unique` in `Frontstage/` → kein Treffer (ADR-0002).
@@ -510,12 +532,18 @@ extension TimetableEntryRecord {
 }
 extension NonTeachingPeriodRecord { func makePeriod() -> NonTeachingPeriod?; func apply(_ period: NonTeachingPeriod); func snapshot() -> NonTeachingPeriodSnapshot? }
 extension ScheduleChangeRecord { func makeChange() -> ScheduleChange?; func apply(_ change: ScheduleChange); func snapshot() -> ScheduleChangeSnapshot? }
-extension MaterialReferenceRecord { func makeReference() -> MaterialReference; func apply(_ reference: MaterialReference) }
-extension MaterialLinkRecord { var lessonKey: LessonKey? { get }; func setLessonKey(_ key: LessonKey); func snapshot() -> MaterialLinkSnapshot }
+extension MaterialLinkRecord {
+    var lessonKey: LessonKey? { get }; func setLessonKey(_ key: LessonKey)
+    /// Verweis aus den Feldern am Datensatz; unbekannter fileKindRaw → .other.
+    var reference: MaterialReference { get }
+    func setReference(_ reference: MaterialReference)
+    func snapshot() -> MaterialLinkSnapshot
+}
 extension PenNoteRecord { func snapshot() -> PenNoteSnapshot }
+extension BoardPageRecord { var background: BoardBackground { get set } }   // unbekannter Rohwert → .blank
 extension LessonInfoRecord {
     func makeInfo() -> LessonInfo
-    /// Übernimmt nur geänderte Felder und setzt deren *ModifiedAt auf `now`.
+    /// Übernimmt nur geänderte Felder, setzt deren *UpdatedAt und `updatedAt` auf `now`.
     func apply(_ info: LessonInfo, now: Date)
     func snapshot() -> LessonInfoSnapshot
 }
@@ -545,12 +573,16 @@ func scheduleChangeRoundTrip()                        // .cancellation(key, .sou
 @Test("Zuordnung trägt Schlüssel und Tag als Text")
 func linkStoresLessonKeyAndDayText()                  // dayText == "2026-11-17"; lessonKey == key
 
+@Test("Verweis hin und zurück über die Felder der Zuordnung")
+func linkReferenceRoundTrip()                         // setReference(r mit oneDriveItemID "01ABC", oneDriveDriveID "b!x", fileKind .presentation) → reference == r; fileKindRaw "x" → .other
+
 @Test("Stundenangaben: nur geänderte Felder bekommen einen neuen Zeitstempel")
 func lessonInfoApplyStampsOnlyChangedFields() {
     record.apply(LessonInfo(topic: "Unit 4 – Wortschatz", toPrepare: "Buch, Heft"), now: t1)
     record.apply(LessonInfo(topic: "Unit 4 – Wortschatz", toPrepare: nil), now: t2)
-    #expect(record.topicModifiedAt == t1)
-    #expect(record.toPrepareModifiedAt == t2)
+    #expect(record.topicUpdatedAt == t1)
+    #expect(record.toPrepareUpdatedAt == t2)
+    #expect(record.updatedAt == t2)
     #expect(record.toPrepare == nil)
 }
 
@@ -558,7 +590,7 @@ func lessonInfoApplyStampsOnlyChangedFields() {
 func invalidRawValuesYieldNil()                        // weekdayRaw 9, kindRaw "x", dayText ""
 ```
 
-- [ ] **Step 2: Diff durchsehen** – öffentliche Initialisierer der Kern-Typen werden benutzt (siehe Abstimmungsbedarf A1); `JSONEncoder`/`JSONDecoder` für `BellSchedule`.
+- [ ] **Step 2: Diff durchsehen** – öffentliche Initialisierer der Kern-Typen aus Teilplan 01 werden benutzt; `JSONEncoder`/`JSONDecoder` für `BellSchedule`; `CalendarDay.storageText` aus Teilplan 01 für alle Tagestexte.
 - [ ] **Step 3: Implementieren.**
 - [ ] **Step 4: Diff durchsehen.**
 - [ ] **Step 5: Commit** – `git commit -m "data: translate records to core values and snapshots"`
@@ -570,53 +602,101 @@ func invalidRawValuesYieldNil()                        // weekdayRaw 9, kindRaw 
 Design-Takt: keiner
 
 **Files:**
-- Create: `Frontstage/Data/DataStore.swift`
-- Test: `FrontstageTests/Data/DataStoreTimetableTests.swift`
+- Create: `Frontstage/Data/DataStore.swift`, `Frontstage/Data/DataStore+Sources.swift`
+- Test: `FrontstageTests/Data/DataStoreTimetableTests.swift`, `FrontstageTests/Data/DataStoreSourcesTests.swift`
 
 **Interfaces:**
 - Consumes: Records, Übersetzung (Task 4, 5), `TimetableCalculator` (Teilplan 01)
 - Produces:
 
 ```swift
-/// Einziger Schreibzugang zu den App-Daten. Lesen für Listen darf die Oberfläche auch per @Query.
+/// Einziger Schreibzugang zu den App-Daten (Übersicht, Abstimmung Punkt 4). Lesen für Listen darf die Oberfläche auch per @Query.
 @MainActor @Observable final class DataStore {
     let modelContext: ModelContext
-    init(modelContext: ModelContext)
+    init(modelContext: ModelContext, today: @escaping @MainActor () -> CalendarDay = { CalendarDay(Date(), calendar: .current) })
+    /// Steigt nach jedem erfolgreichen save() und nach jedem Zusammenführen; die Oberfläche lädt darauf neu.
+    private(set) var revision: Int
 
     // Stundenplan (FR-1, FR-1.1, FR-1.2)
     func activeTimetableRecord() throws -> TimetableRecord?        // ältester aktiver
-    func timetable() throws -> Timetable?
-    func addEntry(_ entry: TimetableEntry, origin: Origin = .manual) throws   // legt bei Bedarf den aktiven Stundenplan an
-    func replaceEntry(_ old: TimetableEntry, with new: TimetableEntry) throws // Herkunft wird .manual
+    func timetable() throws -> Timetable?                           // nil ohne aktiven Stundenplan
+    func addEntry(_ entry: TimetableEntry, origin: Origin = .manual) throws   // legt bei Bedarf den aktiven Stundenplan an; Duplikat → nichts
+    /// Von Hand ändern: Herkunft bleibt; ein Quell-Eintrag bekommt isManuallyEdited = true.
+    func replaceEntry(_ old: TimetableEntry, with new: TimetableEntry) throws
     func removeEntry(_ entry: TimetableEntry) throws
-    func setWeekVariants(count: Int, referenceWeekA: CalendarDay) throws      // count nur 1 oder 2
+    func setWeekVariants(count: Int, referenceWeekA: CalendarDay) throws      // count nur 1 oder 2; referenceWeekA wird auf mondayOfWeek gesetzt
     func setBellSchedule(_ schedule: BellSchedule) throws
-    func setTimetableSource(_ sourceKind: String) throws
-    func manuallyEditedEntries() throws -> Set<TimetableEntry>                // Herkunft .manual (für ImportDiffer, AK-3)
-    func applyImport(adding: [TimetableEntry], changing: [(old: TimetableEntry, new: TimetableEntry)], removing: [TimetableEntry]) throws  // Herkunft .source
+    /// Herkunft .manual oder isManuallyEdited (Eingabe für ImportDiffer, AK-3; Teilplan 01 Task 8).
+    func manuallyEditedEntries() throws -> Set<TimetableEntry>
 
     // unterrichtsfreie Zeiträume (FR-7)
-    func nonTeachingPeriods() throws -> [NonTeachingPeriod]
+    func nonTeachingPeriods() throws -> [NonTeachingPeriod]        // nach from sortiert
     func addNonTeachingPeriod(_ period: NonTeachingPeriod) throws
     func removeNonTeachingPeriod(_ period: NonTeachingPeriod) throws
 
-    // Abweichungen (FR-8, FR-9, FR-2.2)
+    // Abweichungen (FR-8, FR-9)
     func scheduleChanges() throws -> [ScheduleChange]
-    func markCancelled(_ key: LessonKey) throws                    // idempotent
-    func removeCancellation(_ key: LessonKey) throws               // nur Herkunft .manual
+    func markCancelled(_ key: LessonKey) throws                    // idempotent; besteht schon ein Ausfall beliebiger Herkunft → nichts
+    /// Nur Herkunft .manual; false, wenn nur ein Ausfall mit Herkunft .source besteht (dann unverändert).
+    @discardableResult func removeCancellation(_ key: LessonKey) throws -> Bool
     @discardableResult
-    func addSubstituteLesson(date: CalendarDay, period: Int, schoolClass: SchoolClass, subject: Subject) throws -> LessonKey?
-    func removeSubstituteLesson(date: CalendarDay, period: Int, schoolClass: SchoolClass, subject: Subject) throws
-    /// Ersetzt alle Abweichungen mit Herkunft .source im Zeitraum; von Hand angelegte bleiben (Area stundenplan-quellen).
-    func replaceSourceScheduleChanges(_ changes: [ScheduleChange], from: CalendarDay, to: CalendarDay) throws
+    func addSubstituteLesson(date: CalendarDay, period: Int, schoolClass: SchoolClass, subject: Subject) throws -> LessonKey?   // Herkunft .manual
+    /// Nur Herkunft .manual; false bei .source.
+    @discardableResult func removeSubstituteLesson(date: CalendarDay, period: Int, schoolClass: SchoolClass, subject: Subject) throws -> Bool
 
     // Unterrichtsstunden (berechnet, nie gespeichert)
     func lessons(on day: CalendarDay) throws -> [Lesson]           // leer ohne Stundenplan
-    func nextLesson(after key: LessonKey) throws -> LessonKey?
+    func nextLesson(after key: LessonKey) throws -> LessonKey?     // gleiche Klasse und gleiches Fach (Nutzerentscheidung 2026-11-13)
 }
 ```
 
-Der aktive Stundenplan wird erst beim ersten Schreiben angelegt (nicht beim App-Start) – das verringert doppelte Stundenpläne bei zwei Geräten (Review Focus 1). Neuer Stundenplan: `isActive = true`, `referenceWeekAText` = Montag der laufenden Woche.
+`DataStore+Sources.swift` – was Teilplan 05 über sein Protokoll `TimetableRepository` aufruft (Rohwerte, damit 02 nicht von `TimetableSourceKind` aus 05 abhängt):
+
+```swift
+extension DataStore {
+    /// sourceKindRaw des aktiven Stundenplans; ohne Stundenplan "manual".
+    func timetableSourceRaw() throws -> String
+    func setTimetableSourceRaw(_ raw: String) throws                // legt bei Bedarf den aktiven Stundenplan an
+    /// „Stand“ (Glossar): Zeitpunkt der letzten erfolgreichen Abfrage, gespiegelt.
+    func sourceFetchedAt() throws -> Date?
+    /// Übernahme eines Imports in einem save(): ersetzt alle Einträge des aktiven Stundenplans durch `entries`.
+    /// Einträge in `manuallyEdited` behalten Herkunft und isManuallyEdited ihres vorhandenen Datensatzes (neu: .manual);
+    /// alle anderen werden Herkunft .source, isManuallyEdited false. Gleiche Einträge behalten ihren Datensatz (createdAt bleibt).
+    /// referenceWeekA nil → unverändert; bellSchedule nil → unverändert.
+    func replaceTimetable(entries: [TimetableEntry], manuallyEdited: Set<TimetableEntry>, weekVariantCount: Int,
+                          referenceWeekA: CalendarDay?, bellSchedule: BellSchedule?) throws
+    /// Ersetzt die Menge aller Abweichungen durch `changes` (Datensätze gleicher Abweichungen bleiben, fehlende werden
+    /// gelöscht, neue angelegt) und setzt, wenn nicht nil, den Stand – ein save(). Welche `.source`-Abweichungen
+    /// wegfallen, rechnet Teilplan 05 im Kern (`ScheduleChangeMerger`) aus.
+    func replaceScheduleChanges(_ changes: [ScheduleChange], sourceFetchedAt: Date?) throws
+}
+```
+
+```swift
+@MainActor @Suite struct DataStoreSourcesTests {
+    @Test("AK-3 (Daten): Übernahme behält den von Hand angelegten Eintrag und markiert Quell-Einträge")
+    func replaceTimetableKeepsManualOriginAndMarksSource() throws {
+        // addEntry(Mo 5 8a Englisch, origin: .manual); replaceTimetable(entries: [Mo 5 8a Englisch, Di 2 8b Englisch, Mi 4 7a Deutsch],
+        //   manuallyEdited: [Mo 5 8a Englisch], weekVariantCount: 1, referenceWeekA: nil, bellSchedule: BellSchedule(periods: [2: 8:35...9:20]))
+        #expect(try store.timetable()?.entries.count == 3)
+        #expect(try store.manuallyEditedEntries() == [mo5_8a])
+        #expect(try store.timetable()?.bellSchedule.periods[2] == TimeOfDay(hour: 8, minute: 35)...TimeOfDay(hour: 9, minute: 20))
+    }
+
+    @Test("Abweichungen ersetzen und Stand setzen in einem Schritt")
+    func replaceScheduleChangesSetsFetchedAt() throws {
+        // markCancelled(di8b) (manuell); replaceScheduleChanges([.cancellation(di8b, .manual), .substituteLesson(date: wed18, period: 3, "6c", "Mathe", .source)], sourceFetchedAt: t1)
+        #expect(Set(try store.scheduleChanges()) == [.cancellation(di8b, .manual), .substituteLesson(date: wed18, period: 3, schoolClass: SchoolClass("6c"), subject: Subject("Mathe"), .source)])
+        #expect(try store.sourceFetchedAt() == t1)
+        #expect(try modelContext.fetchCount(FetchDescriptor<ScheduleChangeRecord>()) == 2)   // manueller Datensatz blieb, kein Duplikat
+    }
+
+    @Test("Quelle umstellen speichert den Rohwert")
+    func sourceRawRoundTrip()                        // ohne Stundenplan "manual"; setTimetableSourceRaw("schulmanager") → "schulmanager"
+}
+```
+
+Der aktive Stundenplan wird erst beim ersten Schreiben angelegt (nicht beim App-Start) – das verringert doppelte Stundenpläne bei zwei Geräten (Review Focus 1). Neuer Stundenplan: `isActive = true`, `referenceWeekAText` = `today().mondayOfWeek.storageText`. `revision` wird in einer privaten Hilfsfunktion `saveAndBump()` nach `modelContext.save()` erhöht; jede Schreiboperation nutzt sie. Swift-Hinweis: `@Observable` (Observation-Framework) macht `revision` für SwiftUI beobachtbar – eine Ansicht, die `revision` liest, wird bei jeder Änderung neu gezeichnet.
 
 - [ ] **Step 1: Failing Tests schreiben**
 
@@ -649,11 +729,14 @@ Der aktive Stundenplan wird erst beim ersten Schreiben angelegt (nicht beim App-
         #expect(try store.lessons(on: CalendarDay(year: 2026, month: 11, day: 25)).contains { $0.isSubstituteLesson } == false)
     }
 
-    @Test("Quelle ersetzt nur eigene Abweichungen im Zeitraum")
-    func replaceSourceChangesKeepsManualOnes()      // manueller Ausfall Di bleibt, alter Quell-Ausfall Do weg, neuer Quell-Ausfall Mi da
+    @Test("Ausfall aus der Quelle lässt sich nicht von Hand aufheben")
+    func removeCancellationKeepsSourceCancellation() // replaceScheduleChanges([.cancellation(di8b, .source)], sourceFetchedAt: nil) → removeCancellation(di8b) == false, scheduleChanges().count == 1
 
-    @Test("Von Hand geänderter Eintrag gilt als manuell (AK-3-Vorarbeit)")
-    func replacedImportedEntryBecomesManual()       // applyImport(adding: [e]) → manuallyEditedEntries() == []; replaceEntry(e, with: e2) → == [e2]
+    @Test("Von Hand geänderter Quell-Eintrag zählt als von Hand geändert (AK-3-Vorarbeit)")
+    func replacedImportedEntryIsManuallyEdited()    // replaceTimetable(entries: [e], manuallyEdited: [], …) → manuallyEditedEntries() == []; replaceEntry(e, with: e2) → == [e2]; Herkunft von e2 bleibt .source
+
+    @Test("revision steigt bei jeder Änderung")
+    func revisionIncreasesOnWrite()                 // addEntry → revision +1; markCancelled zweimal → nur +1 (zweites Mal nichts gespeichert)
 
     @Test("Unterrichtsfreier Zeitraum: keine Unterrichtsstunden")
     func nonTeachingPeriodHasNoLessons()            // 02.11.–06.11.2026 „Herbstferien“ → lessons(on: 03.11.) == []
@@ -663,7 +746,7 @@ Der aktive Stundenplan wird erst beim ersten Schreiben angelegt (nicht beim App-
 - [ ] **Step 2: Diff durchsehen** – jede Schreiboperation endet mit `try modelContext.save()`; keine Datei-API im Diff; `Origin`-Rohwerte `"manual"`/`"source"`.
 - [ ] **Step 3: Implementieren.**
 - [ ] **Step 4: Diff durchsehen.**
-- [ ] **Step 5: Commit** – `git commit -m "data: add DataStore for timetable, non-teaching periods and schedule changes"`
+- [ ] **Step 5: Commit** – `git commit -m "data: add DataStore for timetable, non-teaching periods, schedule changes and source import"`
 
 ---
 
@@ -690,28 +773,28 @@ extension DataStore {
 **Reihenfolge beim Anwenden (verbindlich, sonst greifen Löschregeln zu früh):**
 1. `entryTimetableChanges` – Einträge an den behaltenen Stundenplan hängen,
 2. `penNoteLinkChanges` – Stiftnotizen an die behaltene Zuordnung hängen,
-3. `penNoteDrawingSources` – `drawingData`, `pageWidth`, `pageHeight`, `modifiedAt` übernehmen,
+3. `penNoteDrawingSources` – `drawingData`, `pageWidth`, `pageHeight`, `updatedAt` übernehmen,
 4. `lessonInfoFieldSources` – Feldwert und Feld-Zeitstempel übernehmen,
 5. `deletions` – Records löschen (Kaskaden treffen jetzt nur noch Aufgegebenes),
 6. `save()`.
 
-Die Records werden über `recordID` gefunden (ein Wörterbuch je Modell aus dem Schnappschuss-Lauf).
+Die Records werden über `id` gefunden (ein Wörterbuch je Modell aus dem Schnappschuss-Lauf).
 
 - [ ] **Step 1: Failing Tests schreiben**
 
 ```swift
 @Test("Review Focus 2: Stiftnotizen der aufgegebenen Zuordnung überleben das Löschen")
 func mergeKeepsPenNotesOfDroppedLink() throws {
-    // zwei Zuordnungen Di 8a „Vokabeln.pdf“ (createdAt t1, t2); Notiz Seite 2 an der jüngeren
+    // zwei Zuordnungen Di 8a „Vokabeln.pdf“ (createdAt t1, t2); Notiz pageIndex 1 an der jüngeren
     try store.mergeDuplicates()
     let links = try store.links(for: di8a)                 // aus Task 8; bis dahin per FetchDescriptor
     #expect(links.count == 1)
     #expect(links[0].createdAt == t1)
-    #expect(links[0].penNotes?.map(\.page) == [2])
+    #expect(links[0].penNotes?.map(\.pageIndex) == [1])
 }
 
 @Test("Gleiche Seite: Zeichnung der zuletzt geänderten Notiz bleibt")
-func mergeTakesLatestDrawingForSamePage()                   // drawingData Data([1]) (modifiedAt t1) vs Data([2]) (t3) → Data([2]), eine Notiz
+func mergeTakesLatestDrawingForSamePage()                   // drawingData Data([1]) (updatedAt t1) vs Data([2]) (t3) → Data([2]), eine Notiz
 
 @Test("Review Focus 1: Einträge wandern vor dem Löschen des Stundenplans")
 func mergeMovesEntriesBeforeDeletingTimetable() throws {
@@ -749,29 +832,48 @@ Design-Takt: keiner
 
 ```swift
 extension DataStore {
-    /// Sortiert nach (position, createdAt, recordID.uuidString) – löst gleiche Positionen nach Anlagezeit auf.
+    func link(id: UUID) throws -> MaterialLinkRecord?                         // Oberfläche (04) und Anzeige (06) sprechen über die id
+    /// Sortiert nach (position, createdAt, id.uuidString) – löst gleiche Positionen nach Anlagezeit auf.
     func links(for key: LessonKey) throws -> [MaterialLinkRecord]
+    /// Alle Zuordnungen mit dayText in from…through (Woche im Vorbereiten), je Stunde wie links(for:) sortiert.
+    func links(from: CalendarDay, through: CalendarDay) throws -> [MaterialLinkRecord]
+    /// Für Bereithalten (03): Schlüssel und Verweis aller Zuordnungen dieser Stunden, in Reihenfolge der Schlüssel und Positionen.
+    func linkedReferences(for keys: [LessonKey]) throws -> [(key: LessonKey, reference: MaterialReference)]
+    /// Alle folderGrantName, die in Zuordnungen vorkommen (gespiegelte Freigabe-Namen, 03 und 04).
+    func folderGrantNames() throws -> Set<String>
+    /// Neu verknüpfen (ADR-0003): ersetzt den Verweis an allen Zuordnungen mit reference.locationKey == locationKey;
+    /// Zuordnungen und Stiftnotizen bleiben. Auch zum Zurückschreiben gefundener OneDrive-Kennungen (03). Liefert die Zahl.
+    @discardableResult func replaceReferences(atLocation locationKey: String, with reference: MaterialReference) throws -> Int
     /// index nil → ans Ende; sonst an diese Stelle, alle Positionen der Stunde werden 0…n-1 neu vergeben.
     /// Ist dieselbe Datei (fileIdentity) schon zugeordnet, wird die vorhandene Zuordnung unverändert zurückgegeben.
     @discardableResult func assign(_ reference: MaterialReference, to key: LessonKey, at index: Int? = nil) throws -> MaterialLinkRecord
     /// Semantik wie SwiftUI `onMove`: toOffset zählt vor dem Entfernen. Danach Positionen 0…n-1.
     func moveLinks(in key: LessonKey, fromOffsets: IndexSet, toOffset: Int) throws
-    func parallelClasses(for key: LessonKey) throws -> [SchoolClass]
-    /// FR-3.2: neue Zuordnungen mit neuem Verweis gleicher Werte, ohne Stiftnotizen, ans Ende; Dateien, die das Ziel schon hat, werden übersprungen.
-    @discardableResult func copyLinks(from key: LessonKey, toClass: SchoolClass) throws -> LessonKey?
+    /// FR-3.2 (Nutzerentscheidung 2026-11-13): Kandidaten für die Auswahlliste – ParallelLessonFinder.candidates mit den gespeicherten Daten.
+    func candidateLessons(for schoolClass: SchoolClass, from day: CalendarDay, maxDays: Int = 28) throws -> [Lesson]
+    func selectableClasses(excluding: SchoolClass) throws -> [SchoolClass]
+    /// FR-3.2: neue Zuordnungen gleicher Werte in der gewählten Zielstunde, ohne Stiftnotizen, ans Ende;
+    /// Dateien (fileIdentity), die das Ziel schon hat, werden übersprungen. Liefert die Zahl der neuen Zuordnungen.
+    @discardableResult func copyMaterialLinks(from source: LessonKey, to target: LessonKey) throws -> Int
     /// FR-3.3: ändert nur den Schlüssel; Stiftnotizen bleiben an der Zuordnung. nil → nichts geändert. Danach mergeDuplicates().
     @discardableResult func moveLinkToNextLesson(_ link: MaterialLinkRecord) throws -> LessonKey?
     /// FR-8: alle Zuordnungen der Stunde in die nächste Stunde (Ausfälle übersprungen), Reihenfolge bleibt, ans Ende.
     @discardableResult func moveAllLinksToNextLesson(from key: LessonKey) throws -> LessonKey?
-    /// FR-7: Zuordnung „ohne Stunde“ an eine gewählte Unterrichtsstunde hängen.
+    /// FR-7: Zuordnung „ohne Stunde“ an eine gewählte Unterrichtsstunde hängen; ändert nur Schlüssel, Tag, Position.
     func moveLink(_ link: MaterialLinkRecord, to key: LessonKey) throws
     func removeLink(_ link: MaterialLinkRecord) throws                       // Stiftnotizen per Kaskade
     /// Zuordnungen mit dayText des Tages, zu deren Schlüssel keine berechnete Unterrichtsstunde passt (Area daten, „ohne Stunde“).
+    /// Eine ausgefallene Unterrichtsstunde zählt als vorhanden.
     func orphanedLinks(on day: CalendarDay) throws -> [MaterialLinkRecord]
 
     // Stiftnotizen (ADR-0006, FR-6.1) – Zeichnen und Verzögerung baut Teilplan 06
-    func penNote(for link: MaterialLinkRecord, page: Int) throws -> PenNoteRecord?
-    func savePenNote(for link: MaterialLinkRecord, page: Int, drawingData: Data, pageWidth: Double, pageHeight: Double) throws  // legt an oder überschreibt, setzt modifiedAt
+    /// Alle Datensätze der Zuordnung, auch doppelte nach dem Abgleich (06 nimmt je Seite den jüngsten).
+    func penNotes(for link: MaterialLinkRecord) throws -> [PenNoteRecord]
+    func penNote(for link: MaterialLinkRecord, pageIndex: Int) throws -> PenNoteRecord?   // jüngster der Seite
+    /// Überschreibt den jüngsten Datensatz der Seite oder legt einen an; updatedAt = jetzt.
+    /// pageWidth/pageHeight werden nur gesetzt, wenn der Datensatz neu ist oder bisher keine Größe (0) trug –
+    /// so bleibt die Seitengröße erhalten, zu der die Notiz geschrieben wurde (06, PenNoteFit). Löscht nie einen Datensatz.
+    func savePenNote(for link: MaterialLinkRecord, pageIndex: Int, drawingData: Data, pageWidth: Double, pageHeight: Double) throws
 }
 ```
 
@@ -782,7 +884,7 @@ extension DataStore {
 func moveSolutionToFirstPosition() throws {
     for name in ["Präsentation", "Arbeitsblatt", "Lösung"] { try store.assign(reference(name), to: di8b) }
     try store.moveLinks(in: di8b, fromOffsets: [2], toOffset: 0)
-    #expect(try store.links(for: di8b).map { $0.reference?.displayName } == ["Lösung", "Präsentation", "Arbeitsblatt"])
+    #expect(try store.links(for: di8b).map(\.reference.displayName) == ["Lösung", "Präsentation", "Arbeitsblatt"])
     #expect(try store.links(for: di8b).map(\.position) == [0, 1, 2])
 }
 
@@ -801,17 +903,33 @@ func assignAtIndexInsertsAndRenumbers()            // „Lösung“ at: 0 vor zw
 @Test("Dieselbe Datei zweimal zuordnen ergibt eine Zuordnung")
 func assignSameFileTwiceKeepsOne()
 
-@Test("AK-7: Für 8b übernehmen – Mi 3. Stunde 8b hat dieselben 2 Materialien")
-func copyLinksToParallelClass() throws {
+@Test("AK-7: Für 8b übernehmen in die gewählte Mi 3. Stunde – dieselben 2 Materialien")
+func copyLinksToChosenLesson() throws {
     try store.assign(reference("Präsentation"), to: di8a); try store.assign(reference("Arbeitsblatt"), to: di8a)
-    let target = try store.copyLinks(from: di8a, toClass: SchoolClass("8b"))
-    #expect(target == mi8b)
-    #expect(try store.links(for: mi8b).map { $0.reference?.makeReference() } == [reference("Präsentation"), reference("Arbeitsblatt")])
+    let choices = try store.candidateLessons(for: SchoolClass("8b"), from: tue17)
+    #expect(choices.first?.key == mi8b)                              // Lehrkraft wählt aus der Liste (Teilplan 04)
+    #expect(try store.copyMaterialLinks(from: di8a, to: mi8b) == 2)
+    #expect(try store.links(for: mi8b).map(\.reference) == [reference("Präsentation"), reference("Arbeitsblatt")])
     #expect(try store.links(for: di8a).count == 2)
 }
 
+@Test("Klassen zur Wahl: alle außer der eigenen")
+func selectableClassesFromStore()                    // Fixture A → selectableClasses(excluding: 8a) == [8b, 9c]
+
 @Test("Review Focus 5: Datei, die das Ziel schon hat, wird nicht doppelt übernommen")
-func copyLinksSkipsFilesAlreadyInTarget()           // Mi 8b hat „Präsentation“ → nach copyLinks 2 Zuordnungen, nicht 3
+func copyLinksSkipsFilesAlreadyInTarget()           // Mi 8b hat „Präsentation“ → copyMaterialLinks == 1, danach 2 Zuordnungen, nicht 3
+
+@Test("Neu verknüpfen ersetzt den Ort an allen Zuordnungen (ADR-0003)")
+func replaceReferencesAtLocation() throws {
+    // „Vokabeln.pdf“ an di8a und mi8b, „Lösung“ an di8a; Stiftnotiz an der di8a-Zuordnung von „Vokabeln.pdf“
+    let neu = MaterialReference(folderGrantName: "Unterricht", relativePath: "Englisch/Vokabeln neu.pdf", displayName: "Vokabeln neu", fileKind: .pdf)
+    #expect(try store.replaceReferences(atLocation: reference("Vokabeln.pdf").locationKey, with: neu) == 2)
+    #expect(try store.links(for: di8a).map(\.reference.displayName) == ["Vokabeln neu", "Lösung"])
+    #expect(try store.links(for: di8a).first?.penNotes?.count == 1)
+}
+
+@Test("Gespiegelte Freigabe-Namen und Verweise für das Bereithalten")
+func folderGrantNamesAndLinkedReferences()           // folderGrantNames() == ["Unterricht"]; linkedReferences(for: [di8a, mi8b]).map(\.key) == [di8a, mi8b]
 
 @Test("AK-8: X in die nächste Stunde – steht am Do, nicht mehr am Di")
 func moveLinkToNextLessonMovesToThursday() throws {
@@ -819,7 +937,7 @@ func moveLinkToNextLessonMovesToThursday() throws {
     let target = try store.moveLinkToNextLesson(x)
     #expect(target?.date == thu19)
     #expect(try store.links(for: di8b).isEmpty)
-    #expect(try store.links(for: target!).map(\.recordID) == [x.recordID])
+    #expect(try store.links(for: target!).map(\.id) == [x.id])
 }
 
 @Test("Review Focus 4: ohne nächste Stunde bleibt die Zuordnung, wo sie ist")
@@ -831,21 +949,21 @@ func cancelAndPassOnMovesAllLinks() throws {
     try store.markCancelled(di8b)
     let target = try store.moveAllLinksToNextLesson(from: di8b)
     #expect(target?.date == thu19)
-    #expect(try store.links(for: target!).map { $0.reference?.displayName } == ["Präsentation", "Arbeitsblatt"])
+    #expect(try store.links(for: target!).map(\.reference.displayName) == ["Präsentation", "Arbeitsblatt"])
     #expect(try store.lessons(on: tue17).first?.isCancelled == true)
 }
 
 @Test("AK-22 (Daten): Übernehmen ohne Notiz, Schieben mit Notiz")
 func penNotesFollowMoveButNotCopy() throws {
     let pdf = try store.assign(reference("Vokabeln.pdf"), to: di8a)
-    try store.savePenNote(for: pdf, page: 1, drawingData: Data([0x01, 0x02]), pageWidth: 595, pageHeight: 842)
-    try store.copyLinks(from: di8a, toClass: SchoolClass("8b"))
+    try store.savePenNote(for: pdf, pageIndex: 0, drawingData: Data([0x01, 0x02]), pageWidth: 595, pageHeight: 842)
+    try store.copyMaterialLinks(from: di8a, to: mi8b)
     #expect(try store.links(for: mi8b).first?.penNotes?.isEmpty == true)
     let thursday = try store.moveLinkToNextLesson(pdf)
     #expect(thursday?.date == thu19)
     let moved = try store.links(for: thursday!).first!
-    #expect(try store.penNote(for: moved, page: 1)?.drawingData == Data([0x01, 0x02]))
-    #expect(moved.reference?.makeReference() == reference("Vokabeln.pdf"))
+    #expect(try store.penNote(for: moved, pageIndex: 0)?.drawingData == Data([0x01, 0x02]))
+    #expect(moved.reference == reference("Vokabeln.pdf"))
 }
 
 @Test("AK-14 (Daten): Material am Ferientag bleibt als „ohne Stunde“ erhalten")
@@ -854,13 +972,16 @@ func linkOnNonTeachingDayIsOrphaned()                // Zuordnung Di 17.11., dan
 @Test("Zuordnung löschen löscht ihre Stiftnotizen")
 func removeLinkDeletesPenNotes()
 
-@Test("Stiftnotiz überschreiben setzt modifiedAt neu und legt keine zweite an")
+@Test("Stiftnotiz überschreiben setzt updatedAt neu und legt keine zweite an")
 func savePenNoteOverwritesSamePage()
+
+@Test("Gespeicherte Seitengröße bleibt beim Weiterschreiben auf geänderter Seite erhalten (Area anzeige)")
+func savePenNoteKeepsFirstPageSize()                 // erst 595×842, dann 842×595 → pageWidth 595, pageHeight 842; penNotes(for:).count == 1
 ```
 
 `di8a`, `mi8b`, `di8b` holt der Test über `store.lessons(on:)`.
 
-- [ ] **Step 2: Diff durchsehen** – keine `FileManager`-/`URL`-Schreibzugriffe (FR-3.4); `moveLinkToNextLesson` ändert nur `lessonKeyText`/`dayText`/`position`; Verschieben ohne Ziel speichert nicht.
+- [ ] **Step 2: Diff durchsehen** – keine `FileManager`-/`URL`-Schreibzugriffe (FR-3.4); `moveLinkToNextLesson` ändert nur `lessonKeyText`/`dayText`/`position`; Verschieben ohne Ziel speichert nicht; keine automatische Zielwahl beim Übernehmen.
 - [ ] **Step 3: Implementieren.**
 - [ ] **Step 4: Diff durchsehen.**
 - [ ] **Step 5: Commit** – `git commit -m "data: add material link operations and pen note storage"`
@@ -885,9 +1006,11 @@ extension DataStore {
     func setLessonInfo(_ info: LessonInfo, for key: LessonKey) throws // normalisiert; ältester Datensatz wird beschrieben, sonst neu angelegt
 
     // Tafelseiten (FR-12.1, FR-12.2) – Zeichnen, Kamera und Vorlage baut Teilplan 07
-    func boardPages(for key: LessonKey) throws -> [BoardPageRecord]   // sortiert (position, createdAt, recordID)
-    @discardableResult func addBoardPage(for key: LessonKey, backgroundKind: String, backgroundImageData: Data? = nil) throws -> BoardPageRecord   // ans Ende
-    func saveBoardPageDrawing(_ page: BoardPageRecord, drawingData: Data) throws   // setzt modifiedAt
+    func boardPages(for key: LessonKey) throws -> [BoardPageRecord]   // sortiert (position, createdAt, id)
+    @discardableResult func addBoardPage(for key: LessonKey, background: BoardBackground, backgroundImageData: Data? = nil) throws -> BoardPageRecord   // ans Ende, position = max + 1
+    func setBoardPageBackground(_ page: BoardPageRecord, background: BoardBackground, imageData: Data?) throws   // setzt updatedAt
+    func saveBoardPageDrawing(_ page: BoardPageRecord, drawingData: Data) throws   // setzt updatedAt
+    func deleteBoardPage(_ page: BoardPageRecord) throws              // übrige Positionen bleiben (Sortierung trägt)
     func deleteBoardDrawing(for key: LessonKey) throws                // alle Tafelseiten der Stunde
     func lessonKeysWithBoardPages() throws -> Set<LessonKey>          // für „letztes Tafelbild“ (FR-12.3)
 }
@@ -912,10 +1035,11 @@ func lessonInfoIsPerLesson()                         // Di 8b gesetzt → lesson
 
 @Test("AK-31/AK-32 (Daten): zwei Seiten bleiben, Löschen leert das Tafelbild")
 func boardPagesPersistAndDelete() throws {
-    let p1 = try store.addBoardPage(for: di8b, backgroundKind: "blank")
+    let p1 = try store.addBoardPage(for: di8b, background: .blank)
     try store.saveBoardPageDrawing(p1, drawingData: Data([0x0A]))
-    try store.addBoardPage(for: di8b, backgroundKind: "grid")
-    #expect(try store.boardPages(for: di8b).map(\.backgroundKind) == ["blank", "grid"])
+    try store.addBoardPage(for: di8b, background: .grid)
+    #expect(try store.boardPages(for: di8b).map(\.background) == [.blank, .grid])
+    #expect(try store.boardPages(for: di8b).map(\.backgroundRaw) == ["blank", "grid"])
     #expect(try store.boardPages(for: di8b).first?.drawingData == Data([0x0A]))
     #expect(try store.lessonKeysWithBoardPages() == [di8b])
     try store.deleteBoardDrawing(for: di8b)
@@ -955,7 +1079,7 @@ Design-Takt: keiner
 
 Beobachtung über `NotificationCenter.default.addObserver(forName: .NSPersistentStoreRemoteChange, object: nil, queue: .main)` mit `MainActor.assumeIsolated { remoteChangeReceived() }` (Swift 6: der Block ist nicht als Main-Actor markiert, läuft aber auf der Hauptwarteschlange). `import CoreData` nur für den Namen der Mitteilung. Jeder Lauf nach einer Fernänderung protokolliert „Zusammenführen nach Fernänderung“ (`Logger`, Subsystem = Bundle-ID, Stufe `.info`) – das prüft die Geräte-Checkliste. Fehler von `mergeDuplicates()` werden ebenso protokolliert, nie angezeigt.
 
-`FrontstageApp`: `let container = try ModelContainerFactory.makeDefault()`, `DataStore(modelContext: container.mainContext)`, `.modelContainer(container)`, `.environment(store)`, `trigger.start()` beim Start, `.onChange(of: scenePhase) { if $1 == .active { trigger.sceneDidBecomeActive() } }`. Schlägt der Container fehl, `fatalError` mit deutscher Meldung (ohne Daten kein sinnvoller Betrieb).
+`FrontstageApp` (Platzhalter aus Teilplan 01; Teilplan 04 ersetzt später den Körper durch `RootView` und übernimmt diese Zeilen in `AppEnvironment`): `let container = try ModelContainerFactory.makeDefault()`, `DataStore(modelContext: container.mainContext)`, `.modelContainer(container)`, `.environment(store)`, `trigger.start()` beim Start, `.onChange(of: scenePhase) { if $1 == .active { trigger.sceneDidBecomeActive() } }`. Schlägt der Container fehl, `fatalError` mit deutscher Meldung (ohne Daten kein sinnvoller Betrieb).
 
 - [ ] **Step 1: Failing Tests schreiben**
 
@@ -993,7 +1117,7 @@ gh run list --workflow ci.yml --limit 1
 gh run watch <run-id> --exit-status
 ```
 
-Erwartet: Job Kern-Tests (`swift test --package-path Packages/FrontstageCore`) grün mit `DataValuesTests`, `ParallelLessonFinderTests`, `SyncMergerTests`; Job App-Tests (`xcodebuild test`, iPad-Simulator) grün mit `RecordSchemaTests`, `RecordConversionTests`, `DataStoreTimetableTests`, `DataStoreMergeTests`, `DataStoreMaterialLinkTests`, `DataStoreLessonDataTests`, `SyncMergeTriggerTests`; macOS-Ziel baut.
+Erwartet: Job Kern-Tests (`swift test --package-path Packages/FrontstageCore`) grün mit `DataValuesTests`, `ParallelLessonFinderTests`, `SyncMergerTests`; Job App-Tests (`xcodebuild test`, iPad-Simulator) grün mit `RecordSchemaTests`, `RecordConversionTests`, `DataStoreTimetableTests`, `DataStoreSourcesTests`, `DataStoreMergeTests`, `DataStoreMaterialLinkTests`, `DataStoreLessonDataTests`, `SyncMergeTriggerTests`; macOS-Ziel baut.
 
 - [ ] **Step 3: Bei Rot** – `gh run view <run-id> --log-failed`, Ursache mit superpowers:systematic-debugging klären, alle Korrekturen sammeln, dann **ein** neuer Lauf.
 
@@ -1005,7 +1129,7 @@ Die Datenteile von AK-4/AK-5 und der Wiederherstellungsweg lassen sich nur mit e
 
 | # | Schritte | Erwartet | Ergebnis / Datum |
 |---|---|---|---|
-| 1 | Entwicklungsbau starten, eine Zuordnung anlegen; CloudKit Console (Entwicklung) öffnen | Record-Typen `CD_TimetableRecord` … `CD_BoardPageRecord` (9) vorhanden. Vor dem ersten TestFlight-Bau „Deploy Schema Changes“ in die Produktion | ☐ |
+| 1 | Entwicklungsbau starten, eine Zuordnung anlegen; CloudKit Console (Entwicklung) öffnen | Record-Typen `CD_TimetableRecord` … `CD_BoardPageRecord` (8) vorhanden. Vor dem ersten TestFlight-Bau „Deploy Schema Changes“ in die Produktion | ☐ |
 | 2 | AK-4/AK-5 (Daten): am Mac Material Di 8b zuordnen; danach am iPad eines zuordnen | jeweils binnen einer Minute auf dem anderen Gerät sichtbar | ☐ |
 | 3 | Beide Geräte offline; dieselbe Datei derselben Stunde zuordnen; am iPad Stiftnotiz Seite 1; beide online | eine Zuordnung, die Notiz ist da | ☐ |
 | 4 | Beide Geräte offline Di 8b als Ausfall markieren; online | ein Ausfall | ☐ |
@@ -1020,7 +1144,7 @@ Die Datenteile von AK-4/AK-5 und der Wiederherstellungsweg lassen sich nur mit e
 | Anforderung / AK | Task |
 |---|---|
 | ADR-0002 (SwiftData, Spiegelung, Modellregeln) | 4, 10, 11 |
-| Area daten – Datenmodell (alle 9 gespiegelten Modelle) | 4, 5 |
+| Area daten – Datenmodell (alle 8 gespiegelten Modelle; Materialverweis als Felder der Zuordnung) | 4, 5 |
 | Area daten – Nebenläufigkeit, Zusammenführen | 3, 7, 10 |
 | FR-3, FR-3.1 (Daten) – AK-6 | 8 |
 | FR-3.2 – AK-7 | 2, 8 |
@@ -1036,22 +1160,21 @@ Die Datenteile von AK-4/AK-5 und der Wiederherstellungsweg lassen sich nur mit e
 
 Nicht hier: Oberfläche zu allen AK (Teilplan 04/06/07), Ordnerfreigaben (Teilplan 03, nur lokal), Zeichnen/Speicherverzögerung von Stiftnotizen (06), Kamera/Vorlage (07), Import-Logik (05).
 
+## Produziert für spätere Teilpläne (Zusammenfassung)
+
+- **Kern:** `MaterialFileKind` (inkl. `init(fileExtension:)`, `opensInViewer`), `MaterialReference` (inkl. `fileIdentity`, `locationKey`, `fileExtension`), `LessonInfo`, `LessonInfoField`, `BoardBackground`, `ParallelLessonFinder.candidates(for:from:timetable:nonTeachingPeriods:changes:maxDays:)` und `.selectableClasses(in:excluding:)`, `SyncMerger` samt Schnappschüssen.
+- **App:** die acht Records (Task 4), `ModelContainerFactory`, `DataStore` mit allen Methoden aus Task 6–9 (inkl. `DataStore+Sources`), `SyncMergeTrigger`, Test-Hilfe `makeStore()`.
+- **Verbraucher:** 03 `MaterialReferenceStore` → `linkedReferences(for:)`, `folderGrantNames()`, `replaceReferences(atLocation:with:)`; 05 `TimetableRepository` → `timetable()`, `manuallyEditedEntries()`, `nonTeachingPeriods()`, `scheduleChanges()`, `timetableSourceRaw()`, `setTimetableSourceRaw(_:)`, `sourceFetchedAt()`, `replaceTimetable(…)`, `replaceScheduleChanges(_:sourceFetchedAt:)`, `lessons(on:)`; 04 `PreparationStore` → Task 6, 8, 9; 06 → `link(id:)`, `penNotes(for:)`, `savePenNote(…)`, `copyMaterialLinks(from:to:)`, `moveLink(_:to:)`; 07 → `lessonInfo(for:)`, `boardPages(for:)`, `addBoardPage(…)`, `setBoardPageBackground(…)`, `saveBoardPageDrawing(…)`, `deleteBoardPage(_:)`, `deleteBoardDrawing(for:)`, `lessonKeysWithBoardPages()`, `links(for:)`, `lessons(on:)`.
+
 ## Abstimmungsbedarf
 
-- **A1 (Teilplan 01):** Die Kern-Werttypen brauchen **öffentliche** Initialisierer – Swift erzeugt den memberwise-`init` nur `internal`, die App (anderes Modul) kann sonst `CalendarDay`, `TimeOfDay`, `BellSchedule`, `TimetableEntry`, `Timetable`, `NonTeachingPeriod` nicht anlegen. Ebenso `LessonKey` (mindestens über `init?(storageText:)` vorhanden).
-- **A2 (Teilplan 01):** Dieser Teilplan legt in `FrontstageCore` die Ordner `Sources/FrontstageCore/Data/` und `Sources/FrontstageCore/Merge/` an und erweitert `CalendarDay` um `storageText`/`init?(storageText:)`. Falls Teilplan 01 dieselben Namen schon vergibt, gilt dessen Fassung und Task 1 entfällt dort.
-- **A3 (Teilplan 01):** Namen der beiden App-Ziele in `project.yml`, ob dort schon `entitlements:`/`info:` stehen, und dass `ci.yml` App-Tests im iPad-Simulator ausführt; CI muss `CLOUDKIT_CONTAINER_ID=iCloud.<BUNDLE_ID_PREFIX>.frontstage` für Release-Bauten setzen (Secret `BUNDLE_ID_PREFIX`). `Frontstage/App/FrontstageApp.swift` muss existieren.
-- **A4 (Teilplan 03):** `MaterialReference` (Task 1) ist der Wert, den der Baustein Ablage auflöst; `folderGrantName` ist der gespiegelte Name der Ordnerfreigabe. Ordnerfreigaben (`FolderGrant`) speichert Teilplan 03 **außerhalb** des gespiegelten Containers – falls per SwiftData, mit eigener `ModelConfiguration(cloudKitDatabase: .none)`; `ModelContainerFactory.modelTypes` enthält sie nicht.
-- **A5 (Teilplan 05):** `DataStore.applyImport(adding:changing:removing:)`, `manuallyEditedEntries()`, `replaceSourceScheduleChanges(_:from:to:)`, `setBellSchedule(_:)`, `setTimetableSource(_:)`. `TimetableSource` steht im Glossar, der Typ ist aber nirgends festgelegt – hier vorläufig `sourceKind: String` (`"manual"`, `"schulmanager"`).
-- **A6 (Teilplan 06):** `savePenNote(for:page:drawingData:pageWidth:pageHeight:)`, `penNote(for:page:)`; `PenNoteRecord.pageWidth/pageHeight` in PDF-Punkten.
-- **A7 (Teilplan 07):** `LessonInfo` (Kern, Task 1) für den Klassenbildschirm; Tafelseiten-API aus Task 9. Der Hintergrund der Tafelseite hat im Glossar keinen Code-Namen – hier vorläufig `backgroundKind: String` mit `blank`, `lined`, `grid`, `image`; Teilplan 07 legt ggf. einen Kern-Typ dafür fest (Glossar-Zeile nötig?).
-- **A8 (Teilplan 04):** Die Oberfläche schreibt nur über `DataStore`; Lesen per `@Query` erlaubt. `DataStore` kommt über `.environment(store)`.
-- **A9 (Glossar):** Neue Code-Namen ohne Glossarzeile, die rein technisch sind und keinen Fachbegriff tragen: `DataStore`, `SyncMerger`, `MergePlan`, `SyncSnapshot`, `ParallelLessonFinder`, `ModelContainerFactory`, `SyncMergeTrigger`, `LessonInfoField`. Bitte bestätigen, dass dafür keine Glossarzeile nötig ist.
+- **CI (Teilplan 01/04):** Für Release-Bauten muss CI `CLOUDKIT_CONTAINER_ID=iCloud.<BUNDLE_ID_PREFIX>.frontstage` setzen (Secret `BUNDLE_ID_PREFIX`); das ergänzt der TestFlight-Bau in Teilplan 04.
+- **Abweichung von Abstimmung Punkt 5 (bitte bestätigen):** `MaterialLinkRecord.dayText` und die Feld-Zeitstempel `topicUpdatedAt`/`toPrepareUpdatedAt`/`homeworkUpdatedAt` am `LessonInfoRecord` stehen zusätzlich zu den dort genannten Feldern (Gründe in Task 4).
 
 ## Annahmen, die ein Mensch bestätigen sollte
 
-1. **„Passende Unterrichtsstunde“ bei „Für <Klasse> übernehmen“** = erste nicht ausgefallene Stunde der Zielklasse im selben Fach ab demselben Tag (auch eine frühere Stunde am selben Tag). Das PRD sagt nur „passende“.
-2. **Materialverweis 1:1 an der Zuordnung** (Übernehmen legt einen neuen Verweis mit gleichen Werten an). Folge: Neuverknüpfen gilt je Zuordnung, nicht für alle Stunden mit derselben Datei.
+1. ~~**„Passende Unterrichtsstunde“ bei „Für <Klasse> übernehmen“**~~ → Nutzerentscheidung 2026-11-13: Die Lehrkraft wählt die Zielstunde aus `candidateLessons` (Task 2, Task 8).
+2. **Materialverweis als Felder an der Zuordnung** (Übernehmen legt eine neue Zuordnung mit gleichen Werten an). Neu verknüpfen ersetzt den Ort an allen Zuordnungen mit demselben `locationKey` (`replaceReferences(atLocation:with:)`).
 3. **Zwei aktive Stundenpläne nach dem Abgleich** werden zu einem zusammengeführt (ältester bleibt) – die Tabelle „Nebenläufigkeit“ nennt diesen Fall nicht; abgeleitet aus „ältesten behalten“ und „genau einer ist aktiv“.
 4. **Doppelte Stundenplan-Einträge** im selben Stundenplan werden zusammengeführt (sonst verschieben sich die laufenden Nummern der Schlüssel, ADR-0005).
 5. **Stiftnotiz und Stundenangaben beim Zusammenführen:** Hülle vom ältesten, Inhalt vom zuletzt geänderten Datensatz – Auslegung von „zuletzt abgeglichener Stand gilt“ über den Änderungszeitpunkt.

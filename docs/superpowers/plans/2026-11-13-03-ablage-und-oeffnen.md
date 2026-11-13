@@ -130,8 +130,7 @@ diesen Teilplan:
 
 | Datei | Verantwortung |
 |---|---|
-| `Packages/FrontstageCore/Sources/FrontstageCore/Storage/FileKind.swift` | Dateiart und zuständige Office-App aus der Endung |
-| `…/Storage/MaterialReference.swift` | Wertetyp Materialverweis, `locationKey` |
+| `Packages/FrontstageCore/Sources/FrontstageCore/Storage/OfficeApp.swift` | zuständige Office-App aus der Endung |
 | `…/Storage/StoragePath.swift` | Pfade normalisieren, Datei → (Freigabe, relativer Pfad), Namensabgleich NFC |
 | `…/Storage/FolderGrantNaming.swift` | Namensvorschlag für eine neue Freigabe |
 | `…/Storage/MaterialAvailability.swift` | Zustand aus Dateifakten |
@@ -145,7 +144,7 @@ diesen Teilplan:
 | `Frontstage/Storage/ScopedFile.swift` | geöffneter Zugriff auf eine Datei für Anzeige und Tafel |
 | `Frontstage/Storage/NetworkMonitor.swift`, `Prefetcher.swift` | Netzstand, Herunterladen anstoßen |
 | `Frontstage/Storage/DocumentHandOff.swift` | Übergabe an die zuständige App (iOS/macOS) |
-| `Frontstage/Storage/MaterialReferenceStore.swift` | Protokoll, das Teilplan 02 erfüllt |
+| `Frontstage/Storage/MaterialReferenceStore.swift` | Protokoll (schmale Sicht auf die Daten) und `extension DataStore: MaterialReferenceStore` |
 | `Frontstage/Storage/StorageService.swift` | Fassade für 04, 06, 07 |
 | `Frontstage/Storage/OneDrive/MicrosoftAccount.swift`, `GraphClient.swift`, `OneDriveService.swift` | Anmeldung, Graph, Ordnererkennung und Element-Auflösung |
 | `Packages/FrontstageCore/Tests/FrontstageCoreTests/Storage/*Tests.swift` | Kern-Tests |
@@ -153,45 +152,28 @@ diesen Teilplan:
 
 ---
 
-### Task 1: Dateiart, Materialverweis, Pfade, Freigabe-Namen (Kern)
+### Task 1: Office-App, Pfade, Freigabe-Namen (Kern)
 
 **Files:**
-- Create: `Packages/FrontstageCore/Sources/FrontstageCore/Storage/FileKind.swift`
-- Create: `Packages/FrontstageCore/Sources/FrontstageCore/Storage/MaterialReference.swift`
+- Create: `Packages/FrontstageCore/Sources/FrontstageCore/Storage/OfficeApp.swift`
 - Create: `Packages/FrontstageCore/Sources/FrontstageCore/Storage/StoragePath.swift`
 - Create: `Packages/FrontstageCore/Sources/FrontstageCore/Storage/FolderGrantNaming.swift`
-- Test: `Packages/FrontstageCore/Tests/FrontstageCoreTests/Storage/FileKindTests.swift`, `StoragePathTests.swift`, `FolderGrantNamingTests.swift`
+- Test: `Packages/FrontstageCore/Tests/FrontstageCoreTests/Storage/OfficeAppTests.swift`, `StoragePathTests.swift`, `FolderGrantNamingTests.swift`
 
 **Interfaces:**
-- Consumes: –
+- Consumes (Teilplan 02, Übersicht Abstimmung Punkt 3): `MaterialReference` (`folderGrantName`, `relativePath`,
+  `displayName`, `fileKind`, `oneDriveItemID`, `oneDriveDriveID`, `locationKey`, `fileExtension`),
+  `MaterialFileKind` (inkl. `init(fileExtension:)`, `opensInViewer`). Dieser Teilplan legt beide **nicht** an.
 - Produces:
 ```swift
-public enum FileKind: String, Codable, Sendable, CaseIterable {
-    case presentation, document, spreadsheet, pdf, image, other
-    public init(fileExtension: String)            // ohne Punkt, Groß-/Kleinschreibung egal
-    public var opensInViewer: Bool { get }        // pdf, image
-}
 public enum OfficeApp: String, Codable, Sendable {
     case word, excel, powerpoint
     public init?(fileExtension: String)
     public var scheme: String { get }             // "ms-word", "ms-excel", "ms-powerpoint"
     public var addressLengthLimit: Int { get }    // 256, Excel 216 (Office URI Schemes 1.7)
 }
-public struct MaterialReference: Hashable, Codable, Sendable {
-    public var grantName: String
-    public var relativePath: String               // NFC, "/"-getrennt, ohne führenden "/"
-    public var displayName: String
-    public var fileKind: FileKind
-    public var oneDriveItemID: String?
-    public var oneDriveDriveID: String?
-    public init(grantName: String, relativePath: String, displayName: String, fileKind: FileKind,
-                oneDriveItemID: String? = nil, oneDriveDriveID: String? = nil)
-    /// Ort ohne OneDrive-Kennung: Schlüssel für Zustände und für Neu verknüpfen.
-    public var locationKey: String { get }        // grantName + "\u{1F}" + relativePath.lowercased()
-    public var fileExtension: String { get }
-}
 public struct GrantLocation: Hashable, Sendable { public let name: String; public let components: [String] }
-public struct RelativeLocation: Hashable, Sendable { public let grantName: String; public let relativePath: String }
+public struct RelativeLocation: Hashable, Sendable { public let folderGrantName: String; public let relativePath: String }
 public enum StoragePath {
     public static func normalizedComponents(_ path: String) -> [String]   // ohne "/", ohne führendes "private" vor var/tmp/etc, NFC
     public static func relativeLocation(ofFile file: [String], in grants: [GrantLocation]) -> RelativeLocation?
@@ -207,17 +189,6 @@ public enum FolderGrantNaming {
 - [ ] **Step 1: Tests schreiben**
 
 ```swift
-@Test("Dateiart aus der Endung, unabhängig von Groß-/Kleinschreibung (FR-5, FR-6)")
-func fileKindFromExtension() {
-    #expect(FileKind(fileExtension: "PPTX") == .presentation)
-    #expect(FileKind(fileExtension: "key") == .presentation)
-    #expect(FileKind(fileExtension: "pages") == .document)
-    #expect(FileKind(fileExtension: "numbers") == .spreadsheet)
-    #expect(FileKind(fileExtension: "pdf") == .pdf)
-    for ext in ["png", "jpg", "jpeg", "heic"] { #expect(FileKind(fileExtension: ext) == .image) }
-    #expect(FileKind(fileExtension: "txt") == .other)
-    #expect(FileKind(fileExtension: "pdf").opensInViewer && FileKind(fileExtension: "png").opensInViewer)
-}
 @Test("Office-App nur für Microsoft-Formate (FR-5.1)")
 func officeAppOnlyForMicrosoftFormats() {
     #expect(OfficeApp(fileExtension: "pptx") == .powerpoint)
@@ -235,7 +206,7 @@ func officeAppOnlyForMicrosoftFormats() {
     let grants = [GrantLocation(name: "Unterricht", components: ["Users", "x", "Unterricht"]),
                   GrantLocation(name: "Englisch", components: ["Users", "x", "Unterricht", "Englisch"])]
     let loc = StoragePath.relativeLocation(ofFile: ["Users", "x", "Unterricht", "Englisch", "8b", "Arbeitsblatt Vokabeln.pdf"], in: grants)
-    #expect(loc == RelativeLocation(grantName: "Englisch", relativePath: "8b/Arbeitsblatt Vokabeln.pdf"))
+    #expect(loc == RelativeLocation(folderGrantName: "Englisch", relativePath: "8b/Arbeitsblatt Vokabeln.pdf"))
 }
 @Test("Datei außerhalb jeder Freigabe oder die Freigabe selbst ergibt nil") func outsideOrFolderItselfIsNil() {
     let grants = [GrantLocation(name: "Unterricht", components: ["Users", "x", "Unterricht"])]
@@ -250,7 +221,7 @@ func officeAppOnlyForMicrosoftFormats() {
 }
 @Test("Präfix ohne Groß-/Kleinschreibung") func prefixIsCaseInsensitive() {
     let grants = [GrantLocation(name: "Unterricht", components: ["Users", "x", "Unterricht"])]
-    #expect(StoragePath.relativeLocation(ofFile: ["Users", "x", "unterricht", "a.pdf"], in: grants)?.grantName == "Unterricht")
+    #expect(StoragePath.relativeLocation(ofFile: ["Users", "x", "unterricht", "a.pdf"], in: grants)?.folderGrantName == "Unterricht")
 }
 @Test("Namensabgleich: exakt vor NFC vor ohne Groß-/Kleinschreibung; mehrdeutig = nil") func matchNamePrefersExactThenNfc() {
     #expect(StoragePath.matchName("Übung.docx", among: ["U\u{0308}bung.docx", "x"]) == "U\u{0308}bung.docx")
@@ -258,12 +229,6 @@ func officeAppOnlyForMicrosoftFormats() {
     #expect(StoragePath.matchName("A.PDF", among: ["a.pdf"]) == "a.pdf")
     #expect(StoragePath.matchName("A.PDF", among: ["a.pdf", "A.pdf"]) == nil)
     #expect(StoragePath.matchName("fehlt.pdf", among: ["a.pdf"]) == nil)
-}
-@Test("locationKey ignoriert OneDrive-Kennung und Groß-/Kleinschreibung des Pfads") func locationKeyIgnoresOneDriveID() {
-    let a = MaterialReference(grantName: "Unterricht", relativePath: "8b/Vokabeln Unit 4.pptx", displayName: "Vokabeln Unit 4", fileKind: .presentation)
-    var b = a; b.oneDriveItemID = "01ABC"; b.relativePath = "8b/vokabeln unit 4.pptx"
-    #expect(a.locationKey == b.locationKey)
-    #expect(a.fileExtension == "pptx")
 }
 // FolderGrantNamingTests
 @Test("Ordnername passt zu gespiegeltem Namen ohne lokale Freigabe") func suggestsMirroredName() {
@@ -281,11 +246,11 @@ func officeAppOnlyForMicrosoftFormats() {
 
 - [ ] **Step 2: Diff durchsehen** – Tests kompilieren nur gegen die Signaturen oben (`@testable import FrontstageCore`); `RelativeLocation` ist `Equatable` über `Hashable`.
 
-- [ ] **Step 3: Implementieren** in den vier Dateien. `normalizedComponents`: `URL(fileURLWithPath:).standardizedFileURL.pathComponents`, führendes `"/"` weg, `"private"` weg, wenn das nächste Element `var`, `tmp` oder `etc` ist (dasselbe tut `resolvingSymlinksInPath`, aber testbar ohne Dateisystem), jedes Element NFC. Präfixvergleich je Element NFC + `caseInsensitiveCompare`. `matchName` in drei Stufen; in jeder Stufe gilt nur ein eindeutiger Treffer.
+- [ ] **Step 3: Implementieren** in den drei Dateien. `normalizedComponents`: `URL(fileURLWithPath:).standardizedFileURL.pathComponents`, führendes `"/"` weg, `"private"` weg, wenn das nächste Element `var`, `tmp` oder `etc` ist (dasselbe tut `resolvingSymlinksInPath`, aber testbar ohne Dateisystem), jedes Element NFC. Präfixvergleich je Element NFC + `caseInsensitiveCompare`. `matchName` in drei Stufen; in jeder Stufe gilt nur ein eindeutiger Treffer.
 
 - [ ] **Step 4: Diff durchsehen** – nur `import Foundation`; keine `public` Eigenschaft ohne `///`-Doku auf Deutsch.
 
-- [ ] **Step 5: Commit** – `git add Packages/FrontstageCore/Sources/FrontstageCore/Storage Packages/FrontstageCore/Tests/FrontstageCoreTests/Storage && git commit -m "feat(core): file kind, material reference, storage paths, grant naming"`
+- [ ] **Step 5: Commit** – `git add Packages/FrontstageCore/Sources/FrontstageCore/Storage Packages/FrontstageCore/Tests/FrontstageCoreTests/Storage && git commit -m "feat(core): office app, storage paths, grant naming"`
 
 ---
 
@@ -312,7 +277,7 @@ public struct FileFacts: Hashable, Sendable {
 public enum UnavailableReason: String, Hashable, Codable, Sendable { case grantMissing, fileMissing, notDownloadedOffline, downloadFailed }
 public enum MaterialAvailability: Hashable, Sendable {
     case onDevice(isCurrent: Bool)             // „auf dem Gerät“; isCurrent false = älterer Stand, nie still zeigen
-    case downloading(fraction: Double?)        // „wird geladen“
+    case downloading(progress: Double?)        // „wird geladen“; progress 0…1, nur wenn das System ihn liefert
     case unavailable(UnavailableReason)        // „nicht verfügbar“
 }
 public enum AvailabilityClassifier { public static func classify(_ facts: FileFacts, isOnline: Bool) -> MaterialAvailability }
@@ -327,9 +292,9 @@ public enum AvailabilityClassifier { public static func classify(_ facts: FileFa
 | true | true | false | nil | false | false | false | `.onDevice(isCurrent: true)` |
 | true | true | true | .current | false | false | false | `.onDevice(isCurrent: true)` |
 | true | true | true | .downloaded | false | false | false | `.onDevice(isCurrent: false)` |
-| true | true | true | .downloaded | true | false | true | `.downloading(fraction: nil)` |
-| true | true | true | .notDownloaded | true (fraction 0.4) | false | true | `.downloading(fraction: 0.4)` |
-| true | true | true | .notDownloaded | false | false | true | `.downloading(fraction: nil)` (Bereithalten stößt an) |
+| true | true | true | .downloaded | true | false | true | `.downloading(progress: nil)` |
+| true | true | true | .notDownloaded | true (fraction 0.4) | false | true | `.downloading(progress: 0.4)` |
+| true | true | true | .notDownloaded | false | false | true | `.downloading(progress: nil)` (Bereithalten stößt an) |
 | true | true | true | .notDownloaded | false | false | false | `.unavailable(.notDownloadedOffline)` |
 | true | true | true | .notDownloaded | false | true | true | `.unavailable(.downloadFailed)` |
 
@@ -347,11 +312,11 @@ public enum AvailabilityClassifier { public static func classify(_ facts: FileFa
 - Test: `Packages/FrontstageCore/Tests/FrontstageCoreTests/Storage/OpenRouterTests.swift`, `CloudOpenPolicyTests.swift`
 
 **Interfaces:**
-- Consumes: `FileKind`, `OfficeApp` (Task 1), `MaterialAvailability`, `UnavailableReason` (Task 2)
+- Consumes: `MaterialFileKind` (Teilplan 02), `OfficeApp` (Task 1), `MaterialAvailability`, `UnavailableReason` (Task 2)
 - Produces:
 ```swift
 public struct OpenContext: Sendable {
-    public var fileKind: FileKind
+    public var fileKind: MaterialFileKind
     public var officeApp: OfficeApp?
     public var availability: MaterialAvailability
     public var isOnline: Bool
@@ -430,7 +395,7 @@ Jeder `OpenRouterTests`-Fall baut einen `OpenContext` über eine Test-Hilfsfunkt
 - Test: `Packages/FrontstageCore/Tests/FrontstageCoreTests/Storage/PrefetchPlannerTests.swift`
 
 **Interfaces:**
-- Consumes: `TimetableCalculator.lessons(on:timetable:nonTeachingPeriods:changes:)`, `CalendarDay`, `LessonKey`, `Timetable`, `NonTeachingPeriod`, `ScheduleChange` (Teilplan 01); **erwartet von Teilplan 01:** `CalendarDay.adding(days: Int) -> CalendarDay` (siehe Abstimmungsbedarf)
+- Consumes: `TimetableCalculator.lessons(on:timetable:nonTeachingPeriods:changes:)`, `CalendarDay` mit `adding(days:)`, `LessonKey`, `Timetable`, `NonTeachingPeriod`, `ScheduleChange` (Teilplan 01); `MaterialReference.locationKey` (Teilplan 02)
 - Produces:
 ```swift
 public enum PrefetchPlanner {
@@ -627,7 +592,7 @@ enum FolderGrantError: Error, Equatable { case nameInUse, accessDenied, bookmark
 - Test: `FrontstageTests/Storage/MaterialResolverTests.swift`
 
 **Interfaces:**
-- Consumes: `FolderGrantStore` (Task 6), `StoragePath`, `MaterialReference` (Task 1), `FileFacts`, `AvailabilityClassifier` (Task 2)
+- Consumes: `FolderGrantStore` (Task 6), `StoragePath` (Task 1), `MaterialReference`, `MaterialFileKind(fileExtension:)` (Teilplan 02), `FileFacts`, `AvailabilityClassifier` (Task 2)
 - Produces:
 ```swift
 enum FileFactsReader {
@@ -664,7 +629,7 @@ struct ResolvedMaterial: Sendable { let fileURL: URL; let grantURL: URL }
 @Test("NFD-Name auf der Platte löst NFC-Verweis auf (Review Focus 1)") func resolvesNfdNameOnDisk()
     // Datei angelegt als "U\u{0308}bung.docx", Verweis relativePath "Übung.docx" → resolve != nil
 @Test("Gewählte Datei innerhalb der Freigabe ergibt Verweis mit Dateiart") func pickedFileBecomesReference()
-    // → grantName "Unterricht", relativePath "8b/Arbeitsblatt Vokabeln.pdf", displayName "Arbeitsblatt Vokabeln", fileKind .pdf
+    // → folderGrantName "Unterricht", relativePath "8b/Arbeitsblatt Vokabeln.pdf", displayName "Arbeitsblatt Vokabeln", fileKind .pdf
 @Test("Gewählte Datei außerhalb: nil") func pickedFileOutsideGrantsIsNil()
 @Test("ScopedFile.close beendet den Zugriff nur einmal") func scopedFileClosesOnce()   // close() zweimal ohne Absturz
 ```
@@ -683,16 +648,19 @@ struct ResolvedMaterial: Sendable { let fileURL: URL; let grantURL: URL }
 - Test: `FrontstageTests/Storage/PrefetcherTests.swift`
 
 **Interfaces:**
-- Consumes: `PrefetchPlanner` (Task 4), `MaterialResolver` (Task 7)
+- Consumes: `PrefetchPlanner` (Task 4), `MaterialResolver` (Task 7); `DataStore.linkedReferences(for:)`, `.folderGrantNames()`, `.replaceReferences(atLocation:with:)` (Teilplan 02, Task 8)
 - Produces:
 ```swift
-/// Erfüllt Teilplan 02 (SwiftData); Tests nutzen eine Attrappe.
+/// Schmale Sicht auf die App-Daten (Übersicht, Abstimmung Punkt 4); Tests nutzen eine Attrappe.
 @MainActor protocol MaterialReferenceStore: AnyObject {
-    func links(for keys: [LessonKey]) -> [(key: LessonKey, reference: MaterialReference)]
-    func mirroredGrantNames() -> Set<String>
+    func linkedReferences(for keys: [LessonKey]) throws -> [(key: LessonKey, reference: MaterialReference)]
+    /// Gespiegelte Freigabe-Namen aus allen Zuordnungen.
+    func folderGrantNames() throws -> Set<String>
     /// Ersetzt an allen Zuordnungen mit diesem alten Ort den Verweis; Zuordnungen und Stiftnotizen bleiben.
-    func replaceReferences(atLocation locationKey: String, with reference: MaterialReference)
+    @discardableResult func replaceReferences(atLocation locationKey: String, with reference: MaterialReference) throws -> Int
 }
+/// Gleiche Signaturen wie DataStore (Teilplan 02, Task 8) – die Erweiterung braucht keinen eigenen Code.
+extension DataStore: MaterialReferenceStore {}
 @MainActor @Observable final class NetworkMonitor {
     private(set) var isOnline: Bool
     var onBecameOnline: (() -> Void)?
@@ -861,6 +829,7 @@ Dafür bekommt `SystemDocumentHandOff` einen internen Initialisierer `init(openU
 - Produces (für Teilplan 04, 06, 07):
 ```swift
 enum RelinkResult: Equatable { case relinked(MaterialReference), outsideGrants }
+enum StorageReadError: Error, Equatable { case unresolvable, unavailable(UnavailableReason), readFailed }
 enum OpenOutcome {
     case handedOff                       // an die zuständige App übergeben
     case openedAsCloudDocument           // FR-5.1
@@ -888,7 +857,10 @@ enum OpenOutcome {
     func open(_ reference: MaterialReference, anchor: HandOffAnchor) async -> OpenOutcome
     func openWithoutAutoSave(_ reference: MaterialReference, anchor: HandOffAnchor) async -> OpenOutcome   // Übergabe erzwingen
     func offerOpenWithoutAutoSave(now: ContinuousClock.Instant) -> MaterialReference?
-    func readableFile(for reference: MaterialReference) -> ScopedFile?       // Anzeige (06) und Vorlage (07), ohne Weg-Entscheidung
+    func readableFile(for reference: MaterialReference) -> ScopedFile?       // Anzeige (06), ohne Weg-Entscheidung; nil = löst nicht auf
+    /// Vorlage (07): öffnet die Datei nur lesend (ScopedFile + NSFileCoordinator, .withoutChanges), ruft `body` mit der
+    /// URL außerhalb des Hauptthreads und schließt den Zugriff danach in jedem Fall. Wirft StorageReadError.
+    func withFileURL<T: Sendable>(for reference: MaterialReference, _ body: @escaping @Sendable (URL) throws -> T) async throws -> T
     func prepareForTeaching(today: CalendarDay, timetable: Timetable, nonTeachingPeriods: [NonTeachingPeriod], changes: [ScheduleChange]) async
     func didAssign(_ references: [MaterialReference]) async                   // Bereithalten beim Zuordnen
 }
@@ -910,9 +882,11 @@ Ablauf `open`: `OpenContext` bauen (Zustand vom Resolver, `network.isOnline`, `a
 @Test("Neu verknüpfen ersetzt den Ort an allen Zuordnungen (ADR-0003)") func relinkReplacesAllAtOldLocation()
     // store.replaced == [(oldLocationKey, neuer Verweis "8b/Arbeitsblatt Vokabeln neu.pdf")]
 @Test("Neu verknüpfen mit Datei außerhalb der Freigaben: outsideGrants") func relinkOutsideGrants()
+@Test("withFileURL liest die Datei und schließt den Zugriff danach (Vorlage, Teilplan 07)") func withFileURLReadsAndCloses()
+    // body liefert Data(contentsOf:).count > 0; danach ist kein ScopedFile mehr offen (Zähler der Attrappe == 0); unbekannte Freigabe → wirft .unresolvable
 @Test("Gefundene OneDrive-Kennung wird zurückgeschrieben") func resolvedOneDriveIDIsStored()
 @Test("Freigabe mit gespiegeltem Namen wird vorgeschlagen (Area ablage, zweites Gerät)") func suggestsMirroredGrantName()
-    // store.mirroredGrantNames == ["Unterricht"], keine lokale Freigabe → suggestion.matchesMirroredName
+    // store.folderGrantNames == ["Unterricht"], keine lokale Freigabe → suggestion.matchesMirroredName
 ```
 
 - [ ] **Step 2: Diff durchsehen.**
@@ -975,35 +949,32 @@ Nicht in diesem Teilplan: Oberflächen für Einrichten > Ablage, Microsoft-Anmel
 „Neu verknüpfen“ in Tagesansicht und Vorbereiten (Teilplan 04); Anzeige von PDF und Bild (Teilplan 06);
 Tafel-Vorlage aus der Ablage (Teilplan 07, nutzt `reference(forPickedFile:)` und `readableFile(for:)`).
 
+## Produziert für spätere Teilpläne (Zusammenfassung)
+
+`StorageService` (Task 11, alle Methoden oben, insbesondere `reference(forPickedFile:)`, `relink(_:toPickedFile:)`,
+`availability`, `refreshAvailability(for:)`, `open(_:anchor:)`, `openWithoutAutoSave(_:anchor:)`,
+`offerOpenWithoutAutoSave(now:)`, `readableFile(for:)`, `withFileURL(for:_:)`, `prepareForTeaching(…)`,
+`didAssign(_:)`, `grants`, `suggestedGrantName(for:)`, `addGrant(folderURL:name:)`, `renameGrant`, `removeGrant`),
+`OpenOutcome`, `RelinkResult`, `StorageReadError`, `ScopedFile` (`url`, `reference`, `close()`), `FolderGrant`,
+`GrantNameSuggestion`, `MaterialAvailability` (`onDevice(isCurrent:)`, `downloading(progress:)`,
+`unavailable(UnavailableReason)`), `MicrosoftAccount`, `NetworkMonitor`, `HandOffAnchor`, `HandOffAnchorReader`.
+`project.yml` und `ci.yml` werden hier nur um eigene Einträge ergänzt (MSAL-Paket, Info.plist-Schlüssel,
+macOS-Entitlements, Secret `MSAL_CLIENT_ID`).
+
+Oberfläche dazu baut Teilplan 04 (Einrichten › Ablage, Microsoft an/ab, Zustandsanzeige, „Neu verknüpfen“,
+„ohne AutoSpeichern öffnen“, `.onOpenURL { MicrosoftAccount.handleRedirect($0) }`, `prepareForTeaching` beim
+Aktivwerden und bei `NetworkMonitor.onBecameOnline`); 06 öffnet über `readableFile(for:)` und ruft `close()`;
+07 nutzt `reference(forPickedFile:)` und `withFileURL(for:_:)`.
+
 ## Abstimmungsbedarf
 
-- **Teilplan 01:** braucht `CalendarDay.adding(days: Int) -> CalendarDay` (für `PrefetchPlanner`; in der Übersicht
-  nicht festgelegt). `project.yml` und `ci.yml` werden hier
-  ergänzt (MSAL-Paket, Info.plist-Schlüssel, macOS-Entitlements, Secret `MSAL_CLIENT_ID`) – Namen der
-  App-Ziele aus 01 übernehmen.
-- **Teilplan 02:** erfüllt `MaterialReferenceStore` (Task 8) auf SwiftData: `links(for:)`,
-  `mirroredGrantNames()`, `replaceReferences(atLocation:with:)`. Erwartet wird ein Datensatz
-  `MaterialReferenceRecord` (oder Felder am `MaterialLinkRecord`) mit `grantName: String = ""`,
-  `relativePath: String = ""`, `displayName: String = ""`, `fileKind: String = "other"`,
-  `oneDriveItemID: String?`, `oneDriveDriveID: String?` und Übersetzung ↔ `MaterialReference`.
-  `FolderGrant` ist **kein** SwiftData-Modell (Datei in Application Support, Task 6) – Area daten führt
-  die Ordnerfreigabe zwar in der Modelltabelle, aber als „nur lokal“.
-- **Teilplan 04:** baut Einrichten > Ablage (Ordnerauswahl `UIDocumentPickerViewController(forOpeningContentTypes: [.folder])`
-  bzw. `.fileImporter`, Namensvorschlag, OneDrive-Pfad von Hand setzen/löschen, Microsoft an/ab),
-  Zustandsanzeige je Material aus `StorageService.availability`, „Neu verknüpfen“, das Angebot „ohne
-  AutoSpeichern öffnen“, `.onOpenURL { MicrosoftAccount.handleRedirect($0) }` und den Aufruf von
-  `prepareForTeaching` beim Aktivwerden und bei `NetworkMonitor.onBecameOnline`.
-- **Teilplan 06:** nimmt `ScopedFile` entgegen, liest über `NSFileCoordinator` und ruft beim Schließen
-  `close()`.
-- **Teilplan 07:** Tafel-Vorlage aus der Ablage über `reference(forPickedFile:)` und `readableFile(for:)`.
-- **Glossar (PRD, Spalte „Im Code“) – neue Begriffe zur Aufnahme:** Dateiart `FileKind`; Zustand des
-  Materials (auf dem Gerät / wird geladen / nicht verfügbar) `MaterialAvailability`; Bereithalten
-  `prefetch`; Neu verknüpfen `relink`; OneDrive-Zusatz `OneDriveService`; Microsoft-Anmeldung
-  `MicrosoftAccount`; Office-Adresse `OfficeAddress`; Übergabe der Datei `handOff`. Technische Typen ohne
-  Fachbedeutung (`OpenRoute`, `CloudOpenPolicy`, `FileFacts`, `ScopedFile`) brauchen keine Glossarzeile.
-- **Neue offene Frage für das Architecture Doc** (nächste freie Nummer vor Vergabe prüfen, derzeit Q-32):
-  Übergibt `UIDocumentInteractionController` auf iPadOS 26 eine PowerPoint-Datei aus einem
-  Dateien-Anbieter zum Bearbeiten am Ort, oder nur lesend? Rückfall bei „nur lesend“ ist offen.
+- **Glossar (PRD, Spalte „Im Code“), zur Entscheidung:** Fachbegriffe, die eine Lehrkraft sagen würde und
+  die noch keine Zeile haben – Zustand des Materials (auf dem Gerät / wird geladen / nicht verfügbar)
+  `MaterialAvailability`, Übergabe an die zuständige App `handOff`, Microsoft-Anmeldung `MicrosoftAccount`.
+  Rein technische Namen (`OpenRoute`, `CloudOpenPolicy`, `FileFacts`, `ScopedFile`, `OfficeAddress`,
+  `OneDriveService`) brauchen nach Abstimmung Punkt 10 keine Zeile.
+- **Q-32** (Übergabe am Ort oder nur lesend auf iPadOS 26) ist im Architecture Doc eingetragen; der Rückfall bei
+  „nur lesend“ bleibt offen bis zur Geräte-Checkliste (AK-11).
 
 ## Annahmen, die ein Mensch bestätigen sollte
 

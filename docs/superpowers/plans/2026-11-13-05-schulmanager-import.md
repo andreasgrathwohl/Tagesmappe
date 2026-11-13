@@ -96,7 +96,6 @@ Aufgabe 1.
 |---|---|
 | `TimetableSource.swift` | Protokoll, `TimetableSourceKind`, `TimetableSourceError`, `SourceChange`, `SourceSnapshot`, `TimetableDerivationOutcome`, `DerivedTimetable`, `ManualTimetableSource` |
 | `JSONValue.swift` | rohe JSON-Werte (Kontoobjekt unverändert weiterreichen) |
-| `SourceCalendarMath.swift` | Tagesrechnung für diesen Teilplan (s. Abstimmungsbedarf) |
 | `SchulmanagerAPIShape.swift` | die in Aufgabe 1 festgestellten Pfade und Schlüssel |
 | `SchulmanagerRequestBuilder.swift` | Request-Bodies für Salt, Login, Calls |
 | `SchulmanagerResponseParser.swift` | Antworten → `SchulmanagerLesson`, `BellSchedule`, Login-Ergebnis |
@@ -111,8 +110,10 @@ Paket-Ressourcen, damit `Package.swift` aus Teilplan 01 unberührt bleibt).
 
 **App** – `Frontstage/TimetableSources/`: `CredentialStore.swift`, `KeychainCredentialStore.swift`,
 `SchulmanagerPasswordHash.swift`, `HTTPTransport.swift`, `SchulmanagerTimetableSource.swift`,
-`SourceStatusStore.swift`, `PendingImportStore.swift`, `TimetableSourceCoordinator.swift`,
-`MorningRefresh.swift`. Oberfläche: `Frontstage/UI/Setup/TimetableSourceSettingsView.swift`,
+`SourceStatusStore.swift`, `PendingImportStore.swift`, `TimetableRepository.swift` (Protokoll und
+`extension DataStore: TimetableRepository`), `TimetableSourceCoordinator.swift`, `MorningRefresh.swift`.
+Oberfläche (eigenständige Ansichten; Teilplan 04 kommt nach diesem Teilplan und hängt sie in Einrichten und
+Tagesansicht ein – dieser Teilplan ändert keine Dateien von 04): `Frontstage/UI/Setup/TimetableSourceSettingsView.swift`,
 `Frontstage/UI/Setup/ImportPreviewView.swift`, `Frontstage/UI/DayView/SourceStatusBar.swift`.
 Tests: `FrontstageTests/TimetableSources/`. Geändert: `project.yml`, `Frontstage/Resources/Localizable.xcstrings`.
 
@@ -123,8 +124,10 @@ Tests: `FrontstageTests/TimetableSources/`. Geändert: `project.yml`, `Frontstag
 
 ### Aufgabe 1: Prüfschritt Q-16 mit einem echten Lehrerkonto (Stopp-Tor)
 
-Diese Aufgabe führt **ein Mensch** aus (Andreas oder eine Lehrkraft mit eigenem Konto); ein Agent bereitet
-nur die Notiz vor und trägt das Ergebnis ein. Kein Code, kein CI.
+Diese Aufgabe führt **ein Mensch** aus: Andreas mit seinem **eigenen Lehrerkonto**, das dafür bereitsteht
+(Nutzerentscheidung 2026-11-13). Zugangsdaten werden **nur lokal** im Browser bzw. am Gerät eingegeben – nie ins
+Repo, in diesen Plan, in Notizen, Sitzungsnotizen oder Befundtabellen. Ein Agent bereitet nur die Notiz vor und
+trägt das (anonymisierte) Ergebnis ein. Kein Code, kein CI.
 
 **Files:**
 - Create: `docs/research/schulmanager-lehrerkonto.md`
@@ -180,16 +183,20 @@ git commit -m "docs: record Q-16 check of Schulmanager teacher account"
 ### Aufgabe 2: Protokoll `TimetableSource` und gemeinsame Typen (Kern)
 
 **Files:**
-- Create: `…/TimetableSources/TimetableSource.swift`, `…/TimetableSources/JSONValue.swift`, `…/TimetableSources/SourceCalendarMath.swift`
+- Create: `…/TimetableSources/TimetableSource.swift`, `…/TimetableSources/JSONValue.swift`
 - Test: `…/FrontstageCoreTests/TimetableSources/TimetableSourceTests.swift`
 
 **Interfaces:**
-- Consumes (Teilplan 01): `CalendarDay`, `TimetableEntry`, `BellSchedule`, `SchoolClass`, `Subject`, `WeekVariant`.
+- Consumes (Teilplan 01): `CalendarDay` (inkl. `init(_:calendar:)`, `adding(days:)`, `weekday`, `mondayOfWeek`,
+  `storageText`), `TimetableEntry`, `Timetable` (inkl. `.empty`), `BellSchedule`, `SchoolClass`, `Subject`,
+  `WeekVariant`. Keine eigene Tagesrechnung (Übersicht, Abstimmung Punkt 1).
 - Produces:
 
 ```swift
-/// Art der Stundenplan-Quelle (Glossar: Stundenplan-Quelle). WebUntis kommt später als weiterer Fall (FR-2.1).
-public enum TimetableSourceKind: String, Codable, Sendable, CaseIterable { case manual, schulmanagerOnline }
+/// Art der Stundenplan-Quelle (Glossar: Stundenplan-Quelle). Liegt im Kern, damit 02 den Rohwert speichern
+/// (TimetableRecord.sourceKindRaw) und 04 ihn anzeigen kann (Übersicht, Abstimmung Punkt 3).
+/// WebUntis kommt später als weiterer Fall (FR-2.1).
+public enum TimetableSourceKind: String, Codable, Sendable, CaseIterable { case manual, schulmanager }
 
 public enum TimetableSourceError: Error, Equatable, Codable, Sendable {
   case notConfigured, invalidCredentials, multipleSchoolsUnsupported, offline
@@ -235,15 +242,6 @@ public enum JSONValue: Hashable, Codable, Sendable {
   case string(String), number(Double), bool(Bool), object([String: JSONValue]), array([JSONValue]), null
   public subscript(path: [String]) -> JSONValue? { get }   // Objektpfad, nil bei fehlendem Schlüssel
 }
-
-/// Tagesrechnung für diesen Teilplan; rechnet im gregorianischen Kalender mit UTC, damit
-/// Zeitumstellungen keine Tage verschieben.
-enum SourceCalendarMath {
-  static func day(from date: Date, in calendar: Calendar) -> CalendarDay
-  static func adding(_ days: Int, to day: CalendarDay) -> CalendarDay
-  static func monday(of day: CalendarDay) -> CalendarDay
-  static func weekday(of day: CalendarDay) -> Weekday
-}
 ```
 
 - [ ] **Schritt 2.1: Tests schreiben**
@@ -255,8 +253,7 @@ func manualSourceReturnsNil() async throws {
 }
 @Test("Stand übersteht Speichern und Laden") func snapshotRoundTripsThroughJSON()   // encode → decode == original, mit .derived, 1 substitute, BellSchedule [1: 7:45–8:30]
 @Test func jsonValuePathLookup()   // {"user":{"associatedTeacher":{"id":"T-100"}}}[["user","associatedTeacher","id"]] == .string("T-100"); fehlender Pfad → nil
-@Test func mondayOfSunday()        // monday(of: 2026-11-22) == 2026-11-16; weekday(of: 2026-11-17) == .tuesday
-@Test func addingAcrossDSTEnd()    // adding(1, to: 2026-10-24) == 2026-10-25; adding(28, to: 2026-11-16) == 2026-12-14
+@Test func sourceKindRawValues()   // TimetableSourceKind.allCases.map(\.rawValue) == ["manual", "schulmanager"] (gespeichert in TimetableRecord.sourceKindRaw)
 ```
 (`d(_:_:_:)` ist ein Test-Helfer für `CalendarDay`.)
 
@@ -391,7 +388,7 @@ public enum SchulmanagerChangeExtractor {
 **Algorithmus `derive`** (eigene Stunde = `teacherIDs` enthält `teacherID`):
 1. Geplante eigene Stunden je Element: `regularLesson` → `actual`; `cancelledLesson`/`changedLesson` →
    `originals`; `event` → keine. Nur eigene; je Stunde Tripel (Stunde, Klasse, Fach) am Datum.
-2. Nach Woche gruppieren (`monday(of:)`). Eine Woche ist **nutzbar**, wenn sie ≥ 1 geplante Stunde hat; ein
+2. Nach Woche gruppieren (`CalendarDay.mondayOfWeek`, Teilplan 01). Eine Woche ist **nutzbar**, wenn sie ≥ 1 geplante Stunde hat; ein
    Wochentag zählt in einer Woche nur, wenn er dort ≥ 1 geplante Stunde hat (Feiertag ≠ Planunterschied).
 3. Erstes Paar unmittelbar aufeinanderfolgender nutzbarer Wochen (W1, W2 = W1 + 7 Tage). Gibt es keins: die
    erste nutzbare Woche allein. Gibt es keine → `.noLessonsInRange`.
@@ -608,7 +605,7 @@ protocol HTTPTransport: Sendable { func send(_ request: URLRequest) async throws
 struct URLSessionTransport: HTTPTransport { init(session: URLSession = .shared) }
 struct SchulmanagerTimetableSource: TimetableSource {
   init(credentials: any CredentialStore, transport: any HTTPTransport = URLSessionTransport(), shape: SchulmanagerAPIShape = .recorded)
-  // kind = .schulmanagerOnline
+  // kind = .schulmanager
   // fetch: Zugangsdaten laden (fehlen → .notConfigured) → Salt → Hash → Login → ein Calls-POST →
   // SourceSnapshot(range, timetable: derive(...), bellSchedule, changes) – oder Fehler, nie halb.
 }
@@ -642,27 +639,37 @@ func fetchProducesSnapshotWithThreeEntries()   // Fixture AK-3 → timetable == 
 ### Aufgabe 9: Koordinator – abfragen, Abweichungen sofort, Stundenplan nach Vorschau (App)
 
 **Files:**
-- Create: `Frontstage/TimetableSources/TimetableSourceCoordinator.swift`, `SourceStatusStore.swift`, `PendingImportStore.swift`
-- Test: `FrontstageTests/TimetableSources/TimetableSourceCoordinatorTests.swift`
+- Create: `Frontstage/TimetableSources/TimetableRepository.swift`, `TimetableSourceCoordinator.swift`, `SourceStatusStore.swift`, `PendingImportStore.swift`
+- Test: `FrontstageTests/TimetableSources/TimetableSourceCoordinatorTests.swift`, `TimetableRepositoryTests.swift`
 
 **Interfaces:**
-- Consumes: Aufgaben 2–8; **Erwartet von Teilplan 02** (`TimetableRepository`, s. u.).
+- Consumes: Aufgaben 2–8; von Teilplan 02 die `DataStore`-Methoden `timetable()`, `manuallyEditedEntries()`,
+  `nonTeachingPeriods()`, `scheduleChanges()` (Task 6), `timetableSourceRaw()`, `setTimetableSourceRaw(_:)`,
+  `sourceFetchedAt()`, `replaceTimetable(entries:manuallyEdited:weekVariantCount:referenceWeekA:bellSchedule:)`,
+  `replaceScheduleChanges(_:sourceFetchedAt:)` (Task 6, `DataStore+Sources`) und `makeStore()` (Test-Hilfe).
 - Produces:
 
 ```swift
-/// Erwartet von Teilplan 02 – Zugriff auf die App-Daten ohne SwiftData-Typen nach außen.
-@MainActor protocol TimetableRepository {
-  func activeTimetable() throws -> Timetable?
-  func manuallyEditedEntries() throws -> Set<TimetableEntry>      // Einträge mit Herkunft .manual
+/// Schmale Sicht auf die App-Daten (Übersicht, Abstimmung Punkt 4) – ohne SwiftData-Typen nach außen.
+/// Signaturen gleich den DataStore-Methoden aus Teilplan 02.
+@MainActor protocol TimetableRepository: AnyObject {
+  func timetable() throws -> Timetable?
+  func manuallyEditedEntries() throws -> Set<TimetableEntry>      // Herkunft .manual oder von Hand geändert (01, Task 8)
   func nonTeachingPeriods() throws -> [NonTeachingPeriod]
   func scheduleChanges() throws -> [ScheduleChange]
-  func timetableSourceKind() throws -> TimetableSourceKind
-  func setTimetableSourceKind(_ kind: TimetableSourceKind) throws
+  func timetableSourceRaw() throws -> String
+  func setTimetableSourceRaw(_ raw: String) throws
   func sourceFetchedAt() throws -> Date?                          // gespiegelt: „Stand“ auch auf dem zweiten Gerät
-  /// Schreibt in einem Speichervorgang: Einträge (importierte mit Herkunft .source), Varianten, Zeitraster.
+  /// Schreibt in einem Speichervorgang: Einträge (nicht in manuallyEdited → Herkunft .source), Varianten, Zeitraster.
   func replaceTimetable(entries: [TimetableEntry], manuallyEdited: Set<TimetableEntry>, weekVariantCount: Int, referenceWeekA: CalendarDay?, bellSchedule: BellSchedule?) throws
-  /// Ersetzt alle Abweichungen und setzt den Stand – ein Speichervorgang.
-  func replaceScheduleChanges(_ changes: [ScheduleChange], sourceFetchedAt: Date) throws
+  /// Ersetzt alle Abweichungen und setzt, wenn nicht nil, den Stand – ein Speichervorgang.
+  func replaceScheduleChanges(_ changes: [ScheduleChange], sourceFetchedAt: Date?) throws
+}
+extension DataStore: TimetableRepository {}          // ruft nur vorhandene DataStore-Methoden (gleiche Signaturen)
+extension TimetableRepository {
+  /// Unbekannter Rohwert → .manual.
+  func timetableSourceKind() throws -> TimetableSourceKind { TimetableSourceKind(rawValue: try timetableSourceRaw()) ?? .manual }
+  func setTimetableSourceKind(_ kind: TimetableSourceKind) throws { try setTimetableSourceRaw(kind.rawValue) }
 }
 
 struct ImportPreview { var snapshot: SourceSnapshot; var diff: ImportDiff; var bellScheduleChanged: Bool }
@@ -697,7 +704,12 @@ geliefert) → Abweichungen des Stands gegen den **neuen** Stundenplan erneut au
 löschen. `switchSource(to: .manual)`: Quelle setzen, Vorschau löschen, Abweichungen mit Herkunft `.source`
 **ab heute** entfernen (Annahme A4), Zugangsdaten bleiben bis „Abmelden“.
 
-- [ ] **Schritt 9.1: Tests schreiben** (`FakeRepository` im Speicher, `FakeSource` mit vorbereitetem Ergebnis, `UserDefaults(suiteName:)` und temporärer Ordner)
+- [ ] **Schritt 9.1: Tests schreiben** (Repository = echter `DataStore` im Speicher über `makeStore()` aus Teilplan 02 – prüft zugleich die Erweiterung `DataStore: TimetableRepository`; für `failedFetchLeavesEverythingUntouched` zusätzlich ein `CountingRepository`, das Schreibaufrufe zählt und an den `DataStore` weiterreicht; `FakeSource` mit vorbereitetem Ergebnis, `UserDefaults(suiteName:)` und temporärer Ordner)
+
+```swift
+@Test("Quelle wird als Rohwert gespeichert und als TimetableSourceKind gelesen")
+func repositoryMapsSourceKind()   // DataStore ohne Stundenplan → timetableSourceKind() == .manual; setTimetableSourceKind(.schulmanager) → .schulmanager
+```
 
 ```swift
 @Test("Kein Teilimport: Fehler lässt alles unberührt (Area stundenplan-quellen)")
@@ -705,7 +717,7 @@ func failedFetchLeavesEverythingUntouched()   // FakeSource wirft .offline → R
 @Test func threeFailuresSuggestManualMaintenance()  // 3× .userRequest mit 61 s Abstand, je .offline → status.suggestsManualMaintenance
 @Test("Vertretung steht ohne Rückfrage in der 3. Stunde (AK-21)")
 func sourceChangesAreAppliedWithoutPreview()  // Stand mit .substitute(17.11., 3, 6c, Mathematik), gleicher Plan → pendingPreview == nil; lessons(on: 17.11.) enthält period 3 6c isSubstituteLesson; sourceFetchedAt == now
-@Test func timetableDifferencesWaitForPreview()  // Stand mit 3 Einträgen, Repository leer → pendingPreview != nil; activeTimetable unverändert
+@Test func timetableDifferencesWaitForPreview()  // Stand mit 3 Einträgen, Repository leer → pendingPreview != nil; timetable() unverändert
 @Test("Übernahme behält den von Hand angelegten Eintrag (AK-3)")
 func applyingPreviewKeepsManualEntry()        // Repository [Mo 5 8a Englisch manuell] + Stand AK-3 → apply(acceptedFromSource: []) → 4 Einträge, Mo 5 8a Englisch weiter in manuallyEditedEntries
 @Test func manualSourceNeverFetches()         // kind .manual → Repository unverändert, status == SourceStatus()
@@ -728,7 +740,11 @@ Versuch gezählt; die Zusicherung ist `status == SourceStatus()`.
 
 **Files:**
 - Create: `Frontstage/TimetableSources/MorningRefresh.swift`
-- Modify: `Frontstage/App/FrontstageApp.swift` (aus Teilplan 01/04), `project.yml` (Info.plist des iPadOS-Ziels)
+- Modify: `Frontstage/App/FrontstageApp.swift` (Platzhalter aus Teilplan 01, mit Einbindung aus 02), `project.yml` (Info.plist des iPadOS-Ziels)
+
+Zum Zeitpunkt dieses Teilplans ist `FrontstageApp` noch der Platzhalter (Übersicht, Abstimmung Punkt 6). Teilplan
+04 ersetzt später nur den Inhalt des `WindowGroup` durch `RootView` und übernimmt Koordinator, Szenenphase und
+`.backgroundTask` aus diesem Schritt unverändert (Koordinator wandert in `AppEnvironment`).
 
 **Interfaces:**
 
@@ -744,8 +760,9 @@ enum MorningRefresh {
 - [ ] **Schritt 10.1: `project.yml`** – im iPadOS-Ziel unter `info.properties`:
   `BGTaskSchedulerPermittedIdentifiers: [frontstage.timetable-source.morning-refresh]`,
   `UIBackgroundModes: [fetch]`. macOS-Ziel unverändert.
-- [ ] **Schritt 10.2: `FrontstageApp`** – Koordinator einmal als `@State` anlegen und per `.environment` an die
-  Ansichten geben; `.onChange(of: scenePhase)`: `.active` → `Task { await coordinator.refresh(.appBecameActive) }`;
+- [ ] **Schritt 10.2: `FrontstageApp`** – Koordinator einmal als `@State` anlegen (`repository:` = der `DataStore`
+  aus Teilplan 02, `makeSource:` liefert `ManualTimetableSource()` bzw. `SchulmanagerTimetableSource(credentials: KeychainCredentialStore())`)
+  und per `.environment` an die Ansichten geben; `.onChange(of: scenePhase)`: `.active` → `Task { await coordinator.refresh(.appBecameActive) }`;
   `.background` → `MorningRefresh.schedule(...)` (nur iOS). Am `WindowGroup` (nur `#if os(iOS)`):
   `.backgroundTask(.appRefresh(MorningRefresh.taskIdentifier)) { await coordinator.refresh(.backgroundRefresh); MorningRefresh.schedule(...) }`.
   Swift-Hinweis: SwiftUI ruft diesen Block auf, wenn das System die Aufgabe startet; die nächste Aufgabe muss
@@ -763,12 +780,12 @@ Design-Takt: Hauptstufe
 
 **Files:**
 - Create: `Frontstage/UI/Setup/TimetableSourceSettingsView.swift`
-- Modify: `Frontstage/Resources/Localizable.xcstrings`; Einhängen in die Einrichten-Navigation aus Teilplan 04 (eine Zeile, s. Abstimmungsbedarf)
+- Modify: `Frontstage/Resources/Localizable.xcstrings`. Eingehängt wird die Ansicht von Teilplan 04 (Einrichten › „Stundenplan-Quelle“); bis dahin zeigt ein `#Preview` sie.
 - Test: `FrontstageTests/TimetableSources/SourceStringsTests.swift`
 
 **Interfaces:**
 - Consumes: `TimetableSourceCoordinator`, `CredentialStore`.
-- Produces: `struct TimetableSourceSettingsView: View` (liest den Koordinator aus `@Environment`).
+- Produces: `struct TimetableSourceSettingsView: View { init() }` (liest den Koordinator aus `@Environment`).
 
 Muss leisten (Mockup `einrichten.html#quelle` zeigt das Was, nicht das Wie): Wahl „von Hand“ / „Schulmanager
 Online“ (`switchSource`); Anmeldung mit Benutzername und Passwort (`SecureField`, Speichern erst nach
@@ -842,7 +859,7 @@ Design-Takt: Hauptstufe
 
 **Files:**
 - Create: `Frontstage/UI/DayView/SourceStatusBar.swift`
-- Modify: `Frontstage/Resources/Localizable.xcstrings`; Einhängen in `DayView` aus Teilplan 04 (s. Abstimmungsbedarf)
+- Modify: `Frontstage/Resources/Localizable.xcstrings`. Eingehängt wird die Leiste von Teilplan 04 (Kopf der `DayView`).
 - Test: `FrontstageTests/TimetableSources/SourceStatusBarModelTests.swift`
 
 **Interfaces:**
@@ -855,7 +872,7 @@ struct SourceStatusBarModel: Equatable {
   var isVisible: Bool          // false bei .manual
   var fetchedAt: Date?; var notice: SourceStatusNotice
 }
-struct SourceStatusBar: View   // Name der Quelle, „Stand“ mit Uhrzeit (heute) bzw. Wochentag + Uhrzeit, Knopf „Aktualisieren“ → refresh(.userRequest), Hinweis je notice
+struct SourceStatusBar: View { init() }   // liest TimetableSourceCoordinator aus @Environment; Name der Quelle, „Stand“ mit Uhrzeit (heute) bzw. Wochentag + Uhrzeit, Knopf „Aktualisieren“ → refresh(.userRequest), Hinweis je notice
 ```
 
 - [ ] **Schritt 13.1: Skill `apple-design` laden.**
@@ -913,27 +930,27 @@ Ein Mensch mit iPad, Mac und **eigenem Schulmanager-Lehrerkonto**; Ergebnis abha
 
 ## Abstimmungsbedarf mit anderen Teilplänen
 
-- **Teilplan 01:** (a) `ImportDiffer.compare` – Erwartung dieses Plans: Einträge in `manuallyEdited`, die im Import
-  fehlen, stehen **nicht** in `removed` (sonst verletzt die Übernahme AK-3); Schlüssel eines Eintrags für
-  „geändert“/„Konflikt“ ist (Wochenvariante, Wochentag, Stunde). (b) Tagesrechnung (`Date` ↔ `CalendarDay`,
-  Tage addieren, Montag der Woche, Wochentag): Gibt 01 sie öffentlich her, ersetzt sie `SourceCalendarMath`.
-  (c) `Timetable` muss leer konstruierbar sein (`weekVariantCount: 1`, `entries: []`) für den ersten Import.
-- **Teilplan 02:** `TimetableRepository` (Aufgabe 9, Signaturen dort) samt Umsetzung; Feld Herkunft (`Origin`)
-  an `TimetableEntryRecord` (Import → `.source`, Anlegen/Ändern von Hand → `.manual`); `TimetableRecord` mit
-  `sourceKind: String` (`TimetableSourceKind.rawValue`) und `sourceFetchedAt: Date?` (gespiegelt);
-  Zusammenführen doppelter `.source`-Abweichungen, wenn zwei Geräte importieren.
-- **Teilplan 04:** Einhängen von `TimetableSourceSettingsView` als Bereich „Stundenplan-Quelle“ in Einrichten und von
-  `SourceStatusBar` in den Kopf der `DayView`; der Stundenplan-Editor setzt beim Anlegen/Ändern Herkunft `.manual`;
-  Kennzeichnung von Ausfall/Vertretung mit Herkunft Quelle („laut Schulmanager“) in der Tagesansicht – Darstellung
-  in 04, Daten von hier. `FrontstageApp.swift` (wer legt sie an, 01 oder 04?) bekommt Koordinator und Szenenphase.
-- **Glossar (PRD, Spalte „Im Code“):** Neue Code-Namen ohne Glossarzeile – `TimetableSourceKind`, `SourceSnapshot`
-  (Stand der Quelle), `SourceChange`, `SourceStatus`, `ImportPreview`, `TimetableRepository`. Fachlich neu ist
-  davon nur „Stand“ (Zeitpunkt der letzten erfolgreichen Abfrage): Glossarzeile vorschlagen, bevor Aufgabe 2 läuft.
+## Produziert für spätere Teilpläne (Zusammenfassung)
+
+- **Kern:** `TimetableSourceKind` (`manual`, `schulmanager`), `TimetableSource`, `SourceSnapshot`, `SourceChange`,
+  `SourceStatus`, `RefreshTrigger`, `MorningRefreshPolicy`.
+- **App (für Teilplan 04):** `TimetableSourceCoordinator` (`status`, `pendingPreview`, `isFetching`,
+  `refresh(_:)`, `applyPendingPreview(acceptedFromSource:)`, `discardPendingPreview()`, `switchSource(to:)`) und
+  `TimetableRepository.timetableSourceKind()`; Ansichten `TimetableSourceSettingsView()`, `ImportPreviewView`,
+  `SourceStatusBar()` – 04 hängt sie in Einrichten bzw. den Kopf der `DayView` ein.
+
+## Abstimmungsbedarf mit anderen Teilplänen
+
+- Keiner offen (abgeglichen nach Übersicht, Abschnitt „Abstimmung“): Tagesrechnung und `Timetable.empty` aus 01;
+  `ImportDiffer`-Regel aus 01 (Punkt 2); Datenzugriff über `TimetableRepository` mit Methoden aus 02; Herkunft und
+  Hand-Markierung in 02 (`originRaw`, `isManuallyEdited`); Stand in `TimetableRecord.sourceFetchedAt`;
+  Zusammenführen doppelter `.source`-Abweichungen beim Abgleich in 02 (`SyncMerger`, Abweichung nach Wert).
+  „Stand“ steht im Glossar (`sourceFetchedAt`).
 
 ## Annahmen, die ein Mensch bestätigen sollte
 
-- **A1** Ein Lehrerkonto steht für Aufgabe 1 und die Geräte-Checkliste zur Verfügung, und seine Nutzung für den
-  Prüfschritt ist mit der Schule vereinbar; der Codeberg-Hinweis, den Anbieter vorab zu kontaktieren, wird
+- **A1** ~~Ein Lehrerkonto steht zur Verfügung~~ → bestätigt 2026-11-13: das eigene Konto des Nutzers, Zugangsdaten
+  nur lokal. Offen bleibt: Die Nutzung für den Prüfschritt ist mit der Schule vereinbar; der Codeberg-Hinweis, den Anbieter vorab zu kontaktieren, wird
   zusammen mit der Partnerschaftsanfrage aus RISK-1 erledigt.
 - **A2** Der Wochenplan wird aus vier Wochen ab heute abgeleitet (Regeln Aufgabe 4); Zeiten je Wochentag
   (`fromByDay`) werden ignoriert – `BellSchedule` hat ein Raster für alle Tage.
