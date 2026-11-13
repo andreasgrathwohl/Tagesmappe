@@ -1,0 +1,599 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pult – Einrichten (Mockup, iPad)</title>
+<!--
+  Mockup: Veranschaulichung, kein Gestaltungsbeschluss.
+  Aussehen = unveränderter Apple-Systemstandard als Platzhalter (Systemschrift, Systemfarben, Standard-Bausteine).
+  Alle Daten erfunden. Eine Datei, keine externen Ressourcen.
+  Direkteinstieg: #stundenplan  #quelle  #abgleich (Quelle mit geöffnetem Import-Abgleich)  #frei  #ablage
+-->
+<style>
+:root {
+  color-scheme: light dark;
+  /* Systemfarben (iOS/iPadOS, hell) */
+  --bg: #ffffff;
+  --grouped: #f2f2f7;
+  --cell: #ffffff;
+  --sidebar: #ebebf0;
+  --label: #000000;
+  --label2: rgba(60,60,67,.62);
+  --label3: rgba(60,60,67,.30);
+  --sep: rgba(60,60,67,.22);
+  --fill: rgba(120,120,128,.12);
+  --fill2: rgba(120,120,128,.20);
+  --blue: #007aff;
+  --blue-fill: rgba(0,122,255,.13);
+  --red: #d70015;
+  --green: #248a3d;
+  --orange: #c93400;
+  --scrim: rgba(0,0,0,.30);
+  --shadow: 0 10px 40px rgba(0,0,0,.25), 0 0 0 .5px rgba(0,0,0,.12);
+  --page: #d9d9de;
+  --bezel: #2a2a2d;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #000000;
+    --grouped: #000000;
+    --cell: #1c1c1e;
+    --sidebar: #1c1c1e;
+    --label: #ffffff;
+    --label2: rgba(235,235,245,.62);
+    --label3: rgba(235,235,245,.30);
+    --sep: rgba(84,84,88,.65);
+    --fill: rgba(120,120,128,.24);
+    --fill2: rgba(120,120,128,.36);
+    --blue: #0a84ff;
+    --blue-fill: rgba(10,132,255,.24);
+    --red: #ff453a;
+    --green: #30d158;
+    --orange: #ff9f0a;
+    --scrim: rgba(0,0,0,.55);
+    --shadow: 0 10px 40px rgba(0,0,0,.6), 0 0 0 .5px rgba(255,255,255,.14);
+    --page: #0b0b0c;
+    --bezel: #3a3a3d;
+  }
+}
+
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--page);
+  color: var(--label);
+  font: 17px/1.3 -apple-system, "SF Pro Text", system-ui, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+button, input { font: inherit; color: inherit; }
+button { background: none; border: 0; cursor: pointer; text-align: left; }
+button:focus-visible, input:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+svg.i { width: 22px; height: 22px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+svg.i.s { width: 17px; height: 17px; }
+
+/* ---------- Gerät, skaliert ins Fenster ---------- */
+.device {
+  position: absolute; left: 50%; top: 50%;
+  width: 1238px; height: 878px; padding: 22px;
+  background: var(--bezel); border-radius: 44px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
+  transform: translate(-50%, -50%) scale(var(--s, 1));
+}
+.screen {
+  position: relative; width: 1194px; height: 834px; overflow: hidden;
+  border-radius: 22px; background: var(--bg);
+  display: grid; grid-template-rows: 24px 1fr;
+}
+.statusbar {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0 28px; font-size: 13px; font-weight: 600; background: var(--bg);
+}
+.statusbar span { display: inline-flex; align-items: center; gap: 6px; }
+.app { display: grid; grid-template-columns: 300px 1fr; min-height: 0; }
+
+/* ---------- Seitenleiste ---------- */
+.sidebar { background: var(--sidebar); padding: 8px 14px 14px; display: flex; flex-direction: column; overflow: auto; }
+.sidebar h1 { font-size: 34px; line-height: 41px; font-weight: 700; padding: 20px 10px 14px; }
+.sidebar nav { display: flex; flex-direction: column; gap: 2px; }
+.navitem {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  min-height: 48px; padding: 0 12px; border-radius: 12px; font-size: 17px;
+}
+.navitem svg { color: var(--blue); }
+.navitem[aria-current="page"] { background: var(--fill2); font-weight: 600; }
+.sidebar .foot { margin-top: auto; padding: 10px; font-size: 13px; color: var(--label2); }
+
+/* ---------- Inhaltsbereich ---------- */
+.content { background: var(--grouped); overflow: auto; position: relative; }
+.pane { padding: 8px 32px 32px; }
+.pane[hidden] { display: none; }
+.pane h2 { font-size: 34px; line-height: 41px; font-weight: 700; padding: 20px 0 4px; }
+.lead { color: var(--label2); font-size: 15px; padding-bottom: 14px; max-width: 640px; }
+
+.group-label { font-size: 13px; text-transform: uppercase; letter-spacing: .02em; color: var(--label2); padding: 18px 16px 6px; }
+.group-foot { font-size: 13px; color: var(--label2); padding: 6px 16px 0; max-width: 700px; }
+.list { background: var(--cell); border-radius: 12px; overflow: hidden; }
+.row {
+  display: flex; align-items: center; gap: 12px; width: 100%;
+  min-height: 48px; padding: 8px 16px; position: relative;
+}
+.row + .row::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; height: 1px; background: var(--sep); }
+.row .grow { flex: 1; min-width: 0; }
+.row .sub { font-size: 15px; color: var(--label2); }
+.row .val { color: var(--label2); }
+.row .chev { color: var(--label3); width: 14px; height: 14px; }
+.row.link { color: var(--blue); }
+.tick { color: var(--blue); width: 22px; height: 22px; }
+.tick.off { visibility: hidden; }
+.status { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 600; }
+.status.ok { color: var(--green); }
+.status.warn { color: var(--orange); }
+.status.no { color: var(--label2); font-weight: 400; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 44px; padding: 0 20px; border-radius: 22px; font-weight: 600;
+  background: var(--blue-fill); color: var(--blue); text-align: center;
+}
+.btn.prominent { background: var(--blue); color: #fff; }
+.btn.danger { color: var(--red); background: var(--fill); }
+.btn.plain { background: none; padding: 0 8px; font-weight: 400; }
+
+.note {
+  display: flex; gap: 12px; align-items: flex-start; padding: 12px 16px;
+  background: var(--cell); border-radius: 12px; font-size: 15px; max-width: 700px;
+}
+.note svg { margin-top: 1px; color: var(--label2); }
+.note.warn svg { color: var(--orange); }
+.note strong { font-weight: 600; }
+.note .btn { margin-top: 8px; }
+
+/* ---------- Stundenplan ---------- */
+.controls { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; padding: 6px 0 14px; }
+.seg { display: inline-flex; background: var(--fill); border-radius: 12px; padding: 2px; }
+.seg button {
+  min-height: 44px; min-width: 120px; padding: 0 18px; border-radius: 10px; font-weight: 500; text-align: center;
+}
+.seg button[aria-pressed="true"] { background: var(--cell); box-shadow: 0 1px 4px rgba(0,0,0,.18); font-weight: 600; }
+@media (prefers-color-scheme: dark) { .seg button[aria-pressed="true"] { background: #636366; } }
+.bezug { font-size: 15px; color: var(--label2); display: flex; align-items: center; gap: 8px; }
+.bezug b { color: var(--label); font-weight: 600; }
+
+.gridwrap { position: relative; }
+.grid { display: grid; grid-template-columns: 92px repeat(5, 1fr); gap: 6px; }
+.grid .h { text-align: center; font-size: 15px; font-weight: 600; color: var(--label2); padding: 4px 0 6px; }
+.grid .t { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; padding-right: 8px; font-size: 15px; font-weight: 600; }
+.grid .t small { font-weight: 400; color: var(--label2); font-size: 13px; }
+.cell {
+  position: relative; min-height: 64px; border-radius: 12px; padding: 8px 10px;
+  display: flex; flex-direction: column; justify-content: center; align-items: flex-start;
+  text-align: left;
+}
+.cell.full { background: var(--blue-fill); }
+.cell.full b { font-size: 17px; font-weight: 700; line-height: 1.15; }
+.cell.full span { font-size: 15px; color: var(--label2); }
+.cell.empty { background: var(--fill); align-items: center; color: var(--label3); }
+.cell.empty svg { width: 22px; height: 22px; }
+.cell.editing { outline: 3px solid var(--blue); outline-offset: 1px; }
+.cell .pen { position: absolute; top: 6px; right: 6px; width: 15px; height: 15px; color: var(--label2); }
+.legend { font-size: 13px; color: var(--label2); padding: 10px 2px 0; display: flex; align-items: center; gap: 6px; }
+
+.popover {
+  position: absolute; z-index: 5; width: 320px; background: var(--cell); border-radius: 14px;
+  box-shadow: var(--shadow); padding: 14px 16px 16px;
+}
+.popover[hidden] { display: none; }
+.popover::before {
+  content: ""; position: absolute; width: 18px; height: 18px; background: var(--cell);
+  top: var(--ay, 40px); transform: translateY(-50%) rotate(45deg); border-radius: 3px;
+}
+.popover.right::before { left: -7px; }
+.popover.left::before { right: -7px; }
+.popover header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.popover header h3 { font-size: 17px; font-weight: 600; }
+.popover header p { font-size: 13px; color: var(--label2); }
+.fields { background: var(--grouped); border-radius: 10px; overflow: hidden; margin-bottom: 12px; }
+.field { display: flex; align-items: center; min-height: 44px; padding: 0 12px; gap: 10px; position: relative; }
+.field + .field::before { content: ""; position: absolute; top: 0; left: 12px; right: 0; height: 1px; background: var(--sep); }
+.field label { width: 62px; color: var(--label2); font-size: 15px; }
+.field input { flex: 1; min-width: 0; background: none; border: 0; height: 44px; font-size: 17px; }
+.field input:focus-visible { outline: none; }
+.field:focus-within { box-shadow: inset 0 0 0 2px var(--blue); }
+
+/* ---------- Quelle ---------- */
+.stack { display: flex; flex-direction: column; gap: 0; max-width: 700px; }
+.actions { display: flex; gap: 12px; padding: 14px 16px 0; align-items: center; flex-wrap: wrap; }
+
+/* ---------- Zeiträume ---------- */
+.zr .name { font-weight: 500; }
+
+/* ---------- Sheet ---------- */
+.scrim { position: absolute; inset: 0; background: var(--scrim); z-index: 20; display: flex; align-items: center; justify-content: center; }
+.scrim[hidden] { display: none; }
+.sheet {
+  width: 680px; max-height: 760px; background: var(--grouped); border-radius: 22px;
+  box-shadow: var(--shadow); display: flex; flex-direction: column; overflow: hidden;
+}
+.sheet header {
+  display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
+  min-height: 60px; padding: 0 12px; background: var(--bg); border-bottom: 1px solid var(--sep);
+}
+.sheet header h3 { font-size: 17px; font-weight: 600; text-align: center; }
+.sheet header > .btn:first-child { justify-self: start; }
+.sheet header .r { justify-self: end; }
+.sheet header .btn { min-height: 44px; }
+.sheet .body { overflow: auto; padding: 4px 24px 28px; }
+.sum { padding: 14px 16px 4px; font-size: 15px; color: var(--label2); }
+.diff .tag {
+  display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600;
+  padding: 2px 8px; border-radius: 6px; background: var(--fill2); color: var(--label); white-space: nowrap;
+}
+.diff .tag.hand { background: transparent; box-shadow: inset 0 0 0 1.5px var(--orange); color: var(--orange); }
+.diff .when { font-weight: 600; min-width: 130px; }
+.diff .arrow { color: var(--label2); }
+.diff del { color: var(--label2); }
+.choice { cursor: pointer; }
+.choice .grow { font-size: 17px; }
+
+/* ---------- Bildschirmleser-Text ---------- */
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<!-- Symbole -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 10h18M9 4v16M15 4v16"/></symbol>
+    <symbol id="i-sync" viewBox="0 0 24 24"><path d="M20 12a8 8 0 0 0-14-5.3L4 9"/><path d="M4 4v5h5"/><path d="M4 12a8 8 0 0 0 14 5.3L20 15"/><path d="M20 20v-5h-5"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-chev" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.01"/></symbol>
+    <symbol id="i-warn" viewBox="0 0 24 24"><path d="M12 4 2.8 19.5h18.4z"/><path d="M12 10v4.5M12 17v.01"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="m4 20 1-4L16.5 4.5a2.1 2.1 0 0 1 3 3L8 19z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20a8 8 0 0 1 16 0"/></symbol>
+    <symbol id="i-wifi" viewBox="0 0 24 24"><path d="M2 9a15 15 0 0 1 20 0M5.5 12.5a10 10 0 0 1 13 0M9 16a5 5 0 0 1 6 0"/></symbol>
+  </defs>
+</svg>
+
+<div class="device" id="device">
+ <div class="screen">
+  <div class="statusbar" aria-hidden="true">
+    <span>7:41 &nbsp; Di. 17. Nov.</span>
+    <span><svg class="i s" style="width:16px;height:16px"><use href="#i-wifi"/></svg> 100&nbsp;%
+      <svg width="26" height="12" viewBox="0 0 26 12"><rect x=".5" y=".5" width="22" height="11" rx="3.5" fill="none" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="19" height="8" rx="2" fill="currentColor"/><rect x="24" y="4" width="1.5" height="4" rx=".7" fill="currentColor" opacity=".5"/></svg></span>
+  </div>
+
+  <div class="app">
+   <!-- ===== Seitenleiste ===== -->
+   <aside class="sidebar">
+     <h1>Einrichten</h1>
+     <nav aria-label="Einrichten">
+       <button class="navitem" data-pane="stundenplan"><svg class="i"><use href="#i-grid"/></svg>Stundenplan</button>
+       <button class="navitem" data-pane="quelle"><svg class="i"><use href="#i-sync"/></svg>Stundenplan-Quelle</button>
+       <button class="navitem" data-pane="frei"><svg class="i"><use href="#i-sun"/></svg>Unterrichtsfreie Zeiträume</button>
+       <button class="navitem" data-pane="ablage"><svg class="i"><use href="#i-folder"/></svg>Ablage</button>
+     </nav>
+     <p class="foot">Diese Einstellungen gelten für dieses Gerät, soweit angegeben.</p>
+   </aside>
+
+   <main class="content">
+
+    <!-- ===== 1 Stundenplan ===== -->
+    <section class="pane" id="p-stundenplan" hidden>
+      <h2>Stundenplan</h2>
+      <p class="lead">Tippen Sie auf ein Feld, um den Stundenplan-Eintrag zu bearbeiten, oder auf „+“, um einen neuen anzulegen.</p>
+
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Wochenvariante">
+          <button id="wA" aria-pressed="true">A-Woche</button>
+          <button id="wB" aria-pressed="false">B-Woche</button>
+        </div>
+        <div class="bezug">Bezugswoche für A-Woche: <b>KW 47 (16.–20.11.2026)</b>
+          <button class="btn plain" style="color:var(--blue)">Ändern</button></div>
+      </div>
+
+      <div class="gridwrap" id="gridwrap">
+        <div class="grid" id="grid"></div>
+        <div class="popover right" id="pop" role="dialog" aria-label="Stundenplan-Eintrag bearbeiten" hidden>
+          <header>
+            <div><h3 id="popTitle">Stundenplan-Eintrag</h3><p id="popSub">Mi, 4. Stunde · A-Woche</p></div>
+            <button class="btn plain" id="popDone" style="color:var(--blue);font-weight:600">Fertig</button>
+          </header>
+          <div class="fields">
+            <div class="field"><label for="fKlasse">Klasse</label><input id="fKlasse" autocomplete="off"></div>
+            <div class="field"><label for="fFach">Fach</label><input id="fFach" autocomplete="off"></div>
+          </div>
+          <button class="btn danger" id="popDel" style="width:100%">Eintrag löschen</button>
+        </div>
+      </div>
+      <p class="legend" id="legend"><svg class="i s"><use href="#i-pen"/></svg> von Hand geändert, abweichend von der Stundenplan-Quelle</p>
+    </section>
+
+    <!-- ===== 2 Stundenplan-Quelle ===== -->
+    <section class="pane" id="p-quelle" hidden>
+      <h2>Stundenplan-Quelle</h2>
+      <p class="lead">Woher kommt Ihr Stundenplan? Ein von Hand gepflegter Stundenplan bleibt immer möglich.</p>
+      <div class="stack">
+        <div class="list" role="radiogroup" aria-label="Stundenplan-Quelle">
+          <button class="row choice" role="radio" data-src="hand" aria-checked="false">
+            <div class="grow">Von Hand<div class="sub">Sie legen die Stundenplan-Einträge selbst an.</div></div>
+            <svg class="i tick off"><use href="#i-check"/></svg>
+          </button>
+          <button class="row choice" role="radio" data-src="sm" aria-checked="true">
+            <div class="grow">Schulmanager Online<div class="sub">Stundenplan, Vertretungen und Ausfälle übernehmen.</div></div>
+            <svg class="i tick"><use href="#i-check"/></svg>
+          </button>
+        </div>
+
+        <div id="srcHand" hidden>
+          <p class="group-foot">Pflegen Sie den Stundenplan im Bereich „Stundenplan“. Sie können jederzeit zu Schulmanager Online wechseln; vorhandene Einträge werden dann erst nach dem Import-Abgleich verändert.</p>
+        </div>
+
+        <div id="srcSm">
+          <div class="group-label">Schulmanager Online</div>
+          <div class="list">
+            <div class="row"><svg class="i s" style="color:var(--label2)"><use href="#i-person"/></svg><div class="grow">Konto</div>
+              <span class="status ok"><svg class="i s"><use href="#i-check"/></svg>Angemeldet</span></div>
+            <div class="row"><div class="grow">Benutzername</div><span class="val">••••••••••</span></div>
+            <div class="row"><div class="grow">Stand</div><span class="val">heute 7:28</span></div>
+          </div>
+          <div class="actions">
+            <button class="btn prominent" id="btnImport"><svg class="i s"><use href="#i-sync"/></svg>Jetzt importieren</button>
+            <button class="btn danger">Abmelden</button>
+          </div>
+          <p class="group-foot">Der Import läuft einmal je Morgen und auf Knopfdruck, nicht öfter. Vor der Übernahme sehen Sie, was sich ändert.</p>
+
+          <div class="group-label">Datenschutz und Zuverlässigkeit</div>
+          <div class="note" style="margin-bottom:10px"><svg class="i"><use href="#i-lock"/></svg>
+            <div><strong>Zugangsdaten bleiben auf diesem Gerät.</strong> Sie liegen im Schlüsselbund dieses Geräts, werden nicht in iCloud gespiegelt und nur an Schulmanager Online selbst gesendet. Auf einem zweiten Gerät melden Sie sich dort erneut an.</div></div>
+          <div class="note warn"><svg class="i"><use href="#i-warn"/></svg>
+            <div><strong>Inoffizielle Anbindung.</strong> Schulmanager Online bietet keine offizielle Schnittstelle. Die Anbindung kann ohne Vorwarnung ausfallen. Stundenplan, Zuordnungen und Tagesansicht bleiben dann nutzbar; der letzte Stand bleibt erhalten.</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 3 Unterrichtsfreie Zeiträume ===== -->
+    <section class="pane" id="p-frei" hidden>
+      <h2>Unterrichtsfreie Zeiträume</h2>
+      <p class="lead">An diesen Tagen gibt es keine Unterrichtsstunden. Bereits zugeordnetes Material bleibt erhalten.</p>
+      <div class="stack">
+        <div class="list zr">
+          <button class="row">
+            <div class="grow"><div class="name">Pädagogischer Tag</div><div class="sub">20.11.2026</div></div>
+            <span class="status warn"><svg class="i s"><use href="#i-warn"/></svg>1 Material ohne Stunde</span>
+            <svg class="i chev"><use href="#i-chev"/></svg>
+          </button>
+          <button class="row">
+            <div class="grow"><div class="name">Weihnachtsferien</div><div class="sub">23.12.2026 – 06.01.2027</div></div>
+            <svg class="i chev"><use href="#i-chev"/></svg>
+          </button>
+          <button class="row link"><svg class="i"><use href="#i-plus"/></svg>Zeitraum hinzufügen</button>
+        </div>
+
+        <div class="group-label">Hinweis</div>
+        <div class="note warn">
+          <svg class="i"><use href="#i-warn"/></svg>
+          <div><strong>Am 20.11.2026 liegt noch 1 Material ohne Stunde:</strong> „Lesetext Kapitel 5“ (PDF, war 7a Deutsch). Es bleibt erhalten, ist aber keiner Unterrichtsstunde zugeordnet.
+            <div><button class="btn">Anderer Unterrichtsstunde zuordnen</button></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 4 Ablage ===== -->
+    <section class="pane" id="p-ablage" hidden>
+      <h2>Ablage</h2>
+      <p class="lead">Ordner Ihrer Ablage, aus denen Pult Material öffnet. Die Dateien werden nie kopiert, nur verknüpft.</p>
+      <div class="stack">
+        <div class="group-label">Ordnerfreigaben dieses Geräts</div>
+        <div class="list">
+          <div class="row"><svg class="i" style="color:var(--blue)"><use href="#i-folder"/></svg>
+            <div class="grow">Unterricht<div class="sub">Auf diesem Gerät freigegeben</div></div>
+            <span class="status ok"><svg class="i s"><use href="#i-check"/></svg>Verbunden</span></div>
+          <div class="row"><svg class="i" style="color:var(--label2)"><use href="#i-folder"/></svg>
+            <div class="grow">Klassenarbeiten<div class="sub">Auf diesem Gerät noch nicht freigegeben</div></div>
+            <button class="btn">Ordner freigeben …</button></div>
+        </div>
+        <p class="group-foot">Freigaben gelten je Gerät. Auf einem anderen Gerät geben Sie denselben Ordner einmal frei; danach finden alle Zuordnungen dort ihr Material wieder.</p>
+
+        <div class="group-label">Microsoft 365 (optional)</div>
+        <div class="list">
+          <button class="row link"><svg class="i"><use href="#i-person"/></svg>Bei Microsoft anmelden<span class="val" style="margin-left:auto">Nicht angemeldet</span></button>
+        </div>
+        <p class="group-foot">Mit Anmeldung öffnet Material aus OneDrive als Cloud-Dokument mit AutoSpeichern, sodass Notizen sofort in der Ablage landen. Ohne Anmeldung funktioniert alles andere wie gewohnt.</p>
+      </div>
+    </section>
+
+   </main>
+  </div>
+
+  <!-- ===== Sheet: Import-Abgleich ===== -->
+  <div class="scrim" id="scrim" hidden>
+   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="shTitle">
+    <header>
+      <button class="btn plain" id="shCancel" style="color:var(--blue)">Abbrechen</button>
+      <h3 id="shTitle">Import-Abgleich</h3>
+      <button class="btn plain r" id="shApply" style="color:var(--blue);font-weight:700">Übernehmen</button>
+    </header>
+    <div class="body diff">
+      <p class="sum">Stand von Schulmanager Online: heute 7:28. Bisher ist nichts verändert; mit „Übernehmen“ gelten die Änderungen unten.</p>
+
+      <div class="group-label">Neu im Stundenplan (1)</div>
+      <div class="list"><div class="row"><span class="tag">Neu</span><span class="when">Fr, 2. Stunde</span><span class="grow">8a Englisch</span></div></div>
+
+      <div class="group-label">Geändert (1)</div>
+      <div class="list"><div class="row"><span class="tag">Geändert</span><span class="when">Mi, 4. Stunde</span>
+        <span class="grow">7a Deutsch <span class="arrow">→</span> Mi, <b>5. Stunde</b></span></div></div>
+
+      <div class="group-label">Von Hand geändert – wird nicht überschrieben (1)</div>
+      <div class="list" role="radiogroup" aria-label="Mo, 5. Stunde">
+        <div class="row"><span class="tag hand"><svg class="i s" style="width:13px;height:13px"><use href="#i-pen"/></svg>Von Hand</span><span class="when">Mo, 5. Stunde</span>
+          <span class="grow sub">Ihre Fassung und die Quelle weichen ab</span></div>
+        <button class="row choice" role="radio" aria-checked="true" data-keep="1">
+          <div class="grow">Meine Fassung behalten<div class="sub">8a Englisch</div></div><svg class="i tick"><use href="#i-check"/></svg></button>
+        <button class="row choice" role="radio" aria-checked="false" data-keep="0">
+          <div class="grow">Aus der Quelle übernehmen<div class="sub">8b Englisch</div></div><svg class="i tick off"><use href="#i-check"/></svg></button>
+      </div>
+
+      <div class="group-label">Abweichungen aus der Quelle (2)</div>
+      <div class="list">
+        <div class="row"><span class="tag">Ausfall</span><span class="when">Di 17.11., 4. Std.</span><span class="grow">9c Englisch</span></div>
+        <div class="row"><span class="tag">Vertretungsstunde</span><span class="when">Di 17.11., 5. Std.</span><span class="grow">6c Mathe</span></div>
+      </div>
+      <p class="group-foot">Abweichungen stehen nicht im Stundenplan, sondern nur an ihrem Tag. Beim nächsten Import werden sie ersetzt; von Hand angelegte Abweichungen bleiben unberührt.</p>
+    </div>
+   </div>
+  </div>
+
+ </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+
+  /* ---------- Gerät ins Fenster einpassen ---------- */
+  var dev = $("#device");
+  function fit() {
+    var s = Math.min(window.innerWidth / 1260, window.innerHeight / 900, 1.5);
+    dev.style.setProperty("--s", s);
+  }
+  window.addEventListener("resize", fit); fit();
+
+  /* ---------- Seitenleiste ---------- */
+  var panes = ["stundenplan", "quelle", "frei", "ablage"];
+  function show(name) {
+    if (panes.indexOf(name) < 0) name = "stundenplan";
+    panes.forEach(function (p) { $("#p-" + p).hidden = (p !== name); });
+    $$(".navitem").forEach(function (b) {
+      if (b.dataset.pane === name) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+    });
+    if (name !== "stundenplan") closePop();
+    $(".content").scrollTop = 0;
+  }
+  $$(".navitem").forEach(function (b) { b.addEventListener("click", function () { show(b.dataset.pane); }); });
+
+  /* ---------- Stundenplan ---------- */
+  var days = ["Mo", "Di", "Mi", "Do", "Fr"];
+  var times = ["7:45", "8:35", "9:40", "10:30", "11:35", "12:25"];
+  var plan = {
+    A: { "0-1": ["7a", "Deutsch"], "0-2": ["9c", "Englisch"], "0-5": ["8a", "Englisch"],
+         "1-1": ["7a", "Deutsch"], "1-2": ["8b", "Englisch"], "1-4": ["9c", "Englisch"], "1-6": ["8a", "Englisch"],
+         "2-3": ["8b", "Englisch"], "2-4": ["7a", "Deutsch"],
+         "3-2": ["9c", "Englisch"], "3-3": ["8a", "Englisch"] }
+  };
+  plan.B = JSON.parse(JSON.stringify(plan.A));
+  plan.B["0-1"] = ["9c", "Englisch"];
+  var handEdited = { A: { "0-5": true }, B: { "0-5": true } };
+  var week = "A", editing = "2-4"; /* Mi, 4. Stunde im Zustand „wird bearbeitet“ */
+
+  var grid = $("#grid"), wrap = $("#gridwrap"), pop = $("#pop");
+
+  function renderGrid() {
+    var h = '<div></div>';
+    days.forEach(function (d) { h += '<div class="h">' + d + '</div>'; });
+    for (var p = 1; p <= 6; p++) {
+      h += '<div class="t">' + p + '. Stunde<small>' + times[p - 1] + '</small></div>';
+      for (var d2 = 0; d2 < 5; d2++) {
+        var k = d2 + "-" + p, e = plan[week][k], ed = (editing === k) ? " editing" : "";
+        var name = days[d2] + ", " + p + ". Stunde";
+        if (e) {
+          h += '<button class="cell full' + ed + '" data-k="' + k + '" aria-label="' + name + ": " + e[0] + " " + e[1] +
+               (handEdited[week][k] ? ", von Hand geändert" : "") + '"><b>' + e[0] + '</b><span>' + e[1] + '</span>' +
+               (handEdited[week][k] ? '<svg class="i s pen"><use href="#i-pen"/></svg>' : '') + '</button>';
+        } else {
+          h += '<button class="cell empty' + ed + '" data-k="' + k + '" aria-label="' + name + ': leer, Eintrag hinzufügen"><svg class="i"><use href="#i-plus"/></svg></button>';
+        }
+      }
+    }
+    grid.innerHTML = h;
+    $("#legend").style.visibility = "visible";
+    positionPop();
+  }
+
+  function positionPop() {
+    if (!editing) { pop.hidden = true; return; }
+    var c = $('[data-k="' + editing + '"]', grid); if (!c) return;
+    var parts = editing.split("-"), e = plan[week][editing];
+    $("#popTitle").textContent = e ? "Stundenplan-Eintrag" : "Neuer Stundenplan-Eintrag";
+    $("#popSub").textContent = days[+parts[0]] + ", " + parts[1] + ". Stunde · " + week + "-Woche";
+    $("#fKlasse").value = e ? e[0] : ""; $("#fFach").value = e ? e[1] : "";
+    $("#popDel").style.display = e ? "" : "none";
+    pop.hidden = false;
+    var W = 320, H = pop.offsetHeight, right = c.offsetLeft + c.offsetWidth + 14;
+    var side = (right + W <= wrap.offsetWidth) ? "right" : "left";
+    var left = side === "right" ? right : c.offsetLeft - 14 - W;
+    var cy = c.offsetTop + c.offsetHeight / 2;
+    var top = Math.max(0, Math.min(cy - H / 2, wrap.offsetHeight - H));
+    pop.className = "popover " + side;
+    pop.style.left = left + "px"; pop.style.top = top + "px";
+    pop.style.setProperty("--ay", (cy - top) + "px");
+  }
+  function closePop() { editing = null; pop.hidden = true; $$(".cell.editing", grid).forEach(function (c) { c.classList.remove("editing"); }); }
+  function commit() {
+    var k = editing; if (!k) return;
+    var kl = $("#fKlasse").value.trim(), fa = $("#fFach").value.trim();
+    if (kl || fa) plan[week][k] = [kl, fa]; else delete plan[week][k];
+    closePop(); renderGrid();
+  }
+  grid.addEventListener("click", function (ev) {
+    var c = ev.target.closest(".cell"); if (!c) return;
+    editing = c.dataset.k; renderGrid();
+    setTimeout(function () { $("#fKlasse").focus(); }, 0);
+  });
+  $("#popDone").addEventListener("click", commit);
+  $("#popDel").addEventListener("click", function () { delete plan[week][editing]; closePop(); renderGrid(); });
+  $("#p-stundenplan").addEventListener("click", function (ev) {
+    if (!pop.hidden && !ev.target.closest(".popover") && !ev.target.closest(".cell")) { closePop(); renderGrid(); }
+  });
+  [["wA", "A"], ["wB", "B"]].forEach(function (x) {
+    $("#" + x[0]).addEventListener("click", function () {
+      week = x[1]; closePop();
+      $("#wA").setAttribute("aria-pressed", week === "A"); $("#wB").setAttribute("aria-pressed", week === "B");
+      renderGrid();
+    });
+  });
+
+  /* ---------- Quelle ---------- */
+  function setSrc(v) {
+    $$("[data-src]").forEach(function (b) {
+      var on = b.dataset.src === v;
+      b.setAttribute("aria-checked", on);
+      $(".tick", b).classList.toggle("off", !on);
+    });
+    $("#srcHand").hidden = (v !== "hand"); $("#srcSm").hidden = (v !== "sm");
+  }
+  $$("[data-src]").forEach(function (b) { b.addEventListener("click", function () { setSrc(b.dataset.src); }); });
+
+  /* ---------- Import-Abgleich (Sheet) ---------- */
+  var scrim = $("#scrim");
+  function openSheet() { show("quelle"); scrim.hidden = false; $("#shCancel").focus(); }
+  function closeSheet() { scrim.hidden = true; }
+  $("#btnImport").addEventListener("click", openSheet);
+  $("#shCancel").addEventListener("click", closeSheet);
+  $("#shApply").addEventListener("click", closeSheet);
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape") { closeSheet(); if (editing) { closePop(); renderGrid(); } } });
+  $$("[data-keep]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      $$("[data-keep]").forEach(function (o) {
+        var on = o === b; o.setAttribute("aria-checked", on); $(".tick", o).classList.toggle("off", !on);
+      });
+    });
+  });
+
+  /* ---------- Start ---------- */
+  var h = (location.hash || "").replace("#", "");
+  if (h === "abgleich") { renderGrid(); closePop(); show("quelle"); openSheet(); }
+  else { show(h || "stundenplan"); renderGrid(); if (h && h !== "stundenplan") { closePop(); } }
+})();
+</script>
+</body>
+</html>

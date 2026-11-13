@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Konzept A2 "Übertragung": vom kleinen Pult aus wird die große Fläche gefüllt. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#F4F1EC"/>
+      <stop offset="1" stop-color="#E2DCD3"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <!-- Lichtkegel: was am Pult gewählt wird, geht nach vorn -->
+  <polygon points="392,742 632,742 796,560 228,560" fill="#F0573A" fill-opacity="0.42"/>
+  <!-- große Fläche: was die Klasse sieht -->
+  <rect x="192" y="176" width="640" height="384" rx="56" fill="#1F2B4A"/>
+  <!-- Material auf der großen Fläche -->
+  <rect x="412" y="268" width="200" height="200" rx="40" fill="#F0573A"/>
+  <!-- Pult -->
+  <rect x="352" y="742" width="320" height="104" rx="52" fill="#F0573A"/>
+</svg>

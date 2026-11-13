@@ -1,0 +1,1118 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tagesansicht iPad</title>
+<!--
+  Mockup, kein Gestaltungsbeschluss. Aussehen = unveränderter Apple-Systemstandard als Platzhalter.
+  Anforderungen: FR-4, FR-5, FR-2.2, FR-3.1, FR-3.3, FR-8, FR-9, NFR-1; AK-10, AK-17, AK-21.
+  Nur erfundene Daten (siehe mockup/LIESMICH.md).
+-->
+<style>
+  /* Systemfarben (iOS/iPadOS-Standardwerte) als Platzhalter — keine eigene Palette. */
+  :root {
+    --page: #D8D8DE;
+    --bg: #F2F2F7;            /* systemGroupedBackground */
+    --cell: #FFFFFF;          /* secondarySystemGroupedBackground */
+    --label: #000000;
+    --label2: rgba(60,60,67,.60);
+    --label3: rgba(60,60,67,.30);
+    --sep: rgba(60,60,67,.29);
+    --fill: rgba(118,118,128,.12);   /* tertiarySystemFill */
+    --fill2: rgba(118,118,128,.08);  /* quaternarySystemFill */
+    --tint: #007AFF;          /* systemBlue */
+    --red: #FF3B30;           /* systemRed */
+    --green: #34C759;         /* systemGreen */
+    --bar: rgba(249,249,249,.94);
+    --elev: #FFFFFF;
+    --now-bg: rgba(0,122,255,.09);
+    --shadow: 0 8px 40px rgba(0,0,0,.18), 0 0 0 .5px rgba(0,0,0,.08);
+    --hud: rgba(30,30,32,.92);
+    --hud-label: #FFFFFF;
+    --seg-sel: #FFFFFF;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page: #0E0E10;
+      --bg: #000000;
+      --cell: #1C1C1E;
+      --label: #FFFFFF;
+      --label2: rgba(235,235,245,.60);
+      --label3: rgba(235,235,245,.30);
+      --sep: rgba(84,84,88,.60);
+      --fill: rgba(118,118,128,.24);
+      --fill2: rgba(118,118,128,.18);
+      --tint: #0A84FF;
+      --red: #FF453A;
+      --green: #30D158;
+      --bar: rgba(22,22,24,.94);
+      --elev: #2C2C2E;
+      --now-bg: rgba(10,132,255,.17);
+      --shadow: 0 8px 40px rgba(0,0,0,.6), 0 0 0 .5px rgba(255,255,255,.12);
+      --hud: rgba(58,58,60,.95);
+      --hud-label: #FFFFFF;
+      --seg-sel: #636366;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --page: #0E0E10;
+    --bg: #000000;
+    --cell: #1C1C1E;
+    --label: #FFFFFF;
+    --label2: rgba(235,235,245,.60);
+    --label3: rgba(235,235,245,.30);
+    --sep: rgba(84,84,88,.60);
+    --fill: rgba(118,118,128,.24);
+    --fill2: rgba(118,118,128,.18);
+    --tint: #0A84FF;
+    --red: #FF453A;
+    --green: #30D158;
+    --bar: rgba(22,22,24,.94);
+    --elev: #2C2C2E;
+    --now-bg: rgba(10,132,255,.17);
+    --shadow: 0 8px 40px rgba(0,0,0,.6), 0 0 0 .5px rgba(255,255,255,.12);
+    --hud: rgba(58,58,60,.95);
+    --hud-label: #FFFFFF;
+    --seg-sel: #636366;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--page);
+    font-family: -apple-system, "SF Pro Text", system-ui, sans-serif;
+    color: var(--label);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+  button:focus-visible { outline: 3px solid var(--tint); outline-offset: 2px; border-radius: 10px; }
+  svg { display: block; flex: none; }
+
+  /* ---------- Mockup-Rahmen außerhalb des Geräts ---------- */
+  .caption {
+    position: fixed; top: 0; left: 0; right: 0; height: 40px;
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    font-size: 13px; color: var(--label2); padding: 0 16px;
+  }
+  .caption.c2 { top: 36px; height: 30px; font-size: 12px; gap: 14px; }
+  .caption strong { color: var(--label); font-weight: 600; }
+  .caption .seg { display: inline-flex; background: var(--fill); border-radius: 8px; padding: 2px; }
+  .caption .seg button { font-size: 12px; padding: 4px 10px; border-radius: 6px; color: var(--label); }
+  .caption .seg button[aria-pressed="true"] { background: var(--cell); box-shadow: 0 1px 3px rgba(0,0,0,.15); }
+  .caption .back { position: absolute; left: 16px; top: 0; height: 40px; display: flex; align-items: center; gap: 4px; color: var(--tint); text-decoration: none; font-size: 15px; }
+  .caption .vs { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; color: var(--label); background: var(--fill); border-radius: 5px; padding: 1px 6px; margin-right: 4px; }
+  .stage-wrap { position: fixed; top: 68px; left: 0; right: 0; bottom: 0; display: flex; align-items: center; justify-content: center; }
+  .stage { width: 1242px; height: 882px; transform-origin: top left; flex: none; }
+  .device {
+    width: 1242px; height: 882px; padding: 24px; border-radius: 44px;
+    background: #1D1D1F; box-shadow: 0 0 0 2px #3A3A3C, 0 30px 80px rgba(0,0,0,.25);
+  }
+  .screen {
+    position: relative; width: 1194px; height: 834px; border-radius: 20px; overflow: hidden;
+    background: var(--bg); display: flex; flex-direction: column;
+  }
+
+  /* ---------- Statusleiste ---------- */
+  .statusbar {
+    height: 24px; flex: none; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 22px; font-size: 13px; font-weight: 600;
+  }
+  .statusbar .l { display: flex; gap: 8px; }
+  .statusbar .l span + span { font-weight: 500; }
+  .statusbar .r { display: flex; gap: 6px; align-items: center; }
+
+  /* ---------- Symbolleiste ---------- */
+  .toolbar {
+    height: 50px; flex: none; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 12px;
+  }
+  .tb-group { display: flex; align-items: center; gap: 4px; }
+  .tb-btn {
+    min-width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center;
+    color: var(--tint); border-radius: 22px; font-size: 17px; padding: 0 10px;
+  }
+  .tb-btn:active { background: var(--fill); }
+  .tb-btn[aria-disabled="true"] { color: var(--label3); cursor: default; }
+  .tb-capsule { display: flex; align-items: center; background: var(--fill2); border-radius: 22px; }
+
+  /* ---------- Kopf: großer Titel + Stand der Stundenplan-Quelle ---------- */
+  .head {
+    flex: none; display: flex; align-items: flex-end; justify-content: space-between;
+    padding: 0 20px 10px;
+  }
+  .head h1 { margin: 0; font-size: 34px; line-height: 41px; font-weight: 700; letter-spacing: .37px; }
+  .head .sub { font-size: 15px; color: var(--label2); margin-top: 2px; }
+  .source {
+    display: flex; align-items: center; gap: 4px; text-align: right;
+  }
+  .source .txt { font-size: 13px; line-height: 18px; color: var(--label2); }
+  .source .txt b { display: block; font-size: 15px; font-weight: 600; color: var(--label); }
+  .source .tb-btn.busy svg { animation: spin 0.9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) { .source .tb-btn.busy svg { animation: none; } }
+
+  /* ---------- Liste der Unterrichtsstunden ---------- */
+  /* verdichtet für die Smartboard-Leiste (76 pt): Zeilen 106 → 92 pt, Kacheln 76 → 68 pt (AK-10) */
+  .content { flex: 1; padding: 4px 20px 8px; overflow: hidden; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+  .card { background: var(--cell); border-radius: 12px; overflow: hidden; }
+  .row { display: grid; grid-template-columns: 72px 150px 1fr; align-items: center; min-height: 92px; position: relative; }
+  .row + .row::before {
+    content: ""; position: absolute; top: 0; left: 16px; right: 0; height: .5px; background: var(--sep);
+  }
+  .when { padding: 0 0 0 16px; }
+  .hour { font-size: 22px; line-height: 28px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .time { font-size: 15px; line-height: 20px; font-variant-numeric: tabular-nums; }
+  .end { font-size: 13px; line-height: 18px; color: var(--label2); font-variant-numeric: tabular-nums; }
+  .who { padding: 0 12px 0 4px; min-width: 0; }
+  .cls { font-size: 22px; line-height: 28px; font-weight: 700; }
+  .subj { font-size: 17px; line-height: 22px; }
+  .flag { display: flex; align-items: center; gap: 5px; margin-top: 2px; font-size: 13px; line-height: 18px; font-weight: 600; }
+  .flag .src { font-weight: 400; color: var(--label2); }
+  .mats { display: flex; align-items: center; gap: 12px; padding: 12px 16px 12px 0; flex-wrap: nowrap; min-width: 0; }
+  .mats.stacked { flex-direction: column; align-items: stretch; gap: 6px; padding: 8px 16px 10px 0; }
+  .mats.stacked .tiles { display: flex; align-items: center; gap: 12px; min-width: 0; }
+
+  /* Zeile der laufenden Unterrichtsstunde: Thema/Hinweis (FR-11.1) und Tafel (FR-12) */
+  .nowline { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .topic {
+    flex: 1; min-width: 0; min-height: 44px; display: flex; align-items: center; gap: 8px; text-align: left;
+    padding: 0 12px; border-radius: 10px; background: var(--fill2);
+  }
+  .topic:active { background: var(--fill); }
+  .topic .tk { font-size: 13px; color: var(--label2); flex: none; }
+  .topic .tval { font-size: 17px; font-weight: 600; white-space: nowrap; flex: none; max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
+  .topic .th { font-size: 15px; color: var(--label2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .topic .tval.empty { color: var(--label3); font-weight: 400; }
+  .topic svg { color: var(--tint); margin-left: auto; }
+  .tb-link {
+    display: inline-flex; align-items: center; gap: 6px; min-height: 44px; margin-top: 0;
+    font-size: 13px; line-height: 18px; font-weight: 600; color: var(--tint); text-decoration: none; white-space: nowrap;
+  }
+  .tb-link .n { font-weight: 400; color: var(--label2); }
+
+  /* aktuelle Unterrichtsstunde */
+  .row.now { background: var(--now-bg); }
+  .row.now::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--tint); }
+  .pill-now {
+    display: inline-flex; align-items: center; gap: 5px; margin-top: 6px;
+    background: var(--tint); color: #FFFFFF; font-size: 13px; line-height: 18px; font-weight: 600;
+    padding: 2px 9px 2px 7px; border-radius: 10px;
+  }
+
+  /* Ausfall */
+  .row.cancelled .cls, .row.cancelled .subj { text-decoration: line-through; text-decoration-thickness: 1.5px; color: var(--label2); }
+  .flag.cancel svg { color: var(--label2); }
+
+  /* keine Unterrichtsstunde: kein Zellenhintergrund, nur Zeitachse */
+  .gap {
+    display: grid; grid-template-columns: 72px 1fr; align-items: center; min-height: 44px;
+    color: var(--label2);
+  }
+  .gap .when { padding-left: 16px; display: flex; gap: 8px; align-items: baseline; grid-column: 1 / 3; }
+  .gap .hour { font-size: 17px; line-height: 22px; font-weight: 600; width: 52px; color: var(--label2); }
+  .gap .gtxt { font-size: 15px; }
+  .gap .gtime { font-size: 13px; font-variant-numeric: tabular-nums; }
+
+  /* ---------- Material-Kachel ---------- */
+  .tile {
+    display: flex; align-items: center; min-height: 68px; background: var(--fill2);
+    border-radius: 12px; min-width: 0; flex: 0 1 auto; max-width: 360px;
+  }
+  .tile.wide { flex: 0 0 auto; max-width: none; }
+  .tile-main {
+    display: flex; align-items: center; gap: 12px; text-align: left; min-height: 68px;
+    padding: 6px 4px 6px 12px; flex: 1; min-width: 0; border-radius: 12px;
+  }
+  .tile-main:active { background: var(--fill); }
+  .ficon { position: relative; width: 36px; height: 44px; color: var(--label2); }
+  .ficon .kind {
+    position: absolute; left: 0; right: 0; bottom: 6px; text-align: center;
+    font-size: 9px; font-weight: 700; letter-spacing: .3px; color: var(--label);
+  }
+  .ttext { display: flex; flex-direction: column; min-width: 0; flex: 1; overflow: hidden; }
+  .tname { font-size: 17px; line-height: 22px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tmeta { display: flex; align-items: center; gap: 5px; font-size: 13px; line-height: 18px; color: var(--label2); white-space: nowrap; margin-top: 2px; }
+  .st-local svg { color: var(--green); }
+  .st-loading svg { color: var(--label2); }
+  .st-missing svg { color: var(--red); }
+  .tile.missing { background: transparent; box-shadow: inset 0 0 0 1.5px var(--red); }
+  .tile.missing .ficon { color: var(--label3); }
+  .tile.missing .tname { color: var(--label2); }
+  .tile-more {
+    width: 44px; height: 44px; margin-right: 6px; border-radius: 22px; color: var(--tint);
+    display: inline-flex; align-items: center; justify-content: center; flex: none;
+  }
+  .tile-more:active { background: var(--fill); }
+
+  /* Knöpfe (iPadOS-Standard: grau gefüllt / getönt) */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 16px;
+    border-radius: 22px; background: var(--fill); color: var(--tint); font-size: 15px; font-weight: 600;
+    white-space: nowrap; flex: none;
+  }
+  .btn:active { filter: brightness(.92); }
+  .btn.prominent { background: var(--tint); color: #FFFFFF; }
+  .btn-stack { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; flex: none; }
+  .btn-stack .hint { font-size: 13px; color: var(--label2); padding-left: 16px; }
+
+  /* Unterrichtsstunde ohne Material */
+  .nomat { display: flex; align-items: center; gap: 12px; color: var(--label2); font-size: 15px; }
+  .nomat .box {
+    display: flex; align-items: center; gap: 10px; min-height: 68px; padding: 0 18px;
+    border: 1.5px dashed var(--label3); border-radius: 12px;
+  }
+  .forwarded { display: flex; align-items: center; gap: 12px; font-size: 15px; color: var(--label2); }
+
+  /* ---------- Unterrichtsfreier Tag ---------- */
+  .free { background: var(--cell); border-radius: 12px; padding: 40px 24px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; }
+  .free svg { color: var(--label2); margin-bottom: 8px; }
+  .free h2 { margin: 0; font-size: 22px; line-height: 28px; font-weight: 700; }
+  .free p { margin: 0; font-size: 17px; color: var(--label2); }
+  .sect-h { font-size: 13px; text-transform: uppercase; letter-spacing: -.08px; color: var(--label2); padding: 14px 16px 6px; }
+  .sect-f { font-size: 13px; color: var(--label2); padding: 6px 16px 0; }
+  .free-mats { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
+
+  /* ---------- Menü (Kontextmenü / Pull-down am Material) ---------- */
+  .menu {
+    position: absolute; z-index: 20; width: 320px; background: var(--elev); border-radius: 13px;
+    box-shadow: var(--shadow); overflow: hidden; display: none;
+  }
+  .menu.open { display: block; }
+  .menu .mtitle { font-size: 13px; color: var(--label2); padding: 10px 16px 8px; border-bottom: .5px solid var(--sep); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .menu button {
+    width: 100%; min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 8px 16px; text-align: left; font-size: 17px;
+  }
+  .menu button + button { border-top: .5px solid var(--sep); }
+  .menu button:active, .menu button:hover { background: var(--fill2); }
+  .menu .msub { display: block; font-size: 13px; color: var(--label2); }
+
+  /* ---------- Rückmeldung (Mockup: zeigt, was passieren würde) ---------- */
+  .hud {
+    position: absolute; z-index: 30; left: 50%; bottom: 112px; transform: translate(-50%, 20px);
+    max-width: 720px; display: flex; align-items: center; gap: 14px;
+    background: var(--hud); color: var(--hud-label); border-radius: 16px; padding: 12px 12px 12px 18px;
+    font-size: 15px; line-height: 20px; box-shadow: 0 8px 30px rgba(0,0,0,.3);
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+    -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  }
+  .hud.show { opacity: 1; transform: translate(-50%, 0); pointer-events: auto; }
+  .hud .undo { color: #64D2FF; font-weight: 600; min-height: 44px; padding: 0 10px; white-space: nowrap; }
+  .hud .tag { font-size: 11px; text-transform: uppercase; letter-spacing: .4px; opacity: .65; display: block; }
+  @media (prefers-reduced-motion: reduce) { .hud { transition: none; } }
+
+  /* ---------- Smartboard-Leiste (FR-11.5, Platzhalter nach mockup/LIESMICH.md) ---------- */
+  .sb {
+    flex: none; height: 96px; padding-bottom: 20px; /* 76 pt Leiste + Bereich des Home-Indikators */
+    background: var(--bar); border-top: .5px solid var(--sep);
+    -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px);
+  }
+  .sb-in { height: 76px; display: flex; align-items: center; gap: 12px; padding: 0 16px; }
+  .sb-lbl { font-size: 11px; line-height: 13px; color: var(--label2); width: 52px; flex: none; text-align: right; }
+  .sb-prev {
+    position: relative; width: 120px; height: 68px; flex: none; border-radius: 5px; overflow: hidden;
+    box-shadow: 0 0 0 .5px var(--sep), 0 1px 4px rgba(0,0,0,.12); background: #000;
+  }
+  .sb-prev .hatch { position: absolute; inset: 0; display: none;
+    background: repeating-linear-gradient(135deg, rgba(118,118,128,.55) 0 2px, transparent 2px 7px); }
+  .sb-prev.off .hatch { display: block; }
+  .sb-prev.off .tv { opacity: .45; }
+
+  .sb-seg { display: flex; background: var(--fill); border-radius: 10px; padding: 2px; flex: none; }
+  .sb-seg button {
+    width: 116px; height: 48px; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 2px; font-size: 11px; line-height: 13px; font-weight: 500; color: var(--label);
+  }
+  .sb-seg button svg { color: var(--label); }
+  .sb-seg button[aria-checked="true"] { background: var(--seg-sel); box-shadow: 0 1px 3px rgba(0,0,0,.14), 0 0 0 .5px rgba(0,0,0,.04); font-weight: 600; }
+  .sb-seg button[aria-disabled="true"] { color: var(--label3); cursor: default; }
+  .sb-seg button[aria-disabled="true"] svg { color: var(--label3); }
+
+  .sb-timer { display: flex; align-items: center; gap: 2px; width: 150px; flex: none; }
+  .sb-timer .rest { font-size: 22px; font-weight: 600; font-variant-numeric: tabular-nums; width: 58px; text-align: center; }
+  .sb-timer .rest.paused { color: var(--label2); }
+  .sb-timer .rest.done { color: var(--red); }
+  .sb-ic { width: 44px; height: 44px; border-radius: 22px; display: inline-flex; align-items: center; justify-content: center; color: var(--tint); flex: none; }
+  .sb-ic:active { background: var(--fill); }
+  .sb-btn { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 22px; background: var(--fill); color: var(--tint); font-size: 15px; font-weight: 600; white-space: nowrap; }
+  .sb-btn:active { filter: brightness(.92); }
+  .sb-form { width: 188px; justify-content: space-between; flex: none; }
+  .sb-form .fl { overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px; }
+  .sb-form.unset { color: var(--tint); }
+  .sb-conn { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 13px; line-height: 16px; color: var(--label2); text-align: left; min-width: 0; }
+  .sb-conn b { display: block; font-weight: 600; color: var(--label); }
+  .sb-conn svg { color: var(--label2); }
+  .sb-conn.on svg { color: var(--green); }
+
+  /* Zweitbildschirm im Vorschaubild: 1920 × 1080 gedacht, auf 120 × 67,5 verkleinert */
+  .tv { position: absolute; left: 0; top: 0; width: 1920px; height: 1080px; transform: scale(.0625); transform-origin: 0 0; overflow: hidden; }
+  .tv-k { background: var(--cell); color: var(--label); padding: 90px 120px; display: flex; flex-direction: column; }
+  .tv-k .top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .tv-k .cls { font-size: 230px; line-height: 1; font-weight: 700; }
+  .tv-k .subj { font-size: 120px; line-height: 1.1; margin-top: 10px; }
+  .tv-k .clock { font-size: 230px; line-height: 1; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; }
+  .tv-k .till { font-size: 100px; line-height: 1.1; color: var(--label2); text-align: right; margin-top: 10px; }
+  .tv-k .topic2 { font-size: 130px; line-height: 1.1; font-weight: 600; margin-top: 70px; }
+  .tv-k .hint2 { font-size: 80px; line-height: 1.2; color: var(--label2); margin-top: 20px; }
+  .tv-k .form2 { margin-top: auto; display: flex; align-items: center; gap: 36px; font-size: 100px; font-weight: 600; }
+  .tv-m { background: #48484A; display: flex; justify-content: center; align-items: center; }
+  .tv-m .page { width: 700px; height: 990px; background: #FFFFFF; padding: 80px 70px; display: flex; flex-direction: column; gap: 34px; }
+  .tv-m .page i { display: block; height: 22px; border-radius: 11px; background: #C7C7CC; }
+  .tv-m .page i.h { height: 46px; width: 62%; background: #3A3A3C; margin-bottom: 30px; }
+  .tv-t { background-color: var(--cell); background-image: repeating-linear-gradient(to bottom, transparent 0 118px, var(--sep) 118px 122px); }
+  .tv-d { background: #000000; }
+  .tv-timer {
+    position: absolute; right: 70px; bottom: 60px; display: flex; align-items: center; gap: 30px;
+    background: var(--hud); color: #FFFFFF; border-radius: 70px; padding: 26px 64px;
+    font-size: 150px; line-height: 1; font-weight: 700; font-variant-numeric: tabular-nums;
+  }
+  .tv-k .tv-timer { font-size: 220px; padding: 34px 80px; border-radius: 90px; }
+  .tv-timer.done { background: var(--red); }
+
+  /* Popover (Timer, Arbeitsform, Thema) */
+  .pop {
+    position: absolute; z-index: 25; background: var(--elev); border-radius: 13px; box-shadow: var(--shadow);
+    overflow: hidden; display: none;
+  }
+  .pop.open { display: block; }
+  .pop .mtitle { font-size: 13px; color: var(--label2); padding: 10px 16px 8px; border-bottom: .5px solid var(--sep); }
+  .pop .item {
+    width: 100%; min-height: 46px; display: flex; align-items: center; gap: 10px; padding: 8px 16px; text-align: left; font-size: 17px;
+  }
+  .pop .item + .item { border-top: .5px solid var(--sep); }
+  .pop .item:hover, .pop .item:active { background: var(--fill2); }
+  .pop .item .chk { width: 18px; color: var(--tint); flex: none; }
+  .pop .item .sym { margin-left: auto; color: var(--label2); }
+  .pop .ph { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px 6px 16px; border-bottom: .5px solid var(--sep); }
+  .pop .ph strong { font-size: 17px; font-weight: 600; }
+  .pop .ph button { min-height: 44px; padding: 0 10px; color: var(--tint); font-size: 17px; font-weight: 600; }
+  .pop .fields { padding: 4px 16px 12px; }
+  .pop label { display: block; font-size: 13px; color: var(--label2); margin: 10px 0 4px; }
+  .pop input {
+    width: 100%; min-height: 44px; border: 0; border-radius: 10px; background: var(--fill); color: var(--label);
+    font: inherit; font-size: 17px; padding: 0 12px;
+  }
+  .pop input:focus { outline: 2px solid var(--tint); outline-offset: 0; }
+  .pop .note { font-size: 13px; color: var(--label2); margin-top: 10px; }
+
+  .home-ind { position: absolute; bottom: 8px; left: 50%; width: 320px; height: 5px; margin-left: -160px; border-radius: 3px; background: var(--label); opacity: .85; }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<div class="caption">
+  <a class="back" href="index.html"><svg width="12" height="20" viewBox="0 0 12 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2L2 10l8 8"/></svg>Übersicht</a>
+  <span><strong>Tagesansicht</strong> · iPad 11" quer · 1194 × 834 pt · Mockup, kein Gestaltungsbeschluss</span>
+  <span class="seg" role="group" aria-label="Darstellung">
+    <button type="button" data-theme-set="system" aria-pressed="true">System</button>
+    <button type="button" data-theme-set="light" aria-pressed="false">Hell</button>
+    <button type="button" data-theme-set="dark" aria-pressed="false">Dunkel</button>
+  </span>
+</div>
+<div class="caption c2">
+  <span>Simulieren:</span>
+  <span class="seg" role="group" aria-label="Bildschirm im Klassenraum simulieren">
+    <button type="button" data-conn="1" aria-pressed="true">Bildschirm verbunden</button>
+    <button type="button" data-conn="0" aria-pressed="false">nicht verbunden</button>
+  </span>
+  <span class="seg" role="group" aria-label="Offenes Material simulieren">
+    <button type="button" data-mat-open="1" aria-pressed="true">PDF in der Anzeige offen</button>
+    <button type="button" data-mat-open="0" aria-pressed="false">kein Material offen</button>
+  </span>
+  <span>FR-11.1: Bereitlegen und Hausaufgabe</span>
+  <span>Mo, Mi, Do: Material nicht ausgearbeitet</span>
+</div>
+
+<div class="stage-wrap"><div class="stage" id="stage"><div class="device"><div class="screen" id="screen">
+
+  <div class="statusbar" aria-hidden="true">
+    <div class="l"><span>8:40</span><span>Di. 17. Nov.</span></div>
+    <div class="r">
+      <svg width="18" height="13" viewBox="0 0 18 13" fill="currentColor"><path d="M9 2.2c2.6 0 5 1 6.8 2.7l1.2-1.3C14.9 1.6 12 .4 9 .4S3.1 1.6 1 3.6l1.2 1.3C4 3.2 6.4 2.2 9 2.2zm0 3.6c1.6 0 3.1.6 4.2 1.6l1.2-1.3C13 4.8 11.1 4 9 4S5 4.8 3.6 6.1l1.2 1.3C5.9 6.4 7.4 5.8 9 5.8zm0 3.6c.7 0 1.3.2 1.8.6L9 12 7.2 10c.5-.4 1.1-.6 1.8-.6z"/></svg>
+      <span>84 %</span>
+      <svg width="27" height="13" viewBox="0 0 27 13"><rect x=".5" y=".5" width="23" height="12" rx="3.5" fill="none" stroke="currentColor" opacity=".4"/><rect x="2" y="2" width="17" height="9" rx="2" fill="currentColor"/><rect x="24.5" y="4.5" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".4"/></svg>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="tb-group">
+      <button class="tb-btn" type="button" id="btn-sidebar" aria-label="Seitenleiste einblenden">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="2.5" y="4" width="19" height="16" rx="3.5"/><path d="M9.5 4v16"/><path d="M5 8h2M5 11h2" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div class="tb-group">
+      <div class="tb-capsule">
+        <button class="tb-btn" type="button" id="btn-prev" aria-label="Vorheriger Tag">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>
+        </button>
+        <button class="tb-btn" type="button" id="btn-today">Heute</button>
+        <button class="tb-btn" type="button" id="btn-next" aria-label="Nächster Tag">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="head">
+    <div>
+      <h1 id="day-title">Dienstag, 17. November</h1>
+      <div class="sub" id="day-sub">A-Woche · Woche 47</div>
+    </div>
+    <div class="source">
+      <div class="txt" aria-live="polite"><b>Schulmanager Online</b><span id="source-stand">Stand: heute 7:28</span></div>
+      <button class="tb-btn" type="button" id="btn-refresh" aria-label="Stundenplan-Quelle jetzt abfragen">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 1 1-2.34-5.66"/><path d="M20 4.5v4.5h-4.5"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <main class="content" id="content" aria-label="Unterrichtsstunden des Tages"></main>
+
+  <!-- Smartboard-Leiste (FR-11.5) -->
+  <div class="sb" role="region" aria-label="Was die Klasse sieht">
+    <div class="sb-in">
+      <div class="sb-lbl" aria-hidden="true">Das sieht die Klasse</div>
+      <div class="sb-prev" id="sb-prev" role="img" aria-label=""><div id="sb-tv"></div><div class="hatch"></div></div>
+      <div class="sb-seg" id="sb-seg" role="radiogroup" aria-label="Zweitbildschirm zeigt">
+        <button type="button" role="radio" data-mode="klassen" aria-checked="true">
+          <svg width="20" height="18" viewBox="0 0 24 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="2" y="2" width="20" height="14" rx="2.5"/><path d="M8 20h8M12 16v4" stroke-linecap="round"/><path d="M6.5 7h5M6.5 10.5h8" stroke-linecap="round"/></svg>Klassenbildschirm</button>
+        <button type="button" role="radio" data-mode="material" aria-checked="false">
+          <svg width="16" height="18" viewBox="0 0 18 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M2 1.5h9l5 5v14H2z"/><path d="M11 1.5v5h5"/></svg>Material</button>
+        <button type="button" role="radio" data-mode="tafel" aria-checked="false">
+          <svg width="20" height="18" viewBox="0 0 24 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="15" rx="2"/><path d="M6 12.5c1.5-3 3-3 4 0s2.5 3 4 0"/><path d="M7 21l2-4M17 21l-2-4"/></svg>Tafel</button>
+        <button type="button" role="radio" data-mode="dunkel" aria-checked="false">
+          <svg width="18" height="18" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M18.5 13.5A8 8 0 0 1 8.5 3.5a8 8 0 1 0 10 10z"/></svg>Dunkel</button>
+      </div>
+      <div class="sb-timer" id="sb-timer"></div>
+      <button type="button" class="sb-btn sb-form" id="sb-form" aria-haspopup="menu"></button>
+      <div class="sb-conn" id="sb-conn" role="status"></div>
+    </div>
+  </div>
+
+  <div class="menu" id="menu" role="menu"></div>
+  <div class="pop" id="pop"></div>
+  <div class="hud" id="hud" role="status" aria-live="polite"><div id="hud-text"></div><button class="undo" type="button" id="hud-undo" hidden>Widerrufen</button></div>
+  <div class="home-ind" aria-hidden="true"></div>
+
+</div></div></div></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------- Symbole (Inline-SVG, angelehnt an SF Symbols) ----------
+  var I = {
+    doc: '<svg width="36" height="44" viewBox="0 0 36 44" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M5 2.5h17l9 9v30H5z"/><path d="M22 2.5v9h9"/></svg>',
+    local: '<svg width="15" height="15" viewBox="0 0 16 16"><circle cx="8" cy="8" r="7.5" fill="currentColor"/><path d="M4.6 8.2l2.2 2.2 4.6-4.8" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    loading: function (p) { var c = 2 * Math.PI * 6; return '<svg width="15" height="15" viewBox="0 0 16 16" style="transform:rotate(-90deg)"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-opacity=".3" stroke-width="2.2"/><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-dasharray="' + (c * p / 100).toFixed(1) + ' ' + c.toFixed(1) + '"/></svg>'; },
+    missing: '<svg width="15" height="15" viewBox="0 0 16 16"><path d="M8 1.2L15.3 14H.7z" fill="currentColor" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/><path d="M8 5.6v4" stroke="#fff" stroke-width="1.7" stroke-linecap="round"/><circle cx="8" cy="11.9" r=".95" fill="#fff"/></svg>',
+    more: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9.5"/><circle cx="7.6" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.1" fill="currentColor" stroke="none"/><circle cx="16.4" cy="12" r="1.1" fill="currentColor" stroke="none"/></svg>',
+    cancel: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="8" cy="8" r="7"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5"/></svg>',
+    sub: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 5h11M10 2l3 3-3 3"/><path d="M14 11H3M6 8l-3 3 3 3"/></svg>',
+    now: '<svg width="10" height="10" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="currentColor"/></svg>',
+    move: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4v7a4 4 0 0 0 4 4h11"/><path d="M15 10l5 5-5 5"/></svg>',
+    open: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="15" height="15" rx="3.5"/><path d="M13 3h8v8M21 3l-9 9"/></svg>',
+    link: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3.2-3.2a4.5 4.5 0 0 0-6.4-6.4L12 5.6"/><path d="M14 10a4.5 4.5 0 0 0-6.4 0l-3.2 3.2a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg>',
+    plusdoc: '<svg width="26" height="30" viewBox="0 0 26 30" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M3 1.8h12l7 7v19.4H3z" stroke-dasharray="3 2.4"/><path d="M12.5 12.5v9M8 17h9" stroke-linecap="round"/></svg>',
+    cal: '<svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M9 14.5l6 4M15 14.5l-6 4"/></svg>',
+    board: '<svg width="20" height="18" viewBox="0 0 24 22" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="15" rx="2"/><path d="M6 12.5c1.5-3 3-3 4 0s2.5 3 4 0"/><path d="M7 21l2-4M17 21l-2-4"/></svg>',
+    boardSm: '<svg width="16" height="15" viewBox="0 0 24 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="15" rx="2"/><path d="M6 12.5c1.5-3 3-3 4 0s2.5 3 4 0"/><path d="M7 21l2-4M17 21l-2-4"/></svg>',
+    pencil: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l1-4.5L16 4.5a2.1 2.1 0 0 1 3 3L8 18.5z"/><path d="M14 7l3 3"/></svg>',
+    timer: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13.5" r="8"/><path d="M12 13.5V9M9.5 2.5h5"/></svg>',
+    pause: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4.5" width="4" height="15" rx="1.3"/><rect x="14" y="4.5" width="4" height="15" rx="1.3"/></svg>',
+    play: '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.6v14.8a1 1 0 0 0 1.5.86l12-7.4a1 1 0 0 0 0-1.72l-12-7.4A1 1 0 0 0 7 4.6z"/></svg>',
+    stop: '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9.5"/><rect x="8.5" y="8.5" width="7" height="7" rx="1.2" fill="currentColor" stroke="none"/></svg>',
+    chev: '<svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4.5l3 3 3-3"/></svg>',
+    check: '<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3.2L13 4.5"/></svg>',
+    tv: '<svg width="22" height="20" viewBox="0 0 24 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="2" y="2" width="20" height="14" rx="2.5"/><path d="M8 20h8M12 16v4" stroke-linecap="round"/></svg>',
+    tvOff: '<svg width="22" height="20" viewBox="0 0 24 22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><rect x="2" y="2" width="20" height="14" rx="2.5"/><path d="M8 20h8M12 16v4"/><path d="M3 1l18 18"/></svg>'
+  };
+  // Arbeitsform-Symbole (Person, zwei Personen, Gruppe)
+  function person(x, y, s) { return '<circle cx="' + x + '" cy="' + (y - 5 * s) + '" r="' + (3 * s) + '"/><path d="M' + (x - 6 * s) + " " + (y + 7 * s) + "a" + 6 * s + " " + 6 * s + " 0 0 1 " + 12 * s + ' 0"/>'; }
+  var FORMS = {
+    einzel:  { word: "Einzelarbeit",  paths: person(12, 11, 1) },
+    partner: { word: "Partnerarbeit", paths: person(7.5, 11, .85) + person(16.5, 11, .85) },
+    gruppe:  { word: "Gruppenarbeit", paths: person(5, 13, .7) + person(12, 9, .7) + person(19, 13, .7) }
+  };
+  function formIcon(k, size) { return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">' + FORMS[k].paths + "</svg>"; }
+
+  // ---------- Beispieldaten (mockup/LIESMICH.md) ----------
+  var TIMES = { 1: ["7:45", "8:30"], 2: ["8:35", "9:20"], 3: ["9:40", "10:25"], 4: ["10:30", "11:15"], 5: ["11:35", "12:20"], 6: ["12:25", "13:10"] };
+  var TYPES = {
+    pptx: { kind: "PPT", name: "PowerPoint", app: "in PowerPoint" },
+    docx: { kind: "DOC", name: "Word", app: "in Word" },
+    pdf:  { kind: "PDF", name: "PDF", app: "in der Anzeige mit Stift" }
+  };
+  var ORDER = ["16", "17", "18", "19", "20"];
+  var TODAY = "17";
+  var NOW_HOUR = 2; // es ist 8:40, die 2. Stunde läuft
+
+  var days = {
+    "16": { long: "Montag, 16. November", short: "Mo 16.11.", lessons: {
+      1: { cls: "7a", subj: "Deutsch", mats: [] },
+      2: { cls: "9c", subj: "Englisch", mats: [] },
+      5: { cls: "8a", subj: "Englisch", mats: [] } } },
+    "17": { long: "Dienstag, 17. November", short: "Di 17.11.", lessons: {
+      1: { cls: "7a", subj: "Deutsch", tafelbild: 2, mats: [
+           { id: "m1", name: "Arbeitsblatt 3 – Satzglieder", type: "pdf", state: "local" }] },
+      2: { cls: "8b", subj: "Englisch", mats: [
+           { id: "m2", name: "Unit 4 – Präsentation", type: "pptx", state: "local" },
+           { id: "m3", name: "Arbeitsblatt Vokabeln", type: "docx", state: "local" },
+           { id: "m4", name: "Lösung Vokabeln", type: "pdf", state: "loading", progress: 60 }] },
+      4: { cls: "9c", subj: "Englisch", cancelled: true, mats: [
+           { id: "m5", name: "Unit 2 – Hörverstehen", type: "pptx", state: "local" }] },
+      5: { cls: "6c", subj: "Mathe", substitute: true, mats: [] },
+      6: { cls: "8a", subj: "Englisch", mats: [
+           { id: "m6", name: "Unit 4 – Präsentation", type: "pptx", state: "missing" }] } } },
+    "18": { long: "Mittwoch, 18. November", short: "Mi 18.11.", lessons: {
+      3: { cls: "8b", subj: "Englisch", mats: [] },
+      4: { cls: "7a", subj: "Deutsch", mats: [] } } },
+    "19": { long: "Donnerstag, 19. November", short: "Do 19.11.", lessons: {
+      2: { cls: "9c", subj: "Englisch", mats: [] },
+      3: { cls: "8a", subj: "Englisch", mats: [] } } },
+    "20": { long: "Freitag, 20. November", short: "Fr 20.11.", free: "Pädagogischer Tag", lessons: {},
+      unassigned: [ { id: "m7", name: "Lesetext Kapitel 5", type: "pdf", state: "local", was: { cls: "7a", subj: "Deutsch" } } ] }
+  };
+
+  var current = TODAY;
+  var undoSnap = null;
+
+  // Zustand des Zweitbildschirms (FR-11 bis FR-11.5); Beispieldaten aus mockup/LIESMICH.md
+  var sb = {
+    mode: "klassen", conn: true, matOpen: true,
+    topic: "Unit 4 – Wortschatz", prep: "Buch, Heft, Vokabelheft", hw: "Workbook S. 34, Nr. 2 und 3",
+    form: null, timer: { state: "idle", left: 300 }
+  };
+  var screen = document.getElementById("screen");
+  var content = document.getElementById("content");
+  var menu = document.getElementById("menu");
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  // nächste Unterrichtsstunde derselben Klasse (FR-3.3, FR-8) — ohne Ausfall
+  function nextLesson(cls, dayKey, hour) {
+    var start = ORDER.indexOf(dayKey);
+    for (var d = start; d < ORDER.length; d++) {
+      var day = days[ORDER[d]];
+      for (var h = 1; h <= 6; h++) {
+        if (d === start && h <= hour) continue;
+        var l = day.lessons[h];
+        if (l && l.cls === cls && !l.cancelled) return { day: ORDER[d], hour: h, label: day.short + ", " + h + ". Stunde" };
+      }
+    }
+    return null;
+  }
+
+  function statusHtml(m) {
+    if (m.state === "local") return '<span class="st-local" style="display:flex;gap:5px;align-items:center">' + I.local + "Auf dem Gerät</span>";
+    if (m.state === "loading") return '<span class="st-loading" style="display:flex;gap:5px;align-items:center">' + I.loading(m.progress) + "Wird geladen · " + m.progress + " %</span>";
+    return '<span class="st-missing" style="display:flex;gap:5px;align-items:center">' + I.missing + "Nicht verfügbar</span>";
+  }
+  function statusWord(m) { return m.state === "local" ? "auf dem Gerät" : m.state === "loading" ? "wird geladen, " + m.progress + " Prozent" : "nicht verfügbar"; }
+
+  function tileHtml(m, dayKey, hour) {
+    var t = TYPES[m.type];
+    var ref = 'data-day="' + dayKey + '" data-hour="' + hour + '" data-mat="' + m.id + '"';
+    var h = '<div class="tile' + (m.state === "missing" ? " missing wide" : "") + '">' +
+      '<button class="tile-main" type="button" data-act="open" ' + ref + ' aria-label="' + esc(m.name) + ", " + t.name + ", " + statusWord(m) + '">' +
+        '<span class="ficon">' + I.doc + '<span class="kind">' + t.kind + "</span></span>" +
+        '<span class="ttext"><span class="tname">' + esc(m.name) + '</span>' +
+        '<span class="tmeta">' + t.name + " · " + statusHtml(m) + "</span>" +
+        (m.state === "missing" ? '<span class="tmeta">Verweis in die Ablage löst nicht auf</span>' : "") +
+        "</span></button>";
+    if (m.state === "missing") h += '<button class="btn" type="button" data-act="relink" ' + ref + ' style="margin-right:4px">' + I.link + "Neu verknüpfen</button>";
+    h += '<button class="tile-more" type="button" data-act="menu" ' + ref + ' aria-label="Weitere Aktionen für ' + esc(m.name) + '" aria-haspopup="menu">' + I.more + "</button></div>";
+    return h;
+  }
+
+  function lessonRow(dayKey, h, l) {
+    var isNow = dayKey === TODAY && h === NOW_HOUR;
+    var cls = "row" + (isNow ? " now" : "") + (l.cancelled ? " cancelled" : "");
+    var who = '<div class="cls">' + l.cls + '</div><div class="subj">' + l.subj + "</div>";
+    if (isNow) who += '<div class="pill-now">' + I.now + "Jetzt · bis " + TIMES[h][1] + "</div>";
+    // Tafelbild vorhanden (FR-12.2): an der Zeile erkennbar, öffnet die Tafel dieser Unterrichtsstunde
+    if (l.tafelbild) who += '<a class="tb-link" href="tafel.html" aria-label="Tafelbild dieser Unterrichtsstunde öffnen, ' + l.tafelbild + ' Seiten">' + I.boardSm + 'Tafelbild <span class="n">· ' + l.tafelbild + " Seiten</span></a>";
+    if (l.cancelled) who += '<div class="flag cancel">' + I.cancel + 'Ausfall</div><div class="flag" style="margin-top:0"><span class="src">laut Schulmanager</span></div>';
+    if (l.substitute) who += '<div class="flag">' + I.sub + 'Vertretungsstunde</div><div class="flag" style="margin-top:0"><span class="src">laut Schulmanager</span></div>';
+
+    var mats = "";
+    if (l.forwarded) {
+      mats = '<div class="forwarded">' + I.move + "<span>Material weitergereicht in die nächste Stunde der " + l.cls + " (" + l.forwarded + ")</span></div>";
+    } else if (!l.mats.length) {
+      mats = '<div class="nomat"><div class="box">' + I.plusdoc + "<span>Kein Material zugeordnet</span></div>" +
+             '<button class="btn" type="button" data-act="assign" data-day="' + dayKey + '" data-hour="' + h + '">Material zuordnen</button></div>';
+    } else {
+      mats = l.mats.map(function (m) { return tileHtml(m, dayKey, h); }).join("");
+      if (l.cancelled) {
+        var n = nextLesson(l.cls, dayKey, h);
+        if (n) mats += '<div class="btn-stack"><button class="btn prominent" type="button" data-act="forward" data-day="' + dayKey + '" data-hour="' + h + '">' + I.move + "In die nächste Stunde der " + l.cls + '</button><span class="hint">' + n.label + "</span></div>";
+      }
+    }
+    var label = h + ". Stunde, " + TIMES[h][0] + " bis " + TIMES[h][1] + ", " + l.cls + " " + l.subj +
+      (l.cancelled ? ", Ausfall" : "") + (l.substitute ? ", Vertretungsstunde" : "") + (isNow ? ", läuft jetzt" : "") +
+      (l.tafelbild ? ", mit Tafelbild" : "");
+    var matsCell = '<div class="mats">' + mats + "</div>";
+    if (isNow) {
+      // Thema und Hinweis (FR-11.1) antippbar, Tafel (FR-12) mit einem Tipp
+      var hint = [];
+      if (sb.prep) hint.push("Bereitlegen: " + esc(sb.prep));
+      if (sb.hw) hint.push("Hausaufgabe: " + esc(sb.hw));
+      matsCell = '<div class="mats stacked"><div class="nowline">' +
+        '<button type="button" class="topic" id="btn-topic" data-act="topic" aria-haspopup="dialog" aria-label="Thema und Hinweis bearbeiten">' +
+          '<span class="tk">Thema</span><span class="tval' + (sb.topic ? "" : " empty") + '">' + (sb.topic ? esc(sb.topic) : "Kein Thema") + "</span>" +
+          (hint.length ? '<span class="th">· ' + hint.join(" · ") + "</span>" : "") + I.pencil + "</button>" +
+        '<a class="btn" href="tafel.html" style="text-decoration:none">' + I.board + "Tafel</a>" +
+        '</div><div class="tiles">' + mats + "</div></div>";
+    }
+    return '<section class="' + cls + '" aria-label="' + esc(label) + '">' +
+      '<div class="when"><div class="hour">' + h + '.</div><div class="time">' + TIMES[h][0] + '</div><div class="end">bis ' + TIMES[h][1] + "</div></div>" +
+      '<div class="who">' + who + "</div>" + matsCell + "</section>";
+  }
+
+  function gapRow(h) {
+    return '<div class="gap" aria-label="' + h + '. Stunde: keine Unterrichtsstunde"><div class="when"><span class="hour">' + h + '.</span>' +
+      '<span class="gtxt">Keine Unterrichtsstunde</span><span class="gtime">' + TIMES[h][0] + "–" + TIMES[h][1] + "</span></div></div>";
+  }
+
+  function render() {
+    closeMenu();
+    var day = days[current];
+    document.getElementById("day-title").textContent = day.long;
+    document.getElementById("day-sub").textContent = "A-Woche · Woche 47" + (day.free ? " · unterrichtsfreier Tag" : "");
+    var todayBtn = document.getElementById("btn-today");
+    todayBtn.setAttribute("aria-disabled", current === TODAY ? "true" : "false");
+    document.getElementById("btn-prev").setAttribute("aria-disabled", ORDER.indexOf(current) === 0 ? "true" : "false");
+    document.getElementById("btn-next").setAttribute("aria-disabled", ORDER.indexOf(current) === ORDER.length - 1 ? "true" : "false");
+
+    if (day.free) {
+      var html = '<div class="free">' + I.cal + "<h2>Unterrichtsfreier Tag</h2><p>" + day.free + " · keine Unterrichtsstunden</p></div>";
+      if (day.unassigned.length) {
+        html += '<div><div class="sect-h">Material ohne Stunde</div><div class="card"><div class="free-mats">';
+        day.unassigned.forEach(function (m) {
+          html += tileHtml(m, current, 0) +
+            '<div class="btn-stack"><button class="btn" type="button" data-act="forward-free" data-mat="' + m.id + '">' + I.move + "In die nächste Stunde der " + m.was.cls + '</button><span class="hint">war ' + m.was.cls + " " + m.was.subj + "</span></div>";
+        });
+        html += '</div></div><div class="sect-f">Das Material bleibt erhalten, bis es einer Unterrichtsstunde zugeordnet wird.</div></div>';
+      }
+      content.innerHTML = html;
+      return;
+    }
+
+    var out = "", open = false;
+    for (var h = 1; h <= 6; h++) {
+      var l = day.lessons[h];
+      if (l) {
+        if (!open) { out += '<div class="card">'; open = true; }
+        out += lessonRow(current, h, l);
+      } else {
+        if (open) { out += "</div>"; open = false; }
+        out += gapRow(h);
+      }
+    }
+    if (open) out += "</div>";
+    content.innerHTML = out;
+  }
+
+  // ---------- Rückmeldung ----------
+  var hud = document.getElementById("hud"), hudText = document.getElementById("hud-text"), hudUndo = document.getElementById("hud-undo"), hudTimer;
+  function toast(text, withUndo) {
+    hudText.innerHTML = '<span class="tag">Im Mockup: was passieren würde</span>' + text;
+    hudUndo.hidden = !withUndo;
+    hud.classList.add("show");
+    clearTimeout(hudTimer);
+    hudTimer = setTimeout(function () { hud.classList.remove("show"); }, withUndo ? 6000 : 3800);
+  }
+  hudUndo.addEventListener("click", function () {
+    if (undoSnap) { days = JSON.parse(undoSnap); undoSnap = null; render(); }
+    hud.classList.remove("show");
+  });
+
+  function findMat(dayKey, hour, id) {
+    var day = days[dayKey];
+    var list = hour ? day.lessons[hour].mats : day.unassigned;
+    for (var i = 0; i < list.length; i++) if (list[i].id === id) return { list: list, idx: i, m: list[i] };
+    return null;
+  }
+
+  function openMaterial(m) {
+    var t = TYPES[m.type];
+    if (m.state === "local" && m.type === "pdf") { window.location.href = "anzeige.html"; return; }
+    if (m.state === "local") toast("„" + esc(m.name) + "“ öffnet " + t.app + " — zum Präsentieren, Schreiben und Zeichnen. " +
+      "Dann bestimmt " + t.name + ", was die Klasse sieht.");
+    else if (m.state === "loading") toast("„" + esc(m.name) + "“ wird noch aus der Ablage geladen (" + m.progress + " %). Es öffnet " + t.app + ", sobald es auf dem Gerät liegt.");
+    else toast("„" + esc(m.name) + "“ ist nicht verfügbar: Der Verweis in die Ablage löst nicht auf. „Neu verknüpfen“ wählt die Datei erneut aus.");
+  }
+
+  function moveOne(dayKey, hour, id) {
+    var f = findMat(dayKey, hour, id); if (!f) return;
+    var l = days[dayKey].lessons[hour];
+    var n = nextLesson(l.cls, dayKey, hour); if (!n) return;
+    undoSnap = JSON.stringify(days);
+    f.list.splice(f.idx, 1);
+    days[n.day].lessons[n.hour].mats.push(f.m);
+    render();
+    toast("„" + esc(f.m.name) + "“ liegt jetzt in der nächsten Stunde der " + l.cls + " (" + n.label + "). Die Datei in der Ablage bleibt, wo sie ist.", true);
+  }
+
+  function forwardCancelled(dayKey, hour) {
+    var l = days[dayKey].lessons[hour];
+    var n = nextLesson(l.cls, dayKey, hour); if (!n) return;
+    undoSnap = JSON.stringify(days);
+    var count = l.mats.length;
+    days[n.day].lessons[n.hour].mats = days[n.day].lessons[n.hour].mats.concat(l.mats);
+    l.mats = []; l.forwarded = n.label;
+    render();
+    toast(count + (count === 1 ? " Material liegt" : " Materialien liegen") + " jetzt in der nächsten Stunde der " + l.cls + " (" + n.label + ").", true);
+  }
+
+  // ---------- Menü am Material (Kontextmenü / Pull-down) ----------
+  var menuCtx = null;
+  function openMenu(anchor, dayKey, hour, id) {
+    var f = findMat(dayKey, hour, id); if (!f) return;
+    var m = f.m, items = [];
+    items.push('<button type="button" role="menuitem" data-m="open"><span>Öffnen<span class="msub">' + TYPES[m.type].app + "</span></span>" + I.open + "</button>");
+    if (m.state === "missing") items.push('<button type="button" role="menuitem" data-m="relink"><span>Neu verknüpfen</span>' + I.link + "</button>");
+    if (hour) {
+      var l = days[dayKey].lessons[hour];
+      var n = nextLesson(l.cls, dayKey, hour);
+      if (n) items.push('<button type="button" role="menuitem" data-m="move"><span>In die nächste Stunde der ' + l.cls + ' schieben<span class="msub">' + n.label + "</span></span>" + I.move + "</button>");
+    } else {
+      items.push('<button type="button" role="menuitem" data-m="move-free"><span>In die nächste Stunde der ' + m.was.cls + ' schieben<span class="msub">nächste Woche</span></span>' + I.move + "</button>");
+    }
+    menu.innerHTML = '<div class="mtitle">' + esc(m.name) + "</div>" + items.join("");
+    menuCtx = { dayKey: dayKey, hour: hour, id: id, m: m };
+    menu.classList.add("open");
+    // Position relativ zum Bildschirm (unskaliert rechnen)
+    var s = scale(), sr = screen.getBoundingClientRect(), ar = anchor.getBoundingClientRect();
+    var x = (ar.left - sr.left) / s, y = (ar.bottom - sr.top) / s + 6, w = 320, mh = menu.offsetHeight;
+    x = Math.min(Math.max(12, x - w / 2 + (ar.width / s) / 2), 1194 - w - 12);
+    if (y + mh > 834 - 20) y = (ar.top - sr.top) / s - mh - 6;
+    menu.style.left = x + "px"; menu.style.top = y + "px";
+    var first = menu.querySelector("button"); if (first) first.focus({ preventScroll: true });
+  }
+  function closeMenu() { menu.classList.remove("open"); menuCtx = null; }
+
+  menu.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-m]"); if (!b || !menuCtx) return;
+    var c = menuCtx; closeMenu();
+    if (b.dataset.m === "open") openMaterial(c.m);
+    else if (b.dataset.m === "relink") toast("Öffnet die Dateiauswahl der Ablage (Ordnerfreigabe „Unterricht“), um „" + esc(c.m.name) + "“ neu zu verknüpfen.");
+    else if (b.dataset.m === "move") moveOne(c.dayKey, c.hour, c.id);
+    else if (b.dataset.m === "move-free") forwardFree(c.id);
+  });
+
+  function forwardFree(id) {
+    var f = findMat(current, 0, id); if (!f) return;
+    undoSnap = JSON.stringify(days);
+    f.list.splice(f.idx, 1);
+    render();
+    toast("„" + esc(f.m.name) + "“ liegt jetzt in der nächsten Stunde der " + f.m.was.cls + " (nächste Woche).", true);
+  }
+
+  // ---------- Ereignisse ----------
+  var lp = null, suppressClick = false;
+  content.addEventListener("pointerdown", function (e) {
+    var b = e.target.closest('[data-act="open"]'); if (!b) return;
+    lp = setTimeout(function () { suppressClick = true; openMenu(b, b.dataset.day, +b.dataset.hour, b.dataset.mat); }, 500);
+  });
+  ["pointerup", "pointerleave", "pointercancel"].forEach(function (t) { content.addEventListener(t, function () { clearTimeout(lp); }); });
+  content.addEventListener("contextmenu", function (e) {
+    var b = e.target.closest('[data-act="open"]'); if (!b) return;
+    e.preventDefault(); clearTimeout(lp); openMenu(b, b.dataset.day, +b.dataset.hour, b.dataset.mat);
+  });
+  content.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-act]"); if (!b) return;
+    if (suppressClick) { suppressClick = false; return; }
+    var d = b.dataset, act = d.act;
+    if (act === "open") { var f = findMat(d.day, +d.hour, d.mat); if (f) openMaterial(f.m); }
+    else if (act === "menu") { e.stopPropagation(); if (menuCtx && menuCtx.id === d.mat) closeMenu(); else openMenu(b, d.day, +d.hour, d.mat); }
+    else if (act === "relink") { var g = findMat(d.day, +d.hour, d.mat); toast("Öffnet die Dateiauswahl der Ablage (Ordnerfreigabe „Unterricht“), um „" + esc(g.m.name) + "“ neu zu verknüpfen."); }
+    else if (act === "forward") forwardCancelled(d.day, +d.hour);
+    else if (act === "forward-free") forwardFree(d.mat);
+    else if (act === "assign") toast("Öffnet die Dateiauswahl der Ablage, um dieser Unterrichtsstunde Material zuzuordnen.");
+    else if (act === "topic") { e.stopPropagation(); openTopicPop(b); }
+  });
+  document.addEventListener("click", function (e) { if (menuCtx && !menu.contains(e.target) && !e.target.closest('[data-act="menu"]')) closeMenu(); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") { closeMenu(); closePop(); }
+    if (e.target.closest && (e.target.closest(".menu") || e.target.closest(".pop"))) return;
+    if (e.key === "ArrowLeft") step(-1);
+    if (e.key === "ArrowRight") step(1);
+  });
+
+  function step(dir) {
+    var i = ORDER.indexOf(current) + dir;
+    if (i < 0 || i >= ORDER.length) return;
+    current = ORDER[i]; render();
+  }
+  document.getElementById("btn-prev").addEventListener("click", function () { step(-1); });
+  document.getElementById("btn-next").addEventListener("click", function () { step(1); });
+  document.getElementById("btn-today").addEventListener("click", function () { if (current !== TODAY) { current = TODAY; render(); } });
+  document.getElementById("btn-sidebar").addEventListener("click", function () { toast("Seitenleiste mit Vorbereiten und Stundenplan — in diesem Mockup nicht ausgearbeitet."); });
+
+  var refreshBtn = document.getElementById("btn-refresh");
+  refreshBtn.addEventListener("click", function () {
+    if (refreshBtn.classList.contains("busy")) return;
+    refreshBtn.classList.add("busy");
+    document.getElementById("source-stand").textContent = "Wird abgefragt …";
+    setTimeout(function () {
+      refreshBtn.classList.remove("busy");
+      document.getElementById("source-stand").textContent = "Stand: heute 8:40 · keine Änderungen";
+    }, 1400);
+  });
+
+  // ---------- Smartboard-Leiste und Zweitbildschirm (FR-11 bis FR-11.5) ----------
+  var sbTv = document.getElementById("sb-tv"), sbPrev = document.getElementById("sb-prev");
+  var sbSeg = document.getElementById("sb-seg"), sbTimer = document.getElementById("sb-timer");
+  var sbForm = document.getElementById("sb-form"), sbConn = document.getElementById("sb-conn");
+  var pop = document.getElementById("pop"), popKind = null;
+  var MODE_WORD = { klassen: "Klassenbildschirm", material: "Material", tafel: "Tafel", dunkel: "Dunkel" };
+
+  function mmss(s) { return Math.floor(s / 60) + ":" + ("0" + (s % 60)).slice(-2); }
+
+  // Was der Zweitbildschirm zeigt — ohne Bedienelemente, nur das für die Klasse Bestimmte (FR-11)
+  function tvHtml() {
+    var t = sb.timer, timer = "";
+    if (t.state !== "idle" && sb.mode !== "dunkel") {
+      timer = '<div class="tv-timer' + (t.state === "done" ? " done" : "") + '">' +
+        '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" style="width:.7em;height:.7em"><circle cx="12" cy="13.5" r="8"/><path d="M12 13.5V9M9.5 2.5h5"/></svg>' +
+        (t.state === "done" ? "Zeit ist um" : mmss(t.left)) + "</div>";
+    }
+    if (sb.mode === "dunkel") return '<div class="tv tv-d"></div>';
+    if (sb.mode === "material") return '<div class="tv tv-m"><div class="page"><i class="h"></i><i></i><i style="width:88%"></i><i></i><i style="width:70%"></i><i style="margin-top:30px"></i><i style="width:92%"></i><i></i><i style="width:60%"></i><i style="margin-top:30px"></i><i style="width:80%"></i></div>' + timer + "</div>";
+    if (sb.mode === "tafel") return '<div class="tv tv-t"></div>'.replace("</div>", timer + "</div>");
+    var h = '<div class="tv tv-k"><div class="top"><div><div class="cls">8b</div><div class="subj">Englisch</div></div>' +
+      '<div><div class="clock">8:40</div><div class="till">bis 9:20</div></div></div>';
+    if (sb.topic) h += '<div class="topic2">' + esc(sb.topic) + "</div>";
+    if (sb.prep) h += '<div class="hint2">Bereitlegen: ' + esc(sb.prep) + "</div>";
+    if (sb.form) h += '<div class="form2">' + formIcon(sb.form, 120) + FORMS[sb.form].word + "</div>";
+    return h + timer + "</div>";
+  }
+
+  function tvLabel() {
+    if (!sb.conn) return "Kein Bildschirm verbunden. Vorschau: " + MODE_WORD[sb.mode];
+    var s = "Das sieht die Klasse: " + MODE_WORD[sb.mode];
+    if (sb.mode === "klassen") s += ", 8b Englisch, 8:40, bis 9:20" + (sb.topic ? ", " + sb.topic : "") + (sb.form ? ", " + FORMS[sb.form].word : "");
+    if (sb.timer.state !== "idle" && sb.mode !== "dunkel") s += ", Timer " + (sb.timer.state === "done" ? "abgelaufen" : mmss(sb.timer.left));
+    return s;
+  }
+
+  function renderSb() {
+    if (!sb.matOpen && sb.mode === "material") sb.mode = "klassen";
+    sbTv.innerHTML = tvHtml();
+    sbPrev.classList.toggle("off", !sb.conn);
+    sbPrev.setAttribute("aria-label", tvLabel());
+    sbSeg.querySelectorAll("button").forEach(function (b) {
+      var m = b.dataset.mode;
+      b.setAttribute("aria-checked", m === sb.mode ? "true" : "false");
+      if (m === "material") b.setAttribute("aria-disabled", sb.matOpen ? "false" : "true");
+    });
+    var t = sb.timer;
+    if (t.state === "idle") {
+      sbTimer.innerHTML = '<button type="button" class="sb-btn" data-tm="pick" aria-haspopup="menu">' + I.timer + "Timer</button>";
+    } else {
+      sbTimer.innerHTML = '<span class="rest' + (t.state === "pause" ? " paused" : t.state === "done" ? " done" : "") + '" aria-label="Restzeit">' + mmss(t.left) + "</span>" +
+        (t.state === "done" ? "" : '<button type="button" class="sb-ic" data-tm="toggle" aria-label="' + (t.state === "run" ? "Timer anhalten" : "Timer fortsetzen") + '">' + (t.state === "run" ? I.pause : I.play) + "</button>") +
+        '<button type="button" class="sb-ic" data-tm="end" aria-label="Timer beenden">' + I.stop + "</button>";
+    }
+    sbForm.classList.toggle("unset", !sb.form);
+    sbForm.innerHTML = '<span class="fl">' + (sb.form ? formIcon(sb.form, 20) + FORMS[sb.form].word : "Arbeitsform") + "</span>" + I.chev;
+    sbForm.setAttribute("aria-label", "Arbeitsform: " + (sb.form ? FORMS[sb.form].word : "keine"));
+    sbConn.className = "sb-conn" + (sb.conn ? " on" : "");
+    sbConn.innerHTML = sb.conn ? I.tv + "<span><b>Apple TV</b>Raum 204</span>" : I.tvOff + "<span><b>Kein Bildschirm</b><button type=\"button\" data-howto style=\"all:unset;color:var(--blue,#0a84ff);cursor:pointer;min-height:24px\">So verbinden</button></span>";
+  }
+
+  sbSeg.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-mode]"); if (!b) return;
+    if (b.getAttribute("aria-disabled") === "true") { toast("Kein Material offen. Ein PDF öffnet in der Anzeige; dann lässt es sich hier zeigen."); return; }
+    sb.mode = b.dataset.mode; renderSb();
+  });
+
+  // Timer (FR-11.2): Dauer wählen, starten, anhalten, beenden; Signal am Ende
+  var tick = null;
+  function startTick() {
+    clearInterval(tick);
+    tick = setInterval(function () {
+      if (sb.timer.state !== "run") return;
+      sb.timer.left -= 1;
+      if (sb.timer.left <= 0) {
+        sb.timer.left = 0; sb.timer.state = "done"; clearInterval(tick);
+        toast("Signal: Der Zweitbildschirm zeigt „Zeit ist um“, und ein Ton erklingt.");
+      }
+      renderSb();
+    }, 1000);
+  }
+  function startTimer(sec) { sb.timer = { state: "run", left: sec }; startTick(); renderSb(); }
+  sbTimer.addEventListener("click", function (e) {
+    var b = e.target.closest("button[data-tm]"); if (!b) return;
+    var a = b.dataset.tm;
+    if (a === "pick") { e.stopPropagation(); openTimerPop(b); }
+    else if (a === "toggle") { sb.timer.state = sb.timer.state === "run" ? "pause" : "run"; if (sb.timer.state === "run") startTick(); renderSb(); }
+    else if (a === "end") { clearInterval(tick); sb.timer = { state: "idle", left: 300 }; renderSb(); }
+  });
+
+  // ---------- Popover ----------
+  function placePop(anchor, w, above) {
+    var s = scale(), sr = screen.getBoundingClientRect(), ar = anchor.getBoundingClientRect();
+    pop.style.width = w + "px";
+    pop.classList.add("open");
+    var ph = pop.offsetHeight;
+    var x = (ar.left - sr.left) / s + (ar.width / s) / 2 - w / 2;
+    x = Math.min(Math.max(12, x), 1194 - w - 12);
+    var y = above ? (ar.top - sr.top) / s - ph - 8 : (ar.bottom - sr.top) / s + 8;
+    pop.style.left = x + "px"; pop.style.top = y + "px";
+  }
+  function closePop() {
+    if (!popKind) return;
+    var k = popKind; popKind = null; pop.classList.remove("open");
+    if (k === "topic") render();
+  }
+  function openTimerPop(anchor) {
+    closeMenu(); closePop();
+    var opts = [1, 3, 5, 10, 15];
+    pop.innerHTML = '<div class="mtitle">Timer starten</div>' + opts.map(function (m) {
+      return '<button type="button" class="item" role="menuitem" data-min="' + m + '">' + m + (m === 1 ? " Minute" : " Minuten") + "</button>";
+    }).join("");
+    pop.setAttribute("role", "menu"); popKind = "timer";
+    placePop(anchor, 220, true);
+    var five = pop.querySelector('[data-min="5"]'); if (five) five.focus({ preventScroll: true });
+  }
+  function openFormPop(anchor) {
+    closeMenu(); closePop();
+    var keys = ["einzel", "partner", "gruppe"];
+    pop.innerHTML = '<div class="mtitle">Arbeitsform</div>' + keys.map(function (k) {
+      return '<button type="button" class="item" role="menuitemradio" aria-checked="' + (sb.form === k) + '" data-form="' + k + '"><span class="chk">' + (sb.form === k ? I.check : "") + "</span>" + FORMS[k].word + '<span class="sym">' + formIcon(k, 22) + "</span></button>";
+    }).join("") + '<button type="button" class="item" role="menuitemradio" aria-checked="' + (!sb.form) + '" data-form=""><span class="chk">' + (!sb.form ? I.check : "") + "</span>Keine</button>";
+    pop.setAttribute("role", "menu"); popKind = "form";
+    placePop(anchor, 260, true);
+  }
+  function openTopicPop(anchor) {
+    closeMenu(); closePop();
+    pop.innerHTML = '<div class="ph"><strong>Thema und Hinweis</strong><button type="button" data-pop="done">Fertig</button></div>' +
+      '<div class="fields">' +
+      '<label for="f-topic">Thema</label><input id="f-topic" data-f="topic" value="' + esc(sb.topic) + '">' +
+      '<label for="f-prep">Bereitlegen</label><input id="f-prep" data-f="prep" value="' + esc(sb.prep) + '">' +
+      '<label for="f-hw">Hausaufgabe</label><input id="f-hw" data-f="hw" value="' + esc(sb.hw) + '">' +
+      '<div class="note">Der Klassenbildschirm zeigt nur ausgefüllte Felder.</div></div>';
+    pop.setAttribute("role", "dialog"); pop.setAttribute("aria-label", "Thema und Hinweis der Unterrichtsstunde");
+    popKind = "topic";
+    placePop(anchor, 400, false);
+    var f = document.getElementById("f-topic"); if (f) f.focus({ preventScroll: true });
+  }
+  pop.addEventListener("input", function (e) {
+    var f = e.target.dataset && e.target.dataset.f; if (!f) return;
+    sb[f] = e.target.value.trim(); renderSb();
+  });
+  pop.addEventListener("keydown", function (e) { if (e.key === "Enter" && popKind === "topic") closePop(); });
+  pop.addEventListener("click", function (e) {
+    e.stopPropagation();
+    var b = e.target.closest("button"); if (!b) return;
+    if (b.dataset.min) { closePop(); startTimer(+b.dataset.min * 60); }
+    else if (b.dataset.form !== undefined) { sb.form = b.dataset.form || null; closePop(); renderSb(); }
+    else if (b.dataset.pop === "done") closePop();
+  });
+  sbForm.addEventListener("click", function (e) { e.stopPropagation(); if (popKind === "form") closePop(); else openFormPop(sbForm); });
+  document.addEventListener("click", function (e) { if (popKind && !pop.contains(e.target)) closePop(); });
+
+  // Mockup-Schalter außerhalb des Geräts
+  document.querySelectorAll("[data-conn]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      sb.conn = b.dataset.conn === "1";
+      document.querySelectorAll("[data-conn]").forEach(function (o) { o.setAttribute("aria-pressed", o === b ? "true" : "false"); });
+      renderSb();
+    });
+  });
+  document.querySelectorAll("[data-mat-open]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      sb.matOpen = b.dataset.matOpen === "1";
+      document.querySelectorAll("[data-mat-open]").forEach(function (o) { o.setAttribute("aria-pressed", o === b ? "true" : "false"); });
+      renderSb();
+    });
+  });
+
+  // Nur für Screenshots: Zustand über die Adresse vorbelegen, z. B. ?sb=tafel&timer=252&form=partner&conn=0&pop=topic
+  (function () {
+    var q = {};
+    location.search.replace(/^\?/, "").split("&").forEach(function (p) { if (p) { var kv = p.split("="); q[kv[0]] = decodeURIComponent(kv[1] || ""); } });
+    if (q.sb && MODE_WORD[q.sb]) sb.mode = q.sb;
+    if (q.form && FORMS[q.form]) sb.form = q.form;
+    if (q.conn === "0") sb.conn = false;
+    if (q.timer) { sb.timer = { state: q.timer === "done" ? "done" : "pause", left: q.timer === "done" ? 0 : +q.timer || 300 }; }
+    if (q.pop) setTimeout(function () {
+      if (q.pop === "topic") { var b = document.getElementById("btn-topic"); if (b) openTopicPop(b); }
+      if (q.pop === "form") openFormPop(sbForm);
+      if (q.pop === "timer") { var t = sbTimer.querySelector("button"); if (t) openTimerPop(t); }
+    }, 50);
+  })();
+
+  // ---------- Hell / Dunkel (nur Mockup-Rahmen) ----------
+  document.querySelectorAll("[data-theme-set]").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var v = b.dataset.themeSet;
+      if (v === "system") document.documentElement.removeAttribute("data-theme");
+      else document.documentElement.setAttribute("data-theme", v);
+      document.querySelectorAll("[data-theme-set]").forEach(function (o) { o.setAttribute("aria-pressed", o === b ? "true" : "false"); });
+    });
+  });
+
+  // ---------- Einpassen ins Browserfenster ----------
+  var stage = document.getElementById("stage");
+  var _s = 1;
+  function scale() { return _s; }
+  // Skalierung auf den inneren Rahmen anwenden, damit die äußere Box die skalierte Größe hat
+  function fit2() {
+    _s = Math.min((window.innerWidth - 32) / 1242, (window.innerHeight - 68 - 16) / 882, 1.25);
+    stage.style.width = 1242 * _s + "px";
+    stage.style.height = 882 * _s + "px";
+    stage.style.transform = "";
+    var dev = stage.firstElementChild;
+    dev.style.transformOrigin = "top left";
+    dev.style.transform = "scale(" + _s + ")";
+    closeMenu();
+  }
+  window.addEventListener("resize", fit2);
+  fit2();
+  render();
+  renderSb();
+  // Prüfhilfe AK-10: passt die Liste ohne Scrollen? (steht als data-ak10 am body)
+  document.body.setAttribute("data-ak10", content.scrollHeight <= content.clientHeight + 1 ? "passt" : "zu-hoch:" + content.scrollHeight + ">" + content.clientHeight);
+})();
+</script>
+<!-- FR-11.6: „So verbinden“ – Anleitung, kein Start der Verbindung (das lässt das System nicht zu) -->
+<dialog id="howto" aria-labelledby="howto-t" style="border:0;border-radius:14px;padding:0;width:min(440px,92vw);background:Canvas;color:CanvasText;font:15px/1.4 -apple-system,'SF Pro Text',system-ui,sans-serif;box-shadow:0 20px 60px rgba(0,0,0,.45)">
+  <div style="padding:20px 22px 8px">
+    <h2 id="howto-t" style="font-size:20px;margin:0 0 4px">Mit dem Bildschirm verbinden</h2>
+    <p style="margin:0 0 14px;opacity:.65;font-size:13px">Pult erkennt die Verbindung von selbst und zeigt dann den Klassenbildschirm.</p>
+    <h3 style="font-size:15px;margin:0 0 6px">Per AirPlay</h3>
+    <ol style="margin:0 0 14px;padding-left:22px">
+      <li>Von der rechten oberen Ecke nach unten wischen: Das Kontrollzentrum öffnet sich.</li>
+      <li>„Bildschirmsynchronisierung“ antippen.</li>
+      <li>Das Apple TV des Raums wählen, z. B. „Raum 204“.</li>
+    </ol>
+    <h3 style="font-size:15px;margin:0 0 6px">Per Kabel</h3>
+    <p style="margin:0 0 6px">Adapter (USB-C auf HDMI) anstecken – fertig. Das geht ohne Handgriff und auch, wenn das Schulnetz ausfällt.</p>
+  </div>
+  <form method="dialog" style="border-top:.5px solid color-mix(in srgb,CanvasText 25%,transparent);margin-top:10px">
+    <button style="all:unset;display:block;width:100%;text-align:center;min-height:44px;line-height:44px;color:#0a84ff;font-weight:600;cursor:pointer">Fertig</button>
+  </form>
+</dialog>
+<script>
+(function () {
+  var d = document.getElementById("howto");
+  document.addEventListener("click", function (e) {
+    var t = e.target.closest && e.target.closest("[data-howto]");
+    if (!t) return;
+    e.preventDefault(); e.stopPropagation();
+    if (d.showModal) d.showModal(); else d.setAttribute("open", "");
+  }, true);
+  if (location.hash.indexOf("howto") >= 0) setTimeout(function () { d.showModal(); }, 300);
+})();
+</script>
+</body>
+</html>

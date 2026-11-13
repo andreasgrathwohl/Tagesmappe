@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zweitbildschirm – Mockup</title>
+<!--
+  Mockup: Zweitbildschirm (Smartboard über Apple TV). Veranschaulichung, kein Gestaltungsbeschluss.
+  Anforderungen: FR-6.2, FR-11, FR-11.1 bis FR-11.4. FR-11.7.
+  Zustände direkt über den URL-Hash: #vor #stunde #timer #signal #partner #leer #ende #frei
+  #material #tafel #dunkel – Zusätze mit „+“: z. B. #material+timer, #stunde+pause+partner, #tafel+light.
+-->
+<style>
+  /* Systemfarben (iOS/iPadOS/tvOS-Standardwerte) als Platzhalter — keine eigene Palette. */
+  :root {
+    --page: #D8D8DE;
+    --bg: #FFFFFF;            /* systemBackground */
+    --bg2: #F2F2F7;           /* secondarySystemBackground */
+    --surround: #E5E5EA;      /* systemGray5 – Fläche neben einer Materialseite */
+    --cell: #FFFFFF;
+    --label: #000000;
+    --label2: rgba(60,60,67,.60);
+    --sep: rgba(60,60,67,.29);
+    --fill: rgba(118,118,128,.12);
+    --tint: #007AFF;          /* systemBlue */
+    --red: #FF3B30;           /* systemRed */
+    --orange: #FF9500;        /* systemOrange */
+    --grid: rgba(60,60,67,.16);
+    --overlay: rgba(242,242,247,.94);
+    --overlay-line: rgba(60,60,67,.18);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page: #0E0E10;
+      --bg: #000000;
+      --bg2: #1C1C1E;
+      --surround: #1C1C1E;
+      --cell: #1C1C1E;
+      --label: #FFFFFF;
+      --label2: rgba(235,235,245,.60);
+      --sep: rgba(84,84,88,.60);
+      --fill: rgba(118,118,128,.24);
+      --tint: #0A84FF;
+      --red: #FF453A;
+      --orange: #FF9F0A;
+      --grid: rgba(235,235,245,.16);
+      --overlay: rgba(44,44,46,.94);
+      --overlay-line: rgba(235,235,245,.18);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --page: #0E0E10;
+    --bg: #000000;
+    --bg2: #1C1C1E;
+    --surround: #1C1C1E;
+    --cell: #1C1C1E;
+    --label: #FFFFFF;
+    --label2: rgba(235,235,245,.60);
+    --sep: rgba(84,84,88,.60);
+    --fill: rgba(118,118,128,.24);
+    --tint: #0A84FF;
+    --red: #FF453A;
+    --orange: #FF9F0A;
+    --grid: rgba(235,235,245,.16);
+    --overlay: rgba(44,44,46,.94);
+    --overlay-line: rgba(235,235,245,.18);
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: var(--page);
+    font-family: -apple-system, "SF Pro Text", system-ui, sans-serif;
+    color: var(--label);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+  button:focus-visible, a:focus-visible { outline: 3px solid var(--tint); outline-offset: 2px; border-radius: 8px; }
+  button:disabled { opacity: .4; cursor: default; }
+  svg { display: block; flex: none; }
+
+  /* ---------- Mockup-Rahmen außerhalb des Bildschirms ---------- */
+  .caption {
+    position: fixed; top: 0; left: 0; right: 0; height: 44px;
+    display: flex; align-items: center; justify-content: center; gap: 16px;
+    font-size: 13px; color: var(--label2); padding: 0 16px;
+  }
+  .caption strong { color: var(--label); font-weight: 600; }
+  .caption .back { position: absolute; left: 16px; color: var(--tint); text-decoration: none; font-size: 15px; display: inline-flex; align-items: center; gap: 4px; }
+  .seg { display: inline-flex; background: var(--fill); border-radius: 8px; padding: 2px; flex-wrap: nowrap; }
+  .seg button { font-size: 12px; padding: 4px 10px; border-radius: 6px; color: var(--label); white-space: nowrap; }
+  .seg button[aria-pressed="true"] { background: var(--cell); box-shadow: 0 1px 3px rgba(0,0,0,.15); font-weight: 600; }
+  .seg button .vs { font-size: 10px; font-weight: 500; color: var(--label2); margin-left: 4px; border: .5px solid var(--sep); border-radius: 4px; padding: 0 3px; }
+
+  .stage-wrap { position: fixed; top: 44px; left: 0; right: 0; display: flex; align-items: center; justify-content: center; }
+  .stage { flex: none; transform-origin: top left; }
+  /* schlichter Bildschirmrahmen */
+  .bezel { width: 1952px; height: 1112px; padding: 16px; background: #1D1D1F; border-radius: 12px; box-shadow: 0 0 0 2px #3A3A3C, 0 30px 80px rgba(0,0,0,.25); }
+
+  .controls {
+    position: fixed; left: 0; right: 0; bottom: 0;
+    padding: 8px 16px 10px; border-top: .5px solid var(--sep); background: var(--bg2);
+    font-size: 12px; color: var(--label2);
+  }
+  .controls .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; min-height: 30px; }
+  .controls .row + .row { margin-top: 6px; }
+  .controls .lab { color: var(--label); font-weight: 600; }
+  .controls .btn { font-size: 12px; padding: 4px 10px; border-radius: 6px; background: var(--fill); color: var(--tint); white-space: nowrap; }
+  .controls .chk { display: inline-flex; align-items: center; gap: 5px; color: var(--label); }
+  .controls .note { color: var(--label2); }
+  .controls .note b { color: var(--label); font-weight: 600; }
+  .controls .timeread { font-variant-numeric: tabular-nums; color: var(--label); min-width: 34px; display: inline-block; }
+  .controls .group { display: inline-flex; align-items: center; gap: 6px; }
+  .controls .divider { width: .5px; height: 20px; background: var(--sep); }
+
+  /* ---------- Zweitbildschirm 1920 × 1080 — nimmt keine Eingaben an ---------- */
+  .tv {
+    position: relative; width: 1920px; height: 1080px; overflow: hidden;
+    background: var(--bg); color: var(--label);
+    font-family: -apple-system, "SF Pro Display", system-ui, sans-serif;
+    font-variant-numeric: tabular-nums;
+    user-select: none; pointer-events: none;
+  }
+  .tv.black { background: #000; }
+
+  /* Klassenbildschirm */
+  .cls { position: absolute; inset: 0; padding: 88px 112px 96px; display: flex; flex-direction: column; }
+  .cls .head { display: flex; justify-content: space-between; align-items: flex-start; gap: 64px; }
+  .cls .who { display: flex; align-items: baseline; gap: 56px; line-height: 1; }
+  .cls .klasse { font-size: 210px; font-weight: 700; letter-spacing: -2px; }
+  .cls .fach { font-size: 170px; font-weight: 400; }
+  .cls .soon { font-size: 88px; color: var(--label2); font-weight: 500; line-height: 1; margin-bottom: 28px; }
+  .cls .time { text-align: right; line-height: 1; }
+  .cls .clock { font-size: 170px; font-weight: 600; }
+  .cls .until { font-size: 72px; color: var(--label2); margin-top: 22px; font-weight: 500; }
+  .cls .main { flex: 1; display: flex; flex-direction: column; justify-content: center; min-height: 0; }
+  .cls .topic { font-size: 128px; font-weight: 600; line-height: 1.08; }
+  .cls .topic-small { font-size: 80px; font-weight: 500; color: var(--label2); line-height: 1.1; }
+  .cls .lbl { font-size: 72px; color: var(--label2); font-weight: 500; margin-bottom: 18px; line-height: 1; }
+  .cls .big { font-size: 128px; font-weight: 600; line-height: 1.08; }
+  .cls .countline { display: flex; align-items: baseline; gap: 40px; line-height: 1; }
+  .cls .countline .lbl { margin: 0; font-size: 88px; }
+  .cls .count { font-size: 240px; font-weight: 700; }
+  .cls .foot { display: flex; align-items: center; justify-content: space-between; gap: 48px; }
+  .form { display: inline-flex; align-items: center; gap: 36px; padding: 26px 56px 26px 40px; border-radius: 999px; background: var(--fill); font-size: 92px; font-weight: 600; line-height: 1; }
+  .form svg { width: 150px; height: 110px; }
+
+  .timerbig { display: flex; align-items: center; justify-content: center; gap: 64px; }
+  .timerbig .t { font-size: 360px; font-weight: 700; line-height: .9; letter-spacing: -6px; }
+  .timerbig .ic { width: 200px; height: 200px; }
+  .timerbig .ic svg { width: 100%; height: 100%; }
+  .timerbig .state { display: flex; align-items: center; gap: 24px; font-size: 80px; font-weight: 600; color: var(--label2); }
+  .timerbig .state svg { width: 72px; height: 72px; }
+  .timercol { display: flex; flex-direction: column; align-items: center; gap: 28px; }
+
+  .alarm { display: flex; align-items: center; justify-content: center; gap: 72px; }
+  .alarm svg { width: 260px; height: 260px; }
+  .alarm .t { font-size: 230px; font-weight: 700; line-height: 1; }
+  .tv.signal::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    box-shadow: inset 0 0 0 28px var(--orange); z-index: 20;
+    animation: blink 1s steps(2, jump-none) infinite;
+  }
+  @keyframes blink { 50% { box-shadow: inset 0 0 0 28px transparent; } }
+  @media (prefers-reduced-motion: reduce) { .tv.signal::after { animation: none; } }
+
+  .free { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; }
+  .free .clock { font-size: 380px; font-weight: 600; letter-spacing: -6px; }
+  .free .date { font-size: 104px; color: var(--label2); margin-top: 48px; font-weight: 500; }
+
+  /* Material */
+  .mat { position: absolute; inset: 0; background: var(--surround); display: flex; justify-content: center; }
+  .sheet {
+    position: relative; width: 764px; height: 1080px; background: #FFFFFF; color: #1C1C1E;
+    font-family: "Helvetica Neue", Arial, sans-serif; font-variant-numeric: normal;
+    padding: 64px 62px; box-shadow: 0 0 0 1px rgba(0,0,0,.08);
+  }
+  .sheet .hd { display: flex; justify-content: space-between; font-size: 13px; color: #555; border-bottom: 1px solid #BBB; padding-bottom: 8px; }
+  .sheet h1 { font-size: 30px; margin: 22px 0 4px; }
+  .sheet .sub { font-size: 16px; color: #555; margin: 0 0 18px; }
+  .sheet .fields { display: flex; gap: 22px; font-size: 14px; color: #333; margin-bottom: 26px; }
+  .sheet .fields span { flex: 1; border-bottom: 1px solid #999; padding-bottom: 4px; }
+  .sheet h2 { font-size: 17px; margin: 0 0 12px; }
+  .sheet h2 em { font-style: normal; font-weight: 400; color: #555; }
+  .sheet .match { display: grid; grid-template-columns: 1fr 1fr; column-gap: 120px; row-gap: 10px; font-size: 17px; margin-bottom: 30px; }
+  .sheet .match div { display: flex; align-items: center; gap: 10px; }
+  .sheet .match .dot { width: 8px; height: 8px; border-radius: 50%; background: #1C1C1E; }
+  .sheet .match .r { justify-content: flex-start; }
+  .sheet ol { margin: 0 0 28px; padding-left: 24px; font-size: 17px; line-height: 2.05; }
+  .sheet .gap { display: inline-block; width: 110px; border-bottom: 1px solid #333; }
+  .sheet .lines div { border-bottom: 1px solid #AAA; height: 38px; }
+  .sheet .ft { position: absolute; left: 62px; right: 62px; bottom: 30px; font-size: 12px; color: #777; display: flex; justify-content: space-between; }
+  .ink { position: absolute; inset: 0; pointer-events: none; overflow: visible; }
+
+  /* Tafel (kariert) */
+  .board {
+    position: absolute; inset: 0; background-color: var(--bg);
+    background-image:
+      linear-gradient(var(--grid) 1.5px, transparent 1.5px),
+      linear-gradient(90deg, var(--grid) 1.5px, transparent 1.5px);
+    background-size: 54px 54px; background-position: -1px -1px;
+  }
+
+  /* Timer-Schicht in der Ecke (über Material und Tafel, nicht über Dunkel) */
+  .tlayer {
+    position: absolute; top: 36px; right: 36px; z-index: 10;
+    display: flex; align-items: center; gap: 22px; padding: 18px 34px 18px 26px;
+    border-radius: 36px; background: var(--overlay); color: var(--label);
+    box-shadow: 0 0 0 2px var(--overlay-line), 0 10px 40px rgba(0,0,0,.18);
+    -webkit-backdrop-filter: blur(30px); backdrop-filter: blur(30px);
+    font-size: 104px; font-weight: 700; line-height: 1;
+  }
+  .tlayer svg { width: 76px; height: 76px; }
+  .tlayer .st { display: flex; align-items: center; gap: 10px; font-size: 44px; font-weight: 600; color: var(--label2); }
+  .tlayer .st svg { width: 40px; height: 40px; }
+  .tlayer.done { font-size: 76px; box-shadow: 0 0 0 10px var(--orange), 0 10px 40px rgba(0,0,0,.25); }
+</style>
+</head>
+<body>
+
+<div class="caption">
+  <a class="back" href="index.html"><svg width="11" height="18" viewBox="0 0 11 18" aria-hidden="true"><path d="M9.5 1.5 2 9l7.5 7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Übersicht</a>
+  <span><strong>Zweitbildschirm</strong> · Smartboard über Apple TV „Raum 204“ · Di 17.11., 2. Stunde · Veranschaulichung, kein Gestaltungsbeschluss</span>
+  <span class="seg" role="group" aria-label="Erscheinungsbild des Mockups">
+    <button type="button" data-theme-set="system" aria-pressed="true">Automatisch</button>
+    <button type="button" data-theme-set="light" aria-pressed="false">Hell</button>
+    <button type="button" data-theme-set="dark" aria-pressed="false">Dunkel</button>
+  </span>
+</div>
+
+<div class="stage-wrap" id="wrap">
+  <div class="stage" id="stage">
+    <div class="bezel">
+      <div class="tv" id="tv" aria-label="Zweitbildschirm (nimmt keine Eingaben an)"></div>
+    </div>
+  </div>
+</div>
+
+<div class="controls" id="controls" aria-label="Mockup-Steuerung (nicht Teil des Smartboards; bedient wird am Tablet)">
+  <div class="row">
+    <span class="lab">Mockup-Steuerung</span>
+    <span class="seg" role="group" aria-label="Zustand des Zweitbildschirms" id="views">
+      <button type="button" data-view="vor">Vor der Stunde</button>
+      <button type="button" data-view="stunde">In der Stunde</button>
+      <button type="button" data-view="ende">Stundenende</button>
+      <button type="button" data-view="frei">Kein Unterricht mehr</button>
+      <button type="button" data-view="material">Material</button>
+      <button type="button" data-view="tafel">Tafel</button>
+      <button type="button" data-view="dunkel">Dunkel</button>
+    </span>
+  </div>
+  <div class="row">
+    <label class="chk"><input type="checkbox" id="thema" checked> Thema eingetragen</label>
+    <span class="divider"></span>
+    <span class="group"><span class="lab">Arbeitsform</span>
+      <span class="seg" role="group" aria-label="Arbeitsform" id="forms">
+        <button type="button" data-form="">keine</button>
+        <button type="button" data-form="einzel">Einzelarbeit</button>
+        <button type="button" data-form="partner">Partnerarbeit</button>
+        <button type="button" data-form="gruppe">Gruppenarbeit</button>
+      </span>
+    </span>
+    <span class="divider"></span>
+    <span class="group"><span class="lab">Timer</span> <span class="timeread" id="tread">–</span>
+      <button type="button" class="btn" id="tstart">5:00 starten</button>
+      <button type="button" class="btn" id="tpause">Anhalten</button>
+      <button type="button" class="btn" id="tskip">auf 0:05 vorspulen</button>
+      <button type="button" class="btn" id="tstop">Beenden</button>
+    </span>
+  </div>
+  <div class="row"><span class="note" id="note"></span></div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- Beispieldaten: nur diese eine Unterrichtsstunde (FR-11) ---------- */
+  var LESSON = {
+    klasse: "8b", fach: "Englisch", beginn: 8 * 3600 + 35 * 60, ende: 9 * 3600 + 20 * 60,
+    thema: "Unit 4 – Wortschatz",
+    bereitlegen: "Buch, Heft, Vokabelheft",
+    hausaufgabe: "Workbook S. 34, Nr. 2 und 3"
+  };
+  var DATE = "Dienstag, 17. November";
+  var BASE = { vor: "8:31", stunde: "8:40", ende: "9:15", frei: "13:42", material: "8:52", tafel: "9:03", dunkel: "9:05" };
+  var TIMER_MS = 5 * 60 * 1000;
+
+  var S = { view: "stunde", thema: true, form: "", timer: { mode: "off", end: 0, remain: 0 } };
+  var clockBase = 0, clockStart = 0;
+
+  function secOf(hm) { var p = hm.split(":"); return +p[0] * 3600 + +p[1] * 60; }
+  function nowSec() { return clockBase + (Date.now() - clockStart) / 1000; }
+  function hm(sec) { sec = Math.floor(sec); var h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60); return h + ":" + (m < 10 ? "0" : "") + m; }
+  function ms(sec) { sec = Math.max(0, Math.ceil(sec)); var m = Math.floor(sec / 60), s = sec % 60; return m + ":" + (s < 10 ? "0" : "") + s; }
+  function esc(t) { return String(t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+  /* ---------- Symbole (an SF Symbols angelehnt, gezeichnet) ---------- */
+  var IC = {
+    person: function (cx, cy, r) {
+      return '<circle cx="' + cx + '" cy="' + (cy - r * 1.25) + '" r="' + (r * .62) + '"/>' +
+        '<path d="M' + (cx - r) + ' ' + (cy + r * 1.05) + 'c0-' + (r * .95) + ' ' + (r * .45) + '-' + (r * 1.35) + ' ' + r + '-' + (r * 1.35) + 's' + r + ' ' + (r * .4) + ' ' + r + ' ' + (r * 1.35) + 'z"/>';
+    },
+    form: function (k) {
+      var g = '<svg viewBox="0 0 150 110" aria-hidden="true" fill="currentColor">';
+      if (k === "einzel") g += IC.person(75, 70, 34);
+      if (k === "partner") g += IC.person(48, 70, 30) + IC.person(102, 70, 30);
+      if (k === "gruppe") g += '<g opacity=".55">' + IC.person(28, 66, 22) + IC.person(122, 66, 22) + '</g>' + IC.person(75, 74, 31);
+      return g + '</svg>';
+    },
+    timer: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="13.5" r="8"/><path d="M12 9v4.5l3 2M9.5 2.5h5"/></svg>',
+    pause: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><rect x="5" y="4" width="5" height="16" rx="1.2"/><rect x="14" y="4" width="5" height="16" rx="1.2"/></svg>',
+    bell: '<svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><path d="M12 2.2c-3.5 0-6 2.7-6 6.3v4.4L4 16.2v1.1h16v-1.1l-2-3.3V8.5c0-3.6-2.5-6.3-6-6.3zM9.3 18.6a2.7 2.7 0 0 0 5.4 0z"/><path d="M2.2 7.5c.5-2 1.6-3.7 3.1-4.9M21.8 7.5c-.5-2-1.6-3.7-3.1-4.9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>'
+  };
+  var FORM_WORD = { einzel: "Einzelarbeit", partner: "Partnerarbeit", gruppe: "Gruppenarbeit" };
+
+  /* ---------- Handschrift: einfache Einstrich-Glyphen, leicht verwackelt ---------- */
+  // Raster: Oberlänge 0, x-Höhe 5, Grundlinie 10, Unterlänge 14.
+  var G = {
+    "a": [5, [[3.8,6],[2.5,5],[1,5.4],[0.1,7.5],[0.6,9.6],[2,10],[3.5,9],[3.8,7]], [[3.8,5],[3.9,10]]],
+    "c": [4.5, [[3.8,5.8],[2.5,5],[1,5.4],[0,7.5],[0.6,9.5],[2,10],[3.8,9.3]]],
+    "d": [5, [[3.8,6],[2.5,5],[1,5.4],[0.1,7.5],[0.6,9.6],[2,10],[3.5,9],[3.8,7]], [[3.8,0],[3.9,10]]],
+    "e": [5, [[0.3,7.6],[4,7.6],[3.8,6],[2.5,5],[1,5.3],[0.1,7],[0.4,9],[2,10],[3.8,9.4]]],
+    "h": [5, [[0,0],[0,10]], [[0,7],[1,5.3],[3,5],[4,6],[4,10]]],
+    "i": [2, [[0.5,5],[0.5,10]], [[0.5,2.8],[0.7,3.1]]],
+    "l": [2.2, [[0.5,0],[0.5,9],[1.4,10]]],
+    "n": [5, [[0,5],[0,10]], [[0,7],[1,5.3],[3,5],[4,6],[4,10]]],
+    "o": [5, [[2,5],[0.4,6],[0,8],[1,9.8],[2.5,10],[3.8,9],[4,7],[3,5.3],[2,5]]],
+    "r": [4, [[0,5],[0,10]], [[0,7.5],[1.2,5.5],[3,5]]],
+    "s": [4.5, [[3.6,5.6],[2,5],[0.5,5.5],[0.6,7],[3.2,7.8],[3.6,9.2],[2,10],[0,9.4]]],
+    "t": [4.5, [[1.5,1.5],[1.5,9],[2,10],[3.5,9.6]], [[0,5],[3.5,5]]],
+    "u": [5, [[0,5],[0,9],[1,10],[3,9.6],[4,8]], [[4,5],[4,10]]],
+    "w": [6, [[0,5],[1.2,10],[2.5,6],[3.8,10],[5,5]]],
+    "y": [5, [[0,5],[2,9.8]], [[4,5],[2,10],[1,13],[0,14]]],
+    "U": [7, [[0,0],[0,7],[1,9.5],[3,10],[5,9.5],[6,7],[6,0]]],
+    "W": [8, [[0,0],[1.8,10],[3.5,3],[5.2,10],[7,0]]],
+    "4": [6, [[4,10],[4,0],[0,7],[5.5,7]]],
+    "=": [5, [[0,6],[4,6]], [[0,8.5],[4,8.5]]],
+    "–": [5, [[0,7],[4,7]]],
+    "!": [2, [[0.5,0],[0.5,7]], [[0.5,9.6],[0.6,10]]],
+    "'": [1.6, [[0.6,0],[0.3,2.5]]],
+    "?": [5, [[0.3,2],[1.5,0.3],[3,0.2],[4,1.6],[3.5,3.5],[2,5],[2,7]], [[2,9.6],[2.1,10]]],
+    " ": [3]
+  };
+  var seed = 7;
+  function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280 - .5; }
+  function smooth(pts) {
+    if (pts.length < 3) return "M" + pts.map(function (p) { return p[0].toFixed(1) + " " + p[1].toFixed(1); }).join("L");
+    var d = "M" + pts[0][0].toFixed(1) + " " + pts[0][1].toFixed(1);
+    for (var i = 0; i < pts.length - 1; i++) {
+      var p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+      d += "C" + (p1[0] + (p2[0] - p0[0]) / 6).toFixed(1) + " " + (p1[1] + (p2[1] - p0[1]) / 6).toFixed(1) + " " +
+        (p2[0] - (p3[0] - p1[0]) / 6).toFixed(1) + " " + (p2[1] - (p3[1] - p1[1]) / 6).toFixed(1) + " " +
+        p2[0].toFixed(1) + " " + p2[1].toFixed(1);
+    }
+    return d;
+  }
+  // schreibt text; x, y = linke Oberkante; u = Pixel je Rastereinheit; slant = Schräglage
+  function hand(text, x, y, u, color, w) {
+    var out = "", cx = x;
+    for (var i = 0; i < text.length; i++) {
+      var g = G[text[i]]; if (!g) continue;
+      for (var s = 1; s < g.length; s++) {
+        var pts = g[s].map(function (p) {
+          var j = .18;
+          var py = p[1] + rnd() * j, px = p[0] + rnd() * j + (10 - py) * .12; // leichte Rechtsneigung
+          return [cx + px * u, y + py * u];
+        });
+        out += '<path d="' + smooth(pts) + '"/>';
+      }
+      cx += (g[0] + 1.1) * u;
+    }
+    return { svg: '<g fill="none" stroke="' + color + '" stroke-width="' + w + '" stroke-linecap="round" stroke-linejoin="round">' + out + '</g>', end: cx };
+  }
+  function stroke(pts, color, w) {
+    var j = pts.map(function (p) { return [p[0] + rnd() * 2, p[1] + rnd() * 2]; });
+    return '<path d="' + smooth(j) + '" fill="none" stroke="' + color + '" stroke-width="' + w + '" stroke-linecap="round" stroke-linejoin="round"/>';
+  }
+  function ellipse(cx, cy, rx, ry, color, w) {
+    var pts = [];
+    for (var a = -0.3; a <= Math.PI * 2 + 0.25; a += Math.PI / 10) pts.push([cx + Math.cos(a) * rx * (1 + rnd() * .05), cy + Math.sin(a) * ry * (1 + rnd() * .06)]);
+    return stroke(pts, color, w);
+  }
+
+  /* ---------- Inhalte ---------- */
+  function timerLayer() {
+    var t = S.timer;
+    if (t.mode === "off" || S.view === "dunkel") return "";
+    if (t.mode === "done") return '<div class="tlayer done">' + IC.bell + '<span>Zeit ist um</span></div>';
+    return '<div class="tlayer">' + IC.timer + '<span data-timer>' + ms(remain() / 1000) + '</span>' +
+      (t.mode === "pause" ? '<span class="st">' + IC.pause + 'angehalten</span>' : '') + '</div>';
+  }
+
+  function headStunde() {
+    return '<div class="head"><div class="who"><span class="klasse">' + esc(LESSON.klasse) + '</span><span class="fach">' + esc(LESSON.fach) + '</span></div>' +
+      '<div class="time"><div class="clock" data-clock></div><div class="until">bis ' + hm(LESSON.ende) + '</div></div></div>';
+  }
+  function formBadge() { return S.form ? '<div class="form">' + IC.form(S.form) + '<span>' + FORM_WORD[S.form] + '</span></div>' : ""; }
+
+  function viewKlasse() {
+    var v = S.view, h = '<div class="cls">';
+    if (v === "vor") {
+      h += '<div class="head"><div><div class="soon">Gleich:</div><div class="who"><span class="klasse">' + esc(LESSON.klasse) + '</span><span class="fach">' + esc(LESSON.fach) + '</span></div></div>' +
+        '<div class="time"><div class="clock" data-clock></div></div></div>';
+      h += '<div style="height:120px"></div>';
+      if (LESSON.bereitlegen) h += '<div><div class="lbl">Bitte bereitlegen:</div><div class="big">' + esc(LESSON.bereitlegen) + '</div></div>';
+    } else if (v === "stunde") {
+      var thema = S.thema ? LESSON.thema : "";
+      var t = S.timer;
+      h += headStunde();
+      var fb = formBadge(), small = "";
+      if (t.mode === "done") {
+        h += '<div class="main"><div class="alarm">' + IC.bell + '<span class="t">Zeit ist um</span></div></div>';
+        small = thema;
+      } else if (t.mode !== "off") {
+        h += '<div class="main"><div class="timercol"><div class="timerbig"><span class="ic">' + IC.timer + '</span><span class="t" data-timer>' + ms(remain() / 1000) + '</span></div>' +
+          (t.mode === "pause" ? '<div class="timerbig"><span class="state">' + IC.pause + 'angehalten</span></div>' : '') + '</div></div>';
+        small = thema;
+      } else {
+        h += '<div class="main">' + (thema ? '<div class="topic">' + esc(thema) + '</div>' : '') + '</div>';
+      }
+      // Fußzeile nur, wenn es etwas zu zeigen gibt (keine leere Zeile, AK-25/AK-27)
+      if (small || fb) h += '<div class="foot">' + (small ? '<div class="topic-small">' + esc(small) + '</div>' : '<span></span>') + fb + '</div>';
+    } else if (v === "ende") {
+      h += headStunde();
+      h += '<div class="main">' + (LESSON.hausaufgabe ? '<div class="lbl">Hausaufgabe</div><div class="big">' + esc(LESSON.hausaufgabe) + '</div>' : '') + '</div>';
+    }
+    h += '</div>';
+    if (v === "frei") h = '<div class="free"><div class="clock" data-clock></div><div class="date">' + DATE + '</div></div>';
+    // großer Timer gehört nur zu „In der Stunde“; sonst als Schicht in der Ecke
+    if (v !== "stunde") h += timerLayer();
+    return h;
+  }
+
+  function viewMaterial() {
+    seed = 11;
+    var blue = "#007AFF", red = "#FF3B30";
+    var ink = "";
+    // Verbindungslinie weather → Wetter (Zuordnung vorgemacht), Haken
+    ink += stroke([[143, 271], [250, 276], [360, 292], [440, 301]], blue, 3.2);
+    ink += stroke([[528, 296], [536, 307], [556, 280]], blue, 4);
+    // „sunny“ eingekreist
+    ink += ellipse(86, 301, 40, 17, red, 3);
+    // Unterstreichung im Arbeitsauftrag 2
+    ink += stroke([[62, 484], [140, 486], [210, 483]], red, 3.2);
+    // Randnotiz rot neben Aufgabe 2
+    var n1 = hand("it's = it is", 486, 540, 2.6, red, 2.6); ink += n1.svg;
+    // Lösungswort in Lücke 1
+    var n3 = hand("rainy", 262, 486, 2.2, blue, 2.6); ink += n3.svg;
+    // Ausrufezeichen und Pfeil bei Aufgabe 3
+    var n2 = hand("!", 600, 640, 3.4, red, 3); ink += n2.svg;
+    ink += stroke([[590, 668], [560, 676], [530, 680]], red, 3);
+    ink += stroke([[542, 670], [530, 680], [543, 689]], red, 3);
+
+    return '<div class="mat"><div class="sheet">' +
+      '<div class="hd"><span>Englisch · Unit 4</span><span>Weather words</span></div>' +
+      '<h1>Arbeitsblatt Vokabeln</h1>' +
+      '<p class="sub">Unit 4 – Wortschatz: The weather</p>' +
+      '<div class="fields"><span>Name:</span><span>Klasse:</span><span>Datum:</span></div>' +
+      '<h2>1 · Match the words. <em>Verbinde.</em></h2>' +
+      '<div class="match">' +
+      '<div>weather <i class="dot"></i></div><div class="r"><i class="dot"></i> bewölkt</div>' +
+      '<div>sunny <i class="dot"></i></div><div class="r"><i class="dot"></i> Wetter</div>' +
+      '<div>cloudy <i class="dot"></i></div><div class="r"><i class="dot"></i> windig</div>' +
+      '<div>windy <i class="dot"></i></div><div class="r"><i class="dot"></i> sonnig</div>' +
+      '<div>rainy <i class="dot"></i></div><div class="r"><i class="dot"></i> Temperatur</div>' +
+      '<div>temperature <i class="dot"></i></div><div class="r"><i class="dot"></i> regnerisch</div>' +
+      '</div>' +
+      '<h2>2 · Fill in the gaps. <em>Ergänze.</em></h2>' +
+      '<ol><li>Take an umbrella. It’s <span class="gap"></span> today.</li>' +
+      '<li>There are no clouds. It’s very <span class="gap"></span>.</li>' +
+      '<li>Hold on to your hat! It’s so <span class="gap"></span>.</li>' +
+      '<li>The <span class="gap"></span> is 18 degrees.</li></ol>' +
+      '<h2>3 · Write three sentences about the weather today.</h2>' +
+      '<div class="lines"><div></div><div></div><div></div></div>' +
+      '<div class="ft"><span>Unit 4</span><span>1</span></div>' +
+      '<svg class="ink" viewBox="0 0 764 1080" aria-hidden="true">' + ink + '</svg>' +
+      '</div></div>' + timerLayer();
+  }
+
+  function viewTafel() {
+    seed = 3;
+    var cs = getComputedStyle(document.documentElement);
+    var black = cs.getPropertyValue("--label").trim() || "#000";
+    var blue = cs.getPropertyValue("--tint").trim(), red = cs.getPropertyValue("--red").trim();
+    var ink = "", r;
+    r = hand("Unit 4 – weather", 150, 120, 9, black, 7); ink += r.svg;
+    ink += stroke([[140, 240], [600, 246], [1080, 238]], black, 6);
+    // Wortliste mit Skizzen
+    var rows = [["sunny", 360], ["rainy", 520], ["windy", 680], ["cloudy", 840]];
+    rows.forEach(function (row) { r = hand(row[0], 300, row[1], 7.2, black, 6); ink += r.svg; });
+    // Sonne
+    ink += ellipse(200, 410, 34, 34, red, 6);
+    for (var a = 0; a < 8; a++) { var an = a * Math.PI / 4; ink += stroke([[200 + Math.cos(an) * 50, 410 + Math.sin(an) * 50], [200 + Math.cos(an) * 70, 410 + Math.sin(an) * 70]], red, 6); }
+    // Regenwolke
+    var cloud = function (x, y, c) { return stroke([[x - 60, y + 20], [x - 70, y - 5], [x - 40, y - 25], [x - 15, y - 45], [x + 25, y - 40], [x + 45, y - 20], [x + 70, y - 10], [x + 65, y + 20], [x - 60, y + 20]], c, 6); };
+    ink += cloud(200, 575, blue);
+    [[-35, 0], [0, 6], [35, 0]].forEach(function (d) { ink += stroke([[200 + d[0], 610 + d[1]], [192 + d[0], 640 + d[1]]], blue, 6); });
+    // Wind
+    [0, 30, 60].forEach(function (o) { ink += stroke([[140, 715 + o], [180, 705 + o], [220, 720 + o], [260, 708 + o]], black, 5); });
+    // Wolke
+    ink += cloud(200, 900, black);
+    // rechte Spalte
+    r = hand("weather = Wetter", 1080, 360, 7.2, blue, 6); ink += r.svg;
+    r = hand("it's rainy", 1080, 560, 7.2, red, 6); ink += r.svg;
+    r = hand("it's windy", 1080, 700, 7.2, red, 6); ink += r.svg;
+    return '<div class="board"></div><svg class="ink" viewBox="0 0 1920 1080" aria-hidden="true">' + ink + '</svg>' + timerLayer();
+  }
+
+  /* ---------- Timer (rechnet aus Endzeitpunkt, wie in ARCHITECTURE.md) ---------- */
+  function remain() {
+    var t = S.timer;
+    if (t.mode === "run") return Math.max(0, t.end - Date.now());
+    if (t.mode === "pause") return t.remain;
+    return 0;
+  }
+
+  /* ---------- Darstellung ---------- */
+  var tv = document.getElementById("tv");
+  function render() {
+    var v = S.view;
+    tv.className = "tv" + (v === "dunkel" ? " black" : "") + (S.timer.mode === "done" && v !== "dunkel" ? " signal" : "");
+    if (v === "dunkel") tv.innerHTML = "";
+    else if (v === "material") tv.innerHTML = viewMaterial();
+    else if (v === "tafel") tv.innerHTML = viewTafel();
+    else tv.innerHTML = viewKlasse();
+    tick();
+    syncControls();
+  }
+  function tick() {
+    var n = nowSec();
+    tv.querySelectorAll("[data-clock]").forEach(function (e) { e.textContent = hm(n); });
+    tv.querySelectorAll("[data-countdown]").forEach(function (e) { var d = LESSON.beginn - n; e.textContent = d > 0 ? ms(d) : "jetzt"; });
+    var t = S.timer;
+    if (t.mode === "run" && t.end <= Date.now()) { t.mode = "done"; render(); return; }
+    tv.querySelectorAll("[data-timer]").forEach(function (e) { e.textContent = ms(remain() / 1000); });
+    document.getElementById("tread").textContent = t.mode === "off" ? "–" : t.mode === "done" ? "0:00" : ms(remain() / 1000);
+  }
+
+  var NOTES = {
+    vor: '<b>FR-11.7:</b> vor Beginn „Gleich: Klasse Fach“ und was bereitzulegen ist.',
+    stunde: '<b>FR-11:</b> Klasse, Fach, Uhrzeit, Stundenende; Thema (FR-11.1), Timer (FR-11.2) und Arbeitsform (FR-11.3), wenn gesetzt. Leere Felder erzeugen keine Zeile.',
+    ende: '<b>FR-11.7:</b> in den letzten fünf Minuten die Hausaufgabe groß.',
+    frei: '<b>FR-11.7:</b> kommt heute keine Unterrichtsstunde mehr, nur Uhrzeit und Datum.',
+    material: '<b>FR-6.2:</b> die PDF-Seite mit Stiftnotizen im Vollbild, ohne Bedienelemente. Ein laufender Timer liegt als Schicht in der Ecke.',
+    tafel: '<b>FR-12:</b> die Tafelseite (kariert) ohne Bedienelemente. Ein laufender Timer liegt als Schicht in der Ecke.',
+    dunkel: '<b>FR-11.4:</b> schwarz, nichts – auch kein Timer (er läuft am Tablet weiter).'
+  };
+  function syncControls() {
+    document.querySelectorAll("[data-view]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.view === S.view ? "true" : "false"); });
+    document.querySelectorAll("[data-form]").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.form === S.form ? "true" : "false"); });
+    document.getElementById("thema").checked = S.thema;
+    var t = S.timer.mode;
+    document.getElementById("tstart").disabled = t === "run" || t === "pause";
+    var p = document.getElementById("tpause");
+    p.disabled = !(t === "run" || t === "pause");
+    p.textContent = t === "pause" ? "Fortsetzen" : "Anhalten";
+    document.getElementById("tskip").disabled = t !== "run";
+    document.getElementById("tstop").disabled = t === "off";
+    var note = NOTES[S.view];
+    if (t === "done") note += ' &nbsp;·&nbsp; <b>Timer abgelaufen:</b> sichtbares Signal bis „Beenden“ – dazu ein Ton über das Smartboard.';
+    document.getElementById("note").innerHTML = note;
+    var h = "#" + S.view + (S.thema ? "" : "+ohnethema") + (S.form ? "+" + S.form : "") +
+      (t === "run" ? "+timer" : t === "pause" ? "+pause" : t === "done" ? "+signal" : "") +
+      (document.documentElement.dataset.theme ? "+" + document.documentElement.dataset.theme : "");
+    if (location.hash !== h) history.replaceState(null, "", h);
+    layout();
+  }
+
+  function setView(v) {
+    S.view = v;
+    clockBase = secOf(BASE[v]); clockStart = Date.now();
+    render();
+  }
+
+  /* ---------- Hash: #zustand+zusatz+zusatz ---------- */
+  function fromHash() {
+    var parts = (location.hash || "#stunde").slice(1).split("+");
+    var v = parts[0], flags = parts.slice(1);
+    var alias = { timer: ["stunde", "timer"], signal: ["stunde", "signal"], partner: ["stunde", "partner"], leer: ["stunde", "ohnethema"], pause: ["stunde", "pause"] };
+    if (alias[v]) { flags.push(alias[v][1]); v = alias[v][0]; }
+    if (!BASE[v]) v = "stunde";
+    S.thema = flags.indexOf("ohnethema") < 0;
+    S.form = flags.indexOf("einzel") >= 0 ? "einzel" : flags.indexOf("partner") >= 0 ? "partner" : flags.indexOf("gruppe") >= 0 ? "gruppe" : "";
+    if (flags.indexOf("timer") >= 0) S.timer = { mode: "run", end: Date.now() + TIMER_MS, remain: 0 };
+    else if (flags.indexOf("pause") >= 0) S.timer = { mode: "pause", end: 0, remain: 4 * 60 * 1000 };
+    else if (flags.indexOf("signal") >= 0) S.timer = { mode: "done", end: 0, remain: 0 };
+    else S.timer = { mode: "off", end: 0, remain: 0 };
+    if (flags.indexOf("light") >= 0) setTheme("light"); else if (flags.indexOf("dark") >= 0) setTheme("dark");
+    setView(v);
+  }
+
+  /* ---------- Steuerung ---------- */
+  document.querySelectorAll("[data-view]").forEach(function (b) { b.addEventListener("click", function () { setView(b.dataset.view); }); });
+  document.querySelectorAll("[data-form]").forEach(function (b) { b.addEventListener("click", function () { S.form = b.dataset.form; render(); }); });
+  document.getElementById("thema").addEventListener("change", function (e) { S.thema = e.target.checked; render(); });
+  document.getElementById("tstart").addEventListener("click", function () { S.timer = { mode: "run", end: Date.now() + TIMER_MS, remain: 0 }; render(); });
+  document.getElementById("tpause").addEventListener("click", function () {
+    var t = S.timer;
+    if (t.mode === "run") { t.remain = Math.max(0, t.end - Date.now()); t.mode = "pause"; }
+    else if (t.mode === "pause") { t.end = Date.now() + t.remain; t.mode = "run"; }
+    render();
+  });
+  document.getElementById("tskip").addEventListener("click", function () { if (S.timer.mode === "run") { S.timer.end = Date.now() + 5000; tick(); } });
+  document.getElementById("tstop").addEventListener("click", function () { S.timer = { mode: "off", end: 0, remain: 0 }; render(); });
+
+  function setTheme(v) {
+    if (v === "system") document.documentElement.removeAttribute("data-theme");
+    else document.documentElement.setAttribute("data-theme", v);
+    document.querySelectorAll("[data-theme-set]").forEach(function (o) { o.setAttribute("aria-pressed", o.dataset.themeSet === v ? "true" : "false"); });
+  }
+  document.querySelectorAll("[data-theme-set]").forEach(function (b) {
+    b.addEventListener("click", function () { setTheme(b.dataset.themeSet); render(); });
+  });
+  if (window.matchMedia) window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function () { if (S.view === "tafel") render(); });
+
+  /* ---------- Einpassen 1952 × 1112 (mit Rahmen) ins Fenster ---------- */
+  function layout() {
+    var ctr = document.getElementById("controls").offsetHeight;
+    var wrap = document.getElementById("wrap"), stage = document.getElementById("stage");
+    var aw = window.innerWidth - 32, ah = window.innerHeight - 44 - ctr - 16;
+    var s = Math.min(aw / 1952, ah / 1112);
+    wrap.style.bottom = ctr + "px";
+    stage.style.width = 1952 * s + "px"; stage.style.height = 1112 * s + "px";
+    stage.firstElementChild.style.transform = "scale(" + s + ")";
+    stage.firstElementChild.style.transformOrigin = "top left";
+  }
+  window.addEventListener("resize", layout);
+  window.addEventListener("hashchange", fromHash);
+
+  fromHash();
+  setInterval(tick, 250);
+})();
+</script>
+</body>
+</html>

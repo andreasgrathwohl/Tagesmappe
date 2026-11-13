@@ -1,4 +1,4 @@
-# Tagesmappe (Arbeitstitel)
+# Pult
 
 Tagesbegleiter für Lehrkräfte auf iPad und Mac: Unterrichtsmaterial vorab den Stunden des festen
 Stundenplans zuordnen – und im Unterricht nur den heutigen Tag sehen. Eine Stunde antippen, das
@@ -7,7 +7,11 @@ bleibt in der eigenen Ablage (iCloud Drive, OneDrive, Google Drive, …) und ist
 Stand.
 
 > **Stand:** Spezifikation. Die Anforderungen sind freigegeben (`docs/PRD.md`, `status: ready`);
-> die ersten fünf Architekturentscheidungen sind beschlossen (`docs/adr/`). Es gibt noch keinen Code.
+> sechs Architekturentscheidungen sind beschlossen (`docs/adr/`), die Architektur ist für alle Bereiche
+> beschrieben. Es gibt noch keinen Code; unter `mockup/` liegen HTML-Mockups zur Veranschaulichung.
+> Der Name „Pult“ ist Arbeitsname: Eine Software-Marke „PULT“ ist bereits in Gebrauch (RISK-8),
+> die Registerprüfung steht aus (Q-29). Das Repository heißt
+> weiter `Tagesmappe`.
 
 ## Worum es geht
 
@@ -17,7 +21,12 @@ Stand.
   Ausfall und Vertretungen.
 - **Im Unterricht**: Tagesansicht, ein Tipp öffnet das Material. Mit Microsoft 365 öffnen
   OneDrive-Dateien mit AutoSpeichern, Notizen und Zeichnungen landen sofort in der Ablage. PDFs und
-  Bilder zeigt die App selbst, mit Stift.
+  Bilder zeigt die App selbst, mit Stift; diese Stiftnotizen gelten je Unterrichtsstunde und lassen
+  die Datei unverändert. Das Smartboard zeigt dabei als Zweitbildschirm nur das Material – die
+  Tagesansicht bleibt auf dem iPad.
+- **Smartboard und Tafel**: Ist nichts geöffnet, zeigt das Smartboard einen Klassenbildschirm (Klasse,
+  Fach, Uhrzeit, Thema, Timer, Arbeitsform). Mit einem Tipp wird das iPad zur Tafel; das Tafelbild
+  bleibt bei der Unterrichtsstunde.
 - **Datenschutz**: keine eigenen Server – Stundenplan, Zuordnungen und Material bleiben bei der
   Lehrkraft.
 
@@ -27,8 +36,9 @@ Stand.
 |---|---|
 | [docs/PRD.md](docs/PRD.md) | Was, für wen, warum: Glossar, Anforderungen, Lieferstufen, Risiken, offene Fragen, Abnahmekriterien |
 | [docs/adr/](docs/adr/) | Architekturentscheidungen, je Entscheidung eine Datei |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Wie gebaut wird, je Bereich: Datenmodell, Abgleich, Dateizugriff, Stundenplan-Quellen |
-| [DESIGN.md](DESIGN.md) | Gestaltungsbeschlüsse (leer angelegt, alle Kategorien offen) |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Wie gebaut wird, je Bereich: Bausteinbild, Datenmodell, Abgleich, Dateizugriff, Stundenplan-Quellen, Anzeige |
+| [DESIGN.md](DESIGN.md) | Gestaltungsbeschlüsse – bisher das App-Icon (UI-1, Quelle in `design/icon/`); alle übrigen Kategorien offen |
+| [mockup/](mockup/LIESMICH.md) | HTML-Mockups von Tagesansicht, Vorbereiten und Einrichten – Veranschaulichung, kein Beschluss |
 | [CLAUDE.md](CLAUDE.md) | Projektregeln: Bauen, Skills, Dokument-Konvention |
 | [wiki/](wiki/Home.md) | Einstieg, Überblick und Wegweiser in die Dokumente |
 
@@ -45,5 +55,5 @@ Maßgeblich sind immer die Dokumente unter `docs/` und `DESIGN.md`; das Wiki ver
 ## Verwandt
 
 [OneDrive Opener](https://github.com/andreasgrathwohl/OneDriveMac) – macOS-App, die Office-Dateien aus
-OneDrive mit AutoSpeichern öffnet. Eigenständig; Tagesmappe übernimmt die dort gewonnenen
+OneDrive mit AutoSpeichern öffnet. Eigenständig; Pult übernimmt die dort gewonnenen
 Erkenntnisse zum Öffnen von OneDrive-Dokumenten in Office.

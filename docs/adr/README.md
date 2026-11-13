@@ -17,8 +17,11 @@ Hier steht bewusst keine Liste der ADRs.
 - ~~Q-14~~: Identität der Unterrichtsstunde → answered 2026-11-13: ADR-0005 accepted
 - ~~Q-15~~: Abfragehäufigkeit Schulmanager → answered 2026-11-13: ADR-0004 accepted
 
-Offen und für die ADR-Ebene relevant, aber anderswo geführt: Q-16 im PRD (liefern Lehrerkonten
-Stundenplan und Vertretungen?); Q-17 und Q-18 in `docs/ARCHITECTURE.md` (Ort der Stiftnotizen – wird
-eine ADR im Bereich `anzeige`; AutoSpeichern über die Office-Adresse auf iPadOS).
+- ~~Q-17~~: Ort der Stiftnotizen → answered 2026-11-13: ADR-0006 accepted
 
-Freigegeben von Andreas am 2026-11-13: keine ADR mit `reversibility: one-way` ist `proposed`.
+Offen und für die ADR-Ebene relevant, aber anderswo geführt: Q-16 im PRD (liefern Lehrerkonten
+Stundenplan und Vertretungen?); Q-18 in `docs/ARCHITECTURE.md` (AutoSpeichern über die Office-Adresse
+auf iPadOS).
+
+Freigegeben von Andreas am 2026-11-13: keine ADR mit `reversibility: one-way` ist `proposed`. Das gilt
+auch nach ADR-0006 (am selben Tag von Andreas entschieden und `accepted`).

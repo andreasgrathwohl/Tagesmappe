@@ -1,0 +1,848 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vorbereiten am Mac</title>
+<!--
+  Mockup – Veranschaulichung, kein Gestaltungsbeschluss.
+  Aussehen = unveränderter macOS-Systemstandard als Platzhalter (siehe mockup/LIESMICH.md).
+  Zeigt FR-3, FR-3.1 bis FR-3.4, FR-7, FR-8, FR-9.
+-->
+<style>
+:root {
+  color-scheme: light dark;
+  --page: #d9d9de;
+  --win: #ececec;
+  --toolbar: #f4f4f4;
+  --content: #ffffff;
+  --inspector: #f6f6f6;
+  --card: rgba(0,0,0,.035);
+  --card-border: rgba(0,0,0,.14);
+  --label: rgba(0,0,0,.86);
+  --label2: rgba(0,0,0,.55);
+  --label3: rgba(0,0,0,.30);
+  --sep: rgba(0,0,0,.11);
+  --control: #ffffff;
+  --control-border: rgba(0,0,0,.16);
+  --fill: rgba(120,120,128,.12);
+  --blue: #007aff;
+  --blue-fill: rgba(0,122,255,.12);
+  --red: #d70015;
+  --orange: #c93400;
+  --stripe: rgba(0,0,0,.05);
+  --menubar: rgba(246,246,246,.92);
+  --shadow: 0 22px 60px rgba(0,0,0,.28), 0 0 0 .5px rgba(0,0,0,.22);
+  --shadow-small: 0 8px 28px rgba(0,0,0,.2), 0 0 0 .5px rgba(0,0,0,.18);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #0b0b0c;
+    --win: #2b2b2d;
+    --toolbar: #303032;
+    --content: #1e1e1e;
+    --inspector: #262628;
+    --card: rgba(255,255,255,.06);
+    --card-border: rgba(255,255,255,.16);
+    --label: rgba(255,255,255,.88);
+    --label2: rgba(255,255,255,.58);
+    --label3: rgba(255,255,255,.28);
+    --sep: rgba(255,255,255,.11);
+    --control: #4a4a4c;
+    --control-border: rgba(255,255,255,.10);
+    --fill: rgba(120,120,128,.26);
+    --blue: #0a84ff;
+    --blue-fill: rgba(10,132,255,.22);
+    --red: #ff453a;
+    --orange: #ff9f0a;
+    --stripe: rgba(255,255,255,.05);
+    --menubar: rgba(40,40,42,.92);
+    --shadow: 0 22px 60px rgba(0,0,0,.65), 0 0 0 .5px rgba(255,255,255,.16);
+    --shadow-small: 0 8px 28px rgba(0,0,0,.6), 0 0 0 .5px rgba(255,255,255,.16);
+  }
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body {
+  background: var(--page);
+  color: var(--label);
+  font: 13px/1.3 -apple-system, "SF Pro Text", system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+button { font: inherit; color: inherit; }
+svg { display: block; flex: none; }
+
+/* Bühne: feste Größe, per CSS-Transform eingepasst */
+#stage {
+  position: absolute; left: 50%; top: 50%;
+  width: 1540px; height: 884px;
+  transform: translate(-50%, -50%) scale(var(--s, 1));
+}
+
+/* macOS-Menüleiste (Platzhalter) */
+.menubar {
+  position: absolute; left: 0; top: 0; right: 0; height: 24px;
+  background: var(--menubar); display: flex; align-items: center; gap: 20px;
+  padding: 0 16px; font-size: 13px; border-radius: 8px 8px 0 0;
+}
+.menubar b { font-weight: 700; }
+.menubar .right { margin-left: auto; color: var(--label); }
+
+/* Fenster allgemein */
+.window {
+  position: absolute; background: var(--win); border-radius: 12px; overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.lights { display: flex; gap: 8px; }
+.lights i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+.lights i:nth-child(1) { background: #ff5f57; }
+.lights i:nth-child(2) { background: #febc2e; }
+.lights i:nth-child(3) { background: #28c840; }
+.lights.inactive i { background: var(--label3); }
+
+/* Finder-Fenster (Quelle des Ziehens) */
+#finder { left: 16px; top: 340px; width: 300px; height: 290px; z-index: 1; background: var(--content); }
+#finder .fbar {
+  height: 38px; display: flex; align-items: center; gap: 12px; padding: 0 12px;
+  background: var(--toolbar); border-bottom: 1px solid var(--sep); font-weight: 600;
+}
+#finder ul { list-style: none; margin: 0; padding: 4px 6px; }
+#finder li {
+  display: flex; align-items: center; gap: 7px; height: 24px; padding: 0 8px; border-radius: 5px;
+  white-space: nowrap; cursor: grab;
+}
+#finder li:nth-child(even) { background: var(--stripe); }
+#finder li.sel { background: var(--fill); }
+#finder .fpath {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 24px; display: flex; align-items: center;
+  gap: 4px; padding: 0 12px; font-size: 11px; color: var(--label2); border-top: 1px solid var(--sep);
+}
+
+/* Hauptfenster */
+#app { left: 236px; top: 44px; width: 1280px; height: 800px; z-index: 2; display: flex; flex-direction: column; }
+.toolbar {
+  height: 52px; flex: none; display: flex; align-items: center; gap: 10px; padding: 0 12px 0 20px;
+  background: var(--toolbar); border-bottom: 1px solid var(--sep);
+}
+.ttl { margin-left: 14px; line-height: 1.15; min-width: 210px; }
+.ttl h1 { margin: 0; font-size: 15px; font-weight: 600; }
+.ttl p { margin: 0; font-size: 11px; color: var(--label2); }
+.seg { display: flex; border-radius: 6px; background: var(--fill); padding: 2px; gap: 2px; }
+.seg button, .tbtn {
+  border: 0; background: transparent; height: 24px; min-width: 28px; padding: 0 8px; border-radius: 5px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; cursor: default;
+}
+.seg button:hover, .tbtn:hover { background: var(--fill); }
+.tbtn { height: 28px; }
+.spacer { flex: 1; }
+.tbtn.on { color: var(--blue); }
+
+.main { flex: 1; display: flex; min-height: 0; }
+.week { flex: 1; position: relative; background: var(--content); min-width: 0; }
+.statusbar {
+  height: 24px; flex: none; display: flex; align-items: center; gap: 6px; padding: 0 14px;
+  font-size: 11px; color: var(--label2); border-top: 1px solid var(--sep); background: var(--toolbar);
+}
+
+/* Wochenraster */
+.grid {
+  position: absolute; inset: 0; display: grid;
+  grid-template-columns: 54px repeat(5, minmax(0, 1fr));
+  grid-template-rows: 46px repeat(6, minmax(0, 1fr));
+}
+.dh {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  border-bottom: 1px solid var(--sep); border-left: 1px solid var(--sep); font-size: 13px;
+}
+.dh .num { font-size: 17px; font-weight: 400; min-width: 28px; height: 28px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; }
+.dh.today .num { background: var(--blue); color: #fff; font-weight: 600; }
+.dh.today .wd { font-weight: 600; }
+.dh .heute { font-size: 11px; color: var(--label2); }
+.th {
+  font-size: 11px; color: var(--label2); text-align: right; padding: 7px 8px 0 0;
+  border-bottom: 1px solid var(--sep);
+}
+.th b { display: block; color: var(--label); font-weight: 600; font-size: 12px; }
+.cell { position: relative; border-left: 1px solid var(--sep); border-bottom: 1px solid var(--sep); padding: 4px; min-width: 0; }
+.cell.todaycol { background: var(--blue-fill); background: color-mix(in srgb, var(--blue) 4%, transparent); }
+
+.card {
+  height: 100%; border-radius: 6px; background: var(--card); border: 1px solid var(--card-border);
+  padding: 5px 7px; overflow: hidden; position: relative; outline: none;
+}
+.card:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--blue) 45%, transparent); }
+.card.sel { border-color: var(--blue); box-shadow: inset 0 0 0 1px var(--blue); }
+.ct { display: flex; align-items: center; gap: 5px; min-width: 0; margin-bottom: 3px; }
+.ctitle { font-weight: 600; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.badge {
+  margin-left: auto; display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 600;
+  padding: 1px 5px 1px 4px; border-radius: 4px; border: 1px solid var(--card-border); white-space: nowrap; color: var(--label);
+}
+.badge.ausfall svg { color: var(--red); }
+.mlist { list-style: none; margin: 0; padding: 0; }
+.mrow { display: flex; align-items: center; gap: 5px; font-size: 12px; height: 18px; min-width: 0; color: var(--label); }
+.mrow .mn { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.mrow svg { color: var(--label2); }
+.mrow.fehlt .mn { color: var(--label2); }
+.mrow.fehlt svg.warn { color: var(--orange); }
+.sub { font-size: 11px; color: var(--label2); display: flex; align-items: center; gap: 4px; padding-left: 19px; height: 16px; white-space: nowrap; }
+.link { border: 0; background: none; padding: 0; color: var(--blue); font-size: 11px; cursor: default; }
+.link:hover { text-decoration: underline; }
+.leer { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--label2); height: 18px; }
+
+/* Ausfall: kein Kartengrund, Titel durchgestrichen, Kennzeichen mit Symbol */
+.card.ausfall { background: transparent; }
+.card.ausfall .ctitle { text-decoration: line-through; color: var(--label2); font-weight: 500; }
+
+/* Aktives Ablageziel */
+.card.drop {
+  border: 2px solid var(--blue); background: var(--blue-fill); padding: 4px 6px;
+}
+.dropnote { position: absolute; left: 6px; right: 6px; bottom: 5px; font-size: 11px; color: var(--label); display: flex; gap: 4px; align-items: flex-start; }
+.dropnote svg { color: var(--blue); margin-top: 1px; }
+
+/* Ziehbild (statische Darstellung des Ziehens aus dem Finder) */
+.ghost { position: absolute; left: 70px; top: 24px; z-index: 30; pointer-events: none; }
+.ghost .doc { opacity: .7; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.ghost .doc span {
+  font-size: 11px; background: var(--blue); color: #fff; border-radius: 4px; padding: 0 5px; white-space: nowrap;
+}
+.ghost .ptr { position: absolute; left: 50%; top: 6px; margin-left: -4px; }
+.ghost .doc span { font-size: 10.5px !important; }
+
+/* Unterrichtsfreier Tag */
+.frei {
+  grid-column: 6; grid-row: 2 / span 6; border-left: 1px solid var(--sep); padding: 8px;
+  background: repeating-linear-gradient(135deg, transparent 0 7px, var(--stripe) 7px 14px);
+  display: flex; flex-direction: column; gap: 10px;
+}
+.frei .fhead { text-align: center; padding: 14px 6px 4px; color: var(--label2); font-size: 12px; }
+.frei .fhead svg { margin: 0 auto 6px; color: var(--label2); }
+.frei .fhead b { display: block; color: var(--label); font-size: 13px; }
+.ohne {
+  background: var(--content); border: 1px solid var(--card-border); border-radius: 6px; padding: 6px 7px;
+}
+.ohne.sel { border-color: var(--blue); box-shadow: inset 0 0 0 1px var(--blue); }
+.ohne .ohl { font-size: 10.5px; font-weight: 600; color: var(--label2); text-transform: none; margin-bottom: 3px; display: flex; gap: 4px; align-items: center; }
+
+/* Inspektor */
+.insp {
+  width: 320px; flex: none; background: var(--inspector); border-left: 1px solid var(--sep);
+  overflow-y: auto; padding: 14px 16px 20px;
+}
+.insp .kicker { font-size: 11px; color: var(--label2); }
+.insp h2 { margin: 2px 0 2px; font-size: 17px; font-weight: 600; }
+.insp .origin { font-size: 12px; color: var(--label2); }
+.banner {
+  margin-top: 10px; border: 1px solid var(--card-border); border-radius: 7px; padding: 8px 10px; font-size: 12px;
+  display: flex; gap: 8px; align-items: flex-start; background: var(--content);
+}
+.banner.ausfall svg { color: var(--red); }
+.banner b { display: block; }
+.sect { margin-top: 16px; }
+.sect > header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+.sect > header h3 { margin: 0; font-size: 11px; font-weight: 600; color: var(--label2); }
+.table {
+  background: var(--content); border: 1px solid var(--card-border); border-radius: 7px; overflow: hidden;
+  list-style: none; margin: 0; padding: 3px;
+}
+.table li {
+  display: flex; align-items: center; gap: 7px; padding: 4px 6px; border-radius: 5px; position: relative; cursor: default;
+}
+.table li .grip { color: var(--label3); cursor: grab; }
+.table li .meta { font-size: 11px; color: var(--label2); display: flex; align-items: center; gap: 4px; }
+.table li .txt { min-width: 0; flex: 1; }
+.table li .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.table li.sel { background: var(--blue); color: #fff; }
+.table li.sel .meta, .table li.sel .grip, .table li.sel svg { color: rgba(255,255,255,.85) !important; }
+.table li.ins-before::before, .table li.ins-after::after {
+  content: ""; position: absolute; left: 4px; right: 4px; height: 2px; background: var(--blue); border-radius: 1px;
+}
+.table li.ins-before::before { top: -2px; }
+.table li.ins-after::after { bottom: -2px; }
+.table li.dragging { opacity: .4; }
+.foot { font-size: 11px; color: var(--label2); margin-top: 5px; }
+.emptybox {
+  background: var(--content); border: 1px solid var(--card-border); border-radius: 7px; padding: 14px 12px;
+  font-size: 12px; color: var(--label2); text-align: center;
+}
+.emptybox svg { margin: 0 auto 6px; }
+.path {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 3px; font-size: 12px; background: var(--content);
+  border: 1px solid var(--card-border); border-radius: 6px; padding: 5px 8px;
+}
+.path svg { color: var(--label2); }
+.path .chev { color: var(--label3); }
+.btns { display: flex; flex-direction: column; align-items: flex-start; gap: 7px; }
+.pbtn {
+  height: 24px; padding: 0 11px; border-radius: 6px; border: .5px solid var(--control-border);
+  background: var(--control); box-shadow: 0 .5px 1.5px rgba(0,0,0,.12); display: inline-flex; align-items: center; gap: 6px;
+  cursor: default; font-size: 13px; white-space: nowrap;
+}
+.pbtn:active { filter: brightness(.94); }
+.pbtn.primary { background: var(--blue); color: #fff; border-color: transparent; }
+.pbtn small { font-size: 11px; color: var(--label2); }
+.note { font-size: 11px; color: var(--label2); margin-top: 6px; display: flex; gap: 5px; align-items: flex-start; }
+.note svg { margin-top: 1px; }
+select.pop {
+  font: inherit; font-size: 13px; height: 24px; border-radius: 6px; border: .5px solid var(--control-border);
+  background: var(--control); color: var(--label); padding: 0 6px; max-width: 100%;
+}
+.row2 { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+/* Kontextmenü / Pull-down-Menü */
+.menu {
+  position: absolute; z-index: 60; min-width: 230px; padding: 5px; border-radius: 8px;
+  background: var(--menubar); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  box-shadow: var(--shadow-small); font-size: 13px;
+}
+.menu button {
+  display: block; width: 100%; text-align: left; border: 0; background: none; padding: 3px 10px; border-radius: 4px; cursor: default;
+  white-space: nowrap;
+}
+.menu button:hover { background: var(--blue); color: #fff; }
+.menu hr { border: 0; border-top: 1px solid var(--sep); margin: 5px 8px; }
+.menu .mh { font-size: 11px; color: var(--label2); padding: 2px 10px 4px; }
+
+/* Sheet */
+.backdrop { position: absolute; left: 0; right: 0; top: 52px; bottom: 0; z-index: 50; background: rgba(0,0,0,.08); }
+.sheet {
+  position: absolute; left: 50%; top: 10px; transform: translateX(-50%); width: 520px; z-index: 51;
+  background: var(--win); border-radius: 12px; box-shadow: var(--shadow-small); padding: 18px 20px 16px;
+}
+.sheet h4 { margin: 0 0 4px; font-size: 13px; font-weight: 600; }
+.sheet p { margin: 0 0 10px; font-size: 12px; color: var(--label2); }
+.sheet .files { list-style: none; margin: 0; padding: 3px; background: var(--content); border: 1px solid var(--card-border); border-radius: 7px; max-height: 220px; overflow: auto; }
+.sheet .files li { display: flex; gap: 7px; align-items: center; padding: 3px 7px; border-radius: 5px; }
+.sheet .files li .p { color: var(--label2); font-size: 11px; margin-left: auto; }
+.sheet .files li.sel { background: var(--blue); color: #fff; }
+.sheet .files li.sel .p, .sheet .files li.sel svg { color: rgba(255,255,255,.85); }
+.sheet .acts { display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px; }
+.form { display: grid; grid-template-columns: 90px 1fr; gap: 9px 10px; align-items: center; font-size: 13px; }
+.form label { text-align: right; }
+.form input { font: inherit; height: 22px; border-radius: 5px; border: .5px solid var(--control-border); background: var(--content); color: var(--label); padding: 0 6px; width: 160px; }
+.err { color: var(--red); font-size: 12px; min-height: 16px; margin-top: 8px; }
+
+.toast {
+  position: absolute; left: calc(50% - 160px); bottom: 40px; transform: translateX(-50%); z-index: 55;
+  background: var(--menubar); box-shadow: var(--shadow-small); border-radius: 8px; padding: 8px 14px; font-size: 12px;
+  display: none; max-width: 520px;
+}
+/* Für die Klasse, Tafelbild */
+.fld { display: block; margin-top: 8px; }
+.fld > span { display: block; font-size: 11px; color: var(--label2); margin-bottom: 2px; }
+.fld input {
+  font: inherit; width: 100%; height: 24px; border-radius: 5px; border: .5px solid var(--control-border);
+  background: var(--content); color: var(--label); padding: 0 7px;
+}
+.fld input::placeholder { color: var(--label2); opacity: .75; }
+.fld input:focus-visible { outline: 3px solid color-mix(in srgb, var(--blue) 45%, transparent); outline-offset: 0; border-color: var(--blue); }
+.tbrow { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; font-size: 12px; }
+.tbrow svg { color: var(--label2); }
+.btns.h { flex-direction: row; flex-wrap: wrap; }
+.cthema { font-size: 11px; color: var(--label2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; height: 15px; margin-bottom: 1px; }
+.backlink { position: absolute; left: 16px; top: 28px; font-size: 12px; color: var(--blue); text-decoration: none; z-index: 5; }
+.backlink:hover { text-decoration: underline; }
+.caption { position: absolute; left: 236px; top: 852px; width: 1280px; font-size: 12px; color: var(--label2); text-align: center; }
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+</style>
+</head>
+<body>
+<div id="stage">
+  <a class="backlink" href="index.html">‹ Zur Übersicht</a>
+
+  <div class="menubar" aria-hidden="true">
+    <b>Pult</b><span>Ablage</span><span>Bearbeiten</span><span>Darstellung</span><span>Unterrichtsstunde</span><span>Fenster</span><span>Hilfe</span>
+    <span class="right">Di 17. Nov. 14:05</span>
+  </div>
+
+  <!-- Finder-Fenster: Quelle des Ziehens (liegt hinter dem App-Fenster) -->
+  <div class="window" id="finder" aria-label="Finder, Ordner 8b">
+    <div class="fbar"><div class="lights inactive"><i></i><i></i><i></i></div><span>8b</span></div>
+    <ul id="finderList"></ul>
+    <div class="fpath" id="finderPath"></div>
+  </div>
+
+  <!-- App-Fenster -->
+  <div class="window" id="app" role="application" aria-label="Pult – Vorbereiten">
+    <div class="toolbar">
+      <div class="lights"><i></i><i></i><i></i></div>
+      <div class="ttl">
+        <h1>Woche 47 · A-Woche</h1>
+        <p>16.–20. November 2026</p>
+      </div>
+      <div class="seg" role="group" aria-label="Woche wechseln">
+        <button aria-label="Vorige Woche" title="Vorige Woche (Woche 46, B-Woche)" data-i="chevL"></button>
+        <button title="Zur Woche mit dem heutigen Tag">Heute</button>
+        <button aria-label="Nächste Woche" title="Nächste Woche (Woche 48, B-Woche)" data-i="chevR"></button>
+      </div>
+      <div class="spacer"></div>
+      <button class="tbtn" id="tbAdd" title="Material hinzufügen … (Dateiauswahl)"><span data-i="docPlus"></span>Material hinzufügen …</button>
+      <button class="tbtn" id="tbVert" title="Vertretungsstunde anlegen"><span data-i="calPlus"></span>Vertretungsstunde anlegen</button>
+      <button class="tbtn on" aria-label="Detailbereich ein-/ausblenden" title="Detailbereich" data-i="sidebarR"></button>
+    </div>
+    <div class="main">
+      <div class="week"><div class="grid" id="grid"></div></div>
+      <aside class="insp" id="insp" aria-label="Detailbereich"></aside>
+    </div>
+    <div class="statusbar">
+      <span data-i="sync"></span>
+      Stundenplan-Quelle: Schulmanager Online · Stand heute 7:28 Uhr
+      <span style="margin-left:auto;display:flex;gap:5px;align-items:center"><span data-i="folder"></span>Ablage: Ordnerfreigabe „Unterricht“</span>
+    </div>
+    <div id="toast" class="toast" role="status"></div>
+  </div>
+
+  <div class="caption">
+    Mockup – Veranschaulichung, kein Gestaltungsbeschluss. Aussehen = macOS-Systemstandard als Platzhalter.
+    Klick wählt eine Unterrichtsstunde · Rechtsklick auf ein Material öffnet das Kontextmenü · Dateien aus dem Finder-Fenster lassen sich auf Unterrichtsstunden ziehen.
+  </div>
+</div>
+
+<script>
+/* ---------- Symbole (Inline-SVG, an SF Symbols angelehnt) ---------- */
+const S = (p, w = 14, extra = '') => `<svg width="${w}" height="${w}" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" ${extra}>${p}</svg>`;
+const I = {
+  doc: w => S('<path d="M4 1.8h5.2L12.5 5v9.2H4z"/><path d="M9 1.8V5.2h3.5"/>', w),
+  docLines: w => S('<path d="M4 1.8h5.2L12.5 5v9.2H4z"/><path d="M9 1.8V5.2h3.5M6 8h4.5M6 10.5h4.5"/>', w),
+  docPlus: w => S('<path d="M7.5 14.2H3.5V1.8h5.2L12 5v3"/><path d="M8.5 1.8V5.2H12M12 10v5M9.5 12.5h5"/>', w || 16),
+  calPlus: w => S('<rect x="1.8" y="3" width="11" height="10.5" rx="2"/><path d="M1.8 6.2h11M5 1.5v2.5M9.6 1.5v2.5M12.5 9.5v5M10 12h5"/>', w || 16),
+  calMinus: w => S('<rect x="2" y="3" width="12" height="11" rx="2"/><path d="M2 6.5h12M5.3 1.5V4M10.7 1.5V4M5.5 10.3h5"/>', w),
+  tray: w => S('<path d="M2 9.5 3.8 3.5h8.4L14 9.5v3.5H2z"/><path d="M2 9.5h3.5l.8 1.6h3.4l.8-1.6H14"/>', w),
+  xcircle: w => S('<circle cx="8" cy="8" r="6.3"/><path d="m5.7 5.7 4.6 4.6M10.3 5.7l-4.6 4.6"/>', w),
+  warn: w => S('<path d="M8 2 14.5 13.5h-13z"/><path d="M8 6.3v3.4"/><circle cx="8" cy="11.6" r=".4" fill="currentColor"/>', w, 'class="warn"'),
+  swap: w => S('<path d="M2.5 5h10M10 2.5 12.5 5 10 7.5M13.5 11h-10M6 8.5 3.5 11 6 13.5"/>', w),
+  next: w => S('<path d="M3 3v4.5a2 2 0 0 0 2 2h8"/><path d="m10 6.5 3 3-3 3"/>', w),
+  chevL: () => S('<path d="m10 3-5 5 5 5"/>', 14),
+  chevR: () => S('<path d="m6 3 5 5-5 5"/>', 14),
+  chev: () => S('<path d="m6 4 4 4-4 4"/>', 10),
+  sidebarR: () => S('<rect x="1.8" y="2.5" width="12.4" height="11" rx="2"/><path d="M10 2.5v11"/>', 16),
+  folder: w => S('<path d="M1.8 4.2a1 1 0 0 1 1-1h3.4l1.4 1.5h5.6a1 1 0 0 1 1 1v6.8a1 1 0 0 1-1 1H2.8a1 1 0 0 1-1-1z"/>', w || 13),
+  link: w => S('<path d="M6.8 9.2a2.6 2.6 0 0 0 3.7 0l2.2-2.2a2.6 2.6 0 0 0-3.7-3.7l-.9.9"/><path d="M9.2 6.8a2.6 2.6 0 0 0-3.7 0L3.3 9a2.6 2.6 0 0 0 3.7 3.7l.9-.9"/>', w || 13),
+  grip: () => S('<path d="M4 5.5h8M4 8h8M4 10.5h8"/>', 14),
+  sync: () => S('<path d="M13 6.5A5 5 0 0 0 3.7 5M3 9.5A5 5 0 0 0 12.3 11"/><path d="M3.5 2.5V5.2h2.7M12.5 13.5v-2.7H9.8"/>', 12),
+  check: w => S('<path d="m3.5 8.5 3 3 6-7"/>', w || 12),
+  spinner: () => S('<path d="M8 2.2a5.8 5.8 0 1 1-5.8 5.8" />', 11, 'class="spin"'),
+  board: w => S('<rect x="1.8" y="2.8" width="12.4" height="8.4" rx="1.2"/><path d="M5 14h6M4.5 6.2h4M4.5 8.6h6"/>', w || 12),
+  plus: () => S('<path d="M8 3v10M3 8h10"/>', 13),
+};
+document.querySelectorAll('[data-i]').forEach(el => { el.insertAdjacentHTML('afterbegin', I[el.dataset.i]()); });
+
+/* ---------- Beispieldaten (aus mockup/LIESMICH.md) ---------- */
+const DAYS = [
+  { kurz: 'Mo', tag: 16, lang: 'Montag, 16. November' },
+  { kurz: 'Di', tag: 17, lang: 'Dienstag, 17. November' },
+  { kurz: 'Mi', tag: 18, lang: 'Mittwoch, 18. November' },
+  { kurz: 'Do', tag: 19, lang: 'Donnerstag, 19. November' },
+  { kurz: 'Fr', tag: 20, lang: 'Freitag, 20. November' },
+];
+const HEUTE = 1;
+const ZEIT = { 1: '7:45', 2: '8:35', 3: '9:40', 4: '10:30', 5: '11:35', 6: '12:25' };
+const FREI = { 4: 'Pädagogischer Tag' };
+const PARALLEL = { '8b': '8a', '8a': '8b' };          // Annahme fürs Mockup (Q-7)
+let mid = 0;
+const M = (name, typ, pfad, status = 'geraet') => ({ id: 'm' + (++mid), name, typ, pfad, status });
+const TAFEL = { mo1: 2 };                              // Tafelbild: Seitenzahl je Unterrichtsstunde (FR-12.2)
+const INFO = { di2: { thema: 'Unit 4 – Wortschatz', bereit: 'Buch, Heft, Vokabelheft', haus: 'Workbook S. 34, Nr. 2 und 3' } };  // Für die Klasse (FR-11.1)
+const info = id => INFO[id] || (INFO[id] = { thema: '', bereit: '', haus: '' });
+const L = (id, d, s, k, f, m = [], extra = {}) => ({ id, d, s, k, f, m, ...extra });
+
+const lessons = [
+  L('mo1', 0, 1, '7a', 'Deutsch'),
+  L('mo2', 0, 2, '9c', 'Englisch'),
+  L('mo5', 0, 5, '8a', 'Englisch'),
+  L('di1', 1, 1, '7a', 'Deutsch', [M('Arbeitsblatt 3 – Satzglieder', 'PDF', 'Deutsch/7a/Arbeitsblatt 3 – Satzglieder.pdf')]),
+  L('di2', 1, 2, '8b', 'Englisch', [
+    M('Unit 4 – Präsentation', 'PowerPoint', 'Englisch/8b/Unit 4 – Präsentation.pptx'),
+    M('Arbeitsblatt Vokabeln', 'Word', 'Englisch/8b/Arbeitsblatt Vokabeln.docx'),
+    M('Lösung Vokabeln', 'PDF', 'Englisch/8b/Lösung Vokabeln.pdf', 'laedt'),
+  ]),
+  L('di4', 1, 4, '9c', 'Englisch', [M('Unit 2 – Hörverstehen', 'PowerPoint', 'Englisch/9c/Unit 2 – Hörverstehen.pptx')], { ausfall: 'quelle' }),
+  L('di5', 1, 5, '6c', 'Mathe', [], { vertretung: 'quelle' }),
+  L('di6', 1, 6, '8a', 'Englisch', [M('Unit 4 – Präsentation', 'PowerPoint', 'Englisch/8a/Unit 4 – Präsentation.pptx', 'fehlt')]),
+  L('mi3', 2, 3, '8b', 'Englisch'),
+  L('mi4', 2, 4, '7a', 'Deutsch'),
+  L('do2', 3, 2, '9c', 'Englisch'),
+  L('do3', 3, 3, '8a', 'Englisch'),
+];
+/* Material ohne Stunde am unterrichtsfreien Tag (FR-7, ARCHITECTURE › Material ohne Stunde) */
+const ohne = { id: 'fr', d: 4, war: '7a Deutsch', m: [M('Lesetext Kapitel 5', 'PDF', 'Deutsch/7a/Lesetext Kapitel 5.pdf')] };
+
+const ABLAGE = [
+  'Englisch/8b/Arbeitsblatt Vokabeln.docx', 'Englisch/8b/Lösung Vokabeln.pdf', 'Englisch/8b/Unit 4 – Präsentation.pptx',
+  'Englisch/8b/Unit 4 – Wortschatz.pdf', 'Englisch/8b/Unit 5 – Einstieg.pptx', 'Englisch/8a/Unit 4 – Präsentation (Kurs 8a).pptx',
+  'Englisch/9c/Unit 2 – Hörverstehen.pptx', 'Deutsch/7a/Lesetext Kapitel 6.pdf', 'Mathe/6c/Brüche – Übungen.pdf',
+];
+const FINDER_DIR = 'Englisch/8b/';
+
+/* ---------- Zustand ---------- */
+let sel = 'di2', selMat = null, demoDrag = true;
+
+/* ---------- Hilfen ---------- */
+const byId = id => id === 'fr' ? ohne : lessons.find(l => l.id === id);
+const order = l => l.d * 10 + l.s;
+const when = l => `${DAYS[l.d].kurz} ${DAYS[l.d].tag}.11., ${l.s}. Stunde`;
+const nextOf = l => lessons.filter(x => x.k === l.k && !x.ausfall && order(x) > order(l)).sort((a, b) => order(a) - order(b))[0];
+const typOf = p => ({ pptx: 'PowerPoint', docx: 'Word', pdf: 'PDF' })[p.split('.').pop()] || 'Datei';
+const nameOf = p => p.split('/').pop().replace(/\.[^.]+$/, '');
+const esc = s => s.replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const statusText = m => ({ geraet: 'auf dem Gerät', laedt: 'wird geladen', fehlt: 'nicht verfügbar' })[m.status];
+function toast(t) {
+  const el = document.getElementById('toast'); el.innerHTML = t; el.style.display = 'block';
+  clearTimeout(toast.t); toast.t = setTimeout(() => el.style.display = 'none', 3600);
+}
+
+/* ---------- Wochenraster ---------- */
+function matRow(l, m) {
+  const icon = m.status === 'fehlt' ? I.warn(13) : I.doc(13);
+  let h = `<li class="mrow ${m.status}" data-l="${l.id}" data-m="${m.id}" title="${esc(m.name)} · ${m.typ} · ${statusText(m)}">${icon}<span class="mn">${esc(m.name)}</span>${m.status === 'laedt' ? I.spinner() : ''}</li>`;
+  if (m.status === 'fehlt') h += `<li class="sub">nicht verfügbar</li><li class="sub"><button class="link" data-act="relink" data-l="${l.id}" data-m="${m.id}">Neu verknüpfen …</button></li>`;
+  return h;
+}
+function card(l) {
+  const cls = ['card']; if (l.ausfall) cls.push('ausfall'); if (sel === l.id) cls.push('sel'); if (demoDrag && l.id === 'mi3') cls.push('drop');
+  let badge = '';
+  if (l.ausfall) badge = `<span class="badge ausfall">${I.xcircle(11)}Ausfall</span>`;
+  else if (l.vertretung) badge = `<span class="badge">${I.swap(11)}Vertretung</span>`;
+  if (TAFEL[l.id]) badge += `<span class="badge" title="Tafelbild, ${TAFEL[l.id]} Seiten">${I.board(11)}Tafelbild</span>`;
+  const th = info(l.id).thema.trim();
+  const showTh = th && !l.ausfall && l.m.length <= 3 && !l.m.some(m => m.status === 'fehlt') && !(demoDrag && l.id === 'mi3');
+  let body = showTh ? `<div class="cthema" title="Thema: ${esc(th)}">${esc(th)}</div>` : '';
+  if (l.m.length) {
+    body += `<ul class="mlist">${l.m.map(m => matRow(l, m)).join('')}</ul>`;
+    if (l.ausfall) { const n = nextOf(l); body += `<div class="sub" style="padding-left:0">${I.next(11)}<button class="link" data-act="pass" data-l="${l.id}">Weiterreichen → ${n ? DAYS[n.d].kurz + ' ' + n.s + '. Std.' : 'Woche 48'}</button></div>`; }
+  } else if (l.ausfall) {
+    body += `<div class="leer">kein Material weiterzureichen</div>`;
+  } else {
+    body += `<div class="leer">${I.tray(13)}Ohne Material</div>`;
+  }
+  if (demoDrag && l.id === 'mi3') body += `<div class="dropnote">${I.link(12)}<span>Loslassen verknüpft die Datei – keine Kopie</span></div>`;
+  const label = `${when(l)}, ${l.k} ${l.f}${l.ausfall ? ', Ausfall' : ''}${l.vertretung ? ', Vertretungsstunde' : ''}, ${l.m.length ? l.m.length + ' Material' : 'ohne Material'}`;
+  return `<div class="${cls.join(' ')}" data-id="${l.id}" tabindex="0" role="button" aria-pressed="${sel === l.id}" aria-label="${esc(label)}">
+    <div class="ct"><span class="ctitle">${l.k} ${l.f}</span>${badge}</div>${body}</div>`;
+}
+function renderGrid() {
+  let h = '<div class="th" style="border-bottom:1px solid var(--sep)"></div>';
+  DAYS.forEach((d, i) => {
+    h += `<div class="dh ${i === HEUTE ? 'today' : ''}"><span class="wd">${d.kurz}</span><span class="num">${d.tag}</span>${i === HEUTE ? '<span class="heute">Heute</span>' : ''}${FREI[i] ? '<span class="heute">unterrichtsfrei</span>' : ''}</div>`;
+  });
+  for (let s = 1; s <= 6; s++) {
+    h += `<div class="th" style="grid-column:1;grid-row:${s + 1}"><b>${s}.</b>${ZEIT[s]}</div>`;
+    for (let d = 0; d < 4; d++) {
+      const l = lessons.find(x => x.d === d && x.s === s);
+      h += `<div class="cell ${d === HEUTE ? 'todaycol' : ''}" style="grid-column:${d + 2};grid-row:${s + 1}">${l ? card(l) : ''}${demoDrag && l && l.id === 'mi3' ? ghost() : ''}</div>`;
+    }
+  }
+  h += `<div class="frei"><div class="fhead">${I.calMinus(22)}<b>Unterrichtsfreier Tag</b>${FREI[4]}<br>keine Unterrichtsstunden</div>`;
+  if (ohne.m.length) {
+    h += `<div class="ohne ${sel === 'fr' ? 'sel' : ''}" data-id="fr" tabindex="0" role="button" aria-label="Material ohne Stunde am Freitag, 20. November">
+      <div class="ohl">${I.calMinus(11)}Ohne Stunde · war ${ohne.war}</div>
+      <ul class="mlist">${ohne.m.map(m => matRow(ohne, m)).join('')}</ul>
+      <div class="sub" style="padding-left:0">${I.next(11)}<button class="link" data-act="selectfr">Verschieben …</button></div></div>`;
+  }
+  h += '</div>';
+  document.getElementById('grid').innerHTML = h;
+}
+function ghost() {
+  return `<div class="ghost" aria-hidden="true"><div class="doc">${I.docLines(28)}<span>Unit 4 – Wortschatz.pdf</span></div>
+    <svg class="ptr" width="26" height="26" viewBox="0 0 26 26"><path d="M3 2v16l4-3.6 2.6 6 2.6-1.1-2.6-5.9H15z" fill="#000" stroke="#fff" stroke-width="1.2" stroke-linejoin="round"/>
+    <circle cx="19" cy="19" r="6" fill="#fff" stroke="#000" stroke-width=".8"/><path d="M16.2 20.5v-1.3a2 2 0 0 1 2-2h3M20 15.8l1.6 1.4-1.6 1.4" fill="none" stroke="#000" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>`;
+}
+
+/* ---------- Detailbereich ---------- */
+function matTable(l) {
+  if (!l.m.length) {
+    return `<div class="emptybox">${I.tray(22)}Noch kein Material.<br>Datei aus dem Finder auf die Unterrichtsstunde ziehen oder<div style="margin-top:8px"><button class="pbtn" data-act="add">Material hinzufügen …</button></div></div>`;
+  }
+  return `<ul class="table" id="mtable" aria-label="Material in Reihenfolge">${l.m.map((m, i) => `
+    <li draggable="true" class="${m.id === selMat ? 'sel' : ''}" data-m="${m.id}" data-l="${l.id}" aria-label="${i + 1}. ${esc(m.name)}">
+      ${l.id !== 'fr' ? `<span class="grip" title="Ziehen, um die Reihenfolge zu ändern">${I.grip()}</span>` : ''}
+      ${m.status === 'fehlt' ? I.warn(16) : I.doc(16)}
+      <div class="txt"><div class="nm">${esc(m.name)}</div>
+      <div class="meta">${m.typ} · ${m.status === 'laedt' ? I.spinner() : ''}${statusText(m)}</div></div>
+    </li>`).join('')}</ul>`;
+}
+function pathCtl(p) {
+  const parts = ['Unterricht', ...p.split('/')];
+  return `<div class="path">${I.folder()}${parts.map((x, i) => `<span>${esc(x)}</span>${i < parts.length - 1 ? '<span class="chev">' + I.chev() + '</span>' : ''}`).join('')}</div>`;
+}
+function renderInsp() {
+  const el = document.getElementById('insp');
+  const l = byId(sel);
+  if (!l.m.find(m => m.id === selMat)) selMat = l.m[0] ? l.m[0].id : null;
+  const m = l.m.find(x => x.id === selMat);
+  let h = '';
+  if (l === ohne) {
+    h += `<div class="kicker">${DAYS[4].lang} · unterrichtsfreier Tag</div><h2>${FREI[4]}</h2>
+      <div class="origin">An diesem Tag gibt es keine Unterrichtsstunden.</div>
+      <div class="banner">${I.calMinus(16)}<div><b>Material ohne Stunde</b>Die Zuordnung bleibt erhalten, bis du das Material auf eine andere Unterrichtsstunde verschiebst. Vorher: ${ohne.war}.</div></div>`;
+  } else {
+    h += `<div class="kicker">${DAYS[l.d].lang} · ${l.s}. Stunde · ${ZEIT[l.s]} Uhr</div><h2>${l.k} ${l.f}</h2>
+      <div class="origin">${l.vertretung ? (l.vertretung === 'quelle' ? 'Vertretungsstunde aus der Stundenplan-Quelle' : 'Vertretungsstunde, von Hand angelegt') : 'Aus dem Stundenplan · A-Woche'}</div>`;
+    if (l.ausfall) {
+      const n = nextOf(l);
+      h += `<div class="banner ausfall">${I.xcircle(16)}<div><b>Ausfall</b>${l.ausfall === 'quelle' ? 'Aus der Stundenplan-Quelle (Schulmanager Online, heute 7:28 Uhr).' : 'Von dir markiert.'} Der Stundenplan-Eintrag bleibt bestehen.
+        ${l.m.length ? `<div style="margin-top:8px"><button class="pbtn" data-act="pass" data-l="${l.id}">${I.next(13)}Material in die nächste Stunde der ${l.k} weiterreichen</button></div><div class="note">→ ${n ? when(n) : 'liegt in Woche 48'}</div>` : ''}
+        ${l.ausfall === 'manuell' ? `<div style="margin-top:8px"><button class="pbtn" data-act="unausfall">Ausfall aufheben</button></div>` : ''}</div></div>`;
+    }
+  }
+  h += `<section class="sect"><header><h3>Material (${l.m.length})</h3>${l !== ohne ? `<button class="tbtn" style="height:22px" data-act="add" aria-label="Material hinzufügen …" title="Material hinzufügen …">${I.plus()}</button>` : ''}</header>${matTable(l)}
+    ${l.m.length > 1 ? '<div class="foot">Reihenfolge per Ziehen ändern – so erscheint das Material in der Tagesansicht.</div>' : ''}</section>`;
+  if (l !== ohne && !l.ausfall) {
+    const c = info(l.id);
+    h += `<section class="sect"><header><h3>Für die Klasse</h3></header>
+      <label class="fld"><span>Thema</span><input type="text" data-f="thema" value="${esc(c.thema)}" placeholder="z. B. Unit 5 – Einstieg"></label>
+      <label class="fld"><span>Bereitlegen</span><input type="text" data-f="bereit" value="${esc(c.bereit)}" placeholder="z. B. Buch, Heft"></label>
+      <label class="fld"><span>Hausaufgabe</span><input type="text" data-f="haus" value="${esc(c.haus)}" placeholder="z. B. Workbook S. 20"></label>
+      <div class="note">Erscheint auf dem Klassenbildschirm.</div></section>`;
+  }
+  if (TAFEL[l.id]) {
+    h += `<section class="sect"><header><h3>Tafelbild · ${TAFEL[l.id]} Seiten</h3></header>
+      <div class="tbrow">${I.board(14)}<span>Entstanden in dieser Unterrichtsstunde</span></div>
+      <div class="btns h"><button class="pbtn" data-act="tafelsee">Ansehen</button><button class="pbtn" data-act="tafelpdf">Als PDF sichern …</button></div>
+      <div class="note">Am Mac wird nicht gezeichnet, nur angesehen und gesichert.</div></section>`;
+  }
+  if (m) {
+    h += `<section class="sect"><header><h3>Verweis in der Ablage</h3></header>${pathCtl(m.pfad)}
+      <div class="note">${I.link(12)}<span>Zugeordnet ist ein Verweis auf diese Datei, keine Kopie. Änderungen an der Datei gelten überall, wo sie zugeordnet ist.</span></div>`;
+    if (m.status === 'fehlt') {
+      h += `<div class="banner">${I.warn(16)}<div><b>Material nicht verfügbar</b>Die Datei wurde unter diesem Pfad nicht gefunden – umbenannt, verschoben oder die Ordnerfreigabe fehlt. Die Zuordnung bleibt bestehen.<div style="margin-top:8px"><button class="pbtn" data-act="relink" data-l="${l.id}" data-m="${m.id}">Neu verknüpfen …</button></div></div></div>`;
+    }
+    h += `<div class="btns" style="margin-top:10px">`;
+    if (m.status !== 'fehlt') h += `<button class="pbtn" data-act="finder">Im Finder zeigen</button>`;
+    if (l === ohne) {
+      h += `<div class="row2"><span>Verschieben auf</span><select class="pop" id="moveTarget">${lessons.filter(x => !x.ausfall).sort((a, b) => order(a) - order(b)).map(x =>
+        `<option value="${x.id}" ${x.id === 'mi4' ? 'selected' : ''}>${when(x)} · ${x.k} ${x.f}</option>`).join('')}</select></div>
+        <button class="pbtn primary" data-act="move" data-m="${m.id}">Verschieben</button>`;
+    } else if (!l.ausfall) {
+      const n = nextOf(l);
+      h += `<button class="pbtn" data-act="push" data-l="${l.id}" data-m="${m.id}" ${n ? '' : 'disabled'}>${I.next(13)}In die nächste Stunde der ${l.k} schieben</button>
+        <div class="note" style="margin-top:-3px">→ ${n ? when(n) : 'liegt in Woche 48'}</div>`;
+    }
+    h += `</div></section>`;
+  }
+  if (l !== ohne) {
+    const p = PARALLEL[l.k];
+    h += `<section class="sect"><header><h3>Unterrichtsstunde</h3></header><div class="btns">`;
+    if (p && l.m.length) h += `<button class="pbtn" data-act="copymenu" data-l="${l.id}">Für ${p} übernehmen <span style="color:var(--label2)">▾</span></button>`;
+    if (!l.ausfall) h += `<button class="pbtn" data-act="ausfall" data-l="${l.id}">${I.xcircle(13)}Als Ausfall markieren</button>`;
+    h += `</div></section>`;
+  }
+  el.innerHTML = h;
+  bindReorder(l);
+}
+function render() { renderGrid(); renderInsp(); }
+
+/* ---------- Finder ---------- */
+function renderFinder() {
+  const files = ABLAGE.filter(p => p.startsWith(FINDER_DIR));
+  document.getElementById('finderList').innerHTML = files.map(p =>
+    `<li draggable="true" data-p="${esc(p)}" class="${p.endsWith('Wortschatz.pdf') && demoDrag ? 'sel' : ''}">${I.doc(15)}${esc(p.split('/').pop())}</li>`).join('');
+  document.getElementById('finderPath').innerHTML = `${I.folder(11)} Unterricht ${I.chev()} Englisch ${I.chev()} 8b`;
+}
+
+/* ---------- Aktionen ---------- */
+function moveMat(fromL, mId, toL) {
+  const i = fromL.m.findIndex(x => x.id === mId); if (i < 0 || !toL) return;
+  const [m] = fromL.m.splice(i, 1); toL.m.push(m);
+  return m;
+}
+function addRef(l, p) {
+  if (l.m.some(x => x.pfad === p)) { toast(`„${esc(nameOf(p))}“ ist dieser Unterrichtsstunde schon zugeordnet.`); return; }
+  const m = M(nameOf(p), typOf(p), p); l.m.push(m); sel = l.id; selMat = m.id;
+  demoDrag = false; renderFinder(); render();
+  toast(`${I.link(12).replace('<svg', '<svg style="display:inline;vertical-align:-2px"')} „${esc(m.name)}“ mit ${when(l)} · ${l.k} verknüpft – die Datei bleibt in der Ablage, keine Kopie.`);
+}
+document.addEventListener('click', e => {
+  closeMenu(e);
+  const t = e.target.closest('[data-act]');
+  if (t) {
+    const l = t.dataset.l ? byId(t.dataset.l) : byId(sel);
+    const a = t.dataset.act;
+    closeMenu();
+    if (a === 'open') toast('Mockup: öffnet das Material in der App, mit der die Datei bearbeitet wird.');
+    if (a === 'push') { const n = nextOf(l), m = moveMat(l, t.dataset.m, n); if (m) { render(); toast(`„${esc(m.name)}“ steht jetzt in ${when(n)} der ${l.k}.`); } }
+    if (a === 'pass') { const n = nextOf(l); if (n) { const k = l.m.length; n.m.push(...l.m.splice(0)); render(); toast(`${k} Material in ${when(n)} der ${l.k} weitergereicht.`); } }
+    if (a === 'ausfall') { l.ausfall = 'manuell'; render(); toast(`${when(l)} · ${l.k} als Ausfall markiert.`); }
+    if (a === 'unausfall') { delete l.ausfall; render(); }
+    if (a === 'tafelsee') toast('Mockup: zeigt das Tafelbild mit beiden Seiten, nur zum Ansehen.');
+    if (a === 'tafelpdf') toast('Mockup: fragt nach einem Ordner und sichert das Tafelbild als PDF mit 2 Seiten.');
+    if (a === 'finder') toast('Mockup: öffnet den Finder am Ort der Datei in der Ablage.');
+    if (a === 'add') openPicker(byId(sel));
+    if (a === 'relink') openPicker(l, t.dataset.m);
+    if (a === 'selectfr') { sel = 'fr'; render(); }
+    if (a === 'move') { const to = byId(document.getElementById('moveTarget').value); const m = moveMat(ohne, t.dataset.m, to); if (m) { sel = to.id; selMat = m.id; render(); toast(`„${esc(m.name)}“ auf ${when(to)} · ${to.k} verschoben.`); } }
+    if (a === 'copymenu') { e.stopPropagation(); copyMenu(l, t); }
+    return;
+  }
+  const c = e.target.closest('[data-id]');
+  if (c) { sel = c.dataset.id; const r = e.target.closest('[data-m]'); selMat = r ? r.dataset.m : null; render(); return; }
+  const row = e.target.closest('#mtable li');
+  if (row) { selMat = row.dataset.m; renderInsp(); }
+});
+document.addEventListener('keydown', e => {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[data-id]')) { e.preventDefault(); sel = e.target.dataset.id; selMat = null; render(); document.querySelector(`[data-id="${sel}"]`).focus(); }
+  if (e.key === 'Escape') { closeMenu(); closeSheet(); }
+});
+document.getElementById('insp').addEventListener('input', e => {
+  const f = e.target.dataset.f; if (!f) return;
+  info(sel)[f] = e.target.value; renderGrid();
+});
+document.getElementById('tbAdd').onclick = e => { e.stopPropagation(); openPicker(byId(sel)); };
+document.getElementById('tbVert').onclick = e => { e.stopPropagation(); openVertretung(); };
+
+/* ---------- Kontextmenü ---------- */
+const app = document.getElementById('app');
+const scale = () => parseFloat(getComputedStyle(document.getElementById('stage')).getPropertyValue('--s')) || 1;
+function showMenu(html, x, y) {
+  closeMenu();
+  const r = app.getBoundingClientRect(), s = scale();
+  const m = document.createElement('div'); m.className = 'menu'; m.id = 'menu'; m.setAttribute('role', 'menu'); m.innerHTML = html;
+  app.appendChild(m);
+  let left = (x - r.left) / s, top = (y - r.top) / s;
+  left = Math.min(left, 1280 - m.offsetWidth - 6); top = Math.min(top, 800 - m.offsetHeight - 6);
+  m.style.left = left + 'px'; m.style.top = top + 'px';
+  return m;
+}
+function closeMenu(e) { const m = document.getElementById('menu'); if (m && !(e && m.contains(e.target))) m.remove(); }
+document.addEventListener('contextmenu', e => {
+  const r = e.target.closest('[data-m]');
+  if (!r) return;
+  e.preventDefault();
+  const l = byId(r.dataset.l), m = l.m.find(x => x.id === r.dataset.m);
+  sel = l.id; selMat = m.id; render();
+  const n = l === ohne ? null : nextOf(l);
+  let h = '';
+  if (m.status === 'fehlt') h += `<button data-act="relink" data-l="${l.id}" data-m="${m.id}">Neu verknüpfen …</button>`;
+  else h += `<button data-act="open">Öffnen</button><button data-act="finder">Im Finder zeigen</button>`;
+  h += '<hr>';
+  if (l === ohne) h += `<button data-act="selectfr">Auf eine Unterrichtsstunde verschieben …</button>`;
+  else if (l.ausfall && n) h += `<button data-act="pass" data-l="${l.id}">In die nächste Stunde der ${l.k} weiterreichen</button>`;
+  else if (n) h += `<button data-act="push" data-l="${l.id}" data-m="${m.id}">In die nächste Stunde der ${l.k} schieben</button>`;
+  h += `<hr><button data-act="remove" data-l="${l.id}" data-m="${m.id}">Zuordnung entfernen</button>`;
+  const menu = showMenu(h, e.clientX, e.clientY);
+  menu.querySelector('[data-act="remove"]').onclick = ev => {
+    ev.stopPropagation(); l.m = l.m.filter(x => x.id !== m.id); closeMenu(); render();
+    toast(`Zuordnung entfernt. Die Datei „${esc(m.name)}“ bleibt in der Ablage.`);
+  };
+});
+function copyMenu(l, btn) {
+  const p = PARALLEL[l.k];
+  const targets = lessons.filter(x => x.k === p && x.f === l.f && !x.ausfall).sort((a, b) => order(a) - order(b));
+  const r = btn.getBoundingClientRect();
+  const menu = showMenu(`<div class="mh">Zuordnung von ${l.k} übernehmen in …</div>` +
+    targets.map(x => `<button data-t="${x.id}">${when(x)} · ${x.k}${x.m.length ? ` (hat ${x.m.length} Material)` : ''}</button>`).join(''), r.left, r.bottom + 2);
+  menu.querySelectorAll('[data-t]').forEach(b => b.onclick = ev => {
+    ev.stopPropagation(); const to = byId(b.dataset.t); let k = 0;
+    l.m.forEach(m => { if (!to.m.some(x => x.pfad === m.pfad)) { to.m.push(M(m.name, m.typ, m.pfad, m.status)); k++; } });
+    closeMenu(); render();
+    toast(`${k} Verweis${k === 1 ? '' : 'e'} für ${when(to)} · ${to.k} übernommen – in der Ablage entsteht keine neue Datei.`);
+  });
+}
+
+/* ---------- Umordnen im Detailbereich (FR-3.1) ---------- */
+function bindReorder(l) {
+  const t = document.getElementById('mtable'); if (!t || l === ohne) return;
+  let drag = null;
+  t.querySelectorAll('li').forEach(li => {
+    li.addEventListener('dragstart', e => { drag = li.dataset.m; li.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('application/x-material', drag); });
+    li.addEventListener('dragend', () => li.classList.remove('dragging'));
+    li.addEventListener('dragover', e => {
+      if (!drag) return; e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+      const after = e.offsetY > li.offsetHeight / 2;
+      t.querySelectorAll('li').forEach(x => x.classList.remove('ins-before', 'ins-after'));
+      li.classList.add(after ? 'ins-after' : 'ins-before');
+    });
+    li.addEventListener('drop', e => {
+      if (!drag) return; e.preventDefault(); e.stopPropagation();
+      const after = li.classList.contains('ins-after');
+      const from = l.m.findIndex(x => x.id === drag); const [m] = l.m.splice(from, 1);
+      let to = l.m.findIndex(x => x.id === li.dataset.m); if (to < 0) to = l.m.length; if (after) to++;
+      l.m.splice(to, 0, m); selMat = m.id; drag = null; render();
+    });
+  });
+}
+
+/* ---------- Ziehen aus dem Finder auf eine Unterrichtsstunde (FR-3, FR-3.4) ---------- */
+document.getElementById('finderList').addEventListener('dragstart', e => {
+  const li = e.target.closest('li'); if (!li) return;
+  e.dataTransfer.setData('application/x-ablage', li.dataset.p); e.dataTransfer.effectAllowed = 'link';
+  if (demoDrag) { demoDrag = false; renderGrid(); }
+});
+const grid = document.getElementById('grid');
+const target = e => { const c = e.target.closest('.card'); const l = c && byId(c.dataset.id); return l && !l.ausfall ? c : null; };
+grid.addEventListener('dragover', e => {
+  if (!e.dataTransfer.types.includes('application/x-ablage')) return;
+  const c = target(e);
+  grid.querySelectorAll('.card.drop').forEach(x => x !== c && x.classList.remove('drop'));
+  if (c) { e.preventDefault(); e.dataTransfer.dropEffect = 'link'; c.classList.add('drop'); }
+});
+grid.addEventListener('dragleave', e => { const c = e.target.closest('.card'); if (c && !c.contains(e.relatedTarget)) c.classList.remove('drop'); });
+grid.addEventListener('drop', e => {
+  const c = target(e); const p = e.dataTransfer.getData('application/x-ablage');
+  if (!c || !p) return; e.preventDefault(); addRef(byId(c.dataset.id), p);
+});
+
+/* ---------- Sheets ---------- */
+function openSheet(html) {
+  closeSheet(); closeMenu();
+  app.insertAdjacentHTML('beforeend', `<div class="backdrop" id="bd"></div><div class="sheet" id="sheet" role="dialog" aria-modal="true">${html}</div>`);
+  document.getElementById('bd').onclick = closeSheet;
+}
+function closeSheet() { ['bd', 'sheet'].forEach(id => { const x = document.getElementById(id); if (x) x.remove(); }); }
+function openPicker(l, relinkId) {
+  if (l === ohne) { toast('Material am unterrichtsfreien Tag lässt sich nur verschieben.'); return; }
+  let chosen = null;
+  openSheet(`<h4>${relinkId ? 'Neu verknüpfen' : 'Material hinzufügen'} – ${when(l)} · ${l.k} ${l.f}</h4>
+    <p>Platzhalter für die Dateiauswahl des Systems. Ausgewählt wird eine Datei in der Ablage; zugeordnet wird ein Verweis, keine Kopie.</p>
+    <ul class="files" id="files">${ABLAGE.map(p => `<li data-p="${esc(p)}">${I.doc(14)}${esc(p.split('/').pop())}<span class="p">${esc(p.split('/').slice(0, -1).join(' › '))}</span></li>`).join('')}</ul>
+    <div class="acts"><button class="pbtn" id="cx">Abbrechen</button><button class="pbtn primary" id="ok" disabled>${relinkId ? 'Verknüpfen' : 'Zuordnen'}</button></div>`);
+  const ok = document.getElementById('ok');
+  document.getElementById('files').onclick = e => {
+    const li = e.target.closest('li'); if (!li) return;
+    document.querySelectorAll('#files li').forEach(x => x.classList.toggle('sel', x === li)); chosen = li.dataset.p; ok.disabled = false;
+  };
+  document.getElementById('cx').onclick = closeSheet;
+  ok.onclick = () => {
+    if (!chosen) return; closeSheet();
+    if (relinkId) {
+      const m = l.m.find(x => x.id === relinkId); Object.assign(m, { pfad: chosen, name: nameOf(chosen), typ: typOf(chosen), status: 'geraet' });
+      sel = l.id; selMat = m.id; render(); toast(`Verweis erneuert: „${esc(m.name)}“.`);
+    } else addRef(l, chosen);
+  };
+}
+function openVertretung() {
+  openSheet(`<h4>Vertretungsstunde anlegen</h4>
+    <p>Eine zusätzliche, einmalige Unterrichtsstunde – nur an diesem Datum, nicht im Stundenplan.</p>
+    <div class="form">
+      <label for="vd">Datum</label><select class="pop" id="vd">${DAYS.map((d, i) => FREI[i] ? '' : `<option value="${i}" ${i === 2 ? 'selected' : ''}>${d.lang} 2026</option>`).join('')}</select>
+      <label for="vs">Stunde</label><select class="pop" id="vs">${[1, 2, 3, 4, 5, 6].map(s => `<option value="${s}" ${s === 4 ? 'selected' : ''}>${s}. Stunde · ${ZEIT[s]}</option>`).join('')}</select>
+      <label for="vk">Klasse</label><input id="vk" value="6c">
+      <label for="vf">Fach</label><input id="vf" value="Mathe">
+    </div>
+    <div class="err" id="verr"></div>
+    <div class="acts"><button class="pbtn" id="cx">Abbrechen</button><button class="pbtn primary" id="ok">Anlegen</button></div>`);
+  document.getElementById('cx').onclick = closeSheet;
+  document.getElementById('ok').onclick = () => {
+    const d = +document.getElementById('vd').value, s = +document.getElementById('vs').value;
+    const k = document.getElementById('vk').value.trim(), f = document.getElementById('vf').value.trim();
+    const besetzt = lessons.find(x => x.d === d && x.s === s);
+    if (besetzt) { document.getElementById('verr').textContent = `Zu dieser Zeit ist schon ${besetzt.k} ${besetzt.f}. Wähle eine andere Stunde.`; return; }
+    if (!k || !f) { document.getElementById('verr').textContent = 'Klasse und Fach angeben.'; return; }
+    const l = L('v' + Date.now(), d, s, k, f, [], { vertretung: 'manuell' }); lessons.push(l);
+    sel = l.id; closeSheet(); render(); toast(`Vertretungsstunde ${when(l)} · ${k} ${f} angelegt. Material lässt sich jetzt zuordnen.`);
+  };
+}
+
+/* ---------- Einpassen ---------- */
+function fit() {
+  const s = Math.min(innerWidth / 1560, innerHeight / 900);
+  document.getElementById('stage').style.setProperty('--s', s.toFixed(4));
+}
+addEventListener('resize', fit); fit();
+renderFinder(); render();
+</script>
+</body>
+</html>

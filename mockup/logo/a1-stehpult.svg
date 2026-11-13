@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Konzept A1 "Stehpult": das Pult im Profil, oben liegt das Material bereit. -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#15606F"/>
+      <stop offset="1" stop-color="#0B3B48"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#bg)"/>
+  <g transform="translate(18,-110)" stroke-linejoin="round">
+    <!-- Fuß -->
+    <rect x="292" y="820" width="440" height="90" rx="45" fill="#F3EADB"/>
+    <!-- Säule -->
+    <rect x="437" y="570" width="150" height="270" rx="22" fill="#F3EADB"/>
+    <!-- Pultplatte (schräg) -->
+    <polygon points="250,615 792,402 792,482 250,695" fill="#F3EADB" stroke="#F3EADB" stroke-width="28"/>
+    <!-- Ablagekante vorn -->
+    <rect x="196" y="520" width="84" height="192" rx="36" fill="#F3EADB"/>
+    <!-- Material, das bereitliegt -->
+    <polygon points="294,536 792,340 792,402 294,598" fill="#F5B23E" stroke="#F5B23E" stroke-width="28"/>
+  </g>
+</svg>

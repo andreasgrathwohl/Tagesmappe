@@ -38,6 +38,13 @@ Mac oder iPad (Vorbereiten)                iPad (Unterricht)
 4. Material öffnen, präsentieren, darin schreiben und zeichnen
 5. Änderungen landen sofort in der Ablage
 
+## Am Smartboard
+
+Das Smartboard ist ein Zweitbildschirm: Es zeigt nie die Tagesansicht, sondern genau eines von vier
+Dingen – den Klassenbildschirm (Klasse, Fach, Uhrzeit, Thema, Timer, Arbeitsform), das geöffnete
+Material, die Tafel oder nichts (dunkel). Umgeschaltet wird am iPad, das immer zeigt, was die Klasse
+gerade sieht. Was an die Tafel geschrieben wird, bleibt als Tafelbild bei der Unterrichtsstunde.
+
 ## Für wen
 
 Lehrkräfte mit eigenem iPad, mit oder ohne Mac, mit oder ohne Microsoft 365. Nicht für Schüler,
@@ -48,3 +55,4 @@ Eltern oder Verwaltung.
 - **Keine eigenen Server** – Daten bleiben bei der Lehrkraft.
 - **Ein Stand je Datei** – Zuordnen verweist, kopiert nie.
 - **Präsentieren bleibt in PowerPoint & Co.** – die App ersetzt sie nicht.
+- **Kein Abo** – der Kern ist kostenlos, Klassenbildschirm und Tafel kosten einmal.

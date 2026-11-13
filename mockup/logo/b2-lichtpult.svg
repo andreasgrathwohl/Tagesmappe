@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#F2ECE2"/>
+  <!-- P: Stiel = Ständer, Bogen = Bildschirm, der der Klasse zugewandt ist -->
+  <path fill="#1F2A44" fill-rule="evenodd" d="M342 212 H692 A80 80 0 0 1 772 292 V552 A80 80 0 0 1 692 632 H454 V762 A56 56 0 0 1 342 762 Z M454 292 V552 H692 V292 Z"/>
+  <!-- was die Klasse sieht: das Licht im Bildschirm -->
+  <rect x="454" y="292" width="238" height="260" fill="#F0A23B"/>
+</svg>

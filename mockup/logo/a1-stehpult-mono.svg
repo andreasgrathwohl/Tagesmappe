@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Konzept A1 "Stehpult", eingefärbter Modus: nur das Motiv, eine Farbe, Tiefe über Deckkraft. -->
+  <g transform="translate(18,-110)" stroke-linejoin="round" fill="#000" stroke="#000">
+    <g opacity="0.6">
+      <rect x="292" y="820" width="440" height="90" rx="45" stroke="none"/>
+      <rect x="437" y="570" width="150" height="270" rx="22" stroke="none"/>
+      <polygon points="250,615 792,402 792,482 250,695" stroke-width="28"/>
+      <rect x="196" y="520" width="84" height="192" rx="36" stroke="none"/>
+    </g>
+    <polygon points="294,536 792,340 792,402 294,598" stroke-width="28"/>
+  </g>
+</svg>
