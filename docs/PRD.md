@@ -58,7 +58,7 @@ Person (Q-13).
 | Vertretungsstunde | eine zusätzliche, einmalige Unterrichtsstunde, die nicht aus dem Stundenplan stammt (z. B. Vertretung in einer fremden Klasse) | Unterrichtsstunde aus dem Stundenplan |
 | Stundenplan-Quelle | woher der Stundenplan kommt: von Hand angelegt oder aus einem Schulverwaltungssystem importiert | Ablage |
 | Zweitbildschirm | der Bildschirm im Klassenraum (z. B. Smartboard über Apple TV), wenn er vom Produkt einen eigenen Inhalt erhält statt des Tablet-Bilds | Bildschirmspiegelung (zeigt dasselbe wie das Tablet) |
-| Klassenbildschirm | was der Zweitbildschirm zeigt, solange weder Material noch Tafel gezeigt wird: ein für die Klasse bestimmter Bildschirm zur laufenden Unterrichtsstunde (Arbeitsbegriff, Name von Andreas noch nicht bestätigt) | Tagesansicht (nur für die Lehrkraft) |
+| Klassenbildschirm | was der Zweitbildschirm zeigt, solange weder Material noch Tafel gezeigt wird: ein für die Klasse bestimmter Bildschirm zur laufenden Unterrichtsstunde | Tagesansicht (nur für die Lehrkraft) |
 | Tafel | eine leere Seite im Produkt, auf die die Lehrkraft mit dem Stift schreibt und die der Zweitbildschirm zeigt | Material (eine Datei aus der Ablage) |
 | Tafelbild | was in einer Unterrichtsstunde auf die Tafel geschrieben wurde, alle Seiten zusammen; gehört zur Unterrichtsstunde und bleibt erhalten | Stiftnotiz (liegt auf einem Material) |
 | Stiftnotiz | was die Lehrkraft in der Anzeige des Produkts mit dem Stift auf ein PDF oder Bild schreibt oder zeichnet; gehört zu einer Zuordnung, nicht zur Datei | Zeichnungen in einer Präsentation (die gehören zur Datei und landen in der Ablage) |
@@ -217,6 +217,9 @@ zeigt beides; leere Felder zeigt er nicht.
 Die Lehrkraft stellt am Tablet eine Dauer ein und startet, hält an oder beendet den Timer; der
 Klassenbildschirm zeigt die Restzeit groß.
 
+Ergänzt 2026-11-13 (Q-26): Der Timer läuft sichtbar weiter, auch während der Zweitbildschirm Material
+oder die Tafel zeigt, und gibt am Ende ein sichtbares und hörbares Signal.
+
 ### FR-11.3 — Arbeitsform anzeigen [MVP]
 
 Die Lehrkraft wählt am Tablet die Arbeitsform – Einzelarbeit, Partnerarbeit oder Gruppenarbeit –, und
@@ -361,10 +364,10 @@ muss.
 - ~~Q-20~~: Woran hängt eine Stiftnotiz – an der Datei (jede Unterrichtsstunde sieht dieselben Notizen) oder an der Zuordnung (jede Unterrichtsstunde hat eigene)? → answered 2026-11-13: an der Zuordnung, je Unterrichtsstunde (FR-6.1).
 - Q-22: Wie verhält sich PowerPoint auf dem Tablet über AirPlay – zeigt es die Folie auf dem Bildschirm im Klassenraum und eine Referentenansicht auf dem Tablet, erscheinen Zeichnungen auf der Folie dort sofort, und was sieht die Klasse beim Wechsel zwischen dem Produkt und PowerPoint? (Prüfung mit echtem Tablet und Apple TV nötig; siehe RISK-5.)
 - ~~Q-23~~: Ist die Tafel flüchtig, oder gehört das Tafelbild zur Unterrichtsstunde und bleibt erhalten? → answered 2026-11-13: gehört zur Unterrichtsstunde und bleibt (FR-12.2).
-- Q-24: Bleibt die Tafel bei „Stift auf Seite“ (Vorschlag, um keine Notiz-App zu bauen), oder gehören Textfelder, Formen oder eingefügte Bilder dazu? Bis zur Antwort enthält FR-12 nur Stift, Radierer und Farben.
-- Q-25: Was zeigt der Klassenbildschirm, wenn gerade keine Unterrichtsstunde läuft (Pause, vor der ersten Stunde, Ausfall)?
-- Q-26: Ist der Timer (FR-11.2) nur auf dem Klassenbildschirm zu sehen, oder läuft er sichtbar weiter, während Material oder Tafel gezeigt wird? Gibt er am Ende ein Signal?
-- Q-27: Heißt der Ruhezustand des Zweitbildschirms „Klassenbildschirm“? („Tafel“ ist bestätigt; dieser Name ist Arbeitsbegriff.)
+- Q-24: Bleibt die Tafel bei „Stift auf Seite“ (Vorschlag, um keine Notiz-App zu bauen), oder gehören Textfelder, Formen oder eingefügte Bilder dazu? Bis zur Antwort enthält FR-12 nur Stift, Radierer und Farben. Andreas am 2026-11-13: „think out of the box“ – Vorschlag daraufhin, in den Mockups gezeigt und noch nicht bestätigt: keine Textfelder und Formen, stattdessen drei Dinge, die nur dieses Produkt kann: (a) Kamera des Tablets als Dokumentenkamera – Heft, Buchseite oder Versuch live zeigen, Standbild einfrieren und darauf schreiben; (b) Tafelhintergrund aus der Ablage oder aus dem Material der Stunde – eigene Vorlagen oder ein vergrößerter Ausschnitt einer Seite; (c) Abdecken und Aufdecken – einen Teil der Tafel verdecken und schrittweise freigeben.
+- Q-25: Was zeigt der Klassenbildschirm, wenn gerade keine Unterrichtsstunde läuft (Pause, vor der ersten Stunde, Ausfall)? Andreas am 2026-11-13: „think out of the box“ – Vorschlag daraufhin, in den Mockups gezeigt und noch nicht bestätigt: Der Klassenbildschirm folgt dem Verlauf der Stunde. Vor Beginn: „Gleich: <Klasse> <Fach>“ mit Countdown bis zum Beginn und dem, was bereitzulegen ist. Während der Stunde: wie FR-11. In den letzten Minuten: die Hausaufgabe groß. Kommt heute keine Unterrichtsstunde mehr: nur Uhrzeit und Datum. Dafür würde der Hinweis aus FR-11.1 in „Bereitlegen“ und „Hausaufgabe“ geteilt.
+- ~~Q-26~~: Ist der Timer (FR-11.2) nur auf dem Klassenbildschirm zu sehen, oder läuft er sichtbar weiter, während Material oder Tafel gezeigt wird? Gibt er am Ende ein Signal? → answered 2026-11-13: ja zu beidem – läuft sichtbar weiter und gibt am Ende ein Signal (FR-11.2 ergänzt).
+- ~~Q-27~~: Heißt der Ruhezustand des Zweitbildschirms „Klassenbildschirm“? („Tafel“ ist bestätigt; dieser Name ist Arbeitsbegriff.) → answered 2026-11-13: ja, „Klassenbildschirm“ (Glossar angepasst).
 
 ## Abnahmekriterien
 
@@ -386,7 +389,7 @@ muss.
 - AK-23 (FR-6.2): Aufbau: Tablet per AirPlay mit einem Apple TV verbunden, ein PDF zugeordnet. Handlung: Tagesansicht öffnen; PDF antippen; mit dem Stift auf Seite 1 schreiben; PDF schließen. Ergebnis: Solange die Tagesansicht zu sehen ist, zeigt der Bildschirm am Apple TV sie nicht; nach dem Antippen zeigt er die PDF-Seite im Vollbild ohne Bedienelemente; die Stiftnotiz erscheint dort; nach dem Schließen ist die Tagesansicht weiterhin nur auf dem Tablet. Ohne Apple TV lässt sich derselbe Ablauf auf dem Tablet allein ausführen.
 - AK-24 (FR-11): Aufbau: Tablet mit Apple TV verbunden, Di 2. Stunde 8b Englisch läuft (8:35–9:20), kein Material und keine Tafel offen. Handlung: Tagesansicht öffnen. Ergebnis: Der Zweitbildschirm zeigt „8b“, „Englisch“, die Uhrzeit und das Stundenende 9:20 – und weder andere Klassen noch Dateinamen.
 - AK-25 (FR-11.1): Aufbau: wie AK-24. Handlung: für die Unterrichtsstunde Thema „Unit 4 – Wortschatz“ und Hinweis „Bitte bereitlegen: Buch, Heft“ eintragen; danach den Hinweis leeren. Ergebnis: Der Klassenbildschirm zeigt erst beides, danach nur das Thema und keine leere Zeile.
-- AK-26 (FR-11.2): Aufbau: wie AK-24. Handlung: Timer auf 5 Minuten stellen und starten; nach 1 Minute anhalten; beenden. Ergebnis: Der Klassenbildschirm zählt von 5:00 herunter, bleibt beim Anhalten bei 4:00 stehen und zeigt nach dem Beenden keinen Timer mehr.
+- AK-26 (FR-11.2): Aufbau: wie AK-24. Handlung: Timer auf 5 Minuten stellen und starten; nach 1 Minute anhalten; beenden. Ergebnis: Der Klassenbildschirm zählt von 5:00 herunter, bleibt beim Anhalten bei 4:00 stehen und zeigt nach dem Beenden keinen Timer mehr. Wird währenddessen ein PDF oder die Tafel gezeigt, bleibt die Restzeit auf dem Zweitbildschirm sichtbar; läuft der Timer ab, gibt es ein sichtbares und hörbares Signal.
 - AK-27 (FR-11.3): Aufbau: wie AK-24. Handlung: „Partnerarbeit“ wählen; Auswahl aufheben. Ergebnis: Der Klassenbildschirm zeigt Symbol und Wort „Partnerarbeit“, danach keine Arbeitsform.
 - AK-28 (FR-11.4): Aufbau: Zweitbildschirm zeigt ein PDF. Handlung: „Dunkel“ tippen; erneut tippen. Ergebnis: Der Zweitbildschirm ist schwarz, danach zeigt er wieder dieselbe PDF-Seite; das Tablet zeigt die ganze Zeit das PDF.
 - AK-29 (FR-11.5): Aufbau: Tablet mit Apple TV verbunden, ein PDF zugeordnet. Handlung: nacheinander Klassenbildschirm, Material, Tafel und Dunkel wählen. Ergebnis: Der Zweitbildschirm wechselt jeweils; das Vorschaubild am Tablet zeigt jedes Mal dasselbe wie der Zweitbildschirm.
@@ -420,6 +423,7 @@ muss.
 - 2026-11-13: FR-6.2 new — Zweitbildschirm zeigt nur das Material, nie die Tagesansicht (Wunsch von Andreas zu AirPlay); Glossar um Zweitbildschirm ergänzt; AK-23, RISK-5, Q-22, Lieferstufen (22) und Abdeckung angepasst
 - 2026-11-13: FR-11, FR-11.1 bis FR-11.5, FR-12, FR-12.1 bis FR-12.4 new — Klassenbildschirm und Tafel, alles im MVP auf Wunsch von Andreas (Q-21, Q-23); Glossar um Klassenbildschirm, Tafel, Tafelbild ergänzt; AK-24 bis AK-34, RISK-6, Q-24 bis Q-27, Lieferstufen (33), Nutzerschaft und Abdeckung angepasst
 - 2026-11-13: FR-6.2 changed — Zweitbildschirm zeigt neben Material auch Tafel und Klassenbildschirm (FR-11, FR-12)
+- 2026-11-13: FR-11.2 changed — Timer läuft über Material und Tafel sichtbar weiter und gibt ein Signal (Q-26); Glossar: Klassenbildschirm als Name bestätigt (Q-27); Q-24 und Q-25 um Vorschläge ergänzt, weiter offen
 
 ## Anhang A — Abdeckung
 

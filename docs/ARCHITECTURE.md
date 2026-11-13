@@ -285,8 +285,10 @@ Schreiben), und der Übergang zwischen eigener Szene und Spiegelung beim App-Wec
 - Klasse, Fach und Stundenende kommen aus der berechneten laufenden Unterrichtsstunde (Area daten),
   Thema und Hinweis aus den Stundenangaben (FR-11.1). Er bekommt nur die Daten dieser einen
   Unterrichtsstunde gereicht – so kann er nichts anderer Klassen und keine Dateinamen zeigen (FR-11).
-- Was er zeigt, wenn keine Unterrichtsstunde läuft, ist offen (Q-25 im PRD); ebenso, ob der Timer auch
-  über Material und Tafel sichtbar ist (Q-26).
+- Was er zeigt, wenn keine Unterrichtsstunde läuft, ist offen (Q-25 im PRD).
+- Der Timer liegt als eigene Schicht über allen Zuständen außer Dunkel, damit er auch über Material
+  und Tafel sichtbar bleibt; am Ende gibt er ein sichtbares und hörbares Signal (FR-11.2). Der Ton
+  läuft über die Tonausgabe des Systems und damit bei AirPlay über den Bildschirm im Klassenraum.
 
 ### Tafel
 

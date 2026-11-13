@@ -12,6 +12,37 @@ der Code der App.
 | `tagesansicht.html` | iPad im Unterricht: ein Tag, Material mit einem Tipp | FR-4, FR-5, FR-2.2, FR-3.3, FR-8, FR-9 |
 | `vorbereiten.html` | Mac: Material den Unterrichtsstunden der Woche zuordnen | FR-3, FR-3.1 bis FR-3.4, FR-7, FR-8, FR-9 |
 | `einrichten.html` | iPad: Stundenplan anlegen, Import-Abgleich, Ordnerfreigaben | FR-1, FR-1.1, FR-2, FR-7, NFR-4 |
+| `smartboard.html` | Zweitbildschirm: Klassenbildschirm im Verlauf der Stunde, Timer, Arbeitsform, Dunkel | FR-6.2, FR-11, FR-11.1 bis FR-11.4 |
+| `tafel.html` | iPad: an die Tafel schreiben, Seiten, Hintergründe, letztes Tafelbild | FR-12, FR-12.1 bis FR-12.4 |
+| `anzeige.html` | iPad: PDF mit Stiftnotizen, daneben was die Klasse sieht | FR-6, FR-6.1, FR-6.2 |
+
+## Smartboard-Leiste (FR-11.5) — in allen iPad-Mockups gleich
+
+Platzhalter, kein Beschluss: eine Leiste am unteren Rand des iPad-Bildschirms, volle Breite, 76 pt hoch,
+über dem Home-Indikator, mit Trennlinie nach oben. Von links nach rechts:
+
+1. **Vorschaubild** 16:9, 120 × 68 pt, zeigt verkleinert genau das, was der Zweitbildschirm zeigt;
+   darüber klein „Das sieht die Klasse“.
+2. **Umschalter** als segmentierte Auswahl mit vier Feldern, je Symbol und Wort:
+   `Klassenbildschirm` · `Material` · `Tafel` · `Dunkel`. `Material` ist ausgegraut, wenn keines offen ist.
+3. **Timer:** Knopf „Timer“; läuft einer, steht dort die Restzeit (z. B. `4:12`) mit Anhalten und Beenden.
+4. **Arbeitsform:** Menüknopf, zeigt die gewählte (Einzelarbeit, Partnerarbeit, Gruppenarbeit) oder „Arbeitsform“.
+5. Ganz rechts der **Verbindungsstatus:** „Apple TV Raum 204“ mit Symbol, oder „Kein Bildschirm verbunden“ –
+   dann ist das Vorschaubild schraffiert, der Umschalter bleibt bedienbar.
+
+## Zweitbildschirm in den Mockups
+
+Der Zweitbildschirm ist ein Rahmen im Format 16:9 (1920 × 1080, skaliert), ohne jedes Bedienelement,
+für Lesbarkeit aus sechs Metern: wenige, sehr große Angaben. Der Timer liegt als eigene Schicht in
+einer Ecke über Klassenbildschirm, Material und Tafel (FR-11.2), nicht über Dunkel.
+
+Zusätzliche Beispieldaten für Di 2. Stunde 8b Englisch (8:35–9:20): Thema „Unit 4 – Wortschatz“,
+Bereitlegen „Buch, Heft, Vokabelheft“, Hausaufgabe „Workbook S. 34, Nr. 2 und 3“, Timer 5:00,
+Arbeitsform Partnerarbeit. Voriges Tafelbild der 8b Englisch: Mo 16.11. gab es keine 8b – nimm
+Do 12.11., 3. Stunde, zwei Seiten. Raum des Apple TV: „Raum 204“.
+
+Vorschläge, die in den Mockups gezeigt, aber **nicht beschlossen** sind (Q-24, Q-25 im PRD), tragen
+außerhalb des Geräterahmens den Vermerk „Vorschlag“.
 
 ## Gemeinsamer Rahmen für alle Mockups
 
@@ -49,9 +80,8 @@ Stellen, an denen beim Bauen mangels Beschluss eine Annahme nötig war — Kandi
   noch lädt?
 - **Stand der Stundenplan-Quelle:** Ort, und wie ein veralteter Stand aussieht.
 - **Q-19** (was bei Bildschirmspiegelung sichtbar sein darf) ist in keinem Mockup berücksichtigt.
-- Nicht dargestellt: die Anzeige von PDFs und Bildern mit Stift (FR-6, FR-6.1), der Zweitbildschirm
-  mit Klassenbildschirm (FR-6.2, FR-11) und die Tafel (FR-12). Die Tagesansicht im Mockup hat noch
-  weder Vorschaubild noch Umschalter (FR-11.5).
+- Ort und Form der Smartboard-Leiste (FR-11.5) sind für alle Mockups einheitlich gesetzt, aber frei
+  gewählt.
 
 ## Gemeinsame Beispieldaten
 
