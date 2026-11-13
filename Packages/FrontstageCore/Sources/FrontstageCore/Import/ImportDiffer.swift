@@ -43,7 +43,10 @@ public enum ImportDiffer {
         }
       }
 
-      // 4. Übrige der Reihe nach paaren.
+      // 4. Übrige der Reihe nach paaren, Quell-Einträge zuerst: Sonst würde ein Hand-Eintrag mit
+      //    der Abweichung eines Quell-Eintrags gepaart und der Quell-Eintrag fälschlich entfernt.
+      oldRest = oldRest.filter { !manuallyEdited.contains($0) }
+        + oldRest.filter { manuallyEdited.contains($0) }
       let pairCount = min(oldRest.count, newRest.count)
       for index in 0..<pairCount {
         if manuallyEdited.contains(oldRest[index]) {

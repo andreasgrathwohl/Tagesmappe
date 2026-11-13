@@ -90,6 +90,21 @@ struct ImportDifferTests {
     #expect(diff.manualConflicts.map(\.source) == [source])
   }
 
+  @Test("Geteilter Platz: Quell-Eintrag wird vor dem Hand-Eintrag gepaart (AK-3)")
+  func sharedSlotPairsSourceEntryBeforeManual() {
+    // Hand-Eintrag sortiert vor dem Quell-Eintrag (7a < 8b) und darf trotzdem nicht gepaart werden.
+    let mine = entry(.tuesday, 2, "7a", "Deutsch")
+    let source = entry(.tuesday, 2, "8b", "Englisch")
+    let imported = entry(.tuesday, 2, "8a", "Englisch")
+    let diff = ImportDiffer.compare(
+      existing: [mine, source], manuallyEdited: [mine], imported: [imported])
+    #expect(diff.changed.map(\.old) == [source])
+    #expect(diff.changed.map(\.new) == [imported])
+    #expect(diff.manualConflicts.isEmpty)
+    #expect(diff.removed.isEmpty)
+    #expect(diff.added.isEmpty)
+  }
+
   @Test("Listen sind nach Wochentag, Stunde und Woche sortiert (AK-3)")
   func resultsAreSorted() {
     let imported = [
