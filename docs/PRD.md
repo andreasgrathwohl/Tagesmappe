@@ -57,6 +57,7 @@ Person (Q-13).
 | Ausfall | eine einzelne Unterrichtsstunde, die nicht stattfindet; der Stundenplan-Eintrag bleibt bestehen | unterrichtsfreier Tag |
 | Vertretungsstunde | eine zusätzliche, einmalige Unterrichtsstunde, die nicht aus dem Stundenplan stammt (z. B. Vertretung in einer fremden Klasse) | Unterrichtsstunde aus dem Stundenplan |
 | Stundenplan-Quelle | woher der Stundenplan kommt: von Hand angelegt oder aus einem Schulverwaltungssystem importiert | Ablage |
+| Stiftnotiz | was die Lehrkraft in der Anzeige des Produkts mit dem Stift auf ein PDF oder Bild schreibt oder zeichnet; gehört zu einer Zuordnung, nicht zur Datei | Zeichnungen in einer Präsentation (die gehören zur Datei und landen in der Ablage) |
 
 ## Constraints
 
@@ -148,6 +149,13 @@ AutoSpeichern, sodass Notizen und Zeichnungen sofort in der Ablage landen.
 PDFs und Bilder zeigt das Produkt selbst an; die Lehrkraft kann darauf mit dem Stift schreiben und
 zeichnen. So können auch Lehrkräfte ohne PowerPoint präsentieren und notieren.
 
+### FR-6.1 — Stiftnotizen gelten je Unterrichtsstunde [MVP]
+
+Eine Stiftnotiz gehört zur Zuordnung, nicht zur Datei: Wird dasselbe Material in einer anderen
+Unterrichtsstunde gezeigt, beginnt es dort ohne Notizen. „In die nächste Stunde schieben“ (FR-3.3) und
+das Weiterreichen bei Ausfall (FR-8) nehmen die Stiftnotizen mit; „Für <Klasse> übernehmen“ (FR-3.2)
+nicht. Die Datei in der Ablage bleibt unverändert (Q-17, Q-20).
+
 ### FR-7 — Unterrichtsfreie Tage [MVP]
 
 Die Lehrkraft trägt Ferien und Feiertage ein; an diesen Tagen gibt es keine Unterrichtsstunden.
@@ -194,8 +202,8 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 
 ## Lieferstufen
 
-- **MVP:** FR-1, FR-1.1, FR-2, FR-2.2, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-7, FR-8,
-  FR-9, NFR-1 bis NFR-4 (geprüfte Zahl: 20). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
+- **MVP:** FR-1, FR-1.1, FR-2, FR-2.2, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-6.1, FR-7, FR-8,
+  FR-9, NFR-1 bis NFR-4 (geprüfte Zahl: 21). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
 - **Later:** FR-2.1, FR-7.1, FR-10.
 
 ## Out of Scope
@@ -253,6 +261,7 @@ verteilen. Umgang: Konto vor dem ersten Test mit Lehrkräften einrichten.
 - Q-12: Woran wird Erfolg gemessen, ohne eigene Server?
 - Q-16: Liefert die inoffizielle Schulmanager-Schnittstelle für Lehrerkonten den Stundenplan und die Vertretungen? (Bisher nur für Eltern-/Schülerkonten belegt; Prüfung mit einem echten Lehrerkonto nötig.) → referred to docs/adr/0004-schulmanager-als-austauschbarer-importbaustein.md
 - ~~Q-13~~: Ist das Tablet persönlich, oder teilen sich Lehrkräfte Geräte? (Wer gilt dann als handelnde Person?) → answered 2026-11-13: persönlich — ein Tablet gehört einer Lehrkraft; handelnde Person ist immer die Besitzerin bzw. der Besitzer des Geräts. Keine Mehrbenutzer-Anmeldung auf einem Gerät.
+- ~~Q-20~~: Woran hängt eine Stiftnotiz – an der Datei (jede Unterrichtsstunde sieht dieselben Notizen) oder an der Zuordnung (jede Unterrichtsstunde hat eigene)? → answered 2026-11-13: an der Zuordnung, je Unterrichtsstunde (FR-6.1).
 
 ## Abnahmekriterien
 
@@ -270,6 +279,7 @@ verteilen. Umgang: Konto vor dem ersten Test mit Lehrkräften einrichten.
 - AK-11 (FR-5): Aufbau: PowerPoint-Datei in iCloud Drive zugeordnet, PowerPoint installiert. Handlung: in der Tagesansicht antippen. Ergebnis: Die Datei öffnet in PowerPoint und lässt sich dort bearbeiten; die Änderung steht danach in der Ablage.
 - AK-12 (FR-5.1): Aufbau: PowerPoint-Datei in OneDrive, Lehrkraft mit Microsoft 365 angemeldet. Handlung: antippen, auf einer Folie zeichnen. Ergebnis: PowerPoint zeigt AutoSpeichern an; die Zeichnung ist binnen einer Minute am Mac in derselben Datei sichtbar.
 - AK-13 (FR-6): Aufbau: PDF zugeordnet. Handlung: antippen, mit dem Stift auf Seite 1 schreiben, schließen, erneut öffnen. Ergebnis: Die Notiz ist noch da.
+- AK-22 (FR-6.1): Aufbau: ein PDF ist Di 8a zugeordnet und per „Für 8b übernehmen“ auch Mi 8b; nächste 8a-Stunde ist Do. Handlung: am Di in der 8a auf Seite 1 schreiben; am Mi in der 8b öffnen; dann das Material von Di 8a „in die nächste Stunde“ schieben und am Do öffnen. Ergebnis: Mi 8b zeigt das PDF ohne Notiz; Do 8a zeigt die Notiz vom Di; die Datei in der Ablage ist unverändert.
 - AK-14 (FR-7): Aufbau: Herbstferien 2.–6.11. eingetragen, Material am 3.11. zugeordnet. Handlung: Tagesansicht 3.11. öffnen. Ergebnis: keine Unterrichtsstunden; das Material ist nicht verloren und lässt sich einer anderen Unterrichtsstunde zuordnen.
 - AK-15 (FR-8): Aufbau: Di 8b mit Material, nächste 8b-Stunde Do. Handlung: Di als Ausfall markieren, Material weiterreichen. Ergebnis: Di als Ausfall erkennbar, Material am Do.
 - AK-16 (FR-9): Handlung: Vertretungsstunde „Mi 4. Stunde 6c Mathe“ anlegen, Material zuordnen. Ergebnis: erscheint in der Tagesansicht am Mittwoch, nur an diesem Datum.
@@ -291,6 +301,7 @@ verteilen. Umgang: Konto vor dem ersten Test mit Lehrkräften einrichten.
 - 2026-11-13: Abnahmekriterien new — AK-1 bis AK-20 für alle 19 MVP-Anforderungen
 - 2026-11-13: FR-10 new — Kalender-Abo als spätere Schnittstelle nach außen (Q-8)
 - 2026-11-13: FR-3.1 bis FR-3.4 new — Material je Stunde und Wiederverwenden (Q-6, Q-7); Glossar um Zuordnung ergänzt
+- 2026-11-13: FR-6.1 new — Stiftnotizen gehören zur Zuordnung, je Unterrichtsstunde (Q-20, ADR-0006); Glossar um Stiftnotiz ergänzt; AK-22, Lieferstufen (21) und Abdeckung angepasst
 
 ## Anhang A — Abdeckung
 
@@ -299,7 +310,7 @@ verteilen. Umgang: Konto vor dem ersten Test mit Lehrkräften einrichten.
 | 1 Stundenplan einrichten | FR-1, FR-1.1, FR-2, FR-2.1, FR-7, FR-7.1 |
 | 2 Vorbereiten | FR-3, FR-3.1 bis FR-3.4, FR-8, FR-9 |
 | 3 Tagesansicht | FR-4, FR-2.2 |
-| 4 Öffnen und präsentieren | FR-5, FR-5.1, FR-6 |
+| 4 Öffnen und präsentieren | FR-5, FR-5.1, FR-6, FR-6.1 |
 | 5 Änderungen in der Ablage | FR-5.1, NFR-1 |
 
 FR-10 gehört zu keiner Ablaufphase (Ausgabe nach außen, neben dem Ablauf).
@@ -319,6 +330,7 @@ FR-10 gehört zu keiner Ablaufphase (Ausgabe nach außen, neben dem Ablauf).
 | FR-5 | AK-11 |
 | FR-5.1 | AK-12 |
 | FR-6 | AK-13 |
+| FR-6.1 | AK-22 |
 | FR-7 | AK-14 |
 | FR-8 | AK-15 |
 | FR-9 | AK-16 |

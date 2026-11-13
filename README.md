@@ -7,7 +7,8 @@ bleibt in der eigenen Ablage (iCloud Drive, OneDrive, Google Drive, …) und ist
 Stand.
 
 > **Stand:** Spezifikation. Die Anforderungen sind freigegeben (`docs/PRD.md`, `status: ready`);
-> die ersten fünf Architekturentscheidungen sind beschlossen (`docs/adr/`). Es gibt noch keinen Code.
+> sechs Architekturentscheidungen sind beschlossen (`docs/adr/`), die Architektur ist für alle Bereiche
+> beschrieben. Es gibt noch keinen Code; unter `mockup/` liegen HTML-Mockups zur Veranschaulichung.
 
 ## Worum es geht
 
@@ -17,7 +18,8 @@ Stand.
   Ausfall und Vertretungen.
 - **Im Unterricht**: Tagesansicht, ein Tipp öffnet das Material. Mit Microsoft 365 öffnen
   OneDrive-Dateien mit AutoSpeichern, Notizen und Zeichnungen landen sofort in der Ablage. PDFs und
-  Bilder zeigt die App selbst, mit Stift.
+  Bilder zeigt die App selbst, mit Stift; diese Stiftnotizen gelten je Unterrichtsstunde und lassen
+  die Datei unverändert.
 - **Datenschutz**: keine eigenen Server – Stundenplan, Zuordnungen und Material bleiben bei der
   Lehrkraft.
 
@@ -27,8 +29,9 @@ Stand.
 |---|---|
 | [docs/PRD.md](docs/PRD.md) | Was, für wen, warum: Glossar, Anforderungen, Lieferstufen, Risiken, offene Fragen, Abnahmekriterien |
 | [docs/adr/](docs/adr/) | Architekturentscheidungen, je Entscheidung eine Datei |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Wie gebaut wird, je Bereich: Datenmodell, Abgleich, Dateizugriff, Stundenplan-Quellen |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Wie gebaut wird, je Bereich: Bausteinbild, Datenmodell, Abgleich, Dateizugriff, Stundenplan-Quellen, Anzeige |
 | [DESIGN.md](DESIGN.md) | Gestaltungsbeschlüsse (leer angelegt, alle Kategorien offen) |
+| [mockup/](mockup/LIESMICH.md) | HTML-Mockups von Tagesansicht, Vorbereiten und Einrichten – Veranschaulichung, kein Beschluss |
 | [CLAUDE.md](CLAUDE.md) | Projektregeln: Bauen, Skills, Dokument-Konvention |
 | [wiki/](wiki/Home.md) | Einstieg, Überblick und Wegweiser in die Dokumente |
 

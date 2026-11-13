@@ -26,6 +26,7 @@ etwas hier von `docs/` oder `DESIGN.md` ab, gilt das Dokument; das Wiki wird im 
 | Ebene | Status |
 |---|---|
 | PRD | ready (2026-11-13) |
-| ADRs | ready (2026-11-13) – ADR-0001 bis ADR-0005 beschlossen |
-| Architecture Doc | Entwurf – vier von fünf Bereichen ausgearbeitet, `anzeige` offen (Q-17) |
+| ADRs | ready (2026-11-13) – ADR-0001 bis ADR-0006 beschlossen |
+| Architecture Doc | Entwurf – alle fünf Bereiche ausgearbeitet, mit Bausteinbild; Freigabe steht aus (offen: Q-18) |
 | UI Spec (`DESIGN.md`) | leer angelegt, alle Kategorien offen |
+| Mockups | [mockup/](../mockup/LIESMICH.md) – Veranschaulichung von Tagesansicht, Vorbereiten und Einrichten, kein Gestaltungsbeschluss |

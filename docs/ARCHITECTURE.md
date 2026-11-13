@@ -13,6 +13,54 @@ Dokument sagt, wie gebaut wird, innerhalb dessen, was die ADRs festgelegt haben,
 
 ---
 
+## Überblick
+
+Abgeleitet aus den Bereichen unten; bei Abweichung gilt der Bereich.
+
+```mermaid
+flowchart TB
+    subgraph Geraet["Gerät der Lehrkraft (iPad oder Mac)"]
+        subgraph UI["Oberflächen (SwiftUI) — Area plattform"]
+            Tag["Tagesansicht"]
+            Vorb["Vorbereiten"]
+            Einr["Einrichten"]
+            Anz["Anzeige: PDF und Bild mit Stift<br/>Area anzeige"]
+        end
+        Kern["Kern-Paket (ohne Oberfläche, mit Tests)<br/>Unterrichtsstunden berechnen · Schlüssel der Unterrichtsstunde ·<br/>Import-Abgleich · Zusammenführen nach dem Abgleich"]
+        Daten[("App-Daten (SwiftData)<br/>Stundenplan, Abweichungen, Zuordnungen,<br/>Materialverweise, Stiftnotizen<br/>Area daten")]
+        Lokal[("Nur auf diesem Gerät<br/>Ordnerfreigaben · Schlüsselbund")]
+        Abl["Baustein Ablage<br/>auflösen · öffnen · bereithalten<br/>Area ablage"]
+        OD["Baustein OneDrive-Zusatz<br/>nur nach Anmeldung"]
+        Quel["Stundenplan-Quellen<br/>von Hand · Schulmanager Online · (WebUntis)<br/>Area stundenplan-quellen"]
+    end
+
+    iCloud[("Private iCloud-Datenbank<br/>der Lehrkraft")]
+    Files["Dateien-Schnittstelle des Systems<br/>iCloud Drive · OneDrive · Google Drive · …"]
+    Office["PowerPoint, Word, …"]
+    Graph["Microsoft Graph"]
+    SM["Schulmanager Online<br/>(inoffiziell)"]
+
+    UI --> Kern
+    Kern --> Daten
+    UI --> Abl
+    Anz --> Abl
+    Abl --> Lokal
+    Abl --> OD
+    Quel --> Kern
+    Quel --> Lokal
+    Daten <-- "Spiegelung, ADR-0002" --> iCloud
+    Abl -- "ADR-0003" --> Files
+    Abl -- "Übergabe der Datei" --> Office
+    OD --> Graph
+    OD -- "Office-Adresse, AutoSpeichern" --> Office
+    Quel -- "ADR-0004" --> SM
+```
+
+Drei Dinge, die das Bild festhält: Keine Oberfläche spricht ein Fremdsystem direkt an – dazwischen
+liegt immer ein Baustein. Es gibt keinen Server des Produkts (NFR-2); nach außen gehen nur Apple,
+der Ablage-Anbieter, Microsoft (nach Anmeldung) und Schulmanager (wenn gewählt). Ordnerfreigaben und
+Zugangsdaten verlassen das Gerät nie.
+
 ## Area: plattform
 
 - area-status: detailed
@@ -50,6 +98,7 @@ Vorgabewert, alle Beziehungen sind optional, und kein Modell nutzt Eindeutigkeit
 | Abweichung | Datum, Schlüssel der Unterrichtsstunde, Art (Ausfall, Vertretungsstunde), bei Vertretungsstunde: Stunde, Klasse, Fach | FR-8, FR-9, FR-2.2 |
 | Zuordnung | Schlüssel der Unterrichtsstunde, Position, Verweis auf das Material | FR-3, FR-3.1 |
 | Materialverweis | Ordnerfreigabe, Pfad darin, ggf. OneDrive-Kennung, Anzeigename, Dateiart | gemäß ADR-0003 |
+| Stiftnotiz | Verweis auf die Zuordnung, Seite (bei Bildern 1), Zeichnungsdaten, Seitengröße beim Zeichnen | gemäß ADR-0006, FR-6.1; s. Area anzeige |
 | Ordnerfreigabe | dauerhafter Systemverweis auf einen freigegebenen Ordner | **nur lokal je Gerät**, nicht gespiegelt (s. Area ablage) |
 
 **Unterrichtsstunden werden nicht gespeichert, sondern berechnet:** aus Stundenplan, Wochenvariante des
@@ -76,9 +125,11 @@ Stand. Je Datenart:
 | Reihenfolge der Materialien | zuletzt abgeglichene Reihenfolge gilt; gleiche Positionen werden nach Anlagezeit aufgelöst | Reihenfolge des anderen Geräts verloren – hinnehmbar, sichtbar und sofort korrigierbar |
 | Stundenplan-Eintrag ändern | zuletzt abgeglichener Stand gilt | verloren – selten (Stundenplan ändert sich wenige Male im Jahr) |
 | Abweichung (Ausfall, Vertretungsstunde) | doppelte gleichartige Abweichungen werden zusammengeführt | geht nicht verloren |
+| Stiftnotiz (zwei Geräte, dieselbe Seite derselben Zuordnung) | zuletzt abgeglichener Stand der Seite gilt | Striche des anderen Geräts auf dieser Seite verloren – selten (geschrieben wird am Tablet im Unterricht, s. Area anzeige) |
 
 Zusammenführen heißt: Nach jedem Abgleich sucht die App Datensätze mit gleichem fachlichem Schlüssel
-und behält den ältesten.
+und behält den ältesten. Werden dabei zwei Zuordnungen zu einer, werden die Stiftnotizen der
+aufgegebenen vorher an die behaltene gehängt.
 
 ### Betrieb
 
@@ -167,14 +218,43 @@ Online“, später „WebUntis“ (FR-2.1).
 
 ## Area: anzeige
 
-- area-status: draft
+- area-status: detailed
 
 Eigene Anzeige von PDFs und Bildern mit Stift (FR-6), gebaut mit den Systembausteinen für
-PDF-Darstellung und Stifteingabe (gemäß ADR-0001). Präsentiert wird über die Bildschirmspiegelung des
-Systems (AirPlay); die App baut keine eigene Übertragung.
+PDF-Darstellung (PDFKit) und Stifteingabe (PencilKit), gemäß ADR-0001. Präsentiert wird über die
+Bildschirmspiegelung des Systems (AirPlay); die App baut keine eigene Übertragung.
 
-Offen ist, wo die Stiftnotizen liegen (Q-17) – das ist eine Frage, wo die Wahrheit liegt, und wird
-eine ADR, bevor dieser Bereich ausgearbeitet wird.
+### Darstellung
+
+- Die Datei wird über den Baustein „Ablage“ gelesen (Ordnerfreigabe, Area ablage) und nur gelesen –
+  die Anzeige schreibt nie in die Ablage (gemäß ADR-0006).
+- Ein PDF wird seitenweise gezeigt; ein Bild gilt als Dokument mit einer Seite. Über jeder Seite liegt
+  eine durchsichtige Zeichenfläche, die mit der Seite zoomt und verschiebt.
+- Geschrieben wird am Tablet mit dem Stift. Am Mac werden Stiftnotizen angezeigt, aber nicht
+  gezeichnet (Area plattform: Stift nur am Tablet). Hinweis für den Bau: Die Zeichenfläche von
+  PencilKit gibt es nach heutigem Stand nur auf dem Tablet, das Datenformat der Zeichnung lässt sich
+  aber auch am Mac lesen und darstellen – beim ersten Bau zu belegen.
+
+### Stiftnotizen
+
+Gemäß ADR-0006 liegen Stiftnotizen getrennt von der Datei in den App-Daten und werden wie diese
+gespiegelt (ADR-0002); gemäß FR-6.1 gehören sie zur Zuordnung.
+
+- Je Zuordnung und Seite ein Datensatz „Stiftnotiz“ mit den Zeichnungsdaten. Die Zeichnungsdaten
+  werden als ausgelagerter Anhang gespeichert (SwiftData: `@Attribute(.externalStorage)` – der Wert
+  liegt dann nicht in der Datenbankzeile, sondern als eigene Datei, und wird beim Spiegeln als Anhang
+  übertragen), damit große Zeichnungen den Abgleich der übrigen Daten nicht bremsen.
+- Gespeichert wird beim Absetzen des Stifts mit kurzer Verzögerung und sicher beim Schließen (AK-13).
+- „In die nächste Stunde schieben“ und das Weiterreichen bei Ausfall ändern nur den Schlüssel der
+  Unterrichtsstunde an der bestehenden Zuordnung – die Stiftnotizen hängen weiter daran und wandern
+  mit. „Für <Klasse> übernehmen“ legt eine neue Zuordnung an, ohne Stiftnotizen (FR-6.1, AK-22).
+- Wird eine Zuordnung gelöscht, werden ihre Stiftnotizen mitgelöscht.
+- Die Stiftnotiz merkt sich die Seitengröße, auf der gezeichnet wurde. Weicht die Seite beim Öffnen
+  davon ab oder gibt es die Seite nicht mehr (Datei in der Ablage ersetzt oder umgebaut), zeigt die
+  Anzeige die Notiz weiter an und weist darauf hin, dass sie zu einer früheren Fassung gehört – sie
+  wird nie stillschweigend verworfen (Kosten gemäß ADR-0006).
+- Löst der Materialverweis nicht auf, bleiben die Stiftnotizen an der Zuordnung erhalten und sind nach
+  dem Neuverknüpfen wieder da.
 
 ---
 
@@ -182,10 +262,12 @@ eine ADR, bevor dieser Bereich ausgearbeitet wird.
 
 - ~~Q-14~~: Wovon hängt die Identität einer Unterrichtsstunde ab, damit Zuordnungen eine Änderung des Stundenplans überstehen? → answered 2026-11-13: Datum + Klasse + Fach + laufende Nummer, Material folgt der Klasse (ADR-0005, accepted)
 - ~~Q-15~~: Wie oft und wodurch ausgelöst wird der Schulmanager abgefragt, und wie spät dürfen Vertretungen dort ankommen? → answered 2026-11-13: einmal je Morgen und auf Knopfdruck; Vertretungen am selben Morgen (ADR-0004, accepted)
-- Q-17: Wo liegen Stiftnotizen auf PDFs und Bildern – in der Datei in der Ablage (dann sieht sie jede andere App und jedes Gerät, das Original ist aber verändert) oder getrennt in den App-Daten (Original bleibt unberührt, Notizen sieht nur diese App)? Bis zur Klärung wird nichts angenommen; der Bereich `anzeige` bleibt `draft`.
+- ~~Q-17~~: Wo liegen Stiftnotizen auf PDFs und Bildern – in der Datei in der Ablage (dann sieht sie jede andere App und jedes Gerät, das Original ist aber verändert) oder getrennt in den App-Daten (Original bleibt unberührt, Notizen sieht nur diese App)? Bis zur Klärung wird nichts angenommen; der Bereich `anzeige` bleibt `draft`. → answered 2026-11-13: getrennt in den App-Daten (ADR-0006, accepted); je Zuordnung (FR-6.1, Q-20 im PRD)
 - Q-18: Öffnet PowerPoint auf iPadOS ein OneDrive-Dokument über die Office-Adresse mit AutoSpeichern, so wie am Mac? (Prüfung auf einem echten iPad nötig; siehe RISK-2.)
 
 ## Changes
 
 - 2026-11-13: plattform, daten, ablage, stundenplan-quellen, anzeige new — Bereichsliste vor der ersten ADR
 - 2026-11-13: plattform, daten, ablage, stundenplan-quellen changed — ausgearbeitet nach Freigabe der ADR-Ebene; anzeige bleibt draft (Q-17)
+- 2026-11-13: anzeige changed — ausgearbeitet nach ADR-0006 (Stiftnotizen getrennt in den App-Daten) und FR-6.1 (je Zuordnung); daten changed — Modell Stiftnotiz, Nebenläufigkeit und Zusammenführen ergänzt
+- 2026-11-13: Überblick new — Bausteinbild, abgeleitet aus den Bereichen
