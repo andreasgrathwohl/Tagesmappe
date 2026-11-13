@@ -16,9 +16,11 @@ public struct TimeOfDay: Hashable, Comparable, Codable, Sendable {
   /// Minuten seit Mitternacht (0...1439).
   public var minutesSinceMidnight: Int { hour * 60 + minute }
 
-  /// Uhrzeit eines Zeitpunkts im übergebenen Kalender (und dessen Zeitzone); Sekunden werden abgeschnitten.
+  /// Uhrzeit eines Zeitpunkts in der Zeitzone des übergebenen Kalenders; Sekunden werden abgeschnitten.
+  /// Wie bei `CalendarDay` zählt vom Kalender nur die Zeitzone, gerechnet wird gregorianisch.
   public init(_ date: Date, calendar: Calendar) {
-    let parts = calendar.dateComponents([.hour, .minute], from: date)
+    let parts = CalendarDay.gregorian(in: calendar.timeZone).dateComponents(
+      [.hour, .minute], from: date)
     self.init(hour: parts.hour ?? 0, minute: parts.minute ?? 0)
   }
 

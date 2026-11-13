@@ -66,6 +66,18 @@ struct CalendarDayTests {
     #expect(TimeOfDay(date, calendar: utc) == t(23, 30))
   }
 
+  @Test(
+    "Nicht-gregorianischer Kalender ergibt denselben Tag wie der gregorianische",
+    arguments: [Calendar.Identifier.buddhist, .japanese])
+  func dateConversionIgnoresCalendarSystem(identifier: Calendar.Identifier) throws {
+    let date = Date(timeIntervalSince1970: 1_774_740_600) // 2026-03-28T23:30:00Z
+    let berlin = try #require(TimeZone(identifier: "Europe/Berlin"))
+    var other = Calendar(identifier: identifier)
+    other.timeZone = berlin
+    #expect(CalendarDay(date, calendar: other) == d(2026, 3, 29))
+    #expect(TimeOfDay(date, calendar: other) == t(0, 30))
+  }
+
   @Test("Uhrzeiten sind geordnet")
   func timeOfDayOrdering() {
     #expect(t(8, 35) < t(9, 20))

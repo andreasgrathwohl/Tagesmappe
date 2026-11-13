@@ -43,11 +43,21 @@ public struct CalendarDay: Hashable, Comparable, Codable, Sendable {
     self.day = d
   }
 
-  /// Kalendertag eines Zeitpunkts im übergebenen Kalender (und dessen Zeitzone).
+  /// Kalendertag eines Zeitpunkts in der Zeitzone des übergebenen Kalenders.
+  /// Gerechnet wird immer gregorianisch: Vom Kalender zählt nur die Zeitzone, damit ein
+  /// buddhistischer oder japanischer Gerätekalender (`Calendar.current`) denselben Tag ergibt.
   /// Grenze App → Kern: Der Kern liest selbst nie die Uhr oder die aktuelle Zeitzone.
   public init(_ date: Date, calendar: Calendar) {
-    let parts = calendar.dateComponents([.year, .month, .day], from: date)
+    let parts = Self.gregorian(in: calendar.timeZone).dateComponents(
+      [.year, .month, .day], from: date)
     self.init(year: parts.year ?? 1970, month: parts.month ?? 1, day: parts.day ?? 1)
+  }
+
+  /// Gregorianischer Kalender mit der übergebenen Zeitzone (für die Grenz-Initialisierer).
+  static func gregorian(in timeZone: TimeZone) -> Calendar {
+    var gregorian = Calendar(identifier: .gregorian)
+    gregorian.timeZone = timeZone
+    return gregorian
   }
 
   /// ISO-Text `yyyy-MM-dd`; sortiert als Text wie als Datum (für Jahre 1000...9999).
