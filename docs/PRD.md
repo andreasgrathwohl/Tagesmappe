@@ -1,5 +1,6 @@
 ---
-status: draft
+status: ready
+ready-since: 2026-11-13
 date: 2026-11-13
 ---
 
@@ -275,6 +276,7 @@ verteilen. Umgang: Konto vor dem ersten Test mit Lehrkräften einrichten.
 - 2026-11-13: FR-3 changed — Vorbereiten auch am Tablet, Mac nicht Voraussetzung (Q-2); Nutzerschaft entsprechend
 - 2026-11-13: FR-1.1, FR-7, FR-7.1, FR-8, FR-9 new — Abweichungen vom Stundenplan (Q-5); Glossar um Wochenvariante, unterrichtsfreier Tag, Ausfall, Vertretungsstunde ergänzt
 - 2026-11-13: Lieferstufen changed — FR-2 und FR-5.1 als MVP bestätigt (Q-3, Q-4)
+- 2026-11-13: PRD status ready — freigegeben von Andreas; offen bleiben Q-1, Q-9, Q-10, Q-12 (blockieren die ADR-Ebene nicht)
 - 2026-11-13: Abnahmekriterien new — AK-1 bis AK-20 für alle 19 MVP-Anforderungen
 - 2026-11-13: FR-10 new — Kalender-Abo als spätere Schnittstelle nach außen (Q-8)
 - 2026-11-13: FR-3.1 bis FR-3.4 new — Material je Stunde und Wiederverwenden (Q-6, Q-7); Glossar um Zuordnung ergänzt
