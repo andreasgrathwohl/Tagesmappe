@@ -53,6 +53,8 @@ wie adr-tools und log4brains erwarten diesen Pfad.
 **Nie einen Begriff einführen, der dem Glossar widerspricht.** Ist das Glossar falsch, wird das
 Glossar geändert — nicht in einem tieferen Dokument umgangen.
 
+`docs/research/` hält Prüfnotizen (etwa zu einer inoffiziellen Schnittstelle): Befunde mit Quelle, keine Entscheidungen. Eine Entscheidung daraus gehört in ein Dokument der Landkarte.
+
 `wiki/` und `README.md` sind **abgeleitete Darstellungen**: Sie entscheiden nichts und werden beim
 Rückfluss mit aktualisiert.
 

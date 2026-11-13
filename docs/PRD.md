@@ -63,6 +63,12 @@ Person (Q-13).
 | Tafel | eine leere Seite im Produkt, auf die die Lehrkraft mit dem Stift schreibt und die der Zweitbildschirm zeigt | Material (eine Datei aus der Ablage) | `Board` |
 | Tafelbild | was in einer Unterrichtsstunde auf die Tafel geschrieben wurde, alle Seiten zusammen; gehört zur Unterrichtsstunde und bleibt erhalten | Stiftnotiz (liegt auf einem Material) | `BoardDrawing` |
 | Stiftnotiz | was die Lehrkraft in der Anzeige des Produkts mit dem Stift auf ein PDF oder Bild schreibt oder zeichnet; gehört zu einer Zuordnung, nicht zur Datei | Zeichnungen in einer Präsentation (die gehören zur Datei und landen in der Ablage) | `PenNote` |
+| Stand | Zeitpunkt, zu dem der Stundenplan zuletzt aus der Stundenplan-Quelle geholt wurde; die Tagesansicht zeigt ihn | Datum einer Unterrichtsstunde | `sourceFetchedAt` |
+| Arbeitsform | wie die Klasse gerade arbeitet: Einzelarbeit, Partnerarbeit oder Gruppenarbeit | Fach | `WorkMode` (`individual`, `pairs`, `groups`) |
+| Vorlage | Seite oder Ausschnitt aus Material oder Ablage als Hintergrund einer Tafelseite | Material (bleibt unverändert in der Ablage) | `BoardTemplate` |
+| Standbild | eingefrorenes Bild der Tablet-Kamera als Hintergrund einer Tafelseite | Material | `CameraStill` |
+| Bereithalten | Material der kommenden Unterrichtsstunden vorab auf das Gerät laden | Kopieren (es entsteht keine zweite Datei) | `prefetch` |
+| Neu verknüpfen | einen Verweis, der nicht mehr auflöst, auf die Datei in der Ablage zurückführen | Zuordnen | `relink` |
 
 ## Constraints
 
@@ -536,6 +542,7 @@ muss.
 - 2026-11-13: Q-30 answered (14,99–19,99 €); Q-29 um Rechercheergebnis ergänzt, weiter offen; RISK-8 new — „PULT“ als Software-Marke der Pult GmbH in Gebrauch
 - 2026-11-13: Produktname „Frontstage“ statt „Pult“ (Q-1 changed, Q-29 answered); RISK-8 ergänzt; Q-31 new (Markenprüfung Frontstage)
 - 2026-11-13: Glossar changed — Spalte „Im Code“ mit dem englischen Bezeichner je Begriff (ADR-0009)
+- 2026-11-13: Glossar changed — Stand, Arbeitsform, Vorlage, Standbild, Bereithalten, Neu verknüpfen ergänzt (beim Planen gefunden)
 - 2026-11-13: FR-1.2 new — Zeitraster, abgeleitet aus FR-11 und FR-11.7 (Lücke beim Plan-Cold-Start-Check gefunden); Glossar um Zeitraster ergänzt; AK-42, Lieferstufen (41) und Abdeckung angepasst
 
 ## Anhang A — Abdeckung
