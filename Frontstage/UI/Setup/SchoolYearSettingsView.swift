@@ -3,28 +3,28 @@ import SwiftUI
 
 /// Legt das Modell von „Einrichten › Schuljahre“ an; es entsteht je Datenort neu (`ScopedAppContent`).
 struct SchoolYearSettingsScreen: View {
-  @Environment(AppEnvironment.self) private var environment
+  @Environment(DataStore.self) private var dataStore
 
   var body: some View {
-    SchoolYearSettingsHost(environment: environment)
+    SchoolYearSettingsHost(dataStore: dataStore)
   }
 }
 
 private struct SchoolYearSettingsHost: View {
   @State private var model: SchoolYearSettingsModel
-  private let environment: AppEnvironment
+  private let dataStore: DataStore
 
-  init(environment: AppEnvironment) {
-    self.environment = environment
+  init(dataStore: DataStore) {
+    self.dataStore = dataStore
     _model = State(
       initialValue: SchoolYearSettingsModel(
-        store: environment.store, today: CalendarDay(.now, calendar: .current)))
+        store: dataStore, today: CalendarDay(.now, calendar: .current)))
   }
 
   var body: some View {
     SchoolYearSettingsView(model: model)
       // Neuer Stand von diesem oder dem anderen Gerät → neu lesen.
-      .onChange(of: environment.store.revision) { model.reload() }
+      .onChange(of: dataStore.revision) { model.reload() }
   }
 }
 
