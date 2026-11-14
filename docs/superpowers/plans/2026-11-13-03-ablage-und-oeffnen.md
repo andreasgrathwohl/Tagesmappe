@@ -69,6 +69,9 @@ diesen Teilplan:
   Office-Adressen werden nur an die Office-App übergeben, nie selbst abgerufen (NFR-2, AK-18).
 - MSAL-Client-ID nie ins Repo: Build-Einstellung `MSAL_CLIENT_ID` aus dem CI-Secret `MSAL_CLIENT_ID`; ist
   sie leer, ist der OneDrive-Zusatz ausgeblendet (`MicrosoftAccount.isConfigured == false`).
+- **Aufgaben 1–5 berühren nur `Packages/FrontstageCore`** und laufen lokal TDD (Übersicht): „Step 2: Diff durchsehen“
+  heißt dort zusätzlich RED mit `.\scripts\swift-test.ps1 -Filter <Suite>` belegen, „Step 4“ GREEN mit allen
+  Kern-Tests. Aufgaben 6–11 (App-Code) werden erst im CI-Lauf von Aufgabe 12 ausgeführt.
 - In Tests nur erfundene Pfade und Namen: Freigabe „Unterricht“, Dateien „Vokabeln Unit 4.pptx“,
   „Arbeitsblatt Vokabeln.pdf“, „Übung.docx“; Domains `example.com`, `example-my.sharepoint.com`.
 
@@ -246,7 +249,7 @@ func officeAppOnlyForMicrosoftFormats() {
 
 - [ ] **Step 2: Diff durchsehen** – Tests kompilieren nur gegen die Signaturen oben (`@testable import FrontstageCore`); `RelativeLocation` ist `Equatable` über `Hashable`.
 
-- [ ] **Step 3: Implementieren** in den drei Dateien. `normalizedComponents`: `URL(fileURLWithPath:).standardizedFileURL.pathComponents`, führendes `"/"` weg, `"private"` weg, wenn das nächste Element `var`, `tmp` oder `etc` ist (dasselbe tut `resolvingSymlinksInPath`, aber testbar ohne Dateisystem), jedes Element NFC. Präfixvergleich je Element NFC + `caseInsensitiveCompare`. `matchName` in drei Stufen; in jeder Stufe gilt nur ein eindeutiger Treffer.
+- [ ] **Step 3: Implementieren** in den drei Dateien. `normalizedComponents`: reine Textzerlegung an `/` (leere Teile und `.` weg, `..` entfernt den vorigen Teil) – nicht über `URL(fileURLWithPath:)`, weil die Kern-Tests auch lokal unter Windows laufen und Foundation dort Pfade mit führendem `/` anders zerlegt; `"private"` weg, wenn das nächste Element `var`, `tmp` oder `etc` ist (dasselbe tut `resolvingSymlinksInPath`, aber testbar ohne Dateisystem), jedes Element NFC. Präfixvergleich je Element NFC + `caseInsensitiveCompare`. `matchName` in drei Stufen; in jeder Stufe gilt nur ein eindeutiger Treffer.
 
 - [ ] **Step 4: Diff durchsehen** – nur `import Foundation`; keine `public` Eigenschaft ohne `///`-Doku auf Deutsch.
 
@@ -382,7 +385,7 @@ Regeln für `route` (in dieser Reihenfolge):
 Jeder `OpenRouterTests`-Fall baut einen `OpenContext` über eine Test-Hilfsfunktion `context(kind:ext:availability:online:signedIn:installed:url:)` mit Vorgaben `.onDevice(isCurrent: true)`, online, nicht angemeldet, installiert, `url` nil.
 
 - [ ] **Step 2: Diff durchsehen.**
-- [ ] **Step 3: Implementieren** gemäß den Regeln; Grenzwerte mit `>=` (Frist erreicht = Rückfall).
+- [ ] **Step 3: Implementieren** gemäß den Regeln; Grenzwerte mit `>=` (Frist erreicht = Rückfall). `addressReady == true` bzw. `accepted != nil` wird vor der Frist geprüft (Test: bereit nach 6 s = `.done`); `returnWindow` schließt die Grenze ein (`returnedAfter <= returnWindow`, Test: 60 s = angeboten).
 - [ ] **Step 4: Diff durchsehen.**
 - [ ] **Step 5: Commit** – `feat(core): open routing and cloud open fallback policy`
 
@@ -533,7 +536,7 @@ let cid = UUID(uuidString: "00000000-0000-0000-0000-00000000000B")!
 
 **Files:**
 - Create: `Frontstage/Storage/FolderGrant.swift`, `Frontstage/Storage/FolderGrantStore.swift`
-- Modify: `project.yml` – macOS-App-Ziel: Entitlements `com.apple.security.app-sandbox: true`, `com.apple.security.files.user-selected.read-only: true`, `com.apple.security.files.bookmarks.app-scope: true`, `com.apple.security.network.client: true`
+- Modify: `project.yml` – Ziel `Frontstage-macOS`, Block `entitlements.properties` (Datei `Config/Frontstage-macOS.entitlements`, vorhandene CloudKit-Schlüssel bleiben): `com.apple.security.app-sandbox: true`, `com.apple.security.files.user-selected.read-only: true`, `com.apple.security.files.bookmarks.app-scope: true`, `com.apple.security.network.client: true`
 - Test: `FrontstageTests/Storage/FolderGrantStoreTests.swift`
 
 **Interfaces:**
@@ -617,6 +620,8 @@ struct ResolvedMaterial: Sendable { let fileURL: URL; let grantURL: URL }
     let url: URL
     let reference: MaterialReference
     func close()
+    /// Zahl der offenen (nicht geschlossenen) ScopedFile – nur für Tests (Task 11, withFileURLReadsAndCloses).
+    static private(set) var openCount: Int
 }
 ```
 
@@ -664,6 +669,7 @@ extension DataStore: MaterialReferenceStore {}
 @MainActor @Observable final class NetworkMonitor {
     private(set) var isOnline: Bool
     var onBecameOnline: (() -> Void)?
+    init(isOnline: Bool = false)                         // Startwert; Tests setzen ihn, ohne start() aufzurufen
     func start()                                         // NWPathMonitor, status == .satisfied
 }
 /// Stößt das Herunterladen an; austauschbar für Tests.
@@ -699,12 +705,12 @@ struct SystemFileDownloader: FileDownloading           // ubiquitär: FileManage
 
 **Files:**
 - Create: `Frontstage/Storage/OneDrive/MicrosoftAccount.swift`, `GraphClient.swift`, `OneDriveService.swift`
-- Modify: `project.yml` – `packages: MSAL: { url: https://github.com/AzureAD/microsoft-authentication-library-for-objc, majorVersion: 2.0.0 }` (beim Bau auf die dann aktuelle 2.x exakt pinnen), Abhängigkeit `- package: MSAL` in beiden App-Zielen; Info.plist-Eigenschaften beider Ziele: `MSALClientID: $(MSAL_CLIENT_ID)`, `CFBundleURLTypes` mit Schema `msauth.$(PRODUCT_BUNDLE_IDENTIFIER)`; nur iOS: `LSApplicationQueriesSchemes: [msauthv2, msauthv3, ms-powerpoint, ms-word, ms-excel]`; Build-Einstellung `MSAL_CLIENT_ID: ""` als Vorgabe
-- Modify: `.github/workflows/ci.yml` – `xcodebuild … MSAL_CLIENT_ID="${{ secrets.MSAL_CLIENT_ID }}"` (leer, wenn Secret fehlt)
+- Modify: `project.yml` – `packages: MSAL: { url: https://github.com/AzureAD/microsoft-authentication-library-for-objc, majorVersion: 2.0.0 }` (beim Bau auf die dann aktuelle 2.x exakt pinnen), Abhängigkeit `{ package: MSAL }` in der Liste `dependencies` beider App-Ziele (neben `{ package: FrontstageCore }`); unter `info.properties` beider Ziele (neben den vorhandenen Schlüsseln): `MSALClientID: $(MSAL_CLIENT_ID)`, `CFBundleURLTypes` mit Schema `msauth.$(PRODUCT_BUNDLE_IDENTIFIER)`; nur iOS: `LSApplicationQueriesSchemes: [msauthv2, msauthv3, ms-powerpoint, ms-word, ms-excel]`; Build-Einstellung `MSAL_CLIENT_ID: ""` als Vorgabe unter `settings.base` (oberste Ebene)
+- Modify: `.github/workflows/ci.yml` – an **beide** `xcodebuild`-Aufrufe (Schritte „Build macOS“ und „App tests (iPad simulator)“) `MSAL_CLIENT_ID="${{ secrets.MSAL_CLIENT_ID }}"` anhängen (leer, wenn Secret fehlt)
 - Test: `FrontstageTests/Storage/GraphClientTests.swift`, `OneDriveServiceTests.swift`
 
 **Interfaces:**
-- Consumes: `OneDriveItem`, `OneDriveFolderMatching`, `OfficeAddress` (Task 5), `FolderGrantStore` (Task 6)
+- Consumes: `OneDriveItem`, `OneDriveFolderMatching`, `OfficeAddress` (Task 5), `FolderGrantStore` (Task 6), `MaterialResolver` (Task 7, für die lokalen Namen im Ordner)
 - Produces:
 ```swift
 #if os(iOS)
@@ -722,9 +728,11 @@ enum MicrosoftAccountError: Error, Equatable { case notConfigured, interactionRe
     func signIn(anchor: AuthPresentationAnchor) async throws
     func signOut() async                              // Konto aus dem MSAL-Cache entfernen
     func accessToken() async throws -> String         // still; wirft .interactionRequired
-    static func handleRedirect(_ url: URL) -> Bool    // MSALPublicClientApplication.handleMSALResponse, aus .onOpenURL
+    static func handleRedirect(_ url: URL) -> Bool    // iOS: MSALPublicClientApplication.handleMSALResponse, aus .onOpenURL; macOS: false (API nur iOS)
     static let scopes = ["Files.Read"]
     static let authority = "https://login.microsoftonline.com/common"
+    /// Nur für Tests (kein MSAL): gilt als konfiguriert und, wenn `signedInUsername` gesetzt ist, als angemeldet.
+    init(signedInUsernameForTesting: String?)
 }
 protocol AccessTokenProviding: Sendable { func accessToken() async throws -> String }
 struct GraphClient: Sendable {
@@ -741,13 +749,14 @@ struct GraphClient: Sendable {
     /// Für jede Freigabe ohne oneDrivePath: Kandidaten probieren (Task 5), erster Treffer mit childrenMatch → setOneDrivePath.
     func detectOneDriveFolders() async
     /// Element zum Verweis: über gespeicherte Kennung, sonst über oneDrivePath der Freigabe + relativePath.
-    /// Ergebnis wird im Sitzungsspeicher gehalten; neue Kennungen gibt es über `resolvedIDs` zurück.
+    /// Ergebnis wird im Sitzungsspeicher gehalten; neue Kennungen liest der Aufrufer aus dem Ergebnis
+    /// (`id`, `parentReference.driveId`) und schreibt sie zurück (Task 11).
     func item(for reference: MaterialReference) async throws -> OneDriveItem?
 }
 ```
 Pfade in Graph-Adressen je Segment mit `OfficeAddress.encodeSegment` kodieren; Header `Authorization: Bearer <token>`.
 
-- [ ] **Step 1: Tests schreiben** (URLProtocol-Attrappe `StubURLProtocol`, Antworten als JSON-Zeichenketten in den Tests; `FakeTokens` liefert „test-token“)
+- [ ] **Step 1: Tests schreiben** (URLProtocol-Attrappe `StubURLProtocol`, Antworten als JSON-Zeichenketten in den Tests; `FakeTokens` liefert „test-token“; angemeldet/abgemeldet über `MicrosoftAccount(signedInUsernameForTesting:)`, weil echtes MSAL im Simulator-Test nicht anmelden kann)
 
 ```swift
 @Test("Element wird decodiert und mit Bearer-Token abgefragt (FR-5.1)") func itemDecodesAndSendsBearer()
@@ -764,7 +773,7 @@ Pfade in Graph-Adressen je Segment mit `OfficeAddress.encodeSegment` kodieren; H
 ```
 
 - [ ] **Step 2: Diff durchsehen** – MSAL-Aufrufe nur in `MicrosoftAccount`; `MicrosoftAccount` erfüllt `AccessTokenProviding` über eine `Sendable`-Hülle, die auf den Hauptakteur springt.
-- [ ] **Step 3: Implementieren.** MSAL gemäß Quellen oben: `MSALPublicClientApplicationConfig(clientId:redirectUri: "msauth.\(Bundle.main.bundleIdentifier!)://auth", authority: try MSALAADAuthority(url:))`, `cacheConfig.keychainSharingGroup = Bundle.main.bundleIdentifier`; interaktiv `MSALInteractiveTokenParameters(scopes:webviewParameters: MSALWebviewParameters(authPresentationViewController: anchor))`; still `MSALSilentTokenParameters(scopes:account:)`; Konto über `account(forIdentifier:)` mit der gespeicherten Kennung (`UserDefaults`, nur die Konto-Kennung, kein Token); Abmelden mit `remove(_:)` des Kontos. Nach erfolgreichem `signIn` `OneDriveService.detectOneDriveFolders()` anstoßen (über Rückruf in `StorageService`, Task 11). Rückruf-Blöcke mit `withCheckedThrowingContinuation`.
+- [ ] **Step 3: Implementieren.** MSAL gemäß Quellen oben: `MSALPublicClientApplicationConfig(clientId:redirectUri: "msauth.\(Bundle.main.bundleIdentifier!)://auth", authority: try MSALAADAuthority(url:))`, `cacheConfig.keychainSharingGroup = Bundle.main.bundleIdentifier`; interaktiv `MSALInteractiveTokenParameters(scopes:webviewParameters: MSALWebviewParameters(authPresentationViewController: anchor))` (macOS: Initialisierer laut MSAL-Header des gepinnten Standes; die MSAL-Beispiele nutzen dort `MSALWebviewParameters()` unter `#if !TARGET_OS_IPHONE`); `handleMSALResponse` nur unter `#if os(iOS)`; still `MSALSilentTokenParameters(scopes:account:)`; Konto über `account(forIdentifier:)` mit der gespeicherten Kennung (`UserDefaults`, nur die Konto-Kennung, kein Token); Abmelden mit `remove(_:)` des Kontos. Nach erfolgreichem `signIn` `OneDriveService.detectOneDriveFolders()` anstoßen (über Rückruf in `StorageService`, Task 11). Rückruf-Blöcke mit `withCheckedThrowingContinuation`.
 - [ ] **Step 4: Diff durchsehen** – kein Token in Logs, `UserDefaults` oder Dateien; einzige Hosts `graph.microsoft.com` und die MSAL-Authority (NFR-2).
 - [ ] **Step 5: Commit** – `feat(onedrive): MSAL sign-in, graph client and onedrive folder detection`
 
@@ -809,7 +818,7 @@ iOS: `UIDocumentInteractionController(url:)` + `presentOpenInMenu(from:in:animat
     // SystemDocumentHandOff mit eingespeister Öffnen-Funktion, die nie antwortet; limit .milliseconds(50) → nil
 @Test("Abgelehnte Office-Adresse ergibt false") func officeURIRejected()
 ```
-Dafür bekommt `SystemDocumentHandOff` einen internen Initialisierer `init(openURL: @escaping @MainActor (URL) async -> Bool)`; der öffentliche nutzt die Systemfunktion.
+Dafür bekommt `SystemDocumentHandOff` einen internen Initialisierer `init(openURL: @escaping @MainActor (URL) async -> Bool)`; der öffentliche nutzt die Systemfunktion. Die „nie antwortende“ Attrappe wartet abbrechbar (`try? await Task.sleep(for: .seconds(3600))`). Das Rennen gegen `limit` darf nicht auf das Ende des Öffnen-Aufrufs warten: `UIApplication.open` mit Rückruf ist nicht abbrechbar, und `withTaskGroup` wartet auf alle Kind-Aufgaben – deshalb eine Fortsetzung, die der erste Ausgang (Antwort oder Frist) genau einmal fortsetzt (Merker gegen doppeltes `resume`).
 
 - [ ] **Step 2: Diff durchsehen.**
 - [ ] **Step 3: Implementieren** wie oben, `#if os(iOS)`/`#if os(macOS)` in einer Datei.
@@ -842,6 +851,10 @@ enum OpenOutcome {
     init(grants: FolderGrantStore, references: any MaterialReferenceStore, resolver: MaterialResolver,
          prefetcher: Prefetcher, network: NetworkMonitor, account: MicrosoftAccount, oneDrive: OneDriveService,
          handOff: any DocumentHandingOff, uriForm: OfficeURIForm = .webStyle)
+    /// Interner Initialisierer für Tests: verkürzte Fristen (sonst CloudOpenPolicy.preparationLimit/handOverLimit).
+    init(grants: FolderGrantStore, references: any MaterialReferenceStore, resolver: MaterialResolver,
+         prefetcher: Prefetcher, network: NetworkMonitor, account: MicrosoftAccount, oneDrive: OneDriveService,
+         handOff: any DocumentHandingOff, uriForm: OfficeURIForm, preparationLimit: Duration, handOverLimit: Duration)
     private(set) var grants: [FolderGrant]
     /// Zustand je Ort (Schlüssel MaterialReference.locationKey) für die Tagesansicht.
     private(set) var availability: [String: MaterialAvailability]
@@ -867,7 +880,7 @@ enum OpenOutcome {
 ```
 Ablauf `open`: `OpenContext` bauen (Zustand vom Resolver, `network.isOnline`, `account.isSignedIn`, `handOff.isInstalled`, `documentURL` nur wenn der Verweis eine OneDrive-Kennung hat oder seine Freigabe einen `oneDrivePath` – Element über `oneDrive.item(for:)` mit Frist `CloudOpenPolicy.preparationLimit`), `OpenRouter.route` anwenden; `.officeCloud` → `OfficeAddress.officeURI(…, form: uriForm, origin: UUID(), correlation: UUID(), timestampMillis: jetzt)` → `handOff.openOfficeURI(_, limit: CloudOpenPolicy.handOverLimit)`; Ergebnis über `CloudOpenPolicy.afterHandOver` → bei `.fallBackToHandOff` Übergabe der Datei. Neue OneDrive-Kennungen schreibt `open` und `prepareForTeaching` per `references.replaceReferences(atLocation:with:)` zurück (gespiegelt, damit das zweite Gerät nicht erneut sucht). `.waitForDownload` → Herunterladen anfordern, Zustand alle 2 s neu lesen, bei `.onDevice` den Zielweg ausführen (höchstens 120 s, danach `.failed`).
 
-- [ ] **Step 1: Tests schreiben** (Attrappen für Store, Downloader, `DocumentHandingOff`, Token; temporäre Freigabe „Unterricht“)
+- [ ] **Step 1: Tests schreiben** (Attrappen für Store, Downloader, `DocumentHandingOff`, Token; Graph über `StubURLProtocol` aus Task 9; Anmeldung über `MicrosoftAccount(signedInUsernameForTesting:)`, Netz über `NetworkMonitor(isOnline:)`; temporäre Freigabe „Unterricht“)
 
 ```swift
 @Test("PDF öffnet in der Anzeige mit offenem Zugriff (FR-6)") func pdfOpensViewer()
@@ -883,14 +896,14 @@ Ablauf `open`: `OpenContext` bauen (Zustand vom Resolver, `network.isOnline`, `a
     // store.replaced == [(oldLocationKey, neuer Verweis "8b/Arbeitsblatt Vokabeln neu.pdf")]
 @Test("Neu verknüpfen mit Datei außerhalb der Freigaben: outsideGrants") func relinkOutsideGrants()
 @Test("withFileURL liest die Datei und schließt den Zugriff danach (Vorlage, Teilplan 07)") func withFileURLReadsAndCloses()
-    // body liefert Data(contentsOf:).count > 0; danach ist kein ScopedFile mehr offen (Zähler der Attrappe == 0); unbekannte Freigabe → wirft .unresolvable
+    // body liefert Data(contentsOf:).count > 0; danach ist kein ScopedFile mehr offen (ScopedFile.openCount == 0); unbekannte Freigabe → wirft .unresolvable
 @Test("Gefundene OneDrive-Kennung wird zurückgeschrieben") func resolvedOneDriveIDIsStored()
 @Test("Freigabe mit gespiegeltem Namen wird vorgeschlagen (Area ablage, zweites Gerät)") func suggestsMirroredGrantName()
     // store.folderGrantNames == ["Unterricht"], keine lokale Freigabe → suggestion.matchesMirroredName
 ```
 
 - [ ] **Step 2: Diff durchsehen.**
-- [ ] **Step 3: Implementieren** gemäß Ablauf. Zeitmessung mit `ContinuousClock`; Fristen als Rennen in `withTaskGroup`.
+- [ ] **Step 3: Implementieren** gemäß Ablauf. Zeitmessung mit `ContinuousClock`; Fristen als Rennen in `withTaskGroup` mit `group.cancelAll()` nach dem ersten Ergebnis (Graph-Abfragen über `URLSession` sind abbrechbar; die Office-Übergabe rennt bereits in `openOfficeURI`, Task 10).
 - [ ] **Step 4: Diff durchsehen** – Fassade enthält keine Entscheidungslogik, die nicht aus `OpenRouter`/`CloudOpenPolicy`/`PrefetchPlanner` kommt.
 - [ ] **Step 5: Commit** – `feat(storage): storage service facade for open, relink and prefetch`
 
@@ -901,7 +914,7 @@ Ablauf `open`: `OpenContext` bauen (Zustand vom Resolver, `network.isOnline`, `a
 **Files:** keine Änderungen (nur bei roten Tests: Korrektur in der Datei der betroffenen Aufgabe, eigener Commit)
 
 - [ ] **Step 1: Gesamtdiff des Teilplans durchsehen** – `git diff main...HEAD -- Packages Frontstage FrontstageTests project.yml .github`: Swift 6 strikt (`Sendable` an allen Typen, die Akteur-Grenzen überqueren; `@preconcurrency import MSAL`), `#if os(…)` vollständig, kein Schreibaufruf auf Ablage-URLs, keine echten Namen oder Domains.
-- [ ] **Step 2: Branch pushen und CI anstoßen**
+- [ ] **Step 2: Branch pushen und CI anstoßen** – **nur der Controller** (Übersicht „Global Constraints“, Sparregeln in `CLAUDE.md`: höchstens ein Lauf je Teilplan, wenn möglich mehrere Teilpläne gemeinsam). Implementierende Subagenten pushen nicht und starten keinen Lauf; sie melden nach Step 1 fertig.
 
 ```bash
 git push -u origin <branch>
@@ -909,8 +922,8 @@ gh workflow run ci.yml --ref <branch>
 gh run list --workflow ci.yml --branch <branch> --limit 1
 gh run watch <run-id>
 ```
-Expected: Job „core“ (`swift test --package-path Packages/FrontstageCore`) grün mit allen Tests aus Task 1–5; Job „app“ (`xcodebuild test` im iPad-Simulator) grün mit allen Tests aus Task 6–11; macOS-Ziel baut.
-- [ ] **Step 3: Bei Rot** – Log mit `gh run view <run-id> --log-failed` lesen, Ursache mit superpowers:systematic-debugging klären, korrigieren, Schritt 2 einmal wiederholen.
+Expected: Job `build-and-test` grün – Schritt „Core tests“ (`swift test --package-path Packages/FrontstageCore`) mit allen Tests aus Task 1–5, Schritt „Build macOS“ baut das macOS-Ziel, Schritt „App tests (iPad simulator)“ (`xcodebuild test`) mit allen Tests aus Task 6–11.
+- [ ] **Step 3: Bei Rot** – Log mit `gh run view <run-id> --log-failed` und das hochgeladene Artefakt `TestResults` (`TestResults.xcresult`) lesen, Ursache mit superpowers:systematic-debugging klären, korrigieren, Diff prüfen, dann **ein** neuer Lauf (Controller) – kein Lauf nur zur Bestätigung.
 
 ---
 
