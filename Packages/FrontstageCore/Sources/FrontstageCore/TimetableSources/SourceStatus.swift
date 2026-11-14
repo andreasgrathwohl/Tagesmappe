@@ -59,6 +59,16 @@ public struct SourceStatus: Hashable, Codable, Sendable {
     return copy
   }
 
+  /// Beim Wechsel der Quelle: Fehlerfolge und letzter Fehler beginnen neu. Versuchszeit und Tageszähler
+  /// bleiben, damit ein Hin- und Herschalten weder die 60-s-Sperre noch die Grenze der automatischen
+  /// Versuche umgeht – jeder Versuch ist eine Anmeldung beim Anbieter (ADR-0004, RISK-1).
+  public func resettingForSourceSwitch() -> SourceStatus {
+    var copy = self
+    copy.consecutiveFailures = 0
+    copy.lastError = nil
+    return copy
+  }
+
   /// Ab drei Fehlern in Folge soll die Oberfläche die Pflege von Hand anbieten (Area stundenplan-quellen).
   public var suggestsManualMaintenance: Bool { consecutiveFailures >= 3 }
 

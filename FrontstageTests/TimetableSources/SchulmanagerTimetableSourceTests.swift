@@ -138,6 +138,17 @@ struct SchulmanagerTimetableSourceTests {
     #expect(try #require(snapshot.bellSchedule).periods.count == 2)
   }
 
+  @Test("Leere Stundenzeiten: der Stand trägt kein Zeitraster (Q-16)")
+  func emptyClassHoursYieldNoBellSchedule() async throws {
+    let calls = FakeTransport.Reply.body(
+      """
+      {"results":[{"status":200,"data":[\(element("2026-11-17", 2, "8b", "Englisch"))]},{"status":200,"data":[]}]}
+      """)
+    let transport = FakeTransport([saltReply, loginReply, calls])
+    let snapshot = try #require(try await fetch(source(transport)))
+    #expect(snapshot.bellSchedule == nil)
+  }
+
   @Test("Ohne Zugangsdaten: nicht eingerichtet, kein Netzzugriff")
   func missingCredentialsIsNotConfigured() async throws {
     let transport = FakeTransport([])

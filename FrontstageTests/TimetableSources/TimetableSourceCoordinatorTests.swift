@@ -29,6 +29,7 @@ private final class FakeSource: TimetableSource, @unchecked Sendable {
   private(set) var writes = 0
   init(_ inner: DataStore) { self.inner = inner }
 
+  var revision: Int { inner.revision }
   func timetable() throws -> Timetable? { try inner.timetable() }
   func manuallyEditedEntries() throws -> Set<TimetableEntry> { try inner.manuallyEditedEntries() }
   func nonTeachingPeriods() throws -> [NonTeachingPeriod] { try inner.nonTeachingPeriods() }
@@ -287,5 +288,74 @@ struct TimetableSourceCoordinatorTests {
 
     #expect(try store.scheduleChanges() == [cancellation(past)])
     #expect(try store.timetableSourceKind() == .manual)
+  }
+
+  @Test("Leeres Zeitraster der Quelle ersetzt das von Hand gepflegte nicht (Q-16)")
+  func emptyClassHoursKeepsBellSchedule() async throws {
+    let store = try makeStore()
+    let manualBell = BellSchedule(periods: [
+      1: TimeOfDay(hour: 7, minute: 45)...TimeOfDay(hour: 8, minute: 30)
+    ])
+    try store.setBellSchedule(manualBell)
+    try store.setTimetableSourceKind(.schulmanager)
+    let source = FakeSource(
+      .success(snapshot(entries: [di2_8b], bell: BellSchedule(), at: morning)))
+    let env = makeEnv(repository: store, source: source, clock: TestClock(morning))
+    defer { env.cleanUp() }
+    await env.coordinator.refresh(.appBecameActive)
+    #expect(env.coordinator.pendingPreview?.bellScheduleChanged == false)
+
+    try env.coordinator.applyPendingPreview(acceptedFromSource: [])
+
+    #expect(try store.timetable()?.bellSchedule == manualBell)
+    #expect(try store.timetable()?.entries == [di2_8b])
+  }
+
+  @Test("Umschalten der Quelle umgeht die Abfrage-Sperre nicht (ADR-0004, RISK-1)")
+  func switchingSourceDoesNotBypassRateLimit() async throws {
+    let store = try makeStore()
+    try store.setTimetableSourceKind(.schulmanager)
+    let clock = TestClock(morning)
+    let source = FakeSource(.failure(.offline))
+    let env = makeEnv(repository: store, source: source, clock: clock)
+    defer { env.cleanUp() }
+    await env.coordinator.refresh(.userRequest)
+
+    try env.coordinator.switchSource(to: .manual)
+    try env.coordinator.switchSource(to: .schulmanager)
+    clock.value = clock.value.addingTimeInterval(10)
+    await env.coordinator.refresh(.userRequest)
+
+    #expect(source.calls == 1)
+    #expect(env.coordinator.status.lastAttemptAt == morning)
+    #expect(env.coordinator.status.consecutiveFailures == 0)
+    #expect(env.coordinator.status.lastError == nil)
+  }
+
+  @Test("Eine alte Vorschau überschreibt neuere gespiegelte Abweichungen nicht")
+  func stalePreviewKeepsNewerScheduleChanges() async throws {
+    let store = try makeStore()
+    try store.setTimetableSourceKind(.schulmanager)
+    let oldChange = SourceChange.substitute(
+      date: tue17, period: 3, schoolClass: SchoolClass("6c"), subject: Subject("Mathematik"))
+    let source = FakeSource(
+      .success(snapshot(entries: [di2_8b, mi3_8b], changes: [oldChange], at: morning)))
+    let env = makeEnv(repository: store, source: source, clock: TestClock(morning))
+    defer { env.cleanUp() }
+    await env.coordinator.refresh(.appBecameActive)
+    #expect(env.coordinator.pendingPreview != nil)
+
+    // Das andere Gerät fragt später ab; sein Stand und seine Abweichungen kommen per Spiegelung.
+    let newer = ScheduleChange.cancellation(
+      LessonKey(date: wed18, schoolClass: SchoolClass("8b"), subject: Subject("Englisch"), ordinal: 1),
+      .source)
+    let laterFetch = morning.addingTimeInterval(86_400)
+    try store.replaceScheduleChanges([newer], sourceFetchedAt: laterFetch)
+
+    try env.coordinator.applyPendingPreview(acceptedFromSource: [])
+
+    #expect(try store.scheduleChanges() == [newer])
+    #expect(try store.sourceFetchedAt() == laterFetch)
+    #expect(Set(try store.timetable()?.entries ?? []) == [di2_8b, mi3_8b])
   }
 }

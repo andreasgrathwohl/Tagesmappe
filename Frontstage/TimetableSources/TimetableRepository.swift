@@ -4,6 +4,9 @@ import FrontstageCore
 /// Schmale Sicht auf die App-Daten für die Stundenplan-Quellen – ohne SwiftData-Typen nach außen.
 /// Die Signaturen entsprechen den `DataStore`-Methoden aus Teilplan 02; Tests können einen Zähler dazwischenhängen.
 @MainActor protocol TimetableRepository: AnyObject {
+  /// Zähler, der bei jedem Speichern steigt – auch nach einem Abgleich vom anderen Gerät. Ansichten lesen ihn
+  /// mit, damit SwiftUI neu zeichnet, wenn sich Stand oder Quelle ändern (Abfragen sind nicht beobachtbar).
+  var revision: Int { get }
   func timetable() throws -> Timetable?
   /// Einträge mit Herkunft `.manual` oder von Hand geändert (Eingabe für `ImportDiffer`, AK-3).
   func manuallyEditedEntries() throws -> Set<TimetableEntry>

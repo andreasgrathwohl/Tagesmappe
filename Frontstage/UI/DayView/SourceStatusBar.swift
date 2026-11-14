@@ -67,6 +67,10 @@ struct SourceStatusBar: View {
   /// Dieselben Zugangsdaten wie in `TimetableSourceSettingsView` und `SourceCoordinatorHolder.live`.
   private let credentials: any CredentialStore = KeychainCredentialStore()
 
+  /// Ob Zugangsdaten im Schlüsselbund liegen; `nil`, solange noch nicht gelesen. Gelesen wird beim
+  /// Erscheinen und nach Anmelden/Abmelden, nicht bei jedem Neuzeichnen (jeder Zugriff fragt den Schlüsselbund).
+  @State private var hasCredentials: Bool?
+
   init() {}
 
   var body: some View {
@@ -90,6 +94,10 @@ struct SourceStatusBar: View {
         noticeLabel(model.notice)
       }
       .font(.footnote)
+      // `.task(id:)` läuft beim Erscheinen und erneut, sobald sich der Wert ändert.
+      .task(id: coordinator.credentialsRevision) {
+        hasCredentials = (try? credentials.load()) != nil
+      }
     }
   }
 
@@ -141,12 +149,16 @@ struct SourceStatusBar: View {
   }
 
   private func makeModel() -> SourceStatusBarModel {
-    SourceStatusBarModel(
+    // Mitlesen, damit ein Abgleich vom anderen Gerät (Stand, Quelle) neu zeichnet; die Abfragen darunter
+    // sind für SwiftUI nicht beobachtbar.
+    _ = coordinator.repository.revision
+    return SourceStatusBarModel(
       kind: (try? coordinator.repository.timetableSourceKind()) ?? .manual,
       fetchedAt: try? coordinator.repository.sourceFetchedAt(),
       status: coordinator.status,
       hasPendingPreview: coordinator.pendingPreview != nil,
-      hasCredentials: (try? credentials.load()) != nil,
+      // Noch nicht gelesen: kein „nicht angemeldet“ aufblitzen lassen.
+      hasCredentials: hasCredentials ?? true,
       now: Date(), calendar: .current)
   }
 }

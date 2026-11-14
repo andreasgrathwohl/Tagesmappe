@@ -94,10 +94,13 @@ public enum SchulmanagerResponseParser {
   }
 
   /// Zeitraster aus dem Teilergebnis `index` einer Abfrage.
-  public static func bellSchedule(fromCalls data: Data, at index: Int) throws -> BellSchedule {
+  /// Eine leere Liste ist nichts Geliefertes (etwa unbelegte Parameter für Lehrkräfte, Q-16): dann `nil`,
+  /// damit ein von Hand gepflegtes Zeitraster nicht durch ein leeres ersetzt wird.
+  public static func bellSchedule(fromCalls data: Data, at index: Int) throws -> BellSchedule? {
     guard case .array(let elements) = try callData(data, at: index) else {
       throw fail("Stundenzeiten sind keine Liste")
     }
+    guard !elements.isEmpty else { return nil }
     var periods: [Int: ClosedRange<TimeOfDay>] = [:]
     for element in elements {
       guard let number = element[["number"]].flatMap(integer),

@@ -34,6 +34,9 @@ struct ImportPreview: Equatable {
   private(set) var status: SourceStatus
   private(set) var pendingPreview: ImportPreview?
   private(set) var isFetching = false
+  /// Steigt, wenn eine Ansicht Zugangsdaten gespeichert oder gelöscht hat. Andere Ansichten lesen den
+  /// Schlüsselbund daraufhin neu, statt bei jedem Neuzeichnen.
+  private(set) var credentialsRevision = 0
 
   private let makeSource: (TimetableSourceKind) -> any TimetableSource
   private let statusStore: SourceStatusStore
@@ -107,13 +110,14 @@ struct ImportPreview: Equatable {
     guard (try? repository.timetableSourceKind()) == kind else { return }
 
     do {
-      // 2. Stundenplan-Teil: nur eine Vorschau vorbereiten, nichts übernehmen.
+      // 2. Abweichungen gelten sofort (FR-2.2), gegen den aktuellen Stundenplan. Zuerst, damit ein
+      //    Fehler beim Speichern keine Vorschau zu einem nicht gespeicherten Stand hinterlässt.
+      try storeChanges(of: snapshot, stampFetchedAt: true)
+
+      // 3. Stundenplan-Teil: nur eine Vorschau vorbereiten, nichts übernehmen.
       let preview = try Self.makePreview(from: snapshot, repository: repository)
       try pendingStore.save(preview == nil ? nil : snapshot)
       pendingPreview = preview
-
-      // 3. Abweichungen gelten sofort (FR-2.2), gegen den aktuellen Stundenplan.
-      try storeChanges(of: snapshot, stampFetchedAt: true)
     } catch {
       return recordFailure(.unexpectedResponse("Datenspeicher nicht schreibbar"))
     }
@@ -124,6 +128,9 @@ struct ImportPreview: Equatable {
 
   /// Übernimmt die Vorschau: Stundenplan und Zeitraster, danach die Abweichungen gegen den neuen Plan.
   /// `acceptedFromSource`: Quell-Fassungen, die eine von Hand bearbeitete Fassung ersetzen sollen.
+  ///
+  /// Zwei Speichervorgänge (Stundenplan, dann Abweichungen): Scheitert der zweite, ist der Stundenplan schon
+  /// übernommen und die Vorschau bleibt stehen; der Fehlertext der Oberfläche sagt das so.
   func applyPendingPreview(acceptedFromSource: Set<TimetableEntry>) throws {
     guard let preview = pendingPreview,
       case .derived(let derived) = preview.snapshot.timetable
@@ -139,8 +146,14 @@ struct ImportPreview: Equatable {
     try repository.replaceTimetable(
       entries: applied.entries, manuallyEdited: applied.manuallyEdited,
       weekVariantCount: derived.weekVariantCount, referenceWeekA: derived.referenceWeekA,
-      bellSchedule: preview.snapshot.bellSchedule)
-    try storeChanges(of: preview.snapshot, stampFetchedAt: false)
+      bellSchedule: Self.deliveredBellSchedule(of: preview.snapshot))
+    // Die Vorschau liegt nur auf diesem Gerät und kann tagelang stehen. Ist der gespiegelte Stand neuer
+    // (Abfrage auf dem anderen Gerät), gelten dessen Abweichungen: unverändert lassen statt mit dem alten
+    // Stand zu überschreiben (veraltete Ausfälle kämen zurück, neue Vertretungen verschwänden).
+    let storedFetchedAt = try repository.sourceFetchedAt()
+    if storedFetchedAt.map({ preview.snapshot.fetchedAt >= $0 }) ?? true {
+      try storeChanges(of: preview.snapshot, stampFetchedAt: false)
+    }
     clearPreview()
   }
 
@@ -148,15 +161,21 @@ struct ImportPreview: Equatable {
     clearPreview()
   }
 
+  /// Von Ansichten nach Speichern oder Löschen der Zugangsdaten aufzurufen.
+  func noteCredentialsChanged() {
+    credentialsRevision += 1
+  }
+
   // MARK: - Quelle wechseln
 
   /// Setzt die Quelle. Beim Wechsel auf „von Hand“ fallen die Quell-Abweichungen ab heute weg (Annahme A4);
-  /// Zugangsdaten bleiben bis „Abmelden“. Der Stand beginnt neu.
+  /// Zugangsdaten bleiben bis „Abmelden“. Fehlerfolge und letzter Fehler beginnen neu; Versuchszeit und
+  /// Tageszähler bleiben, damit Umschalten die Abfrage-Sperre nicht umgeht (ADR-0004, RISK-1).
   func switchSource(to kind: TimetableSourceKind) throws {
     guard try repository.timetableSourceKind() != kind else { return }
     try repository.setTimetableSourceKind(kind)
     clearPreview()
-    updateStatus(SourceStatus())
+    updateStatus(status.resettingForSourceSwitch())
     if kind == .manual {
       let today = CalendarDay(now(), calendar: calendar)
       let kept = try repository.scheduleChanges().filter { change in
@@ -194,12 +213,21 @@ struct ImportPreview: Equatable {
       existing: existingTimetable?.entries ?? [],
       manuallyEdited: try repository.manuallyEditedEntries(), imported: derived.entries)
     let bellChanged =
-      snapshot.bellSchedule.map { $0 != (existingTimetable?.bellSchedule ?? BellSchedule()) } ?? false
+      deliveredBellSchedule(of: snapshot).map {
+        $0 != (existingTimetable?.bellSchedule ?? BellSchedule())
+      } ?? false
     let nothingToShow =
       diff.added.isEmpty && diff.changed.isEmpty && diff.manualConflicts.isEmpty
       && diff.removed.isEmpty && !bellChanged
     return nothingToShow
       ? nil : ImportPreview(snapshot: snapshot, diff: diff, bellScheduleChanged: bellChanged)
+  }
+
+  /// Zeitraster nur, wenn die Quelle eines geliefert hat: Ein leeres zählt nicht und darf das von Hand
+  /// gepflegte nie ersetzen (Plan: „Zeitraster aus dem Stand, wenn geliefert“).
+  private static func deliveredBellSchedule(of snapshot: SourceSnapshot) -> BellSchedule? {
+    guard let bell = snapshot.bellSchedule, !bell.periods.isEmpty else { return nil }
+    return bell
   }
 
   private func clearPreview() {

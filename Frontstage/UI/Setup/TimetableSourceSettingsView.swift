@@ -54,6 +54,11 @@ struct TimetableSourceSettingsView: View {
     .navigationTitle("timetableSource.title")
     .task { reload() }
     .sheet(isPresented: $isShowingPreview) { previewSheet }
+    // Fällt die Vorschau weg, während das Sheet offen ist (Abfrage ohne Unterschied, Datenort-Wechsel),
+    // schließen; ein leeres Sheet hätte am Mac keinen Knopf zum Schließen.
+    .onChange(of: coordinator.pendingPreview == nil) { _, isGone in
+      if isGone { isShowingPreview = false }
+    }
   }
 
   // MARK: - Abschnitte
@@ -103,6 +108,8 @@ struct TimetableSourceSettingsView: View {
 
   @ViewBuilder private var importSection: some View {
     Section {
+      // `revision` mitlesen: Kommt der Stand per Abgleich vom anderen Gerät, zeichnet SwiftUI neu.
+      let _ = coordinator.repository.revision
       if let fetchedAt = try? coordinator.repository.sourceFetchedAt() {
         Text("timetableSource.fetchedAt \(fetchedAt.formatted(date: .abbreviated, time: .shortened))")
       } else {
@@ -135,7 +142,7 @@ struct TimetableSourceSettingsView: View {
     .foregroundStyle(.red)
   }
 
-  /// Vorschau als Sheet; ist sie inzwischen weg (übernommen oder verworfen), bleibt das Sheet leer und schließt sich.
+  /// Vorschau als Sheet; fällt sie weg, schließt `onChange` oben das Sheet (bis dahin bleibt es leer).
   @ViewBuilder private var previewSheet: some View {
     if let preview = coordinator.pendingPreview {
       ImportPreviewView(preview: preview)
@@ -165,21 +172,31 @@ struct TimetableSourceSettingsView: View {
 
   /// Speichern erst nach erfolgreichem Probe-Import: speichern → abfragen → bei falschen Zugangsdaten wieder löschen.
   private func signIn() async {
+    errorMessageKey = nil
+    // Läuft schon eine Abfrage (etwa beim Aktivieren), würde `refresh` sofort zurückkehren: nichts speichern.
+    guard !coordinator.isFetching else { return setError("timetableSource.error.busy") }
     isWorking = true
     defer { isWorking = false }
-    errorMessageKey = nil
     do {
       try credentials.save(SchulmanagerCredentials(username: username, password: password))
     } catch {
       return setError("timetableSource.error.keychain")
     }
+    defer { coordinator.noteCredentialsChanged() }
     let attemptBefore = coordinator.status.lastAttemptAt
+    let failuresBefore = coordinator.status.consecutiveFailures
     await coordinator.refresh(.userRequest)
     let attempted = coordinator.status.lastAttemptAt != attemptBefore
 
     if !attempted {
-      // Abfrage wurde nicht gestartet (zu kurzer Abstand oder läuft schon): nichts ist geprüft.
+      // Abfrage wurde nicht gestartet: nichts ist geprüft. Entweder scheiterte schon das Lesen des
+      // Datenspeichers (dann steht ein neuer Fehler im Status) oder der Abstand war zu kurz.
       try? credentials.delete()
+      if coordinator.status.consecutiveFailures > failuresBefore,
+        let error = coordinator.status.lastError
+      {
+        return setError(error.settingsMessageKey, serverStatus: serverStatus(of: error))
+      }
       return setError("timetableSource.error.tooSoon")
     }
     if coordinator.status.lastError == .invalidCredentials {
@@ -204,6 +221,7 @@ struct TimetableSourceSettingsView: View {
       try credentials.delete()
       hasCredentials = false
       errorMessageKey = nil
+      coordinator.noteCredentialsChanged()
     } catch {
       setError("timetableSource.error.keychain")
     }

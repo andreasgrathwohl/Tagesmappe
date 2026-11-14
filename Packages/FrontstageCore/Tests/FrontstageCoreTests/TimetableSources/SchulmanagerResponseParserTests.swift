@@ -168,16 +168,23 @@ struct SchulmanagerResponseParserTests {
       """
     let bell = try SchulmanagerResponseParser.bellSchedule(
       fromCalls: F.calls(lessons: "[]", classHours: hours), at: 1)
-    #expect(bell.periods.count == 2)
-    #expect(bell.periods[2] == t(8, 35)...t(9, 20))
-    #expect(bell.periods[1] == t(7, 45)...t(8, 30))
+    #expect(bell?.periods.count == 2)
+    #expect(bell?.periods[2] == t(8, 35)...t(9, 20))
+    #expect(bell?.periods[1] == t(7, 45)...t(8, 30))
   }
 
   @Test func classHoursAcceptShortTimeFormat() throws {
     let hours = "[{\"number\":\"1\",\"from\":\"07:45\",\"until\":\"08:30\"}]"
     let bell = try SchulmanagerResponseParser.bellSchedule(
       fromCalls: F.calls(lessons: "[]", classHours: hours), at: 1)
-    #expect(bell.periods[1] == t(7, 45)...t(8, 30))
+    #expect(bell?.periods[1] == t(7, 45)...t(8, 30))
+  }
+
+  @Test("Leere Stundenzeiten sind nichts Geliefertes: kein Zeitraster statt eines leeren (Q-16)")
+  func emptyClassHoursYieldNoBellSchedule() throws {
+    let bell = try SchulmanagerResponseParser.bellSchedule(
+      fromCalls: F.calls(lessons: "[]", classHours: "[]"), at: 1)
+    #expect(bell == nil)
   }
 
   @Test func malformedTimeThrows() {

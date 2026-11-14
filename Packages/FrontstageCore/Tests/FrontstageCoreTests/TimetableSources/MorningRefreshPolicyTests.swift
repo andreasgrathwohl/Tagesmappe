@@ -122,6 +122,36 @@ struct MorningRefreshPolicyTests {
     #expect(begin == date(17, 5, 30))
   }
 
+  @Test("Hintergrund-Beginn vor 05:30: derselbe Morgen, nicht der Folgetag")
+  func nextBackgroundBeginBeforeHalfPastFiveIsSameMorning() {
+    #expect(
+      MorningRefreshPolicy.nextBackgroundBeginDate(after: date(17, 0, 30), calendar: calendar)
+        == date(17, 5, 30))
+    #expect(
+      MorningRefreshPolicy.nextBackgroundBeginDate(after: date(17, 5, 30), calendar: calendar)
+        == date(18, 5, 30))
+  }
+
+  @Test("Quellenwechsel setzt nur Fehler zurück, nicht Sperre und Tageszähler (ADR-0004, RISK-1)")
+  func resettingForSourceSwitchKeepsRateLimit() {
+    let status = SourceStatus()
+      .recordingAttempt(.backgroundRefresh, at: date(17, 7, 0), calendar: calendar)
+      .recordingFailure(.offline, at: date(17, 7, 0))
+      .recordingAttempt(.userRequest, at: date(17, 7, 30), calendar: calendar)
+      .recordingFailure(.invalidCredentials, at: date(17, 7, 30))
+
+    let reset = status.resettingForSourceSwitch()
+
+    #expect(reset.consecutiveFailures == 0)
+    #expect(reset.lastError == nil)
+    #expect(reset.lastAttemptAt == date(17, 7, 30))
+    #expect(reset.automaticAttemptsDay == status.automaticAttemptsDay)
+    #expect(reset.automaticAttemptsCount == 1)
+    #expect(
+      !MorningRefreshPolicy.shouldFetch(
+        .userRequest, status: reset, now: date(17, 7, 30, second: 20), calendar: calendar))
+  }
+
   @Test("Status übersteht Kodieren und Dekodieren")
   func statusRoundTripsThroughJSON() throws {
     let status = SourceStatus()

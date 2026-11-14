@@ -22,11 +22,19 @@ public enum MorningRefreshPolicy {
     return sinceLastAttempt.map { $0 >= automaticRetryInterval } ?? true
   }
 
-  /// Nächster Tag 05:30 Ortszeit – frühester Beginn der Hintergrund-Aktualisierung (ADR-0004).
+  /// Nächstes 05:30 Ortszeit nach `now` – frühester Beginn der Hintergrund-Aktualisierung (ADR-0004).
+  /// Vor 05:30 ist das derselbe Morgen, sonst der Folgetag.
   public static func nextBackgroundBeginDate(after now: Date, calendar: Calendar) -> Date {
-    let tomorrow = CalendarDay(now, calendar: calendar).adding(days: 1)
-    let components = DateComponents(
-      year: tomorrow.year, month: tomorrow.month, day: tomorrow.day, hour: 5, minute: 30)
-    return calendar.date(from: components) ?? now.addingTimeInterval(24 * 3600)
+    let today = CalendarDay(now, calendar: calendar)
+    if let sameMorning = halfPastFive(on: today, calendar: calendar), sameMorning > now {
+      return sameMorning
+    }
+    return halfPastFive(on: today.adding(days: 1), calendar: calendar)
+      ?? now.addingTimeInterval(24 * 3600)
+  }
+
+  private static func halfPastFive(on day: CalendarDay, calendar: Calendar) -> Date? {
+    calendar.date(
+      from: DateComponents(year: day.year, month: day.month, day: day.day, hour: 5, minute: 30))
   }
 }

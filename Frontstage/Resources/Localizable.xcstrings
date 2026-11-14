@@ -191,36 +191,6 @@
         }
       }
     },
-    "timetableSource.preview.placeholder" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Der Stundenplan der Quelle weicht vom vorhandenen ab. Übernehmen ersetzt ihn; von Hand geänderte Stunden bleiben erhalten."
-          }
-        }
-      }
-    },
-    "timetableSource.preview.accept" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Übernehmen"
-          }
-        }
-      }
-    },
-    "timetableSource.preview.discard" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Verwerfen"
-          }
-        }
-      }
-    },
     "timetableSource.error.notConfigured" : {
       "localizations" : {
         "de" : {
@@ -287,6 +257,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Zu kurz nach der letzten Abfrage. Bitte später erneut versuchen."
+          }
+        }
+      }
+    },
+    "timetableSource.error.busy" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es läuft gerade eine Abfrage. Bitte danach erneut versuchen."
           }
         }
       }
@@ -886,7 +866,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Übernahme ist fehlgeschlagen. Es wurde nichts geändert."
+            "value" : "Die Übernahme ist fehlgeschlagen. Der Stundenplan kann schon übernommen sein; Vertretungen und Ausfälle sind unverändert. Die Vorschau bleibt stehen."
           }
         }
       }
