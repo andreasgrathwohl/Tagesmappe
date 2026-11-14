@@ -146,12 +146,16 @@ private struct SavedIdentifiers: Sendable {
     Task { await runSerialized(writeOnly: false, quiet: true) }
   }
 
+  /// Die Abfrage hält den Abgleich nur schwach (`[weak self]`, wie die Entprellung): Ohne `stop()`
+  /// verworfen, darf er seinen Besitzer und dessen Container nicht überleben und danach auf einem
+  /// Kontext ohne Speicher abgleichen (wie `SyncMergeTrigger`).
   private func startPolling() {
     pollTask?.cancel()
-    pollTask = Task { [pollInterval] in
+    pollTask = Task { [weak self, pollInterval] in
       while !Task.isCancelled {
         do { try await Task.sleep(for: pollInterval) } catch { return }
-        await runSerialized(writeOnly: false, quiet: true)
+        guard let self else { return }
+        await self.runSerialized(writeOnly: false, quiet: true)
       }
     }
   }
@@ -163,9 +167,10 @@ private struct SavedIdentifiers: Sendable {
     changedIDs.subtract(saved.deleted)
     localChangeSeen = true
     debounceTask?.cancel()
-    debounceTask = Task { [saveDebounce] in
+    debounceTask = Task { [weak self, saveDebounce] in
       do { try await Task.sleep(for: saveDebounce) } catch { return }
-      await runSerialized(writeOnly: true, quiet: true)
+      guard let self else { return }
+      await self.runSerialized(writeOnly: true, quiet: true)
     }
   }
 

@@ -38,16 +38,23 @@ import OSLog
   }
 
   /// Eine laufende Wartezeit wird abgebrochen; nach `debounce` wird zusammengeführt.
+  ///
+  /// Die Wartezeit hält den Auslöser nur schwach (`[weak self]`): Der Auslöser besitzt den Container seines
+  /// `DataStore` nicht. Hielte die Aufgabe ihn fest, überlebte er seinen Besitzer (`DataLocationController`)
+  /// samt Container und führte danach auf einem Kontext ohne Speicher zusammen – SwiftData bricht dann ab.
+  /// Da der Beobachter jede Fernänderung im Prozess meldet (`object: nil`), konnte so eine Kette von
+  /// Wartezeiten einen längst verworfenen Auslöser am Leben halten.
   func remoteChangeReceived() {
     pendingMerge?.cancel()
-    pendingMerge = Task { [debounce] in
+    pendingMerge = Task { [weak self, debounce] in
       do {
         try await Task.sleep(for: debounce)
       } catch {
         return  // abgebrochen: eine neuere Fernänderung hat die Wartezeit neu gestartet
       }
+      guard let self else { return }  // Auslöser verworfen: sein Speicher ist womöglich schon geschlossen
       Self.logger.info("Zusammenführen nach Fernänderung")
-      merge()
+      self.merge()
     }
   }
 

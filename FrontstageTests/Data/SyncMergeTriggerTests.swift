@@ -42,6 +42,20 @@ import Testing
     trigger.stop()
   }
 
+  /// Regression (CI-Absturz „signal trap“): Die Wartezeit hielt einen verworfenen Auslöser fest, der dann
+  /// auf dem Kontext eines schon freigegebenen Containers zusammenführte.
+  @Test("Verworfener Auslöser lebt nach einer Fernänderung nicht weiter und führt nicht zusammen")
+  func droppedTriggerDoesNotMergeLater() async throws {
+    try insertDuplicateCancellations()
+    var trigger: SyncMergeTrigger? = SyncMergeTrigger(store: store, debounce: .milliseconds(50))
+    weak var released = trigger
+    trigger?.remoteChangeReceived()
+    trigger = nil
+    #expect(released == nil)
+    try await Task.sleep(for: .milliseconds(300))
+    #expect(try store.scheduleChanges().count == 2)
+  }
+
   @Test("Vordergrund führt sofort zusammen")
   func becomingActiveMergesImmediately() throws {
     try insertDuplicateCancellations()

@@ -458,4 +458,19 @@ private actor HookedRemote: RemoteDataFolder {
     await ipad.sync.runCycle()
     #expect(ipad.store.revision > before)
   }
+
+  /// Wie bei `SyncMergeTrigger`: Abfrage und Entprellung dürfen einen ohne `stop()` verworfenen Abgleich
+  /// nicht festhalten – er glich sonst später auf dem Kontext eines freigegebenen Containers ab.
+  @Test("Ohne stop() verworfener Abgleich wird trotz Abfrage und Entprellung freigegeben")
+  func droppedSyncIsReleased() async throws {
+    let mac = try device("mac")
+    var sync: DataFolderSync? = DataFolderSync(
+      store: mac.store, remote: remote, ledger: mac.ledger, now: { clock.date },
+      saveDebounce: .seconds(30), pollInterval: .seconds(3600))
+    weak var released = sync
+    sync?.start()
+    try mac.store.assign(reference("Vokabeln.pdf"), to: di8b)  // startet die Entprellung
+    sync = nil
+    #expect(await waitUntil { released == nil })
+  }
 }
