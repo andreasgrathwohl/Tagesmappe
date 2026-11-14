@@ -95,7 +95,9 @@ struct PairingSheet: View {
           ProgressView()
         case true?:
           // Die Kamera läuft nur, solange diese Ansicht steht (Wechsel des Schritts baut sie ab).
-          PairingScannerView { model.scanned($0) }
+          // Swift-Hinweis: `[model]` fängt nur das Modell ein (eine `@MainActor`-Klasse, damit `Sendable`),
+          // nicht die ganze Ansicht – der Rückruf ist `@Sendable`.
+          PairingScannerView { [model] code in model.scanned(code) }
             .clipShape(.rect(cornerRadius: 12))
         case false?:
           Text("pairing.noCamera").multilineTextAlignment(.center)

@@ -71,7 +71,13 @@ private actor HookedRemote: RemoteDataFolder {
   }
 
   /// Wartet, bis die Bedingung gilt (höchstens `timeout`).
-  private func waitUntil(timeout: Duration = .seconds(5), _ condition: () async -> Bool) async -> Bool {
+  ///
+  /// Swift-Hinweis: Die Bedingung ist `@MainActor`, weil sie Zustand des Hauptakteurs liest. Ein schlichtes
+  /// `() async -> Bool` liefe als nicht isolierte Funktion woanders, und der Aufruf vom Hauptakteur aus
+  /// gälte unter Swift 6 als mögliches Datenrennen.
+  private func waitUntil(
+    timeout: Duration = .seconds(5), _ condition: @MainActor () async -> Bool
+  ) async -> Bool {
     let deadline = ContinuousClock.now + timeout
     while ContinuousClock.now < deadline {
       if await condition() { return true }

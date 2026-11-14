@@ -119,6 +119,7 @@ enum MicrosoftAccountError: Error, Equatable {
     let app = try requireApplication()
     let webParameters = MSALWebviewParameters(authPresentationViewController: anchor)
     let parameters = MSALInteractiveTokenParameters(scopes: Self.scopes, webviewParameters: webParameters)
+    parameters.completionBlockQueue = .main
     let outcome: SignInOutcome = try await withCheckedThrowingContinuation { continuation in
       app.acquireToken(with: parameters) { result, error in
         if let result {
@@ -154,6 +155,10 @@ enum MicrosoftAccountError: Error, Equatable {
       let account = try? app.account(forIdentifier: identifier)
     else { throw MicrosoftAccountError.interactionRequired }
     let parameters = MSALSilentTokenParameters(scopes: Self.scopes, account: account)
+    // Swift-Hinweis: Der Rückruf entsteht auf dem Hauptakteur und erbt unter Swift 6 dessen Isolation; die
+    // Laufzeit prüft das beim Aufruf. MSAL ruft stille Anfragen ohne diese Angabe auf einer beliebigen
+    // Warteschlange zurück – das bräche ab. Deshalb ausdrücklich die Hauptwarteschlange.
+    parameters.completionBlockQueue = .main
     return try await withCheckedThrowingContinuation { continuation in
       app.acquireTokenSilent(with: parameters) { result, error in
         if let result {
@@ -203,6 +208,7 @@ extension MicrosoftAccount {
       let account = try? app.account(forIdentifier: identifier)
     else { throw MicrosoftAccountError.interactionRequired }
     let parameters = MSALSilentTokenParameters(scopes: scopes, account: account)
+    parameters.completionBlockQueue = .main  // siehe `accessToken()`
     return try await withCheckedThrowingContinuation { continuation in
       app.acquireTokenSilent(with: parameters) { result, error in
         if let result {
@@ -223,6 +229,7 @@ extension MicrosoftAccount {
     let webParameters = MSALWebviewParameters(authPresentationViewController: anchor)
     let parameters = MSALInteractiveTokenParameters(scopes: scopes, webviewParameters: webParameters)
     parameters.account = account
+    parameters.completionBlockQueue = .main
     try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
       app.acquireToken(with: parameters) { result, error in
         if result != nil {

@@ -14,10 +14,14 @@ import SwiftUI
 ///
 /// iPad: `DataScannerViewController` (VisionKit). Mac: `AVCaptureSession` mit Vision-Barcode-Erkennung,
 /// weil VisionKits Scanner am Mac fehlt. Die Kamera läuft nur, solange die Ansicht sichtbar ist.
+///
+/// Swift-Hinweis: Der Rückruf ist durchgehend `@MainActor @Sendable`. Unter Swift 6 ist jede
+/// `@MainActor`-Funktion implizit `@Sendable`; ein schlichtes `(String) -> Void` lässt sich deshalb nicht
+/// in die Koordinatoren weiterreichen, die ihn auf den Hauptakteur zurückholen.
 struct PairingScannerView: View {
-  let onCode: (String) -> Void
+  let onCode: @MainActor @Sendable (String) -> Void
 
-  init(onCode: @escaping (String) -> Void) {
+  init(onCode: @escaping @MainActor @Sendable (String) -> Void) {
     self.onCode = onCode
   }
 
@@ -59,7 +63,7 @@ struct PairingScannerView: View {
   /// `Coordinator` ist das Objekt, das UIKit-Delegaten-Rückrufe entgegennimmt (SwiftUI-Strukturen können
   /// kein Delegat sein, sie werden ständig neu angelegt).
   private struct DataScannerRepresentable: UIViewControllerRepresentable {
-    let onCode: (String) -> Void
+    let onCode: @MainActor @Sendable (String) -> Void
 
     func makeCoordinator() -> Coordinator { Coordinator(onCode: onCode) }
 
@@ -84,10 +88,10 @@ struct PairingScannerView: View {
     }
 
     @MainActor final class Coordinator: NSObject, DataScannerViewControllerDelegate {
-      private let onCode: (String) -> Void
+      private let onCode: @MainActor @Sendable (String) -> Void
       private(set) var delivered = false
 
-      init(onCode: @escaping (String) -> Void) { self.onCode = onCode }
+      init(onCode: @escaping @MainActor @Sendable (String) -> Void) { self.onCode = onCode }
 
       func dataScanner(
         _ dataScanner: DataScannerViewController, didAdd addedItems: [RecognizedItem],
@@ -202,7 +206,7 @@ struct PairingScannerView: View {
   }
 
   private struct MacScannerRepresentable: NSViewRepresentable {
-    let onCode: (String) -> Void
+    let onCode: @MainActor @Sendable (String) -> Void
 
     func makeCoordinator() -> Coordinator { Coordinator(onCode: onCode) }
 
@@ -221,7 +225,7 @@ struct PairingScannerView: View {
     @MainActor final class Coordinator {
       let runner: CameraSessionRunner
 
-      init(onCode: @escaping @MainActor (String) -> Void) {
+      init(onCode: @escaping @MainActor @Sendable (String) -> Void) {
         // Der Rückruf kommt von der Warteschlange der Bilder und geht auf den Hauptakteur.
         runner = CameraSessionRunner(onCode: { text in
           Task { @MainActor in onCode(text) }

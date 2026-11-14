@@ -18,6 +18,8 @@ jobs:
       - name: Core tests
         run: swift test --package-path Packages/FrontstageCore
       - name: Build macOS
+        id: mac
+        continue-on-error: true
         run: xcodebuild build -project Frontstage.xcodeproj -scheme Frontstage-macOS -destination 'generic/platform=macOS' CODE_SIGNING_ALLOWED=NO MSAL_CLIENT_ID="${{ secrets.MSAL_CLIENT_ID }}"
       - name: Pick iPad simulator
         id: sim
@@ -44,3 +46,8 @@ jobs:
         with:
           name: TestResults
           path: TestResults.xcresult
+      - name: Fail if macOS build failed
+        if: steps.mac.outcome == 'failure'
+        run: |
+          echo "macOS-Bau fehlgeschlagen"
+          exit 1

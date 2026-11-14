@@ -82,9 +82,8 @@ struct HandOffAnchor {
 
   private static func systemOpen(_ url: URL) async -> Bool {
     #if os(iOS)
-      await withCheckedContinuation { (continuation: CheckedContinuation<Bool, Never>) in
-        UIApplication.shared.open(url, options: [:]) { continuation.resume(returning: $0) }
-      }
+      // Swift-Hinweis: `open(_:options:)` gibt es als `async`-Variante, die das Ergebnis direkt liefert.
+      return await UIApplication.shared.open(url, options: [:])
     #else
       do {
         _ = try await NSWorkspace.shared.open(url, configuration: NSWorkspace.OpenConfiguration())
@@ -170,12 +169,20 @@ struct HandOffAnchor {
       onEnd(self)
     }
 
-    func documentInteractionController(
+    // Swift-Hinweis: `UIDocumentInteractionControllerDelegate` ist (anders als die meisten UIKit-Protokolle)
+    // nicht `@MainActor`. Eine Methode des Hauptakteurs darf eine solche Anforderung unter Swift 6 nicht
+    // erfüllen; deshalb `nonisolated`. UIKit ruft die Delegaten auf dem Hauptthread, was
+    // `MainActor.assumeIsolated` zur Laufzeit prüft.
+    nonisolated func documentInteractionController(
       _ controller: UIDocumentInteractionController, didEndSendingToApplication application: String?
-    ) { end() }
+    ) {
+      MainActor.assumeIsolated { end() }
+    }
 
-    func documentInteractionControllerDidDismissOpenInMenu(_ controller: UIDocumentInteractionController) {
-      end()
+    nonisolated func documentInteractionControllerDidDismissOpenInMenu(
+      _ controller: UIDocumentInteractionController
+    ) {
+      MainActor.assumeIsolated { end() }
     }
   }
 #endif
