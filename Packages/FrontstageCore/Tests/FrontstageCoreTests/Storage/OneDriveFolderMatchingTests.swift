@@ -35,4 +35,12 @@ struct OneDriveFolderMatchingTests {
     noPath.parentReference.path = nil
     #expect(OneDriveFolderMatching.rootRelativePath(of: noPath) == nil)
   }
+
+  @Test("Graph liefert parentReference.path prozentkodiert: Pfad wird roh zurückgegeben")
+  func rootRelativePathDecodesPercentEncoding() {
+    let item = OneDriveItem(
+      id: "1", name: "Übung.docx", webUrl: "https://example.com/a",
+      parentReference: .init(driveId: "d", driveType: "personal", path: "/drive/root:/Klasse%208b/U%CC%88bungen"))
+    #expect(OneDriveFolderMatching.rootRelativePath(of: item) == "Klasse 8b/Übungen/Übung.docx")
+  }
 }

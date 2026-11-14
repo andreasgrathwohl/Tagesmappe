@@ -27,10 +27,13 @@ public enum OneDriveFolderMatching {
     return visible.allSatisfy { online.contains($0) }
   }
 
-  /// Graph-Pfad eines Elements: Teil nach `root:` in `parentReference.path` + `/` + Name, NFC, ohne führenden `/`.
+  /// Graph-Pfad eines Elements: Teil nach `root:` in `parentReference.path` + `/` + Name, NFC, ohne führenden `/`,
+  /// unkodiert. Graph liefert `parentReference.path` prozentkodiert (`/drive/root:/Klasse%208b`); die
+  /// Elternsegmente werden deshalb dekodiert, `item.name` ist bereits roh. Kodiert wird erst beim Bau einer Adresse.
   public static func rootRelativePath(of item: OneDriveItem) -> String? {
     guard let path = item.parentReference.path, let marker = path.range(of: "root:") else { return nil }
-    let parent = path[marker.upperBound...].split(separator: "/", omittingEmptySubsequences: true).map(String.init)
+    let parent = path[marker.upperBound...].split(separator: "/", omittingEmptySubsequences: true)
+      .map { String($0).removingPercentEncoding ?? String($0) }
     return (parent + [item.name]).joined(separator: "/").precomposedStringWithCanonicalMapping
   }
 

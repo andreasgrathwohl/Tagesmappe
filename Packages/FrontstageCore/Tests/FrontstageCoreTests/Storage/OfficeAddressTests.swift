@@ -15,6 +15,14 @@ struct OfficeAddressTests {
     #expect(OfficeAddress.documentURL(for: item) == "https://d.docs.live.net/ABC123DEF/Unterricht/8b/Vokabeln%20Unit%204.pptx")
   }
 
+  @Test("Privates OneDrive: prozentkodierter Elternpfad wird nicht doppelt kodiert (FR-5.1)")
+  func personalDocumentURLWithEncodedParentPath() {
+    let item = OneDriveItem(
+      id: "ABC123DEF!102", name: "Vokabeln Unit 4.pptx", webUrl: "https://onedrive.live.com/x",
+      parentReference: .init(driveId: "abc123def", driveType: "personal", path: "/drive/root:/Klasse%208b"))
+    #expect(OfficeAddress.documentURL(for: item) == "https://d.docs.live.net/ABC123DEF/Klasse%208b/Vokabeln%20Unit%204.pptx")
+  }
+
   @Test("Datei in der Wurzel und Pfad in /drives/<id>/root:-Form")
   func personalRootAndDrivesForm() {
     let inRoot = OneDriveItem(
