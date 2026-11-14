@@ -232,7 +232,18 @@ private struct SavedIdentifiers: Sendable {
       // 7. Lokale Änderungen erfassen.
       try captureLocalChanges(&ledger, now: cycleNow, forceFull: forceFullScan)
       // 8. Schreiben.
-      conflict = try await writeOutgoing(&ledger, resolution: resolution, waiting: waiting, now: cycleNow)
+      let outcome = try await writeOutgoing(&ledger, resolution: resolution, waiting: waiting, now: cycleNow)
+      conflict = outcome.conflict
+      // Konfliktkopien, deren Gewinner nicht ins Original zurückgeschrieben werden konnte, bleiben liegen:
+      // sonst ginge der Gewinner verloren (das Buch führt ihn als sauber, localWins verhindert Neuschreiben).
+      if !outcome.failedRewrites.isEmpty {
+        resolution.removeFiles.removeAll { file in
+          if case .conflictCopy(_, let id)? = RemoteLayout.classify(path: file.path) {
+            return outcome.failedRewrites.contains(id)
+          }
+          return false
+        }
+      }
       // 9. Entschiedene Dateien entfernen.
       for file in resolution.removeFiles {
         do {
@@ -468,10 +479,11 @@ private struct SavedIdentifiers: Sendable {
 
   // MARK: - 8. Schreiben
 
-  /// `true`, wenn ein Schreiben an `preconditionFailed` scheiterte (Datensatz bleibt ausstehend).
+  /// `conflict`: ein Schreiben scheiterte an `preconditionFailed` oder an einer ungelesenen Datei (Datensatz bleibt
+  /// ausstehend). `failedRewrites`: Kennungen der Zurückschreibungen eines Konfliktgewinners, die nicht gelangen.
   private func writeOutgoing(
     _ ledger: inout SyncLedger, resolution: IncomingResolution, waiting: Set<UUID>, now: Date
-  ) async throws -> Bool {
+  ) async throws -> (conflict: Bool, failedRewrites: Set<UUID>) {
     // Ausstehende, lebende Datensätze, die nicht im Zwischenspeicher liegen, werden neu ausgelesen.
     let neededLive = ledger.dirtyIDs.subtracting(waiting).filter { ledger.entries[$0]?.deleted == false }
     if neededLive.contains(where: { exportCache[$0] == nil }) {
@@ -490,6 +502,7 @@ private struct SavedIdentifiers: Sendable {
         ledger: ledger, payloads: payloads, excluding: waiting.union(rewriteIDs), now: now)
 
     var conflict = false
+    var writtenIDs = Set<UUID>()
     var uploadedAttachments = Set<String>()
     for envelope in outgoing {
       do {
@@ -519,11 +532,12 @@ private struct SavedIdentifiers: Sendable {
         let hash = try envelope.payload.map { try DataFolderCoding.payloadHash($0) }
         ledger.recordWritten(envelope, payloadHash: hash, file: file)
         exportCache[envelope.id] = nil
+        writtenIDs.insert(envelope.id)
       } catch RemoteDataFolderError.preconditionFailed {
         conflict = true  // 412: nicht überschreiben, der nächste Durchgang liest und entscheidet
       }
     }
     ledgerStore.ledger = ledger
-    return conflict
+    return (conflict, rewriteIDs.subtracting(writtenIDs))
   }
 }
