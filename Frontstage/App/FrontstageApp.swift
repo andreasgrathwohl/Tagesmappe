@@ -1,3 +1,4 @@
+import OSLog
 import SwiftData
 import SwiftUI
 
@@ -17,6 +18,9 @@ struct FrontstageApp: App {
   // Swift-Hinweis: `@Environment(\.scenePhase)` liefert den Lebenszyklus der Szene (aktiv, inaktiv, Hintergrund).
   @Environment(\.scenePhase) private var scenePhase
 
+  private static let logger = Logger(
+    subsystem: Bundle.main.bundleIdentifier ?? "com.example.frontstage", category: "App")
+
   /// `App.init` läuft auf dem Hauptakteur (`App` ist `@MainActor`), daher darf hier `mainContext` gelesen werden.
   init() {
     // Die Anmeldung hängt nicht am Datenort und entsteht deshalb einmal, vor dem Controller.
@@ -30,7 +34,14 @@ struct FrontstageApp: App {
     // als Rückfall, das dadurch im Normalfall nie erreicht wird.
     let settings = DataLocationSettings()
     let initialLocation = settings.location
-    guard let opened = try? ModelContainerFactory.makeContainer(for: initialLocation) else {
+    let opened: ModelContainer
+    do {
+      opened = try ModelContainerFactory.makeContainer(for: initialLocation)
+    } catch {
+      // Für die Fehlersuche am Gerät (Konsole bzw. `log collect`); die Oberfläche zeigt nur die Fehleransicht.
+      Self.logger.fault(
+        "Datenspeicher beim Start nicht geöffnet (\(String(describing: initialLocation), privacy: .public)): \(String(describing: error), privacy: .public)"
+      )
       _dataLocation = State(initialValue: nil)
       return
     }

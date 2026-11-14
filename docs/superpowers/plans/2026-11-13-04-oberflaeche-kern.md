@@ -3,6 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 > Rahmen: `docs/superpowers/plans/2026-11-13-00-uebersicht.md` — gilt vollständig (insbesondere Abstimmung Punkte 14 und 15). **Aufgabe 18 (Design-Runden) läuft nie unbeaufsichtigt; Aufgabe 17 braucht einen Menschen mit Geräten.**
 > **Überarbeitet 2026-11-14:** Dienste mit `DataStore` entstehen in `ScopedAppContent` innerhalb von `DataScopedRoot` (Teilplan 08); `RelinkResult.saveFailed`, Ladezustand während `StorageService.open` wartet, Hinweis beim Abmelden von Microsoft bei Datenort OneDrive; Naht `PenNoteFileRelocating` für Stiftnotizen neben dem Dokument (ADR-0011, gefüllt von Teilplan 06).
+> **Rückfluss nach der Umsetzung (2026-11-14):** `ScopedAppContent` ist ein zustandsloser Rahmen je Bereich; die Dienste je `DataStore` entstehen in `ScopedServicesHolder.services(for:)`, die Szenen-Haken in `RootView.activate(_:)` – Einzelheiten unter „Datenort“ (Global Constraints) und im Interfaces-Block.
 
 **Goal:** Die drei Bildschirme des Kerns bauen – Tagesansicht, Vorbereiten, Einrichten – samt App-Gerüst und Navigation auf iPad und Mac, sodass eine Lehrkraft einen Stundenplan anlegt, Material zuordnet, Ausfall und Vertretung pflegt und im Unterricht den Tag sieht; danach der erste TestFlight-Bau und die Design-Runden 1–10.
 
@@ -29,6 +30,7 @@ Alle Zeilen aus „Global Constraints“ und „Gestaltung in den Aufgaben“ de
 - **Kostenlos (FR-13, Nutzerentscheidung 2026-11-13):** Eintragen und Anzeigen von Thema, Bereitlegen und Hausaufgabe in Tagesansicht und Vorbereiten gehören zum kostenlosen Kern; kein Bildschirm dieses Teilplans fragt `Unlock` ab.
 - **Offene Gestaltung:** Jede Aufgabe mit Oberfläche nimmt den SwiftUI-Systemstandard und nennt im Abschlussbericht je berührter offener Kategorie eine Zeile (Sammelstelle: Aufgabe 18).
 - **Datenort (Teilplan 08, Übersicht Abstimmung 15):** `StorageService`, `AppEnvironment` und alles andere, was einen `DataStore` hält, entstehen in `ScopedAppContent` – der Ansicht in der Closure von `DataScopedRoot` –, nie einmalig im `App`-Typ. Im `App`-Typ bleiben nur `DataLocationController`, `MicrosoftAccount`, `NetworkMonitor` und die Halter, die einen Wechsel überstehen müssen (Teilplan 05: `SourceCoordinatorHolder`). Hat Teilplan 08 die Closure-Ansicht unter anderem Namen angelegt, gilt dieser Name; dieser Plan nennt sie `ScopedAppContent`.
+  **Umgesetzte Form (Stand 2026-11-14, maßgeblich für 06 und 07):** `ScopedAppContent<Content>` ist ein generischer Rahmen um den datenabhängigen Inhalt eines Bereichs – er entsteht einmal je Tab und je `NavigationLink`-Ziel in Einrichten – und hält selbst keinen Zustand. Die Dienste je `DataStore` (`StorageService`, `AppEnvironment`, Koordinator aus 05) legt `ScopedServicesHolder.services(for:)` (`Frontstage/App/ScopedAppContent.swift`, gehalten von `RootView` in `@State`) genau einmal je Store an; ein neuer Store (Wechsel des Datenorts) ergibt einen neuen Satz. Szenen- und Netz-Haken (`.active`, `network.isOnline`, `dataLocation.generation`) sitzen in `RootView` (`activate(_:)`, `prepareForTeaching(_:)`), außerhalb des generation-gebundenen Teilbaums; Einrichten und das Koppeln liegen ebenfalls außerhalb (Entscheidung Bündel A). **Ort für weitere Dienste je Store** (06: `viewerAvailable`, `penNotes`; 07: `ClassroomServices.shared.bind(store:)`): `ScopedServicesHolder.services(for:)`, im Zweig „neuer Store“. **Ort für Haken beim Aktivwerden** (06: `penNotes.retryPending()`): `RootView.activate(_:)` – läuft bei `.active` und nach jedem Wechsel des Datenorts. Nicht in `ScopedAppContent`: ein `.task` liefe dort einmal je Tab und Ziel, und eine Szenenphase gibt es dort nicht.
 - **Stiftnotizen (ADR-0011):** Schieben, Weiterreichen und Material ohne Stunde zuordnen melden die bewegten Zuordnungen an `AppEnvironment.penNotes` (`PenNoteFileRelocating.linksMoved`); Neu verknüpfen fragt danach, ob Notizen mitgenommen werden. Die Vorgabe `NoPenNoteFileRelocation` tut nichts; Teilplan 06 setzt die echte Umsetzung. Übernehmen meldet nichts (FR-6.1).
 
 ## Review Focus
@@ -171,10 +173,18 @@ final class NoPenNoteFileRelocation: PenNoteFileRelocating { … }
     let dataLocation: @MainActor () -> DataLocation
 }
 enum MaterialOpenAction: Equatable { case viewer(MaterialLinkItem); case open(MaterialReference); case unavailable(MaterialReference) }
-/// Die Ansicht in der Closure von DataScopedRoot (08): hält StorageService, AppEnvironment und den Koordinator aus 05
-/// in @State; entsteht nach jedem Wechsel des Datenorts neu.
-struct ScopedAppContent: View { init(store: DataStore, container: ModelContainer, dataLocation: DataLocationController, account: MicrosoftAccount, network: NetworkMonitor, sourceCoordinators: SourceCoordinatorHolder) }
-struct RootView: View; struct DayView: View; struct PreparationView: View; struct LessonDetailView: View; struct SetupView: View
+/// Dienste je DataStore: StorageService, AppEnvironment, Koordinator aus 05. Genau ein Satz je Store (nach Identität);
+/// ein neuer Store (Wechsel des Datenorts) ergibt einen neuen Satz. Hier ergänzen 06 (viewerAvailable, penNotes)
+/// und 07 (ClassroomServices.shared.bind(store:)) – im Zweig „neuer Store“.
+@MainActor final class ScopedServices { let store: DataStore; let storage: StorageService; let environment: AppEnvironment; let coordinator: TimetableSourceCoordinator }
+@MainActor final class ScopedServicesHolder { init(account: MicrosoftAccount, network: NetworkMonitor, dataLocation: DataLocationController, sourceCoordinators: SourceCoordinatorHolder); func services(for store: DataStore) -> ScopedServices }
+/// Zustandsloser Rahmen um den datenabhängigen Inhalt eines Bereichs (einmal je Tab und je NavigationLink-Ziel):
+/// DataScopedRoot (08) + .modelContainer/.environment(store, storage, environment, coordinator).
+struct ScopedAppContent<Content: View>: View { init(controller: DataLocationController, services: ScopedServicesHolder, content: @escaping () -> Content) }
+/// Hält ScopedServicesHolder in @State; Szenen-Haken in activate(_:) (bei .active und nach jedem Datenort-Wechsel) –
+/// hier ergänzt 06 penNotes.retryPending(). Einrichten und Koppeln liegen außerhalb von DataScopedRoot.
+struct RootView: View { init(dataLocation: DataLocationController, account: MicrosoftAccount, network: NetworkMonitor, sourceCoordinators: SourceCoordinatorHolder) }
+struct DayView: View; struct PreparationView: View; struct LessonDetailView: View; struct SetupView: View
 ```
 
 ### Nicht mehr hier (abgeglichen)
@@ -193,7 +203,7 @@ Die erste Fassung erwartete `FrontstageStore`, `SwiftDataStore`, `FrontstageMode
 | `FrontstageTests/TestSupport/FakeStorage.swift`, `UIFixtures.swift` | Attrappe `MaterialStorage`, Beispieldaten Woche 47 (Daten über `makeStore()` aus 02) | 2 |
 | `Frontstage/UI/Shared/LessonActions.swift` | Zuordnen, Reihenfolge, Übernehmen, Schieben, Ausfall, Vertretung, Neuverknüpfen | 3–5 |
 | `Frontstage/UI/Shared/PenNoteFileRelocating.swift` | Naht zu 06: `PenNoteMove`, `PenNoteFileRelocating`, `NoPenNoteFileRelocation` | 3 |
-| `Frontstage/App/ScopedAppContent.swift`; `FrontstageApp.swift` (ändern) | Dienste je Datenort innerhalb `DataScopedRoot` | 7 |
+| `Frontstage/App/ScopedAppContent.swift`; `FrontstageApp.swift` (ändern) | `ScopedServicesHolder` (Dienste je Datenort), Rahmen `ScopedAppContent` innerhalb `DataScopedRoot` | 7 |
 | `Frontstage/UI/Shared/LessonRow.swift`, `DayStatement.swift`, `MaterialOpenAction.swift` | gemeinsame Zeilen-Modelle | 6 |
 | `Frontstage/App/AppEnvironment.swift` | Abhängigkeitsbündel | 6 |
 | `Frontstage/App/AppSection.swift`, `RootView.swift` | Gerüst, Navigation | 7 |
@@ -625,6 +635,7 @@ Design-Takt: Hauptstufe
 
 - [ ] **Step 2: Implementieren.** `RootView`: `TabView(selection:)` mit drei `Tab`s und `.tabViewStyle(.sidebarAdaptable)` (iPad: Leiste oder Seitenleiste nach Wahl der Lehrkraft, Mac: Seitenleiste).
   - `FrontstageApp` (Stand nach 08): Im `App`-Typ bleiben `DataLocationController`, `MicrosoftAccount`, `NetworkMonitor`, `SourceCoordinatorHolder` (05) und `.backgroundTask` (05). Inhalt des `WindowGroup`: `DataScopedRoot(controller: dataLocation) { store, container in ScopedAppContent(store: store, container: container, dataLocation: dataLocation, account: account, network: network, sourceCoordinators: sourceCoordinators) }`; `.onOpenURL { _ = MicrosoftAccount.handleRedirect($0) }` am `DataScopedRoot` (außen, übersteht einen Wechsel).
+  - *Umgesetzt abweichend (2026-11-14):* Was dieser Punkt `ScopedAppContent` in `@State` zuschreibt, liegt in `ScopedServicesHolder.services(for:)`; die Szenen- und Netz-Haken liegen in `RootView` (siehe Global Constraints, „Umgesetzte Form“).
   - `ScopedAppContent` hält in `@State`: `StorageService` aus den Bausteinen von 03 (`references:` = dieser `DataStore`, `account:`/`network:` = die App-weiten; konkret `let grants = FolderGrantStore()`, `let resolver = MaterialResolver(grants: grants)`, `Prefetcher(resolver: resolver, store: store, downloader: SystemFileDownloader())`, `OneDriveService(account: account, graph: GraphClient(tokens: account.tokenProvider), grants: grants, resolver: resolver)`, `handOff: SystemDocumentHandOff()` – Vorbild `FrontstageTests/Storage/StorageServiceTests.swift`), `AppEnvironment(store: store, storage: storageService, today: { CalendarDay(Date(), calendar: .current) }, dataLocation: { dataLocation.location })`, den Koordinator über `sourceCoordinators.coordinator(for: store)` (05). `body`: `RootView()` mit `.modelContainer(container)`, `.environment(store)`, `.environment(storageService)`, `.environment(environment)`, `.environment(coordinator)`, `.environment(account)` (für Einrichten › Ablage, Aufgabe 14), `.environment(dataLocation)` (für `DataLocationSettingsView` in Einrichten, Aufgabe 11); bei Szenenphase `.active` und beim Wechsel `network.isOnline` → `true` (`.onChange(of: network.isOnline)`; `NetworkMonitor` ist `@Observable`) `storage.prepareForTeaching(today:timetable:nonTeachingPeriods:changes:)` mit den Werten aus dem `DataStore` (ohne Stundenplan: nichts) und die Koordinator-Aufrufe aus 05. Nicht `network.onBecameOnline` setzen: die Closure ist einzeln, `FrontstageApp.init` hat dort schon `DataLocationController.networkDidBecomeAvailable()` eingehängt, und eine je Datenort neu entstehende Ansicht würde sie überschreiben oder Verkettungen anhäufen. Die Koordinator-Aufrufe aus 05 stehen heute in der Closure von `DataScopedRoot` (`.onChange(of: scenePhase, initial: true)`: `.active` → `coordinator.refresh(.appBecameActive)`, `.background` → `MorningRefresh.schedule()` unter `#if os(iOS)`) und ziehen unverändert nach `ScopedAppContent` um; der Platzhalter `Text("app.placeholder.title")` und sein Schlüssel in `Localizable.xcstrings` entfallen. Swift-Hinweis: `DataScopedRoot` hängt den Inhalt mit `.id(generation)` an – nach einem Wechsel des Datenorts legt SwiftUI `ScopedAppContent` samt allen `@State`-Diensten neu an, auf dem neuen `DataStore`.
   - Szenen-Zubehör für den Zweitbildschirm meldet Teilplan 06 am `DataScopedRoot` an – hier nur ein Kommentar an der Stelle.
 - [ ] **Step 3: Strings:** `app.section.dayView` „Heute“, `app.section.preparation` „Vorbereiten“, `app.section.setup` „Einrichten“, `app.dataUnavailable` „Die Daten konnten nicht geöffnet werden.“ (Platzhalter, Kategorie Wortlaut offen).
@@ -876,7 +887,7 @@ Design-Takt: Hauptstufe
 - Produces:
 ```swift
 /// Folge des Abmeldens von Microsoft (ADR-0012): bei Datenort OneDrive hält der Abgleich an.
-enum MicrosoftSignOutImpact: Equatable { case none, stopsDataFolderSync }
+enum MicrosoftSignOutImpact: Equatable { case noImpact, stopsDataFolderSync }
 @MainActor @Observable final class StorageSettingsViewModel {
     init(environment: AppEnvironment, account: MicrosoftAccount)
     private(set) var grants: [FolderGrant]                  // auf diesem Gerät (03)
@@ -907,7 +918,7 @@ enum MicrosoftSignOutImpact: Equatable { case none, stopsDataFolderSync }
     #expect(await vm.signOut(confirmed: false) == false)
     #expect(vm.isSignedIn)
 }
-@Test("Abmelden bei Datenort iCloud ohne Rückfrage") func signOutWithICloudNeedsNoConfirmation()   // dataLocation .iCloud → signOutImpact() == .none
+@Test("Abmelden bei Datenort iCloud ohne Rückfrage") func signOutWithICloudNeedsNoConfirmation()   // dataLocation .iCloud → signOutImpact() == .noImpact
 ```
 Hinweis: `signOut()` berührt mit dem Test-Initialisierer MSAL nicht (`application == nil`, nur der Schlüssel `MicrosoftAccountIdentifier` in `UserDefaults.standard` wird entfernt); der Fall „bestätigt → abgemeldet“ (`signOut(confirmed: true)` → `true`, danach `isSignedIn == false`) lässt sich deshalb im Test prüfen. Das echte Abmelden mit Datenort OneDrive steht zusätzlich in der Geräte-Checkliste von Teilplan 08 (Zeile 8).
 
@@ -1018,13 +1029,13 @@ Design-Takt: (Entscheid-Takt) – **nie unbeaufsichtigt**; ein Lauf über `phase
 ## Self-Review
 
 - **Spec-Abdeckung:** alle zugewiesenen FR/AK zugeordnet. Nicht hier: AK-3, AK-21, AK-41 (Teilplan 05, Import-Oberfläche nur als Platz in Aufgabe 14), AK-9, AK-11, AK-12, AK-17, AK-19 (Ablage, 03), AK-13, AK-22, AK-23 (Anzeige, 06), AK-24 bis AK-40 (06/07).
-- **Typen:** `PreparationStore`/`MaterialStorage` in 1; `LessonActions` wächst über 3–5 und wird in 6, 9, 10, 13 nur konsumiert; `DayContent`/`DayRow` in 6 definiert und in 9 wiederverwendet; `MaterialOpenAction`, `AppEnvironment.viewerAvailable` und `PenNoteFileRelocating` (`AppEnvironment.penNotes`) sind die Naht zu 06; `ScopedAppContent` ist die einzige Stelle, an der Dienste mit `DataStore` entstehen.
+- **Typen:** `PreparationStore`/`MaterialStorage` in 1; `LessonActions` wächst über 3–5 und wird in 6, 9, 10, 13 nur konsumiert; `DayContent`/`DayRow` in 6 definiert und in 9 wiederverwendet; `MaterialOpenAction`, `AppEnvironment.viewerAvailable` und `PenNoteFileRelocating` (`AppEnvironment.penNotes`) sind die Naht zu 06; `ScopedServicesHolder.services(for:)` ist die einzige Stelle, an der Dienste mit `DataStore` entstehen (`ScopedAppContent` ist nur der Rahmen darum).
 - **Proportion:** Funktionskörper nur für Zeilenbau, `rowHeight` und Abbildung auf Store-Methoden beschrieben, sonst Signaturen und Tests.
 
 ## Abstimmungsbedarf
 
-- **Offen nach Preflight 2026-11-14** (Entwurfsebene, nicht still entschieden): (a) Ruling aus Bündel A – Einrichten/Koppeln soll außerhalb des generation-gebundenen `DataScopedRoot`-Teilbaums liegen, damit ein Datenort-Wechsel den Kopplungsablauf nicht abreißt; dieser Plan legt `SetupView` in `RootView` innerhalb von `ScopedAppContent`. (b) Das `fatalError` in `DataLocationController.init` durch eine Fehleransicht zu ersetzen (Aufgabe 7) ändert die Schnittstelle von 08 (`container`/`store` nicht optional, genutzt in `FrontstageApp` und `runMorningRefresh`).
+- **Offen nach Preflight 2026-11-14** (Entwurfsebene, nicht still entschieden): (a) ~~Ruling aus Bündel A – Einrichten/Koppeln soll außerhalb des generation-gebundenen `DataScopedRoot`-Teilbaums liegen, damit ein Datenort-Wechsel den Kopplungsablauf nicht abreißt; dieser Plan legt `SetupView` in `RootView` innerhalb von `ScopedAppContent`.~~ → umgesetzt 2026-11-14: `SetupView` und das Koppeln liegen außerhalb, Datenabhängiges öffnet sich darin über `ScopedAppContent`; Dienste in `ScopedServicesHolder`. (b) Das `fatalError` in `DataLocationController.init` durch eine Fehleransicht zu ersetzen (Aufgabe 7) ändert die Schnittstelle von 08 (`container`/`store` nicht optional, genutzt in `FrontstageApp` und `runMorningRefresh`).
 - Sonst keiner offen (abgeglichen nach Übersicht, Abschnitt „Abstimmung“, Punkte 14 und 15): Kern aus 01, Daten über `PreparationStore` → `DataStore` (02), Ablage über `MaterialStorage` → `StorageService` (03, inkl. `RelinkResult.saveFailed` und Warten in `open`), Quelle als fertige Ansichten aus 05 (Koordinator über `SourceCoordinatorHolder`), Dienste je Datenort in `ScopedAppContent` innerhalb `DataScopedRoot` (08), Hinweis beim Abmelden von Microsoft bei Datenort OneDrive (Aufgabe 14, aus dem Abstimmungsbedarf von 08), Übernehmen mit Auswahl der Zielstunde (Nutzerentscheidung 2026-11-13).
-- **Teilplan 06** setzt `AppEnvironment.viewerAvailable` und `AppEnvironment.penNotes` (in `ScopedAppContent`), behandelt `MaterialOpenAction.viewer` und `OpenOutcome.showInViewer`, legt die Smartboard-Leiste per `.safeAreaInset` unter `DayView` und meldet das Szenen-Zubehör am `DataScopedRoot` an (06 nennt diese Dateien als `Modify`).
+- **Teilplan 06** setzt `AppEnvironment.viewerAvailable` und `AppEnvironment.penNotes` (in `ScopedServicesHolder.services(for:)`; `retryPending()` in `RootView.activate(_:)`), behandelt `MaterialOpenAction.viewer` und `OpenOutcome.showInViewer`, legt die Smartboard-Leiste per `.safeAreaInset` unter `DayView` und meldet das Szenen-Zubehör an `RootView` an (außerhalb von `DataScopedRoot`; 06 nennt diese Dateien als `Modify`).
 - **Teilplan 07** ergänzt `LessonDetailView` (Tafelbilder) und `SetupView` (Kauf wiederherstellen) als `Modify`.
 - **Glossar:** kein neuer Fachbegriff; `Origin.source` in der Oberfläche als „laut Stundenplan-Quelle“ (Wortlaut offen).

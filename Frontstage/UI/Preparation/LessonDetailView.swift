@@ -12,6 +12,8 @@ struct LessonDetailView: View {
   let model: PreparationViewModel
 
   @Environment(AppEnvironment.self) private var environment
+  // Liegt außerhalb des datengebundenen Teilbaums (`RootView`) und kennt daher immer den aktuellen Store.
+  @Environment(DataLocationController.self) private var dataLocation
   @Environment(\.scenePhase) private var scenePhase
 
   // Swift-Hinweis: `@State` an einer `@Observable`-Klasse hält die Instanz über Neuzeichnen hinweg;
@@ -83,8 +85,20 @@ struct LessonDetailView: View {
     .onChange(of: actions.store.revision) { editor.reloadIfUnedited() }
   }
 
+  /// Speichert, solange die Stunde im aktuellen Datenort noch existiert.
+  ///
+  /// Geprüft wird über den Store, nicht über `lessonRow`: Beim Wochenwechsel lädt `PreparationViewModel`
+  /// die neue Woche, **bevor** die Auswahl zurückgesetzt wird und dieses Detail verschwindet – `model.days`
+  /// enthält die Stunde dann nicht mehr, und ungesicherter Text (am Mac ohne Return) ginge verloren.
+  ///
+  /// Nach einem Wechsel des Datenorts hält der Editor noch den alten Store; dorthin wird nicht mehr
+  /// geschrieben (der Text gehörte zum alten Ort). Swift-Hinweis: `===` vergleicht Objektidentität und
+  /// nimmt auch ein klassengebundenes Existential wie `any PreparationStore`.
   private func saveIfPresent() {
-    guard lessonRow != nil else { return }
+    guard actions.store === dataLocation.store else { return }
+    guard let lessons = try? actions.store.lessons(on: key.date),
+      lessons.contains(where: { $0.key == key })
+    else { return }
     editor.save()
   }
 

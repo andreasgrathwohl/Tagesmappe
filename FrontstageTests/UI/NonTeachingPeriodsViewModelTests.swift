@@ -32,6 +32,19 @@ import Testing
     #expect(try store.materialLinkItems(for: Fixtures.key(day10, "8b", "Englisch")).count == 1)
   }
 
+  @Test("Material ohne Stunde wird je reload einmal berechnet und zwischengespeichert")
+  func orphansAreCachedPerReload() throws {
+    _ = try store.assignItem(Fixtures.reference("Arbeitsblatt Vokabeln", .pdf), to: nov3Key, at: nil)
+    try vm.add(from: day2, to: day6, title: "Herbstferien")
+    let period = vm.periods[0]
+    #expect(vm.cachedMaterialsWithoutLesson(in: period).map(\.reference.displayName) == ["Arbeitsblatt Vokabeln"])
+    vm.actions.move(linkID: vm.cachedMaterialsWithoutLesson(in: period)[0].id, to: Fixtures.key(day10, "8b", "Englisch"))
+    // Bis zum nächsten reload bleibt der Stand; danach ist er frisch.
+    #expect(vm.cachedMaterialsWithoutLesson(in: period).count == 1)
+    vm.reload()
+    #expect(vm.cachedMaterialsWithoutLesson(in: period).isEmpty)
+  }
+
   @Test("Von nach Bis wird abgelehnt")
   func fromAfterToRejected() {
     #expect(throws: NonTeachingPeriodError.fromAfterTo) {

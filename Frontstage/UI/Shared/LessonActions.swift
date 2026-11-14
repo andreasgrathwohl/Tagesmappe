@@ -195,6 +195,16 @@ enum CancellationResult: Equatable {
   case blockedBySource
 }
 
+/// Ergebnis von `LessonActions.addSubstituteLesson`.
+enum SubstituteLessonResult: Equatable {
+  /// Angelegt und an diesem Tag sichtbar.
+  case added
+  /// Gespeichert, aber an diesem Tag nicht sichtbar (unterrichtsfrei oder kein Stundenplan).
+  case notShown
+  /// Speichern gescheitert.
+  case failed
+}
+
 extension LessonActions {
   /// Markiert eine Stunde als ausgefallen bzw. hebt die Markierung auf. Ein Ausfall aus der Quelle
   /// (`Origin.source`) bleibt unberührt; `DataStore.removeCancellation` hebt nur `.manual` auf.
@@ -219,14 +229,20 @@ extension LessonActions {
   }
 
   /// FR-9: legt eine Vertretungsstunde von Hand an (Herkunft `.manual`).
+  ///
+  /// `.notShown`: gespeichert, erscheint aber nicht (unterrichtsfreier Tag oder kein Stundenplan –
+  /// `DataStore.addSubstituteLesson` liefert dann `nil`); die Ansicht sagt das, statt still zu bleiben.
+  @discardableResult
   func addSubstituteLesson(
     date: CalendarDay, period: Int, schoolClass: SchoolClass, subject: Subject
-  ) {
+  ) -> SubstituteLessonResult {
     do {
-      try store.addSubstituteLesson(
+      let key = try store.addSubstituteLesson(
         date: date, period: period, schoolClass: schoolClass, subject: subject)
+      return key == nil ? .notShown : .added
     } catch {
       Self.logger.error("Vertretung anlegen gescheitert: \(String(describing: error), privacy: .public)")
+      return .failed
     }
   }
 

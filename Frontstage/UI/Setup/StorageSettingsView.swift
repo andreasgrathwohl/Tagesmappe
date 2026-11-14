@@ -89,6 +89,12 @@ struct StorageSettingsView: View {
         .swipeActions {
           Button("setup.storage.remove", role: .destructive) { model.remove(id: grant.id) }
         }
+        // Am Mac ist Wischen kaum zu finden: dieselbe Aktion im Kontextmenü (Rechtsklick bzw. langes Drücken).
+        .contextMenu {
+          Button("setup.storage.remove", systemImage: "trash", role: .destructive) {
+            model.remove(id: grant.id)
+          }
+        }
       }
       Button("setup.storage.addFolder") {
         requestedName = nil

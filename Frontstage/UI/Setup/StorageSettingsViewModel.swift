@@ -4,7 +4,7 @@ import Observation
 
 /// Folge des Abmeldens von Microsoft (ADR-0012): bei Datenort OneDrive hält der Abgleich an.
 enum MicrosoftSignOutImpact: Equatable {
-  case none
+  case noImpact
   case stopsDataFolderSync
 }
 
@@ -71,7 +71,7 @@ enum MicrosoftSignOutImpact: Equatable {
 
   /// `.stopsDataFolderSync`, wenn der Datenort OneDrive ist und ein Konto angemeldet ist.
   func signOutImpact() -> MicrosoftSignOutImpact {
-    environment.dataLocation() == .oneDrive && account.isSignedIn ? .stopsDataFolderSync : .none
+    environment.dataLocation() == .oneDrive && account.isSignedIn ? .stopsDataFolderSync : .noImpact
   }
 
   /// Ohne Bestätigung bei `.stopsDataFolderSync`: nichts tun, `false`. Sonst abmelden, `true`.

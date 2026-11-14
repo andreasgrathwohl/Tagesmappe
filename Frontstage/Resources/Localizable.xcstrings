@@ -1621,6 +1621,36 @@
         }
       }
     },
+    "preparation.substitute.notShown" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Vertretungsstunde ist gespeichert, erscheint aber nicht: An diesem Tag ist unterrichtsfrei oder es gibt noch keinen Stundenplan."
+          }
+        }
+      }
+    },
+    "dayView.grantMissing" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Ordner dieser Datei ist auf diesem Gerät nicht freigegeben. Gib ihn unter Einrichten frei."
+          }
+        }
+      }
+    },
+    "dayView.notDownloadedOffline" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Datei ist nicht auf diesem Gerät, und es gibt gerade kein Netz. Sie lässt sich öffnen, sobald das Gerät wieder online ist."
+          }
+        }
+      }
+    },
     "preparation.substitute.cancel" : {
       "localizations" : {
         "de" : {

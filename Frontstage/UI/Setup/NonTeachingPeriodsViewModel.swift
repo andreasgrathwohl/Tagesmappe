@@ -26,6 +26,9 @@ enum NonTeachingPeriodError: Error, Equatable {
 
   /// Nach `from` (dann `to`) sortiert.
   private(set) var periods: [NonTeachingPeriod] = []
+  /// Material ohne Stunde je Zeitraum, einmal je `reload()` berechnet. Die Ansicht liest nur diesen Stand,
+  /// statt bei jedem Neuzeichnen alle Tage langer Ferien neu durchzurechnen.
+  private(set) var orphansByPeriod: [NonTeachingPeriod: [MaterialLinkItem]] = [:]
   /// Letzter Fehler einer Aktion ohne eigenen `throws`-Weg (Entfernen).
   var lastFailure: NonTeachingPeriodError?
   let actions: LessonActions
@@ -41,6 +44,14 @@ enum NonTeachingPeriodError: Error, Equatable {
   func reload() {
     let loaded = (try? environment.store.nonTeachingPeriods()) ?? []
     periods = loaded.sorted { ($0.from, $0.to, $0.title) < ($1.from, $1.to, $1.title) }
+    var orphans: [NonTeachingPeriod: [MaterialLinkItem]] = [:]
+    for period in periods { orphans[period] = materialsWithoutLesson(in: period) }
+    orphansByPeriod = orphans
+  }
+
+  /// Zwischengespeicherter Stand aus dem letzten `reload()`; leer für einen unbekannten Zeitraum.
+  func cachedMaterialsWithoutLesson(in period: NonTeachingPeriod) -> [MaterialLinkItem] {
+    orphansByPeriod[period] ?? []
   }
 
   /// Legt einen Zeitraum an; ein leerer Titel wird zum Standardtitel. `from == to` (ein Tag) ist erlaubt.
@@ -70,7 +81,7 @@ enum NonTeachingPeriodError: Error, Equatable {
     reload()
   }
 
-  /// Zuordnungen aller Tage von `from` bis `to`, zu denen es keine Stunde gibt.
+  /// Zuordnungen aller Tage von `from` bis `to`, zu denen es keine Stunde gibt (frisch gerechnet).
   func materialsWithoutLesson(in period: NonTeachingPeriod) -> [MaterialLinkItem] {
     var result: [MaterialLinkItem] = []
     var day = period.from

@@ -10,6 +10,8 @@ struct SubstituteLessonSheet: View {
   @State private var period: Int
   @State private var className = ""
   @State private var subjectName = ""
+  /// Rückmeldung, wenn die Vertretung nicht sichtbar wird oder das Speichern scheitert.
+  @State private var outcome: SubstituteLessonResult?
   private let periods: [Int]
 
   init(model: PreparationViewModel) {
@@ -43,15 +45,34 @@ struct SubstituteLessonSheet: View {
         }
         ToolbarItem(placement: .confirmationAction) {
           Button("preparation.substitute.add") {
-            model.actions.addSubstituteLesson(
+            let result = model.actions.addSubstituteLesson(
               date: CalendarDay(date, calendar: .current), period: period,
               schoolClass: SchoolClass(className), subject: Subject(subjectName))
             model.reload()
-            dismiss()
+            if result == .added { dismiss() } else { outcome = result }
           }
           .disabled(!isValid)
         }
       }
+      .alert(
+        outcomeMessage,
+        isPresented: Binding(get: { outcome != nil }, set: { if !$0 { outcome = nil } }),
+        presenting: outcome
+      ) { shown in
+        // Nach „nicht sichtbar“ ist gespeichert: Blatt schließen. Nach einem Fehler offen lassen.
+        // `presenting:` reicht den Wert in die Aktion, auch wenn `outcome` schon zurückgesetzt ist.
+        Button("preparation.ok", role: .cancel) {
+          if shown == .notShown { dismiss() }
+        }
+      }
+    }
+  }
+
+  private var outcomeMessage: Text {
+    switch outcome {
+    case .notShown: Text("preparation.substitute.notShown")
+    case .failed: Text("preparation.saveFailed")
+    case .added, nil: Text(verbatim: "")
     }
   }
 }

@@ -96,6 +96,9 @@ enum TimetableEditError: Error, Equatable {
     var entry = entry
     // Bei einer Variante gibt es keine A-/B-Zuordnung.
     if weekVariantCount == 1 { entry.weekVariant = nil }
+    // Unverändert gesichert: nichts schreiben. Sonst würde `replaceEntry` einen Eintrag aus der Quelle als
+    // „von Hand geändert“ markieren, und die nächste Import-Vorschau zeigte einen Konflikt (AK-3).
+    if let old, entry == old { return }
     if entry != old, allEntries.contains(entry) { throw .duplicate }
     do {
       if let old {
@@ -138,10 +141,18 @@ enum TimetableEditError: Error, Equatable {
       if !bEntries.isEmpty && !confirmed { return bEntries.count }
       do {
         for entry in bEntries { try environment.store.removeEntry(entry) }
+        var plainEntries = Set(allEntries.filter { $0.weekVariant == nil })
         for entry in allEntries where entry.weekVariant == .a {
           var plain = entry
           plain.weekVariant = nil
-          try environment.store.replaceEntry(entry, with: plain)
+          if plainEntries.contains(plain) {
+            // Dieselbe Stunde gibt es schon ohne Variante: A-Eintrag löschen statt doppeln (sonst doppelte
+            // Unterrichtsstunden).
+            try environment.store.removeEntry(entry)
+          } else {
+            try environment.store.replaceEntry(entry, with: plain)
+            plainEntries.insert(plain)
+          }
         }
       } catch {
         lastFailure = .saveFailed

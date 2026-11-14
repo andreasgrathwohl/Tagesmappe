@@ -46,14 +46,24 @@ import Testing
 
   @Test("AK-16: Vertretungsstunde Mi 4. Stunde 6c Mathe")
   func addSubstituteLesson() throws {
-    actions.addSubstituteLesson(
+    let result = actions.addSubstituteLesson(
       date: .wed18, period: 4, schoolClass: SchoolClass("6c"), subject: Subject("Mathe"))
+    #expect(result == .added)
     #expect(
       try data.scheduleChanges() == [
         .substituteLesson(
           date: .wed18, period: 4, schoolClass: SchoolClass("6c"), subject: Subject("Mathe"),
           .manual)
       ])
+  }
+
+  @Test("Vertretung am unterrichtsfreien Tag: gespeichert, aber als nicht sichtbar gemeldet")
+  func addSubstituteLessonOnNonTeachingDayReportsNotShown() throws {
+    try data.addNonTeachingPeriod(NonTeachingPeriod(from: .wed18, to: .wed18, title: "Pause"))
+    let result = actions.addSubstituteLesson(
+      date: .wed18, period: 4, schoolClass: SchoolClass("6c"), subject: Subject("Mathe"))
+    #expect(result == .notShown)
+    #expect(try data.scheduleChanges().count == 1)
   }
 
   @Test("Vertretung entfernen: von Hand ja, aus der Quelle nein")

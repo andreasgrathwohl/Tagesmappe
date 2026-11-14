@@ -60,6 +60,8 @@ import SwiftUI
       store: store, storage: storage,
       today: { CalendarDay(Date(), calendar: .current) },
       dataLocation: { location.location })
+    // Weitere Dienste je Store ergänzen hier: Teilplan 06 (`environment.viewerAvailable`, `environment.penNotes`),
+    // Teilplan 07 (`ClassroomServices.shared.bind(store:)`). Haken beim Aktivwerden gehören in `RootView.activate(_:)`.
     let services = ScopedServices(
       store: store, storage: storage, environment: environment,
       coordinator: sourceCoordinators.coordinator(for: store))

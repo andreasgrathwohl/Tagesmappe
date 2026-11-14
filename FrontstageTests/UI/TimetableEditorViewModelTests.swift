@@ -126,6 +126,28 @@ import Testing
     #expect(try store.timetable()?.entries == [Fixtures.entry(.monday, 1, "7a", "Deutsch")])
   }
 
+  @Test("AK-3: Unverändert gesicherter Quell-Eintrag bleibt ohne „von Hand geändert“")
+  func savingUnchangedSourceEntryKeepsItUnedited() throws {
+    try Fixtures.seed(store, [])
+    let entry = Fixtures.entry(.monday, 1, "8b", "Englisch")
+    try store.addEntry(entry, origin: .source)
+    let vm = makeModel()
+    try vm.save(entry, replacing: entry)
+    #expect(try store.manuallyEditedEntries().contains(entry) == false)
+    #expect(try store.timetable()?.entries == [entry])
+  }
+
+  @Test("Zurück auf eine Variante: A-Eintrag neben gleichem Eintrag ohne Variante wird nicht gedoppelt")
+  func reducingToOneVariantDoesNotDuplicate() throws {
+    try Fixtures.seed(
+      store,
+      [Fixtures.entry(.monday, 1, "7a", "Deutsch", .a), Fixtures.entry(.monday, 1, "7a", "Deutsch")],
+      variants: 2)
+    let vm = makeModel()
+    #expect(vm.setWeekVariantCount(1, confirmed: true) == nil)
+    #expect(try store.timetable()?.entries == [Fixtures.entry(.monday, 1, "7a", "Deutsch")])
+  }
+
   @Test("Zurück auf eine Variante ohne B-Einträge braucht keine Bestätigung")
   func reducingWithoutBEntries() throws {
     try Fixtures.seed(store, [Fixtures.entry(.monday, 1, "7a", "Deutsch", .a)], variants: 2)

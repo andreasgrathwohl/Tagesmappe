@@ -78,7 +78,7 @@ struct NonTeachingPeriodsView: View {
   }
 
   private func periodRow(_ period: NonTeachingPeriod) -> some View {
-    let orphans = model.materialsWithoutLesson(in: period)
+    let orphans = model.cachedMaterialsWithoutLesson(in: period)
     return DisclosureGroup {
       ForEach(orphans) { item in
         HStack {

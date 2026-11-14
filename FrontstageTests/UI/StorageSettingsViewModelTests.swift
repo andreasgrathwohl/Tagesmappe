@@ -81,7 +81,7 @@ import Testing
   @Test("Abmelden bei Datenort iCloud ohne Rückfrage")
   func signOutWithICloudNeedsNoConfirmation() async {
     let vm = makeModel(dataLocation: .iCloud)
-    #expect(vm.signOutImpact() == .none)
+    #expect(vm.signOutImpact() == .noImpact)
     #expect(await vm.signOut(confirmed: false))
     #expect(!vm.isSignedIn)
   }

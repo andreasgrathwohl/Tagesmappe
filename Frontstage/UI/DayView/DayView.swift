@@ -16,6 +16,10 @@ private enum DayNotice: Equatable {
   case outsideGrantedFolders
   case noNextLesson
   case carryNotesFailed
+  /// Der Ordner der Datei ist auf diesem Gerät nicht freigegeben – „Ordner freigeben“ statt „Neu verknüpfen“.
+  case grantMissing
+  /// Die Datei liegt nicht auf dem Gerät und es gibt kein Netz – Neu verknüpfen hilft hier nicht.
+  case notDownloadedOffline
 
   var messageKey: LocalizedStringKey {
     switch self {
@@ -24,6 +28,8 @@ private enum DayNotice: Equatable {
     case .outsideGrantedFolders: "dayView.outsideGrants"
     case .noNextLesson: "dayView.noNextLesson"
     case .carryNotesFailed: "lesson.relink.carryNotesFailed"
+    case .grantMissing: "dayView.grantMissing"
+    case .notDownloadedOffline: "dayView.notDownloadedOffline"
     }
   }
 }
@@ -106,7 +112,7 @@ struct DayView: View {
     .alert(
       Text(notice?.messageKey ?? ""), isPresented: isPresent($notice), presenting: notice
     ) { notice in
-      if notice == .outsideGrantedFolders {
+      if notice == .outsideGrantedFolders || notice == .grantMissing {
         Button("dayView.grantFolder") { showSetup() }
       }
       Button("dayView.ok", role: .cancel) {}
@@ -254,7 +260,11 @@ struct DayView: View {
   private func open(_ row: MaterialRow, anchor: HandOffAnchor) {
     switch model.openAction(for: row) {
     case .unavailable:
-      beginRelink(row)
+      if case .unavailable(let reason)? = row.availability {
+        offer(for: reason, row: row)
+      } else {
+        beginRelink(row)
+      }
     case .viewer(let item):
       // Der eigene Betrachter kommt mit Teilplan 06; bis dahin verhält sich der Zweig wie `.open`.
       start(item.reference, row: row, anchor: anchor)
@@ -278,14 +288,27 @@ struct DayView: View {
       break
     case .failed:
       notice = .openFailed
-    case .unavailable:
-      if let row = currentRow(for: reference) { beginRelink(row) } else { notice = .openFailed }
+    case .unavailable(let reason):
+      offer(for: reason, row: currentRow(for: reference))
     case .showInViewer(let file):
       // Teilplan 06 zeigt die Datei im Betrachter. Solange er fehlt: Zugriff freigeben und übergeben.
       file.close()
       if !environment.viewerAvailable {
         Task { handle(await environment.storage.openWithoutAutoSave(reference, anchor: lastAnchor), reference) }
       }
+    }
+  }
+
+  /// Angebot je Grund (Review-Schwerpunkt 3): fehlende Freigabe → „Ordner freigeben“, offline nicht geladen →
+  /// Hinweis, sonst (Datei fehlt, Laden gescheitert) „Neu verknüpfen“.
+  private func offer(for reason: UnavailableReason, row: MaterialRow?) {
+    switch reason {
+    case .grantMissing:
+      notice = .grantMissing
+    case .notDownloadedOffline:
+      notice = .notDownloadedOffline
+    case .fileMissing, .downloadFailed:
+      if let row { beginRelink(row) } else { notice = .openFailed }
     }
   }
 
