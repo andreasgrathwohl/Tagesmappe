@@ -9,3 +9,9 @@ func initialSection() {
   #expect(AppSection.initial(isMac: false, hasTimetable: true) == .dayView)
   #expect(AppSection.initial(isMac: true, hasTimetable: true) == .preparation)
 }
+
+@Test("Jahresplan liegt zwischen Vorbereiten und Einrichten")
+func coursePlanSectionOrder() {
+  #expect(AppSection.allCases == [.dayView, .preparation, .coursePlan, .setup])
+  #expect(AppSection.initial(isMac: true, hasTimetable: true) == .preparation)  // Startbereich unverändert
+}
