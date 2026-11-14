@@ -89,7 +89,9 @@ enum MicrosoftAccountError: Error, Equatable {
   /// Übersetzt MSAL-Fehler in die eigenen; die Meldung enthält nie ein Token.
   nonisolated private static func map(_ error: Error?) -> MicrosoftAccountError {
     guard let nsError = error as NSError? else { return .failed("") }
-    if nsError.domain == MSALErrorDomain {
+    // Wert von `MSALErrorDomain`; die MSAL-Konstante ist ein veränderliches Global
+    // und unter Swift 6 (strikte Nebenläufigkeit) nicht lesbar.
+    if nsError.domain == "MSALErrorDomain" {
       if nsError.code == MSALError.userCanceled.rawValue { return .cancelled }
       if nsError.code == MSALError.interactionRequired.rawValue { return .interactionRequired }
     }
