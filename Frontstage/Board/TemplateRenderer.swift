@@ -60,6 +60,12 @@ enum TemplateRenderer {
         .intersection(CGRect(x: 0, y: 0, width: width, height: height))
       if pixels.width >= 1, pixels.height >= 1, let cropped = source.cropping(to: pixels) { image = cropped }
     }
+    return try renderImage(image)
+  }
+
+  /// Ein fertig dekodiertes Bild einpassend auf die Fläche der Tafel (2400 × 1350, Rand weiß) als JPEG; auch für
+  /// ein Standbild der Kamera (FR-12.5).
+  static func renderImage(_ image: CGImage) throws -> Data {
     let context = try makeContext(width: outputWidth, height: outputHeight)
     fillWhite(context, width: outputWidth, height: outputHeight)
     let scale = min(CGFloat(outputWidth) / CGFloat(image.width), CGFloat(outputHeight) / CGFloat(image.height))

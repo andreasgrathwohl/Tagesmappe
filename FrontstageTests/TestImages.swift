@@ -139,3 +139,20 @@ extension TestImages {
     return pixels[row * image.width + column]
   }
 }
+
+// MARK: Kamera (Aufgabe 13)
+
+extension TestImages {
+  /// Ein einfarbiges Bild mit dem Grauwert `gray` (0 schwarz … 1 weiß) in der gegebenen Größe.
+  static func solid(gray: Double, width: Int, height: Int) -> CGImage {
+    guard
+      let context = CGContext(
+        data: nil, width: width, height: height, bitsPerComponent: 8, bytesPerRow: 0,
+        space: CGColorSpaceCreateDeviceGray(), bitmapInfo: CGImageAlphaInfo.none.rawValue)
+    else { preconditionFailure("CGContext für \(width) × \(height) lässt sich nicht anlegen") }
+    context.setFillColor(gray: CGFloat(gray), alpha: 1)
+    context.fill(CGRect(x: 0, y: 0, width: width, height: height))
+    guard let image = context.makeImage() else { preconditionFailure("Bild lässt sich nicht erzeugen") }
+    return image
+  }
+}

@@ -3428,6 +3428,76 @@
         }
       }
     },
+    "board.camera" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kamera"
+          }
+        }
+      }
+    },
+    "board.camera.freeze" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standbild"
+          }
+        }
+      }
+    },
+    "board.camera.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "board.camera.denied" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kamera nicht freigegeben"
+          }
+        }
+      }
+    },
+    "board.camera.multitasking" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kamera ist in geteilter Ansicht nicht verfügbar"
+          }
+        }
+      }
+    },
+    "board.camera.none" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Kamera"
+          }
+        }
+      }
+    },
+    "board.camera.openSettings" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In den Einstellungen freigeben"
+          }
+        }
+      }
+    },
     "board.cancel" : {
       "localizations" : {
         "de" : {

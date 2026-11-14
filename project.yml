@@ -48,7 +48,7 @@ targets:
         UIBackgroundModes: [remote-notification, fetch]
         BGTaskSchedulerPermittedIdentifiers: [frontstage.timetable-source.morning-refresh]
         MSALClientID: $(MSAL_CLIENT_ID)
-        NSCameraUsageDescription: "Die Kamera nimmt Bilder für die Tafel auf und liest den Code zum Koppeln von Geräten."
+        NSCameraUsageDescription: "Die Kamera zeigt Heft, Buchseite oder Versuch an der Tafel und liest den QR-Code zum Koppeln eines zweiten Geräts."
         CFBundleURLTypes:
           - CFBundleURLSchemes: [msauth.$(PRODUCT_BUNDLE_IDENTIFIER)]
         LSApplicationQueriesSchemes: [msauthv2, msauthv3, ms-powerpoint, ms-word, ms-excel]

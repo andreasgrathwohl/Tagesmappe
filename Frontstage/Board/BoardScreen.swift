@@ -2,6 +2,10 @@ import FrontstageCore
 import PencilKit
 import SwiftUI
 
+#if os(iOS)
+  import UIKit
+#endif
+
 /// Hinweis nach einer Aktion der Tafel.
 private enum BoardNotice: Identifiable {
   case saveFailed, noPrevious, deleteFailed
@@ -27,6 +31,7 @@ struct BoardScreen: View {
 
   @Environment(BoardSession.self) private var session: BoardSession?
   @Environment(\.dismiss) private var dismiss
+  @Environment(\.openURL) private var openURL
   // Swift-Hinweis: `scenePhase` liefert den Lebenszyklus der Szene (aktiv, inaktiv, Hintergrund).
   @Environment(\.scenePhase) private var scenePhase
 
@@ -56,10 +61,21 @@ struct BoardScreen: View {
     }
     .task { open() }
     .onChange(of: scenePhase) { _, phase in
-      if phase == .background { try? session?.flush() }
+      if phase == .background {
+        try? session?.flush()
+        // Im Hintergrund darf die App die Kamera ohnehin nicht halten.
+        stopCamera()
+      }
     }
+    #if os(iOS)
+      // Fällt die Kamera weg (geteilte Ansicht), endet das Livebild; die Tafel bleibt nutzbar.
+      .onChange(of: CameraFeed.shared.availability) { _, availability in
+        if availability != .available { stopCamera() }
+      }
+    #endif
     // Schließen ohne den „Fertig“-Knopf (z. B. Esc am Mac): trotzdem speichern.
     .onDisappear {
+      stopCamera()
       if !didClose {
         didClose = true
         try? session?.close()
@@ -97,7 +113,9 @@ struct BoardScreen: View {
   }
 
   @ViewBuilder private func stage(_ session: BoardSession) -> some View {
-    if let page = session.currentPage {
+    if canDraw(in: session), session.isCameraLive {
+      cameraStage(session)
+    } else if let page = session.currentPage {
       BoardPageSurface(
         page: page,
         drawing: Binding(get: { session.liveDrawing }, set: { session.drawingChanged($0) }),
@@ -175,6 +193,7 @@ struct BoardScreen: View {
             backgroundMenu(session)
             Button("board.template", systemImage: "doc.on.doc") { isPickingTemplate = true }
               .frame(minHeight: 44)
+            cameraControl(session)
           }
         #endif
         // Teilen-Dialog: liest die Seiten und erzeugt das PDF erst, wenn ein Ziel gewählt wird (FR-12.4).
@@ -260,7 +279,81 @@ struct BoardScreen: View {
     }
   #endif
 
-  /// Wählbar sind Leer, Liniert, Kariert; ein Bild kommt aus der Kamera (Aufgabe 13).
+  // MARK: Kamera (FR-12.5)
+
+  #if os(iOS)
+    /// Livebild als Hintergrund der Fläche; darunter „Standbild“ und „Abbrechen“. Gezeichnet wird währenddessen nicht.
+    private func cameraStage(_ session: BoardSession) -> some View {
+      VStack(spacing: 12) {
+        CameraLiveView()
+          .aspectRatio(BoardGeometry.aspectRatio, contentMode: .fit)
+          .overlay(Rectangle().strokeBorder(.separator))
+        HStack(spacing: 16) {
+          Button("board.camera.freeze", systemImage: "camera.shutter.button") { freezeCamera(session) }
+            .buttonStyle(.borderedProminent)
+            .frame(minHeight: 44)
+          Button("board.camera.cancel", role: .cancel) { stopCamera() }
+            .buttonStyle(.bordered)
+            .frame(minHeight: 44)
+        }
+      }
+      .padding()
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    /// Knopf „Kamera“; ohne Freigabe oder Kamera steht darunter der Grund, die Tafel bleibt nutzbar.
+    private func cameraControl(_ session: BoardSession) -> some View {
+      VStack(alignment: .leading, spacing: 8) {
+        Button("board.camera", systemImage: "camera") { startCamera(session) }
+          .frame(minHeight: 44)
+        switch CameraFeed.shared.availability {
+        case .denied:
+          Label("board.camera.denied", systemImage: "exclamationmark.triangle")
+            .font(.footnote)
+          Button("board.camera.openSettings") {
+            if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+          }
+          .frame(minHeight: 44)
+        case .unavailableInMultitasking:
+          Label("board.camera.multitasking", systemImage: "rectangle.split.2x1")
+            .font(.footnote)
+        case .noCamera:
+          Label("board.camera.none", systemImage: "camera.slash")
+            .font(.footnote)
+        case .available, .notDetermined:
+          EmptyView()
+        }
+      }
+    }
+
+    private func startCamera(_ session: BoardSession) {
+      Task {
+        await CameraFeed.shared.start()
+        if CameraFeed.shared.availability == .available { session.isCameraLive = true }
+      }
+    }
+
+    /// „Standbild“: das jüngste Bild wird eine neue Seite mit Bild-Hintergrund; das Livebild selbst wird nie gespeichert.
+    private func freezeCamera(_ session: BoardSession) {
+      do {
+        let jpeg = try CameraFeed.shared.stillJPEG()
+        try session.addPage(background: .image, imageData: jpeg)
+        stopCamera()
+      } catch {
+        notice = .saveFailed
+      }
+    }
+  #endif
+
+  /// Beendet das Livebild (Zweitbildschirm zeigt wieder die Seite) und die Kamera.
+  private func stopCamera() {
+    #if os(iOS)
+      session?.isCameraLive = false
+      CameraFeed.shared.stop()
+    #endif
+  }
+
+  /// Wählbar sind Leer, Liniert, Kariert; ein Bild kommt aus der Kamera (Standbild) oder einer Vorlage.
   private static let choosableBackgrounds: [BoardBackground] = [.blank, .lined, .grid]
 
   private static func title(of background: BoardBackground) -> LocalizedStringKey {
@@ -315,6 +408,7 @@ struct BoardScreen: View {
       dismiss()
       return
     }
+    stopCamera()
     do {
       try session.close()
       didClose = true
