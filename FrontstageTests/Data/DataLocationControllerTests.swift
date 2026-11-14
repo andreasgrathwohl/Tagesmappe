@@ -46,7 +46,7 @@ import Testing
 }
 
 @MainActor private func makeDevice(
-  _ name: String, remote: InMemoryRemoteDataFolder, account: FakeDataLocationAccount = .init()
+  _ name: String, remote: any RemoteDataFolder, account: FakeDataLocationAccount = .init()
 ) -> Device {
   let defaults = UserDefaults(suiteName: "test-\(UUID().uuidString)")!
   let settings = DataLocationSettings(defaults: defaults)
@@ -152,6 +152,41 @@ import Testing
     #expect(device.settings.dataFolder == nil)
     #expect(device.ledger.ledger == nil)
     #expect(await remote.paths == pathsBefore)
+  }
+
+  @Test("Review Focus 5: Wechsel auf iCloud wartet den laufenden Abgleich ab; das Buch bleibt entfernt")
+  func switchToICloudWaitsForRunningCycle() async throws {
+    let gated = GatedRemoteDataFolder(remote)
+    let device = makeDevice("mac", remote: gated)
+    try seed(device)
+    _ = try await device.controller.switchToOneDrive(anchor: makeAnchor())
+    let oldSync = try #require(device.controller.folderSync)
+
+    // Ein Durchgang im Hintergrund hängt mitten im Lauf, als der Wechsel beginnt.
+    await gated.closeGate()
+    let waitingBefore = await gated.waitingCount
+    device.controller.networkDidBecomeAvailable()
+    var tries = 0
+    while await gated.waitingCount == waitingBefore, tries < 500 {
+      tries += 1
+      try await Task.sleep(for: .milliseconds(10))
+    }
+    #expect(await gated.waitingCount > waitingBefore)
+
+    let switching = Task { try await device.controller.switchToICloud() }
+    try await Task.sleep(for: .milliseconds(50))
+    #expect(device.controller.location == .oneDrive)  // wartet noch auf den Durchgang
+
+    await gated.openGate()
+    try await switching.value
+    // Ein übrig gebliebener Durchgang hätte jetzt noch Zeit, das Buch neu anzulegen.
+    try await Task.sleep(for: .milliseconds(100))
+
+    #expect(device.controller.location == .iCloud)
+    #expect(device.ledger.ledger == nil)
+    let cycles = oldSync.cycleCount
+    await oldSync.runCycle()
+    #expect(oldSync.cycleCount == cycles)
   }
 
   @Test("Zustimmung abgelehnt → Datenort bleibt iCloud, nichts geändert")

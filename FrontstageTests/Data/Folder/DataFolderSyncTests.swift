@@ -56,6 +56,11 @@ private actor HookedRemote: RemoteDataFolder {
   func ensureModelFolders() async throws { try await inner.ensureModelFolders() }
 }
 
+/// Merker, den eine Aufgabe auf dem Hauptakteur setzen darf (eine gefangene `var` dürfte sie nicht ändern).
+@MainActor private final class Flag {
+  var isSet = false
+}
+
 @MainActor @Suite struct DataFolderSyncTests {
   let remote = InMemoryRemoteDataFolder()
   private let clock = TestClock()
@@ -264,6 +269,155 @@ private actor HookedRemote: RemoteDataFolder {
     _ = await (first, second)
     #expect(mac.sync.cycleCount == 2)
     #expect(mac.sync.status.phase == .idle)
+  }
+
+  @Test("runCycle wartet einen laufenden Durchgang samt Wiederholung ab")
+  func runCycleAwaitsRunningCycle() async throws {
+    let gated = GatedRemoteDataFolder(remote)
+    let mac = try makeDevice("mac", remote: gated, clock: clock)
+    await gated.closeGate()
+    let first = Task { await mac.sync.runCycle() }
+    #expect(await waitUntil { await gated.waitingCount >= 1 })
+
+    try mac.store.assign(reference("Vokabeln.pdf"), to: di8b)
+    let returned = Flag()
+    let second = Task {
+      await mac.sync.runCycle()
+      returned.isSet = true
+    }
+    try await Task.sleep(for: .milliseconds(50))
+    #expect(!returned.isSet)
+
+    await gated.openGate()
+    await second.value
+    await first.value
+    #expect(returned.isSet)
+    #expect(mac.sync.cycleCount == 2)
+    #expect(await remote.paths.contains { $0.hasPrefix("MaterialLink/") })
+  }
+
+  @Test("Review Focus 5: Nach stop() schreibt ein laufender Durchgang weder Buch noch Datenordner")
+  func stoppedCycleWritesNothing() async throws {
+    let gated = GatedRemoteDataFolder(remote)
+    let mac = try makeDevice("mac", remote: gated, clock: clock)
+    try mac.store.assign(reference("Vokabeln.pdf"), to: di8b)
+    await gated.closeGate()
+    let running = Task { await mac.sync.runCycle() }
+    #expect(await waitUntil { await gated.waitingCount >= 1 })
+
+    // Wie beim Wechsel des Datenorts: anhalten, Buch entfernen – dann erst kommt der Durchgang weiter.
+    mac.sync.stop()
+    mac.ledger.remove()
+    await gated.openGate()
+    await running.value
+    await mac.sync.stopAndWait()
+
+    #expect(mac.ledger.ledger == nil)
+    #expect(await remote.paths.isEmpty)
+    // Ein späterer Auslöser startet keinen Durchgang mehr.
+    let cycles = mac.sync.cycleCount
+    await mac.sync.runCycle()
+    #expect(mac.sync.cycleCount == cycles)
+  }
+
+  @Test("Abfrage im Hintergrund lässt den Stand stehen, runCycle zeigt den Abgleich")
+  func backgroundCycleKeepsSummary() async throws {
+    let gated = GatedRemoteDataFolder(remote)
+    let mac = try makeDevice("mac", remote: gated, clock: clock)
+    await mac.sync.runCycle()
+    #expect(mac.sync.status.phase == .idle)
+
+    await gated.closeGate()
+    mac.sync.networkDidBecomeAvailable()
+    #expect(await waitUntil { await gated.waitingCount >= 1 })
+    #expect(mac.sync.status.phase == .idle)
+    await gated.openGate()
+    #expect(await waitUntil { mac.sync.cycleCount == 2 && mac.sync.status.phase == .idle })
+
+    await gated.closeGate()
+    let visible = Task { await mac.sync.runCycle() }
+    #expect(await waitUntil { await gated.waitingCount >= 2 })
+    #expect(mac.sync.status.phase == .syncing)
+    await gated.openGate()
+    await visible.value
+    #expect(mac.sync.status.phase == .idle)
+  }
+
+  @Test("Im Datenordner verschwundene Datei wird beim nächsten Schreiben neu angelegt")
+  func vanishedRecordFileIsRecreated() async throws {
+    let mac = try device("mac")
+    try mac.store.assign(reference("Vokabeln.pdf"), to: di8b)
+    let link = try #require(try mac.store.links(for: di8b).first)
+    let path = RemoteLayout.recordPath(model: .materialLink, id: link.id)
+    clock.advance()
+    await mac.sync.runCycle()
+    // Ein zweiter Durchgang sieht die eigene Datei im Delta; danach kennt das Bild des Ordners sie.
+    clock.advance()
+    await mac.sync.runCycle()
+    #expect(await remote.content(at: path) != nil)
+    #expect(mac.ledger.ledger?.seenETags[path] != nil)
+
+    // Anderswo entfernt (z. B. im Browser); danach ändert der Mac den Datensatz.
+    try await remote.delete(RemoteFile(path: path, itemID: "", eTag: "", size: 0, lastModified: .now))
+    clock.advance()
+    await mac.sync.runCycle()  // liest die Löschung: das eTag wird vergessen
+    #expect(mac.ledger.ledger?.seenETags[path] == nil)
+
+    link.displayName = "Neu.pdf"
+    try mac.store.saveAndBump()
+    clock.advance()
+    await mac.sync.runCycle()
+
+    let stored = try #require(await remote.content(at: path))
+    #expect(try DataFolderCoding.decode(stored).payload != nil)
+    #expect(mac.sync.status.phase == .idle)
+    #expect(mac.sync.status.pendingCount == 0)
+  }
+
+  @Test("Veraltetes eTag einer fehlenden Datei blockiert das Schreiben nicht")
+  func staleETagOfMissingFileDoesNotBlock() async throws {
+    let mac = try device("mac")
+    try mac.store.assign(reference("Vokabeln.pdf"), to: di8b)
+    let link = try #require(try mac.store.links(for: di8b).first)
+    let path = RemoteLayout.recordPath(model: .materialLink, id: link.id)
+    clock.advance()
+    await mac.sync.runCycle()
+    try await remote.delete(RemoteFile(path: path, itemID: "", eTag: "", size: 0, lastModified: .now))
+    clock.advance()
+    await mac.sync.runCycle()  // liest die Löschung
+
+    // Buch aus einer Zeit, in der Löschungen das eTag noch nicht vergaßen.
+    var ledger = try #require(mac.ledger.ledger)
+    ledger.seenETags[path] = "\"stale\""
+    mac.ledger.ledger = ledger
+    link.displayName = "Neu.pdf"
+    try mac.store.saveAndBump()
+    clock.advance()
+    await mac.sync.runCycle()
+
+    #expect(await remote.content(at: path) != nil)
+    #expect(mac.sync.status.pendingCount == 0)
+    #expect(mac.sync.status.phase == .idle)
+  }
+
+  @Test("Fehler beim Entfernen entschiedener Dateien lassen den Durchgang gelingen")
+  func deleteFailuresDoNotFailCycle() async throws {
+    for error in [RemoteDataFolderError.server(403), .throttled(retryAfter: nil)] {
+      let shared = InMemoryRemoteDataFolder()
+      let gated = GatedRemoteDataFolder(shared)
+      await gated.failDeletes(with: error)
+      let copyPath = "MaterialLink/\(UUID().uuidString)-copy.bin"
+      _ = try await shared.upload(Data([1]), to: copyPath, ifMatch: nil)
+      let mac = try makeDevice("mac", remote: gated, clock: clock)
+      try mac.store.assign(reference("Vokabeln.pdf"), to: di8b)
+      clock.advance()
+      await mac.sync.runCycle()
+
+      #expect(mac.sync.status.phase == .idle)
+      #expect(mac.sync.status.pendingCount == 0)
+      #expect(mac.ledger.ledger?.lastSuccessfulSync != nil)
+      #expect(await shared.paths.contains(copyPath))
+    }
   }
 
   @Test("revision steigt nach übernommenen Änderungen")

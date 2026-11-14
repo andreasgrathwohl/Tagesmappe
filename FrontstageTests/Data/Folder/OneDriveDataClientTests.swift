@@ -156,6 +156,24 @@ import Testing
     }
   }
 
+  /// Token-Lieferant ohne Netz (stilles Erneuern scheitert am Netz).
+  private struct OfflineTokens: AccessTokenProviding {
+    func accessToken() async throws -> String { throw MicrosoftAccountError.offline }
+  }
+
+  @Test("Zeitüberschreitung, unbekannter Host, Mobilfunkdaten gesperrt, Token ohne Netz → offline")
+  func mapsFurtherNetworkErrorsToOffline() async throws {
+    for code: URLError.Code in [.timedOut, .cannotFindHost, .cannotConnectToHost, .dataNotAllowed] {
+      let server = StubURLProtocol.Server.responding { _ in .failure(code) }
+      await #expect(throws: RemoteDataFolderError.offline) { _ = try await Self.client(server).appFolder() }
+    }
+
+    let quiet = StubURLProtocol.Server { _ in (200, "{}") }
+    let noNetwork = OneDriveDataClient(tokens: OfflineTokens(), session: quiet.session)
+    await #expect(throws: RemoteDataFolderError.offline) { _ = try await noNetwork.appFolder() }
+    #expect(quiet.requests.isEmpty)
+  }
+
   @Test("Löschen: 404 gilt als erledigt")
   func deleteNotFoundIsDone() async throws {
     let id = UUID()

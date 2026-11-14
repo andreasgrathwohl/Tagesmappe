@@ -47,7 +47,10 @@ struct PairingSheet: View {
   @Environment(\.dismiss) private var dismiss
 
   init(controller: DataLocationController, accountUsername: @escaping () -> String?) {
-    _model = State(initialValue: PairingFlowModel(controller: controller, accountUsername: accountUsername))
+    _model = State(
+      initialValue: PairingFlowModel(
+        controller: controller, accountUsername: accountUsername,
+        prepareCamera: { await PairingScannerView.prepareCamera() }))
   }
 
   var body: some View {
@@ -86,15 +89,21 @@ struct PairingSheet: View {
       }
     case .scanning:
       VStack(spacing: 16) {
-        if PairingScannerView.isAvailable {
+        switch model.cameraReady {
+        case nil:
+          // Die Rückfrage des Systems nach der Kamera läuft (nur beim ersten Mal).
+          ProgressView()
+        case true?:
           // Die Kamera läuft nur, solange diese Ansicht steht (Wechsel des Schritts baut sie ab).
           PairingScannerView { model.scanned($0) }
             .clipShape(.rect(cornerRadius: 12))
-        } else {
+        case false?:
           Text("pairing.noCamera").multilineTextAlignment(.center)
         }
         Button("pairing.scan.cancel") { model.cancel() }
       }
+      // Swift-Hinweis: `.task` startet beim Erscheinen und wird beim Verschwinden abgebrochen.
+      .task { await model.checkCamera() }
     case .confirm(let payload):
       VStack(spacing: 16) {
         confirmText(for: payload)

@@ -105,6 +105,32 @@ struct RemoteIndexTests {
     #expect(index.files.map(\.path) == ["MaterialLink/\(id(1).uuidString).json"])
   }
 
+  @Test("Löschung meldet den Pfad der entfernten Datei")
+  func deletionReportsRemovedPath() {
+    var index = RemoteIndex(appFolderID: "01APPROOT")
+    index.apply([
+      folder("F1", "MaterialLink", parent: "01APPROOT"),
+      file("I1", "\(id(1).uuidString).json", parent: "F1"),
+      file("I2", "\(id(2).uuidString).json", parent: "F1"),
+    ])
+    let removed = index.apply([deleted("I1"), deleted("UNKNOWN")])
+    #expect(removed == ["MaterialLink/\(id(1).uuidString).json"])
+    #expect(index.files.map(\.path) == ["MaterialLink/\(id(2).uuidString).json"])
+  }
+
+  @Test("Nachschlagen nach Pfad liefert dieselben Dateien wie die Liste")
+  func filesByPathMatchesFiles() {
+    var index = RemoteIndex(appFolderID: "01APPROOT")
+    index.apply([
+      file("L", "library.json", parent: "01APPROOT"),
+      folder("F1", "MaterialLink", parent: "01APPROOT"),
+      file("I1", "\(id(1).uuidString).json", parent: "F1"),
+    ])
+    let byPath = index.filesByPath
+    #expect(byPath.count == index.files.count)
+    for file in index.files { #expect(byPath[file.path] == file) }
+  }
+
   @Test("Index übersteht Speichern und Laden")
   func roundTripsThroughJSON() throws {
     var index = RemoteIndex(appFolderID: "01APPROOT")

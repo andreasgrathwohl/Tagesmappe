@@ -47,7 +47,7 @@ targets:
         FrontstageCloudKitContainer: $(CLOUDKIT_CONTAINER_ID)
         UIBackgroundModes: [remote-notification]
         MSALClientID: $(MSAL_CLIENT_ID)
-        NSCameraUsageDescription: "Die Kamera liest den Code zum Koppeln von Geräten."
+        NSCameraUsageDescription: "Die Kamera nimmt Bilder für die Tafel auf und liest den Code zum Koppeln von Geräten."
         CFBundleURLTypes:
           - CFBundleURLSchemes: [msauth.$(PRODUCT_BUNDLE_IDENTIFIER)]
         LSApplicationQueriesSchemes: [msauthv2, msauthv3, ms-powerpoint, ms-word, ms-excel]
@@ -82,7 +82,7 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         FrontstageCloudKitContainer: $(CLOUDKIT_CONTAINER_ID)
         MSALClientID: $(MSAL_CLIENT_ID)
-        NSCameraUsageDescription: "Die Kamera liest den Code zum Koppeln von Geräten."
+        NSCameraUsageDescription: "Die Kamera nimmt Bilder für die Tafel auf und liest den Code zum Koppeln von Geräten."
         CFBundleURLTypes:
           - CFBundleURLSchemes: [msauth.$(PRODUCT_BUNDLE_IDENTIFIER)]
     scheme: {}

@@ -231,8 +231,15 @@ extension MicrosoftAccount: DataLocationAccount {}
     isMoving = true
     defer { isMoving = false }
     do {
-      // Ausstehende Änderungen noch hinaus; offline geht es trotzdem weiter (Hinweis im Status des Abgleichs).
-      await folderSync?.runCycle()
+      if let sync = folderSync {
+        // Ausstehende Änderungen noch hinaus; offline geht es trotzdem weiter (Hinweis im Status des Abgleichs).
+        // `runCycle()` wartet auch einen schon laufenden Durchgang (Abfrage, Entprellung) samt Wiederholung ab.
+        await sync.runCycle()
+        // Danach darf der alte Abgleich nichts mehr schreiben: Ein später fertig werdender Durchgang legte
+        // sonst das Buch nach `remove()` neu an und überschriebe beim Zurückwechseln das Buch des Beitritts.
+        await sync.stopAndWait()
+      }
+      // Ab hier bis zum Ende kein `await` mehr: Nichts kann sich zwischen Auslesen und Umschalten drängen.
 
       let records = Self.inApplyOrder(try RecordCodec.exportAll(from: store.modelContext))
       let newContainer = try makeContainer(.iCloud)
@@ -254,6 +261,8 @@ extension MicrosoftAccount: DataLocationAccount {}
       generation += 1
       newTrigger.start()
     } catch {
+      // Es bleibt bei OneDrive: den angehaltenen Abgleich wieder anlaufen lassen.
+      if location == .oneDrive { folderSync?.start() }
       Self.logger.error("Wechsel auf iCloud gescheitert: \(String(describing: error), privacy: .public)")
       throw Self.map(error)
     }

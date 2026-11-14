@@ -1,6 +1,7 @@
 import SwiftUI
 
 #if os(iOS)
+  import AVFoundation
   import VisionKit
 #else
   import AVFoundation
@@ -20,13 +21,27 @@ struct PairingScannerView: View {
     self.onCode = onCode
   }
 
-  /// iPad: Gerät unterstützt den Scanner und Kamerazugriff ist nicht gesperrt. Mac: eine Kamera ist vorhanden.
+  /// iPad: Gerät unterstützt den Scanner und der Kamerazugriff ist erlaubt. Mac: eine Kamera ist vorhanden und
+  /// der Zugriff erlaubt. Vor der ersten Rückfrage ist beides „nein“ – deshalb zuerst `prepareCamera()`.
   @MainActor static var isAvailable: Bool {
     #if os(iOS)
       DataScannerViewController.isSupported && DataScannerViewController.isAvailable
     #else
       AVCaptureDevice.default(for: .video) != nil
+        && AVCaptureDevice.authorizationStatus(for: .video) == .authorized
     #endif
+  }
+
+  /// Fragt beim ersten Mal nach dem Kamerazugriff (Systemabfrage mit `NSCameraUsageDescription`) und meldet
+  /// danach, ob gescannt werden kann. Wurde schon einmal geantwortet, fragt das System nicht erneut.
+  ///
+  /// Swift-Hinweis: `requestAccess(for:)` gibt es als `async`-Variante; sie kehrt zurück, sobald die Lehrkraft
+  /// in der Systemabfrage gewählt hat.
+  @MainActor static func prepareCamera() async -> Bool {
+    if AVCaptureDevice.authorizationStatus(for: .video) == .notDetermined {
+      _ = await AVCaptureDevice.requestAccess(for: .video)
+    }
+    return isAvailable
   }
 
   var body: some View {

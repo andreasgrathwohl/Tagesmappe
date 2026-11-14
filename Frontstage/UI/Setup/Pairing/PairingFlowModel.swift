@@ -24,13 +24,22 @@ extension DataLocationController: PairingControlling {}
   }
 
   private(set) var step: Step = .showCode
+  /// Ob beim Scannen die Kamera bereitsteht; `nil` = wird noch geprüft (z. B. läuft die Rückfrage des Systems).
+  private(set) var cameraReady: Bool?
 
   @ObservationIgnored private let controller: any PairingControlling
   @ObservationIgnored private let accountUsername: () -> String?
+  @ObservationIgnored private let prepareCamera: @MainActor () async -> Bool
 
-  init(controller: any PairingControlling, accountUsername: @escaping () -> String?) {
+  /// `prepareCamera`: fragt beim ersten Mal nach dem Kamerazugriff und meldet, ob gescannt werden kann
+  /// (in der App `PairingScannerView.prepareCamera`).
+  init(
+    controller: any PairingControlling, accountUsername: @escaping () -> String?,
+    prepareCamera: @escaping @MainActor () async -> Bool = { true }
+  ) {
     self.controller = controller
     self.accountUsername = accountUsername
+    self.prepareCamera = prepareCamera
   }
 
   /// Code dieses Geräts (nil bei OneDrive ohne Datenordner – dann erst Datenort wählen).
@@ -50,7 +59,18 @@ extension DataLocationController: PairingControlling {}
 
   func startScanning() {
     guard step != .working else { return }
+    cameraReady = nil
     step = .scanning
+  }
+
+  /// Beim Erscheinen des Scan-Schritts: Kamerazugriff erfragen (falls noch nie gefragt) und das Ergebnis
+  /// merken. Ohne diese Rückfrage meldet VisionKit den Scanner auf einem frisch installierten iPad als nicht
+  /// verfügbar, und die Systemabfrage erschiene nie.
+  func checkCamera() async {
+    guard step == .scanning else { return }
+    let ready = await prepareCamera()
+    guard step == .scanning else { return }
+    cameraReady = ready
   }
 
   /// Nur während des Scannens; spätere Treffer derselben Kamera werden ignoriert.

@@ -31,12 +31,23 @@ extension ModelContainerFactory {
     }
   }
 
-  /// Löscht die OneDrive-Datei samt `-shm`/`-wal`; fehlende Dateien sind kein Fehler.
+  /// Löscht die OneDrive-Datei samt `-shm`/`-wal` und dem verborgenen Ordner `.<Name>_SUPPORT` daneben, in dem
+  /// SwiftData große Werte mit `@Attribute(.externalStorage)` ablegt (Tafelbilder, Zeichnungen) – sonst bliebe
+  /// er bei jedem erneuten Beitreten liegen und wüchse. Fehlende Dateien sind kein Fehler.
   static func removeOneDriveStore(url: URL = oneDriveStoreURL) throws {
     let manager = FileManager.default
     for suffix in ["", "-shm", "-wal"] {
       let file = URL(fileURLWithPath: url.path + suffix)
       if manager.fileExists(atPath: file.path) { try manager.removeItem(at: file) }
     }
+    let support = externalStorageFolder(for: url)
+    if manager.fileExists(atPath: support.path) { try manager.removeItem(at: support) }
+  }
+
+  /// `Frontstage-onedrive.store` → `.Frontstage-onedrive_SUPPORT` im selben Ordner (Ablage von Core Data,
+  /// auf der SwiftData aufsetzt).
+  static func externalStorageFolder(for url: URL) -> URL {
+    let name = url.deletingPathExtension().lastPathComponent
+    return url.deletingLastPathComponent().appending(path: ".\(name)_SUPPORT", directoryHint: .isDirectory)
   }
 }

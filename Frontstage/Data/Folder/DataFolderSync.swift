@@ -49,8 +49,14 @@ private struct SavedIdentifiers: Sendable {
   @ObservationIgnored private var pollTask: Task<Void, Never>?
   @ObservationIgnored private var debounceTask: Task<Void, Never>?
 
-  @ObservationIgnored private var isRunning = false
+  /// Der laufende Durchgang samt seiner Wiederholungen; `nil`, wenn keiner läuft.
+  @ObservationIgnored private var currentRun: Task<Void, Never>?
   @ObservationIgnored private var rerunRequested = false
+  /// Ein Aufruf während des laufenden Durchgangs wollte den Fortschritt sichtbar haben (`runCycle()`).
+  @ObservationIgnored private var rerunVisible = false
+  /// Nach `stop()`: kein neuer Durchgang, kein weiterer Schritt eines laufenden, kein Schreiben des Buchs.
+  /// Das Buch gehört dann womöglich schon einem anderen Datenort (Wechsel auf iCloud und zurück).
+  @ObservationIgnored private var isStopped = false
 
   /// Ein erster Durchgang prüft alles; danach genügen die im `didSave` gesammelten Kennungen.
   @ObservationIgnored private var didInitialScan = false
@@ -87,6 +93,7 @@ private struct SavedIdentifiers: Sendable {
   /// Swift-Hinweis: Der Beobachter-Block ist nicht als `@MainActor` markiert, läuft mit `queue: .main` aber
   /// auf der Hauptwarteschlange; `MainActor.assumeIsolated` sagt das dem Compiler zu (wie `SyncMergeTrigger`).
   func start() {
+    isStopped = false
     if observer == nil {
       observer = NotificationCenter.default.addObserver(
         forName: ModelContext.didSave, object: store.modelContext, queue: .main
@@ -96,11 +103,13 @@ private struct SavedIdentifiers: Sendable {
       }
     }
     startPolling()
-    Task { await runCycle() }
+    Task { await runSerialized(writeOnly: false, quiet: true) }
   }
 
-  /// Beobachter und Abfrage beenden.
+  /// Beobachter und Abfrage beenden. Ein laufender Durchgang bricht beim nächsten Schritt ab und schreibt
+  /// das Buch nicht mehr; wer darauf warten muss, nimmt `stopAndWait()`.
   func stop() {
+    isStopped = true
     if let observer { NotificationCenter.default.removeObserver(observer) }
     observer = nil
     pollTask?.cancel()
@@ -109,9 +118,17 @@ private struct SavedIdentifiers: Sendable {
     debounceTask = nil
   }
 
+  /// `stop()` und warten, bis ein laufender Durchgang beendet ist. Danach fasst dieses Objekt weder Buch
+  /// noch Datenbank noch an – Voraussetzung, bevor der Controller das Buch entfernt oder neu anlegt.
+  func stopAndWait() async {
+    stop()
+    await currentRun?.value
+  }
+
   func sceneDidBecomeActive() {
+    guard !isStopped else { return }
     startPolling()
-    Task { await runCycle() }
+    Task { await runSerialized(writeOnly: false, quiet: true) }
   }
 
   /// Abfrage aus; ausstehende Änderungen sofort schreiben (Schritte 8–10).
@@ -120,11 +137,11 @@ private struct SavedIdentifiers: Sendable {
     pollTask = nil
     debounceTask?.cancel()
     debounceTask = nil
-    Task { await runSerialized(writeOnly: true) }
+    Task { await runSerialized(writeOnly: true, quiet: true) }
   }
 
   func networkDidBecomeAvailable() {
-    Task { await runCycle() }
+    Task { await runSerialized(writeOnly: false, quiet: true) }
   }
 
   private func startPolling() {
@@ -132,7 +149,7 @@ private struct SavedIdentifiers: Sendable {
     pollTask = Task { [pollInterval] in
       while !Task.isCancelled {
         do { try await Task.sleep(for: pollInterval) } catch { return }
-        await runCycle()
+        await runSerialized(writeOnly: false, quiet: true)
       }
     }
   }
@@ -146,31 +163,49 @@ private struct SavedIdentifiers: Sendable {
     debounceTask?.cancel()
     debounceTask = Task { [saveDebounce] in
       do { try await Task.sleep(for: saveDebounce) } catch { return }
-      await runSerialized(writeOnly: true)
+      await runSerialized(writeOnly: true, quiet: true)
     }
   }
 
   // MARK: - Durchgang
 
   /// Lesen → anwenden → zusammenführen → schreiben. Nie doppelt: Ein Aufruf während eines laufenden
-  /// Durchgangs merkt sich „noch einmal“ und kehrt sofort zurück.
+  /// Durchgangs merkt sich „noch einmal“ und wartet, bis der laufende Durchgang samt dieser Wiederholung
+  /// fertig ist – danach sind ausstehende Änderungen geschrieben (soweit das Netz es zuließ).
+  /// Der Status zeigt dabei „wird abgeglichen“; Durchgänge im Hintergrund (Abfrage, Speichern) behalten
+  /// die bisherige Aussage, damit „Stand des Abgleichs“ nicht jede Minute flackert.
   func runCycle() async {
-    await runSerialized(writeOnly: false)
+    await runSerialized(writeOnly: false, quiet: false)
   }
 
-  private func runSerialized(writeOnly: Bool) async {
-    if isRunning {
+  /// Swift-Hinweis: `Task { … }` in einer Methode des Hauptakteurs läuft selbst auf dem Hauptakteur. Der
+  /// Durchgang steckt in einer eigenen Aufgabe, damit spätere Aufrufer auf genau diese warten können
+  /// (`await currentRun.value`), statt sofort zurückzukehren.
+  private func runSerialized(writeOnly: Bool, quiet: Bool) async {
+    guard !isStopped else { return }
+    if let currentRun {
       rerunRequested = true
+      if !quiet { rerunVisible = true }
+      await currentRun.value
       return
     }
-    isRunning = true
-    defer { isRunning = false }
+    let run = Task { await self.runLoop(writeOnly: writeOnly, quiet: quiet) }
+    currentRun = run
+    await run.value
+  }
 
+  private func runLoop(writeOnly: Bool, quiet: Bool) async {
+    // Im selben Hauptakteur-Schritt wie die letzte Prüfung von `rerunRequested`: Wer `currentRun` noch
+    // gesetzt sieht, dessen Wunsch wird von dieser Schleife noch bedient.
+    defer { currentRun = nil }
     var writeOnly = writeOnly
+    var quiet = quiet
     var directRerunUsed = false
-    while true {
+    while !isStopped {
       rerunRequested = false
-      let conflict = await execute(writeOnly: writeOnly)
+      rerunVisible = false
+      let conflict = await execute(writeOnly: writeOnly, quiet: quiet)
+      if isStopped { return }
       // Nach einem 412 höchstens einmal direkt hintereinander noch einmal (Schritt 8).
       if conflict && !directRerunUsed {
         directRerunUsed = true
@@ -179,23 +214,42 @@ private struct SavedIdentifiers: Sendable {
       }
       if rerunRequested {
         writeOnly = false
+        quiet = !rerunVisible
         continue
       }
       return
     }
   }
 
+  /// Bricht einen Durchgang ab, sobald `stop()` gerufen wurde (nach jedem `await` geprüft).
+  private struct Stopped: Error {}
+
+  private func checkStopped() throws {
+    if isStopped { throw Stopped() }
+  }
+
+  /// Schreibt das Buch – nie nach `stop()`.
+  private func persist(_ ledger: SyncLedger) {
+    guard !isStopped else { return }
+    ledgerStore.ledger = ledger
+  }
+
   /// Ein Durchgang; `true`, wenn ein Schreiben an `preconditionFailed` scheiterte.
   /// `writeOnly`: nur die Schritte 7–10 (nach einem Speichern, beim Wechsel in den Hintergrund).
-  private func execute(writeOnly: Bool) async -> Bool {
+  /// `quiet`: „wird abgeglichen“ nur zeigen, wenn bisher kein ruhiger Stand angezeigt wird.
+  private func execute(writeOnly: Bool, quiet: Bool) async -> Bool {
     cycleCount += 1
-    status.phase = .syncing
+    if !quiet || status.phase != .idle || status.lastSuccess == nil {
+      status.phase = .syncing
+    }
     let cycleNow = now()
 
     var ledger: SyncLedger
     do {
       ledger = try await currentLedger()
+      try checkStopped()
     } catch {
+      if isStopped { return false }
       fail(with: error, pending: status.pendingCount)
       return false
     }
@@ -208,11 +262,14 @@ private struct SavedIdentifiers: Sendable {
       if !writeOnly {
         // 1. Delta abholen (bzw. auflisten).
         try await fetchRemoteIndex(&ledger)
+        try checkStopped()
         // 2./3. Lesen und entscheiden.
         let read = try await readChangedFiles(ledger)
+        try checkStopped()
         resolution = IncomingResolver.resolve(read: read, ledger: ledger, now: cycleNow)
         // 4./5. Anwenden und Buch fortschreiben, ohne `await` dazwischen.
         let extraWaiting = try await applyIncoming(resolution, ledger: &ledger)
+        try checkStopped()
         waiting = resolution.waitingIDs.union(extraWaiting)
         resolution.removeFiles.removeAll { file in
           if case .record(_, let id)? = RemoteLayout.classify(path: file.path) { return extraWaiting.contains(id) }
@@ -220,7 +277,7 @@ private struct SavedIdentifiers: Sendable {
           return false
         }
         resolution.rewriteCanonical.removeAll { extraWaiting.contains($0.id) }
-        ledgerStore.ledger = ledger
+        persist(ledger)
         lastWaitingCount = waiting.count
         lastNewerFormatCount = resolution.newerFormatCount
         // 6. Doppelte zusammenführen.
@@ -232,7 +289,10 @@ private struct SavedIdentifiers: Sendable {
       // 7. Lokale Änderungen erfassen.
       try captureLocalChanges(&ledger, now: cycleNow, forceFull: forceFullScan)
       // 8. Schreiben.
-      let outcome = try await writeOutgoing(&ledger, resolution: resolution, waiting: waiting, now: cycleNow)
+      // Nach einem frischen Delta ist das Bild des Ordners aktuell; nach einem reinen Schreiben nicht.
+      let outcome = try await writeOutgoing(
+        &ledger, resolution: resolution, waiting: waiting, indexIsFresh: !writeOnly, now: cycleNow)
+      try checkStopped()
       conflict = outcome.conflict
       // Konfliktkopien, deren Gewinner nicht ins Original zurückgeschrieben werden konnte, bleiben liegen:
       // sonst ginge der Gewinner verloren (das Buch führt ihn als sauber, localWins verhindert Neuschreiben).
@@ -244,25 +304,39 @@ private struct SavedIdentifiers: Sendable {
           return false
         }
       }
-      // 9. Entschiedene Dateien entfernen.
+      // 9. Entschiedene Dateien entfernen. Alle Schreibvorgänge sind da schon gelungen: Ein Fehler beim
+      //    Entfernen einer einzelnen Datei bricht den Durchgang nicht ab. Ihr eTag wird vergessen, damit der
+      //    nächste Durchgang sie erneut liest und neu entscheidet (sonst bliebe sie als „gesehen“ liegen).
       for file in resolution.removeFiles {
+        if isStopped { break }
         do {
           try await remote.delete(file)
-        } catch RemoteDataFolderError.preconditionFailed {
-          continue  // zwischenzeitlich geändert: der nächste Durchgang entscheidet neu
+        } catch let error as RemoteDataFolderError {
+          ledger.seenETags[file.path] = nil
+          if case .preconditionFailed = error { continue }  // zwischenzeitlich geändert
+          Self.logger.notice(
+            "Entfernen verschoben: \(file.path, privacy: .public) – \(String(describing: error), privacy: .public)")
+          // Ohne Netz, ohne Anmeldung oder gedrosselt scheitern auch alle weiteren: aufhören, nicht abbrechen.
+          if Self.isInfrastructure(error) { break }
+        } catch {
+          ledger.seenETags[file.path] = nil
+          Self.logger.notice("Entfernen verschoben: \(file.path, privacy: .public)")
         }
       }
+      try checkStopped()
       // 10. Erfolg.
       ledger.lastSuccessfulSync = now()
-      ledgerStore.ledger = ledger
+      persist(ledger)
       status = DataFolderSyncStatus(
         phase: .idle, lastSuccess: ledger.lastSuccessfulSync, pendingCount: ledger.dirtyIDs.count,
         waitingCount: lastWaitingCount, newerFormatCount: lastNewerFormatCount)
       return conflict
     } catch {
+      // Nach `stop()` gehört das Buch womöglich schon einem anderen Datenort: nichts mehr schreiben.
+      if isStopped { return false }
       // Lokale Änderungen trotzdem erfassen, damit sie ausstehend vermerkt sind und nichts verloren geht.
       try? captureLocalChanges(&ledger, now: cycleNow)
-      ledgerStore.ledger = ledger
+      persist(ledger)
       fail(with: error, pending: ledger.dirtyIDs.count)
       return false
     }
@@ -286,7 +360,7 @@ private struct SavedIdentifiers: Sendable {
     if let existing = ledgerStore.ledger { return existing }
     let folder = try await remote.appFolder()
     let created = SyncLedger(deviceID: DeviceIdentity.current(), appFolderID: folder.folderItemID)
-    ledgerStore.ledger = created
+    persist(created)
     return created
   }
 
@@ -307,26 +381,31 @@ private struct SavedIdentifiers: Sendable {
     }
     var link = ledger.remote.deltaLink
     // Ohne Delta-Link beginnt eine frische Aufzählung: nichts Altes darf im Bild stehen bleiben.
-    if link == nil { ledger.remote.beginResync() }
+    var fullEnumeration = link == nil
+    if fullEnumeration { ledger.remote.beginResync() }
     var firstCall = true
     var restarted = false
     while true {
       do {
         let page = try await remote.delta(link: link)
-        ledger.remote.apply(page.items)
+        // Entfernte Dateien vergessen dabei ihr eTag (kein `If-Match` mehr auf eine verschwundene Datei).
+        ledger.applyRemote(page.items)
         if let next = page.nextLink {
           link = next
           firstCall = false
           continue
         }
         ledger.remote.deltaLink = page.deltaLink
+        // Eine vollständige Aufzählung meldet keine Löschungen: eTags fehlender Dateien hier vergessen.
+        if fullEnumeration { ledger.pruneSeenETags() }
         return
       } catch RemoteDataFolderError.resyncRequired {
-        // 410: von vorn. Die gemerkten eTags bleiben, es wird also nichts doppelt gelesen.
+        // 410: von vorn. Die gemerkten eTags vorhandener Dateien bleiben, es wird also nichts doppelt gelesen.
         guard !restarted else { throw RemoteDataFolderError.resyncRequired }
         restarted = true
         ledger.remote.beginResync()
         link = nil
+        fullEnumeration = true
         firstCall = true
       } catch RemoteDataFolderError.server(let code) where firstCall && (code == 400 || code == 501) {
         deltaUnsupported = true
@@ -340,7 +419,8 @@ private struct SavedIdentifiers: Sendable {
   private func listAllFallback(_ ledger: inout SyncLedger) async throws {
     let items = try await remote.listAll()
     ledger.remote.beginResync()
-    ledger.remote.apply(items)
+    ledger.applyRemote(items)
+    ledger.pruneSeenETags()
   }
 
   // MARK: - 2. Lesen
@@ -385,14 +465,18 @@ private struct SavedIdentifiers: Sendable {
     var prepared: [(envelope: RecordEnvelope, attachments: [String: Data], hash: String?)] = []
 
     // 4. Anhänge zuerst: Die Closure von `applyExternalChanges` ist synchron, ein `await` darin geht nicht.
+    //    Das Wörterbuch der Dateien einmal bilden, nicht je Anhang (läuft auf dem Hauptakteur).
+    let remoteFiles: [String: RemoteFile] = resolution.apply.isEmpty ? [:] : ledger.remote.filesByPath
     for envelope in resolution.apply {
-      guard let attachments = try await downloadAttachments(of: envelope, ledger: ledger) else {
+      guard let attachments = try await downloadAttachments(of: envelope, files: remoteFiles) else {
         extraWaiting.insert(envelope.id)
         continue
       }
       let hash = try envelope.payload.map { try DataFolderCoding.payloadHash($0) }
       prepared.append((envelope, attachments, hash))
     }
+    // Nach `stop()` gehört die Datenbank womöglich nicht mehr zum aktuellen Datenort: nichts anwenden.
+    try checkStopped()
 
     // Ab hier kein `await` mehr bis zum Fortschreiben des Buchs (Schritt 5).
     var applied: [(envelope: RecordEnvelope, hash: String?)] = []
@@ -425,13 +509,14 @@ private struct SavedIdentifiers: Sendable {
       default: break
       }
     }
-    for id in resolution.forgetIDs { ledger.entries[id] = nil }
-    ledgerStore.ledger = ledger
+    // Vergessen samt eTag: Die Datei wird in diesem Durchgang entfernt.
+    for id in resolution.forgetIDs { ledger.forget(id) }
+    persist(ledger)
     return extraWaiting
   }
 
   /// `nil`, wenn ein Anhang fehlt oder nicht geladen werden konnte (die Kennung wartet dann).
-  private func downloadAttachments(of envelope: RecordEnvelope, ledger: SyncLedger) async throws
+  private func downloadAttachments(of envelope: RecordEnvelope, files: [String: RemoteFile]) async throws
     -> [String: Data]?
   {
     guard let payload = envelope.payload else { return [:] }
@@ -439,7 +524,7 @@ private struct SavedIdentifiers: Sendable {
     for (field, ref) in payload.attachments {
       let path = RemoteLayout.attachmentPath(
         model: envelope.model, id: envelope.id, field: field, hash: ref.hash)
-      guard let file = ledger.remote.file(at: path) else { return nil }
+      guard let file = files[path] else { return nil }
       do {
         result[field] = try await remote.download(itemID: file.itemID)
       } catch let error as RemoteDataFolderError where Self.isInfrastructure(error) {
@@ -481,8 +566,12 @@ private struct SavedIdentifiers: Sendable {
 
   /// `conflict`: ein Schreiben scheiterte an `preconditionFailed` oder an einer ungelesenen Datei (Datensatz bleibt
   /// ausstehend). `failedRewrites`: Kennungen der Zurückschreibungen eines Konfliktgewinners, die nicht gelangen.
+  /// `indexIsFresh`: Das Bild des Ordners stammt aus dem Delta dieses Durchgangs. Nur dann heißt „gemerktes eTag,
+  /// aber keine Datei“, dass die Datei wirklich fort ist (nach einem reinen Schreiben fehlen dort eigene, eben
+  /// geschriebene Dateien noch).
   private func writeOutgoing(
-    _ ledger: inout SyncLedger, resolution: IncomingResolution, waiting: Set<UUID>, now: Date
+    _ ledger: inout SyncLedger, resolution: IncomingResolution, waiting: Set<UUID>, indexIsFresh: Bool,
+    now: Date
   ) async throws -> (conflict: Bool, failedRewrites: Set<UUID>) {
     // Ausstehende, lebende Datensätze, die nicht im Zwischenspeicher liegen, werden neu ausgelesen.
     let neededLive = ledger.dirtyIDs.subtracting(waiting).filter { ledger.entries[$0]?.deleted == false }
@@ -504,31 +593,48 @@ private struct SavedIdentifiers: Sendable {
     var conflict = false
     var writtenIDs = Set<UUID>()
     var uploadedAttachments = Set<String>()
+    // Einmal je Durchgang statt je Datensatz und Anhang (`file(at:)` baut die ganze Liste neu).
+    let remoteFiles: [String: RemoteFile] = outgoing.isEmpty ? [:] : ledger.remote.filesByPath
     for envelope in outgoing {
+      if isStopped { break }
       do {
-        // Erst die Anhänge (inhaltsadressiert, daher ohne If-Match), dann die JSON-Datei.
+        // Erst prüfen, ob die JSON-Datei geschrieben werden darf – sonst blieben hochgeladene Anhänge verwaist.
+        let path = RemoteLayout.recordPath(model: envelope.model, id: envelope.id)
+        if indexIsFresh, remoteFiles[path] == nil, ledger.seenETags[path] != nil {
+          // Die Datei ist fort (abgelaufene Löschmarke anderswo entfernt, im Browser gelöscht): neu anlegen.
+          ledger.seenETags[path] = nil
+        }
+        let ifMatch = DataFolderPlanner.ifMatch(for: path, ledger: ledger)
+        // Eine Datei, die wir noch nie gelesen haben, nie blind überschreiben.
+        if ifMatch == nil, remoteFiles[path] != nil {
+          conflict = true
+          continue
+        }
+
+        // Dann die Anhänge (inhaltsadressiert, daher ohne If-Match), zuletzt die JSON-Datei.
         var attachmentsComplete = true
         for (field, ref) in envelope.payload?.attachments ?? [:] {
-          let path = RemoteLayout.attachmentPath(
+          let attachmentPath = RemoteLayout.attachmentPath(
             model: envelope.model, id: envelope.id, field: field, hash: ref.hash)
-          if uploadedAttachments.contains(path) || ledger.remote.file(at: path) != nil { continue }
+          if uploadedAttachments.contains(attachmentPath) || remoteFiles[attachmentPath] != nil { continue }
           guard let data = exportCache[envelope.id]?.attachmentData[field] else {
             attachmentsComplete = false  // Daten nicht greifbar: ausstehend lassen
             break
           }
-          _ = try await remote.upload(data, to: path, ifMatch: nil)
-          uploadedAttachments.insert(path)
+          _ = try await remote.upload(data, to: attachmentPath, ifMatch: nil)
+          uploadedAttachments.insert(attachmentPath)
         }
         guard attachmentsComplete else { continue }
 
-        let path = RemoteLayout.recordPath(model: envelope.model, id: envelope.id)
-        let ifMatch = DataFolderPlanner.ifMatch(for: path, ledger: ledger)
-        // Eine Datei, die wir noch nie gelesen haben, nie blind überschreiben.
-        if ifMatch == nil, ledger.remote.file(at: path) != nil {
-          conflict = true
-          continue
+        let data = try DataFolderCoding.encode(envelope)
+        let file: RemoteFile
+        do {
+          file = try await remote.upload(data, to: path, ifMatch: ifMatch)
+        } catch RemoteDataFolderError.server(let code) where code == 404 && ifMatch != nil {
+          // 404 auf ein bedingtes Schreiben: Die Datei gibt es nicht mehr. Ohne If-Match neu anlegen.
+          ledger.seenETags[path] = nil
+          file =try await remote.upload(data, to: path, ifMatch: nil)
         }
-        let file = try await remote.upload(try DataFolderCoding.encode(envelope), to: path, ifMatch: ifMatch)
         let hash = try envelope.payload.map { try DataFolderCoding.payloadHash($0) }
         ledger.recordWritten(envelope, payloadHash: hash, file: file)
         exportCache[envelope.id] = nil
@@ -537,7 +643,7 @@ private struct SavedIdentifiers: Sendable {
         conflict = true  // 412: nicht überschreiben, der nächste Durchgang liest und entscheidet
       }
     }
-    ledgerStore.ledger = ledger
+    persist(ledger)
     return (conflict, rewriteIDs.subtracting(writtenIDs))
   }
 }

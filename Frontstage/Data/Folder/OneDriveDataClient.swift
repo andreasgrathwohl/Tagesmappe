@@ -121,9 +121,7 @@ struct OneDriveDataClient: RemoteDataFolder {
       let response: URLResponse
       do {
         (data, response) = try await session.data(for: request)
-      } catch let error as URLError
-        where error.code == .notConnectedToInternet || error.code == .networkConnectionLost
-      {
+      } catch let error as URLError where error.code.meansOffline {
         throw RemoteDataFolderError.offline
       }
       guard let http = response as? HTTPURLResponse else { throw RemoteDataFolderError.server(0) }
@@ -151,6 +149,9 @@ struct OneDriveDataClient: RemoteDataFolder {
       return try await tokens.accessToken()
     } catch MicrosoftAccountError.interactionRequired {
       throw RemoteDataFolderError.signInRequired
+    } catch MicrosoftAccountError.offline {
+      // Stilles Erneuern des Tokens ohne Netz: wie jede andere Anfrage ohne Netz „offline“, nicht „fehlgeschlagen“.
+      throw RemoteDataFolderError.offline
     }
   }
 
@@ -212,6 +213,20 @@ struct OneDriveDataClient: RemoteDataFolder {
     let fractional = ISO8601DateFormatter()
     fractional.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
     return fractional.date(from: text)
+  }
+}
+
+extension URLError.Code {
+  /// Fehler, hinter denen fehlendes oder gestörtes Netz steckt; der Abgleich meldet dann „offline“ statt
+  /// „fehlgeschlagen“ (Zeitüberschreitung, Name nicht auflösbar, Mobilfunkdaten gesperrt …).
+  var meansOffline: Bool {
+    switch self {
+    case .notConnectedToInternet, .networkConnectionLost, .timedOut, .cannotFindHost, .cannotConnectToHost,
+      .dnsLookupFailed, .dataNotAllowed, .internationalRoamingOff:
+      true
+    default:
+      false
+    }
   }
 }
 

@@ -63,4 +63,24 @@ public struct SyncLedger: Codable, Equatable, Sendable {
   public mutating func recordSeen(_ file: RemoteFile) {
     seenETags[file.path] = file.eTag
   }
+
+  /// Wendet eine Delta-Seite auf das Bild des Datenordners an und vergisst die eTags entfernter Dateien –
+  /// sonst ginge das nächste Schreiben mit einem `If-Match` hinaus, das auf keine Datei mehr passt.
+  public mutating func applyRemote(_ items: [RemoteItem]) {
+    for path in remote.apply(items) { seenETags[path] = nil }
+  }
+
+  /// Nach einer vollständigen Aufzählung: eTags von Pfaden vergessen, die es im Datenordner nicht mehr gibt.
+  public mutating func pruneSeenETags() {
+    let present = remote.filesByPath
+    seenETags = seenETags.filter { present[$0.key] != nil }
+  }
+
+  /// Eine Kennung ganz vergessen (abgelaufene Löschmarke entfernt): Eintrag und eTag der Datensatzdatei.
+  public mutating func forget(_ id: UUID) {
+    if let model = entries[id]?.model {
+      seenETags[RemoteLayout.recordPath(model: model, id: id)] = nil
+    }
+    entries[id] = nil
+  }
 }

@@ -61,4 +61,23 @@ import Testing
     try ModelContainerFactory.removeOneDriveStore(url: url)
     #expect(!FileManager.default.fileExists(atPath: url.path))
   }
+
+  @Test("Entfernen der OneDrive-Datei nimmt den Ordner für große Werte (externalStorage) mit")
+  func removeOneDriveStoreRemovesExternalStorage() throws {
+    let directory = FileManager.default.temporaryDirectory.appending(path: "test-\(UUID().uuidString)")
+    defer { try? FileManager.default.removeItem(at: directory) }
+    let url = directory.appending(path: "Frontstage-onedrive.store")
+    let support = ModelContainerFactory.externalStorageFolder(for: url)
+    #expect(support.lastPathComponent == ".Frontstage-onedrive_SUPPORT")
+    #expect(support.deletingLastPathComponent().path == directory.path)
+
+    let blobFolder = support.appending(path: "_EXTERNAL_DATA")
+    try FileManager.default.createDirectory(at: blobFolder, withIntermediateDirectories: true)
+    try Data([1, 2, 3]).write(to: blobFolder.appending(path: "blob"))
+    try Data([4]).write(to: url)
+
+    try ModelContainerFactory.removeOneDriveStore(url: url)
+    #expect(!FileManager.default.fileExists(atPath: url.path))
+    #expect(!FileManager.default.fileExists(atPath: support.path))
+  }
 }

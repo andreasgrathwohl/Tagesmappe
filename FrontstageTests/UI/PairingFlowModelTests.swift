@@ -36,6 +36,17 @@ import Testing
   }
 }
 
+/// Attrappe der Kamera-Rückfrage: zählt Aufrufe und antwortet mit einstellbarem Wert.
+@MainActor private final class CameraStub {
+  var answer = false
+  private(set) var asked = 0
+
+  func prepare() -> Bool {
+    asked += 1
+    return answer
+  }
+}
+
 @MainActor private func makeAnchor() -> AuthPresentationAnchor {
   #if os(iOS)
     UIViewController()
@@ -111,6 +122,29 @@ private func oneDrivePayload() -> PairingPayload {
     #expect(model.step == .invalidCode)
     #expect(controller.oneDriveCalls.isEmpty)
     #expect(controller.iCloudCalls == 0)
+  }
+
+  @Test("AK-44: Beim Scannen wird zuerst die Kamera erfragt, das Ergebnis bleibt im Modell")
+  func scanningAsksForCameraFirst() async {
+    let controller = FakePairingController()
+    let camera = CameraStub()
+    let model = PairingFlowModel(
+      controller: controller, accountUsername: { nil },
+      prepareCamera: { camera.prepare() })
+
+    model.startScanning()
+    #expect(model.cameraReady == nil)
+    await model.checkCamera()
+    #expect(camera.asked == 1)
+    #expect(model.cameraReady == false)
+
+    // Neuer Anlauf nach Freigabe in den Einstellungen: wieder prüfen, dann bereit.
+    camera.answer = true
+    model.cancel()
+    model.startScanning()
+    #expect(model.cameraReady == nil)
+    await model.checkCamera()
+    #expect(model.cameraReady == true)
   }
 
   @Test("Eigener Code enthält Datenordner und gekürztes Konto")

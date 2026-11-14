@@ -17,6 +17,9 @@ import Observation
   @ObservationIgnored private let pathMonitor = PathMonitorBox()
   @ObservationIgnored private let queue = DispatchQueue(label: "frontstage.network-monitor")
   @ObservationIgnored private var isStarted = false
+  /// Der erste Pfad nach dem Start ist der Anfangszustand, kein Wechsel: Er löst `onBecameOnline` nicht aus.
+  /// Sonst liefe beim App-Start ein zusätzlicher Abgleich neben `start()` und dem Wechsel nach „aktiv“.
+  @ObservationIgnored private var hasReceivedPath = false
 
   /// Startwert; Tests setzen ihn, ohne `start()` aufzurufen.
   init(isOnline: Bool = false) {
@@ -34,9 +37,14 @@ import Observation
     pathMonitor.monitor.start(queue: queue)
   }
 
-  private func update(isOnline online: Bool) {
+  /// Nimmt einen neuen Pfadzustand an (intern statt privat, damit Tests ihn ohne `NWPathMonitor` einspeisen).
+  func update(isOnline online: Bool) {
     let wasOnline = isOnline
     isOnline = online
+    guard hasReceivedPath else {
+      hasReceivedPath = true
+      return
+    }
     if online && !wasOnline { onBecameOnline?() }
   }
 }

@@ -187,6 +187,57 @@ struct DataFolderPlannerTests {
     #expect(book.entries[id(1)]?.payloadHash == "h9")
   }
 
+  private func folderItem(_ itemID: String, _ name: String) -> RemoteItem {
+    RemoteItem(
+      id: itemID, name: name, parentID: "01APPROOT", isFolder: true, isDeleted: false, eTag: nil, size: nil,
+      lastModified: nil)
+  }
+
+  private func deletedItem(_ itemID: String) -> RemoteItem {
+    RemoteItem(id: itemID, name: nil, parentID: nil, isFolder: false, isDeleted: true, eTag: nil, size: nil, lastModified: nil)
+  }
+
+  @Test("Entfernte Datei vergisst ihr gemerktes eTag")
+  func applyRemoteDropsSeenETagOfDeletedFile() {
+    var book = ledger()
+    let a = RemoteLayout.recordPath(model: .materialLink, id: id(1))
+    let b = RemoteLayout.recordPath(model: .materialLink, id: id(2))
+    book.applyRemote([
+      folderItem("F1", "MaterialLink"),
+      remoteItem("I1", "\(id(1).uuidString).json", parent: "F1", eTag: "e1"),
+      remoteItem("I2", "\(id(2).uuidString).json", parent: "F1", eTag: "e2"),
+    ])
+    book.seenETags = [a: "e1", b: "e2"]
+    book.applyRemote([deletedItem("I1")])
+    #expect(book.seenETags == [b: "e2"])
+    #expect(DataFolderPlanner.ifMatch(for: a, ledger: book) == nil)
+  }
+
+  @Test("Nach vollständiger Aufzählung bleiben nur eTags vorhandener Dateien")
+  func pruneSeenETagsKeepsListedPaths() {
+    var book = ledger()
+    let a = RemoteLayout.recordPath(model: .materialLink, id: id(1))
+    let gone = RemoteLayout.recordPath(model: .materialLink, id: id(2))
+    book.applyRemote([
+      folderItem("F1", "MaterialLink"),
+      remoteItem("I1", "\(id(1).uuidString).json", parent: "F1", eTag: "e1"),
+    ])
+    book.seenETags = [a: "e1", gone: "e9"]
+    book.pruneSeenETags()
+    #expect(book.seenETags == [a: "e1"])
+  }
+
+  @Test("Vergessene Kennung verliert Eintrag und gemerktes eTag")
+  func forgetDropsEntryAndSeenETag() {
+    var book = ledger()
+    written(&book, id: id(1), hash: "h1")
+    written(&book, id: id(2), hash: "h2")
+    book.forget(id(1))
+    #expect(book.entries[id(1)] == nil)
+    #expect(book.seenETags[RemoteLayout.recordPath(model: .materialLink, id: id(1))] == nil)
+    #expect(book.seenETags[RemoteLayout.recordPath(model: .materialLink, id: id(2))] == "e1")
+  }
+
   @Test("Buch hin und zurück als JSON")
   func ledgerCodableRoundTrip() throws {
     var book = ledger()

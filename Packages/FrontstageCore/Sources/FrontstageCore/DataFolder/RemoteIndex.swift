@@ -60,14 +60,27 @@ public struct RemoteIndex: Codable, Equatable, Sendable {
   }
 
   /// Wendet eine Seite an; ein späteres Vorkommen derselben Kennung gewinnt.
-  public mutating func apply(_ pageItems: [RemoteItem]) {
+  /// Gibt die Pfade der Dateien zurück, die dabei als gelöscht gemeldet wurden (soweit ihr Pfad bekannt war).
+  @discardableResult
+  public mutating func apply(_ pageItems: [RemoteItem]) -> Set<String> {
+    var removed = Set<String>()
+    // Ordnernamen nur bei Bedarf bilden und neu bilden, sobald sich ein Ordner ändert.
+    var folders: [String: String]?
     for item in pageItems {
+      if items[item.id]?.isFolder == true || item.isFolder { folders = nil }
       if item.isDeleted {
+        // Löschungen tragen oft keinen Namen: den Pfad aus dem bisher bekannten Element bilden.
+        if let known = items[item.id], !known.isFolder {
+          let names = folders ?? folderNames()
+          folders = names
+          if let path = path(of: known, folderNames: names) { removed.insert(path) }
+        }
         items[item.id] = nil
       } else {
         items[item.id] = item
       }
     }
+    return removed
   }
 
   /// Beginn einer Neu-Aufzählung nach 410: Elemente und `deltaLink` verwerfen, `appFolderID` bleibt.
@@ -78,33 +91,47 @@ public struct RemoteIndex: Codable, Equatable, Sendable {
 
   /// Aktuelle Dateiliste (nur Pfade, die `RemoteLayout.classify` erkennt), sortiert nach Pfad.
   public var files: [RemoteFile] {
-    // Ordner direkt unter dem App-Ordner: Kennung → Name.
-    var folderNames: [String: String] = [:]
-    for item in items.values where item.isFolder && item.parentID == appFolderID {
-      if let name = item.name { folderNames[item.id] = name }
-    }
+    filesByPath.values.sorted { $0.path < $1.path }
+  }
 
-    var result: [RemoteFile] = []
+  /// Aktuelle Dateien nach Pfad. Der Aufbau kostet einen Durchlauf über alle Elemente: wer viele Pfade
+  /// nachschlägt, baut das Wörterbuch einmal und nicht je Pfad über `file(at:)`.
+  public var filesByPath: [String: RemoteFile] {
+    let folders = folderNames()
+    var result: [String: RemoteFile] = [:]
     for item in items.values where !item.isFolder {
-      guard let name = item.name, let parent = item.parentID else { continue }
-      let path: String
-      if parent == appFolderID {
-        path = name
-      } else if let folderName = folderNames[parent] {
-        path = "\(folderName)/\(name)"
-      } else {
-        continue
-      }
-      guard RemoteLayout.classify(path: path) != nil else { continue }
-      result.append(
-        RemoteFile(
-          path: path, itemID: item.id, eTag: item.eTag ?? "", size: item.size ?? 0,
-          lastModified: item.lastModified ?? Date(timeIntervalSince1970: 0)))
+      guard let path = path(of: item, folderNames: folders) else { continue }
+      result[path] = RemoteFile(
+        path: path, itemID: item.id, eTag: item.eTag ?? "", size: item.size ?? 0,
+        lastModified: item.lastModified ?? Date(timeIntervalSince1970: 0))
     }
-    return result.sorted { $0.path < $1.path }
+    return result
   }
 
   public func file(at path: String) -> RemoteFile? {
-    files.first { $0.path == path }
+    filesByPath[path]
+  }
+
+  /// Ordner direkt unter dem App-Ordner: Kennung → Name.
+  private func folderNames() -> [String: String] {
+    var result: [String: String] = [:]
+    for item in items.values where item.isFolder && item.parentID == appFolderID {
+      if let name = item.name { result[item.id] = name }
+    }
+    return result
+  }
+
+  /// Pfad einer Datei, wenn `RemoteLayout.classify` ihn erkennt; sonst `nil`.
+  private func path(of item: RemoteItem, folderNames: [String: String]) -> String? {
+    guard let name = item.name, let parent = item.parentID else { return nil }
+    let path: String
+    if parent == appFolderID {
+      path = name
+    } else if let folderName = folderNames[parent] {
+      path = "\(folderName)/\(name)"
+    } else {
+      return nil
+    }
+    return RemoteLayout.classify(path: path) != nil ? path : nil
   }
 }

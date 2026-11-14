@@ -188,3 +188,42 @@ actor InMemoryRemoteDataFolder: RemoteDataFolder {
     folders.sorted().map { folderItem($0) } + files.sorted { $0.key < $1.key }.map { item(path: $0.key, stored: $0.value) }
   }
 }
+
+/// Reicht alles an einen Datenordner weiter; `delta` hält an, solange das Tor zu ist. So lässt sich ein
+/// Durchgang mitten im Lauf festhalten (Wettläufe mit `stop()` oder einem Wechsel des Datenorts).
+///
+/// Swift-Hinweis: Das Warten ist ein kurzes Schlafen in einer Schleife statt einer Fortsetzung; ein Akteur ist
+/// während `Task.sleep` für andere Aufrufe (hier `openGate()`) frei.
+actor GatedRemoteDataFolder: RemoteDataFolder {
+  private let inner: any RemoteDataFolder
+  private var gateClosed = false
+  /// Anzahl der `delta`-Aufrufe, die am geschlossenen Tor gewartet haben.
+  private(set) var waitingCount = 0
+  /// Gesetzt: jedes `delete` wirft diesen Fehler.
+  private var deleteError: RemoteDataFolderError?
+
+  init(_ inner: any RemoteDataFolder) { self.inner = inner }
+
+  func closeGate() { gateClosed = true }
+  func openGate() { gateClosed = false }
+  func failDeletes(with error: RemoteDataFolderError?) { deleteError = error }
+
+  func appFolder() async throws -> AppFolderInfo { try await inner.appFolder() }
+  func delta(link: String?) async throws -> DeltaPage {
+    if gateClosed {
+      waitingCount += 1
+      while gateClosed { try? await Task.sleep(for: .milliseconds(5)) }
+    }
+    return try await inner.delta(link: link)
+  }
+  func listAll() async throws -> [RemoteItem] { try await inner.listAll() }
+  func download(itemID: String) async throws -> Data { try await inner.download(itemID: itemID) }
+  func upload(_ data: Data, to path: String, ifMatch: String?) async throws -> RemoteFile {
+    try await inner.upload(data, to: path, ifMatch: ifMatch)
+  }
+  func delete(_ file: RemoteFile) async throws {
+    if let deleteError { throw deleteError }
+    try await inner.delete(file)
+  }
+  func ensureModelFolders() async throws { try await inner.ensureModelFolders() }
+}

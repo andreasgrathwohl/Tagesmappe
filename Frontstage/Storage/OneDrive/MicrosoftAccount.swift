@@ -13,6 +13,8 @@ import Observation
 
 enum MicrosoftAccountError: Error, Equatable {
   case notConfigured, interactionRequired, cancelled, failed(String)
+  /// Kein Netz beim (stillen) Holen des Tokens.
+  case offline
 }
 
 /// Hülle um MSAL – die einzige Stelle der App, die MSAL anfasst.
@@ -96,7 +98,15 @@ enum MicrosoftAccountError: Error, Equatable {
       if nsError.code == MSALError.userCanceled.rawValue { return .cancelled }
       if nsError.code == MSALError.interactionRequired.rawValue { return .interactionRequired }
     }
+    if isOffline(nsError) { return .offline }
     return .failed(nsError.localizedDescription)
+  }
+
+  /// MSAL reicht Netzfehler entweder direkt (`NSURLErrorDomain`) oder als `NSUnderlyingErrorKey` weiter.
+  nonisolated private static func isOffline(_ error: NSError) -> Bool {
+    if error.domain == NSURLErrorDomain, URLError.Code(rawValue: error.code).meansOffline { return true }
+    if let underlying = error.userInfo[NSUnderlyingErrorKey] as? NSError { return isOffline(underlying) }
+    return false
   }
 
   /// Ergebnis der interaktiven Anmeldung, nur aus `Sendable`-Teilen.
@@ -180,7 +190,10 @@ enum MicrosoftAccountError: Error, Equatable {
 // `accountKey` braucht (`private` gilt in Swift auch für Erweiterungen derselben Datei).
 extension MicrosoftAccount {
   /// Berechtigung des Datenorts OneDrive (ADR-0012).
-  static let dataLocationScopes = ["Files.ReadWrite"]
+  ///
+  /// Swift-Hinweis: `nonisolated`, weil `DataLocationTokenProvider` (ohne Akteur) sie liest; eine Konstante
+  /// eines `Sendable`-Typs darf das gefahrlos.
+  nonisolated static let dataLocationScopes = ["Files.ReadWrite"]
 
   /// Still erneuerter Token für genau diese Berechtigungen; wirft `.interactionRequired`, wenn die
   /// Zustimmung fehlt.
