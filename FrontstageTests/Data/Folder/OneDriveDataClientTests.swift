@@ -180,7 +180,11 @@ import Testing
   func onlyGraphHost() async throws {
     let server = StubURLProtocol.Server { request in
       let path = request.url?.path ?? ""
-      if path.hasSuffix("/content") { return (200, "abc") }
+      // Nur der Download (GET .../content) liefert Rohbytes; der Upload (PUT .../content) antwortet mit Item-JSON.
+      if path.hasSuffix("/content") {
+        if request.httpMethod == "PUT" { return (200, #"{"id":"U1","eTag":"\"e1\"","size":1}"#) }
+        return (200, "abc")
+      }
       return (200, #"{"id":"X1","parentReference":{"driveId":"d"},"value":[]}"#)
     }
     let client = Self.client(server)
