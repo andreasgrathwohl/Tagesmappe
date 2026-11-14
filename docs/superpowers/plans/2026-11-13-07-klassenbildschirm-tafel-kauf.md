@@ -1,6 +1,8 @@
 # Teilplan 07 — Klassenbildschirm, Tafel und Kauf
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> Rahmen: `docs/superpowers/plans/2026-11-13-00-uebersicht.md` (insbesondere Abstimmung Punkte 14 und 15).
+> **Überarbeitet 2026-11-14:** `ClassroomServices` wird an den `DataStore` des aktuellen Datenorts gebunden (`bind(store:)` aus `ScopedAppContent` innerhalb `DataScopedRoot`, Teilplan 08) statt einmal beim Start konfiguriert; die Kamera-Berechtigung teilt sich die Tafel mit dem Koppeln per QR-Code (Teilplan 08).
 
 **Goal:** Klassenbildschirm (Verlauf der Stunde, Timer, Arbeitsform; „Dunkel“ liefert Teilplan 06), Tafel (Seiten, Hintergründe, Tafelbild je Unterrichtsstunde, letztes Tafelbild, PDF, Kamera, Vorlage, Abdecken) und den Einmalkauf, der beides freischaltet, bauen.
 
@@ -8,7 +10,7 @@
 
 **Tech Stack:** Swift 6, SwiftUI, SwiftData, PencilKit, PDFKit, AVFoundation (Kamera, Ton), ImageIO, StoreKit 2, StoreKitTest, Swift Testing.
 
-**Spec:** `docs/PRD.md` (FR-11, FR-11.1–FR-11.4, FR-11.7, FR-12–FR-12.7, FR-13; AK-24–AK-28, AK-30–AK-34, AK-36–AK-40, AK-42), `docs/ARCHITECTURE.md` (Area plattform › Kauf, Area anzeige › Zweitbildschirm/Klassenbildschirm/Tafel, Area daten › Tafelseite/Stundenangaben), ADR-0002, ADR-0005, ADR-0006, ADR-0007, ADR-0009, `DESIGN.md`. Mockups `mockup/smartboard.html`, `mockup/tafel.html` nur als Veranschaulichung.
+**Spec:** `docs/PRD.md` (FR-11, FR-11.1–FR-11.4, FR-11.7, FR-12–FR-12.7, FR-13; AK-24–AK-28, AK-30–AK-34, AK-36–AK-40, AK-42), `docs/ARCHITECTURE.md` (Area plattform › Kauf, Area anzeige › Zweitbildschirm/Klassenbildschirm/Tafel, Area daten › Tafelseite/Stundenangaben), ADR-0005, ADR-0007, ADR-0009, ADR-0012 (Datenort: Tafelseiten liegen in den App-Daten und werden mit dem gewählten Datenort abgeglichen – iCloud oder OneDrive; die SwiftData-Regeln aus ADR-0002 gelten weiter), `DESIGN.md`. ADR-0011 (Stiftnotizen neben dem Dokument) betrifft Tafelbilder **nicht**. Mockups `mockup/smartboard.html`, `mockup/tafel.html` nur als Veranschaulichung.
 
 ## Global Constraints
 
@@ -17,7 +19,8 @@ Es gelten **alle** Zeilen aus `docs/superpowers/plans/2026-11-13-00-uebersicht.m
 - Klassenbildschirm-Ansichten bekommen **nur** einen `ClassScreenDisplay` (Daten der einen Unterrichtsstunde) – nie `Lesson`-Listen, Zuordnungen oder Dateinamen (FR-11).
 - **Kein Countdown bis Stundenbeginn** (FR-11.7, vom Nutzer verworfen).
 - Timer, Arbeitsform, Abdeckung, Livebild der Kamera: **flüchtig**, nie in SwiftData, nie gespiegelt. Timer rechnet aus einem Endzeitpunkt (`Date`), nie aus gezählten Sekunden.
-- Tafelseiten liegen in den App-Daten (`BoardPageRecord`), nie in der Ablage. Einziger Weg nach außen: PDF über den Teilen-Dialog (FR-12.4).
+- Tafelseiten liegen in den App-Daten (`BoardPageRecord`, abgeglichen über den Datenort), nie in der Ablage. Einziger Weg nach außen: PDF über den Teilen-Dialog (FR-12.4). Neue Felder an `BoardPageRecord` bräuchten eine Zeile in `RecordPayload`/`RecordCodec` (Teilplan 08) – dieser Plan fügt keine hinzu.
+- **Datenort (Teilplan 08, Übersicht Abstimmung 15):** Alles, was einen `DataStore` hält (`BoardStore`, `BoardSession`), entsteht beim Binden an den aktuellen `DataStore` (`ClassroomServices.bind(store:)`, aufgerufen in `ScopedAppContent` innerhalb `DataScopedRoot`) und nach jedem Wechsel des Datenorts neu. `Unlock` und `LessonSessionState` hängen nicht am Datenort und bleiben.
 - Vorlage (FR-12.6) und Standbild (FR-12.5) werden **einmal als Bild gerendert** und als Hintergrund gespeichert (JPEG, `2400 × 1350` px, Qualität `0.8`); kein Verweis auf die Datei, kein Schreiben in die Ablage.
 - Logische Tafelseite: `1600 × 900` pt (16:9); Tablet und Zweitbildschirm skalieren sie einpassend. Alle Strich- und Hintergrundkoordinaten beziehen sich darauf.
 - Kaufstand nur aus StoreKit (`Transaction.currentEntitlements`, `Transaction.updates`), nie gespeichert, nie gespiegelt. Nur **verifizierte**, **nicht widerrufene** Transaktionen des einen Produkts schalten frei.
@@ -132,7 +135,11 @@ struct PurchaseOfferView: View
 /// Reine Regel: was ClassScreenView/BoardView am Zweitbildschirm zeigen (06-Dateien bleiben unberührt).
 enum SecondScreenRendering: Hashable { case classScreen, neutral, material, board, dark; static func resolve(_ content: SecondScreenContent, isUnlocked: Bool) -> SecondScreenRendering }
 /// Ein Bündel für beide Szenen; classroomEnvironment() hängt es an.
-@MainActor final class ClassroomServices { static func configure(store: DataStore); static var shared: ClassroomServices { get }; let unlock: Unlock; let session: LessonSessionState; let board: BoardSession }
+/// Der Halter ist shared, weil die Szene des Zweitbildschirms außerhalb des SwiftUI-Baums entsteht (06); was einen DataStore hält,
+/// entsteht erst in bind(store:) – aufgerufen innerhalb von DataScopedRoot (08), nach jedem Wechsel des Datenorts erneut.
+@MainActor @Observable final class ClassroomServices { static var shared: ClassroomServices { get }; let unlock: Unlock; let session: LessonSessionState
+  private(set) var store: DataStore?; private(set) var board: BoardSession?
+  func bind(store: DataStore) }   // gleicher Store → nichts; anderer → BoardSession neu, offene Tafel geschlossen
 // ClassScreen/
 @MainActor @Observable final class LessonSessionState { var timer: PhaseTimer; var workMode: WorkMode?; private(set) var lessonKey: LessonKey?; func lessonDidChange(to key: LessonKey?); func startTimer(minutes: Int, now: Date); func pauseTimer(now: Date); func resumeTimer(now: Date); func stopTimer() }
 struct ClassScreenContentView: View { init(display: ClassScreenDisplay, now: Date) }   // reine Darstellung
@@ -363,14 +370,14 @@ func previousBoardDrawingWithinSameDayUsesLowerOrdinal() {
 - Create: `Frontstage/Resources/Frontstage.storekit`
 - Create: `Frontstage/ClassScreen/SecondScreenRendering.swift`, `Frontstage/ClassScreen/ClassroomServices.swift`
 - Modify: `project.yml` (Test-Ziel: Ressource `Frontstage/Resources/Frontstage.storekit`, Abhängigkeit `- sdk: StoreKitTest.framework`; Schema `run.storeKitConfiguration: Frontstage/Resources/Frontstage.storekit`)
-- Modify (Einhängepunkt aus 06): `Frontstage/ClassScreen/ClassroomEnvironment.swift` – `classroomEnvironment()` hängt `ClassroomServices.shared.unlock`, `.session` und `.board` per `.environment(_:)` an; 06 ruft es über `secondScreenEnvironment()` in **beiden** Szenen auf.
-- Modify: `Frontstage/App/FrontstageApp.swift` (Teilplan 04) – nur die Zeile `ClassroomServices.configure(store: dataStore)` beim Start.
+- Modify (Einhängepunkt aus 06): `Frontstage/ClassScreen/ClassroomEnvironment.swift` – `classroomEnvironment()` hängt `ClassroomServices.shared.unlock`, `.session`, `.board` und `.store` per `.environment(_:)` an (die optionalen über die Form für `Optional`); 06 ruft es über `secondScreenEnvironment()` in **beiden** Szenen auf – so hat auch die Szene des Zweitbildschirms, die keinen `DataScopedRoot` hat, den aktuellen `DataStore`.
+- Modify: `Frontstage/App/ScopedAppContent.swift` (Teilplan 04, Ansicht in der Closure von `DataScopedRoot`) – nur `.task(id: ObjectIdentifier(store)) { ClassroomServices.shared.bind(store: store) }`. `FrontstageApp` bleibt unberührt.
 - Modify: `Frontstage/UI/Setup/SetupView.swift` (Abschnitt „Kauf“ mit „Käufe wiederherstellen“)
 - Modify: `Frontstage/Resources/Localizable.xcstrings`
-- Test: `Packages/FrontstageCore/Tests/FrontstageCoreTests/UnlockRulesTests.swift`, `FrontstageTests/UnlockTests.swift`, `FrontstageTests/SecondScreenRenderingTests.swift`
+- Test: `Packages/FrontstageCore/Tests/FrontstageCoreTests/UnlockRulesTests.swift`, `FrontstageTests/UnlockTests.swift`, `FrontstageTests/SecondScreenRenderingTests.swift`, `FrontstageTests/ClassroomServicesTests.swift`
 
 **Interfaces:**
-- Consumes: `SecondScreenContent`, `classroomEnvironment()` (Einhängepunkt, Teilplan 06); `SetupView` (Teilplan 04).
+- Consumes: `SecondScreenContent`, `classroomEnvironment()` (Einhängepunkt, Teilplan 06); `SetupView`, `ScopedAppContent` (Teilplan 04); `DataScopedRoot` (Teilplan 08, nur mittelbar).
 - Produces: `UnlockRules`, `Unlock`, `PaidFeature`, `PaidGate`, `PurchaseOfferView`, `SecondScreenRendering.resolve(_:isUnlocked:)`, `ClassroomServices`.
 
 - [ ] **Step 1: StoreKit-Konfiguration anlegen** – `Frontstage.storekit` (JSON) mit genau einem Produkt: `type: "NonConsumable"`, `productID: "frontstage.classroom"`, `referenceName: "Classroom unlock"`, `familyShareable: false`, `displayPrice: "14.99"`, Lokalisierung `de`: `displayName` „Klassenbildschirm und Tafel“, `description` „Einmalkauf, kein Abo“. Format nach Xcode-Vorlage (`version.major 4`); lässt CI das Laden scheitern, die Datei einmal an einem Mac in Xcode öffnen und speichern.
@@ -413,6 +420,14 @@ func previousBoardDrawingWithinSameDayUsesLowerOrdinal() {
   #expect(SecondScreenRendering.resolve(.dark, isUnlocked: false) == .dark)
   #expect(SecondScreenRendering.resolve(.classScreen, isUnlocked: true) == .classScreen)
 }
+
+@MainActor @Test("Übersicht Abstimmung 15: Wechsel des Datenorts bindet die Tafel an den neuen DataStore") func bindReplacesBoardOnNewStore() throws {
+  let services = ClassroomServices(unlock: Unlock(listenForUpdates: false))   // interner init für Tests
+  let a = try makeStore(), b = try makeStore()
+  services.bind(store: a); let boardA = services.board
+  services.bind(store: a); #expect(services.board === boardA)                // gleicher Store → unverändert
+  services.bind(store: b); #expect(services.board !== boardA && services.store === b)
+}
 ```
 
 - [ ] **Step 3: Diff durchsehen.**
@@ -424,7 +439,7 @@ func previousBoardDrawingWithinSameDayUsesLowerOrdinal() {
   - `restore()`: `try await AppStore.sync()`, danach `refresh()`.
   - `PurchaseOfferView`: StoreKit-`ProductView(id: Unlock.productID)` (Systemdarstellung, kein eigenes Design) plus Knopf „Käufe wiederherstellen“; `.onInAppPurchaseCompletion { _, result in if case .success(.success(let v)) = result { await unlock.handle(v) } }` – Signatur beim Bau gegen die Xcode-Doku prüfen. Hinweistext „Einmalkauf, kein Abo, auf allen Geräten derselben Apple-ID“ (Wortlaut Platzhalter).
   - `PaidGate`: zeigt `content` bei `unlock.isUnlocked`, sonst `PurchaseOfferView`. Nur für `PaidFeature` (Klassenbildschirm, Timer, Arbeitsform, Tafel); nie um Material, „Dunkel“ oder Stundenangaben.
-  - `ClassroomServices.shared` legt `Unlock(listenForUpdates: true)`, `LessonSessionState(signal: TimerSignalPlayer())` und `BoardSession(store: BoardStore(store: <DataStore der App>), secondScreen: .shared)` einmal an (der `DataStore` wird beim App-Start über `ClassroomServices.configure(store:)` gesetzt – einzige Zeile in `FrontstageApp`, Teilplan 04/06 bleiben sonst unberührt); `classroomEnvironment()` hängt die drei per `.environment(_:)` an.
+  - `ClassroomServices.shared` legt `Unlock(listenForUpdates: true)` und `LessonSessionState(signal: TimerSignalPlayer())` einmal an. `bind(store:)`: anderer Store als bisher → `BoardSession(store: BoardStore(store: store), secondScreen: .shared)` neu, `store` setzen, `SecondScreenState.shared.setBoardLesson(nil)` (eine offene Tafel des alten Datenorts schließen); gleicher Store → nichts. Aufgerufen nur aus `ScopedAppContent` (innerhalb `DataScopedRoot`, Teilplan 04/08) – nie aus dem `App`-Typ; Teilplan 04/06 bleiben sonst unberührt. `classroomEnvironment()` hängt `unlock`, `session`, `board` und `store` per `.environment(_:)` an. Ansichten, die `board` oder `store` brauchen, zeigen bei `nil` die neutrale Fläche (nur kurz beim Start, bevor gebunden ist). Swift-Hinweis: Gelesen wird in der optionalen Form `@Environment(BoardSession.self) private var board: BoardSession?` bzw. `@Environment(DataStore.self) private var store: DataStore?` – die nicht-optionale Form bricht zur Laufzeit ab, wenn das Objekt fehlt. Das gilt für `ClassScreenView` (Task 6) und `BoardView`/`BoardScreen` (Task 9) ebenso.
 - [ ] **Step 5: Texte** in `Localizable.xcstrings`: `purchase.offer.title` = „Klassenbildschirm und Tafel freischalten“, `purchase.offer.note` = „Einmalkauf, kein Abo – gilt auf allen Geräten mit derselben Apple-ID.“, `purchase.restore` = „Käufe wiederherstellen“, `purchase.restore.failed` = „Wiederherstellen ist fehlgeschlagen.“, `secondScreen.neutral.accessibility` = „Kein Inhalt“.
 - [ ] **Step 6: Diff durchsehen** – Kaufstand nirgends in SwiftData/`UserDefaults`; keine Netzwerkaufrufe außer StoreKit (NFR-2); `.storekit` nur in Test-Ziel und Schema, nicht in der App-Ressourcenliste.
 - [ ] **Step 7: Prüfung mit `apple-design`** (Design-Takt voll) auf `PurchaseOfferView`; Lücken (Wortlaut, Anordnung) im Bericht nennen.
@@ -578,7 +593,7 @@ Thema, Bereitlegen und Hausaufgabe trägt die Lehrkraft kostenlos mit `LessonInf
 - Modify: `Frontstage/Resources/Localizable.xcstrings`
 - Test: `FrontstageTests/BoardSessionTests.swift`, `FrontstageTests/BoardTestSupport.swift` (`tue8b`, `wed8b`, `tue8a` als `LessonKey`; `@MainActor func makeSession() throws -> (BoardSession, SecondScreenState)` mit `makeStore()` aus Teilplan 02 und `SecondScreenState()`; auch von Aufgaben 10 und 13 genutzt)
 
-`BoardSession` kommt über `ClassroomServices.shared` und `classroomEnvironment()` (Task 4) in beide Szenen; keine weitere Änderung an `FrontstageApp`.
+`BoardSession` kommt über `ClassroomServices.shared` (gebunden an den aktuellen `DataStore`, Task 4) und `classroomEnvironment()` in beide Szenen; keine weitere Änderung an `FrontstageApp` oder `ScopedAppContent`.
 
 **Interfaces:**
 - Consumes: `BoardStore`, `PenCanvas`, `SecondScreenState.select(_:)`, `.setBoardLesson(_:)`, `.setBoardAvailable(_:)` (06), `BoardBackground` (02), `BoardCover`.
@@ -766,7 +781,7 @@ Thema, Bereitlegen und Hausaufgabe trägt die Lehrkraft kostenlos mit `LessonInf
 
 **Files:**
 - Create: `Frontstage/Board/CameraFeed.swift`, `Frontstage/Board/CameraAvailability.swift`
-- Modify: `project.yml` (iOS-Ziel `info.properties`: `NSCameraUsageDescription` = „Die Kamera zeigt Heft, Buchseite oder Versuch an der Tafel.“ – Wortlaut Platzhalter)
+- Modify: `project.yml` – Kamera-Berechtigung **geteilt mit dem Koppeln per QR-Code** (Teilplan 08, Task 13; Übersicht Abstimmung 15): Steht `NSCameraUsageDescription` schon im iOS-Ziel, nur den Text prüfen und bei Bedarf ersetzen; sonst anlegen. Text iOS-Ziel (nennt beide Zwecke): „Die Kamera zeigt Heft, Buchseite oder Versuch an der Tafel und liest den QR-Code zum Koppeln eines zweiten Geräts.“ Das macOS-Ziel (nur Koppeln, Text aus 08) und sein Entitlement `com.apple.security.device.camera` bleiben unverändert – die Tafel-Kamera gibt es am Mac nicht. Genau ein Schlüssel je Ziel; Wortlaut Platzhalter.
 - Modify: `Frontstage/Board/BoardScreen.swift` (Knopf „Kamera“ → Livebild als Hintergrund, Knöpfe „Standbild“ und „Abbrechen“), `Frontstage/Board/BoardView.swift` (Einhängepunkt, Besitzer dieser Teilplan: bei `isCameraLive` Livebild statt Seite)
 - Modify: `Frontstage/Resources/Localizable.xcstrings`
 - Test: `FrontstageTests/CameraTests.swift`
@@ -870,7 +885,7 @@ Nicht in diesem Teilplan: FR-11.5 und FR-11.6 (AK-29, AK-35) – Teilplan 06; FR
 
 ## Abstimmungsbedarf
 
-- Keiner offen gegenüber 01–06 (abgeglichen nach Übersicht, Abschnitt „Abstimmung“): Kern aus 01; `LessonInfo`, `BoardBackground`, `MaterialReference` und alle Datenzugriffe über `DataStore` (02); `withFileURL` an `StorageService` (03); `LessonDetailView`, `DayView`, `SetupView`, `LessonInfoEditor` aus 04; Einhängepunkte und „Dunkel“ aus 06 (Punkt 8); Freischaltung nach Nutzerentscheidung 2026-11-13.
+- Keiner offen gegenüber 01–06 und 08 (abgeglichen nach Übersicht, Abschnitt „Abstimmung“, Punkte 14 und 15): Kern aus 01; `LessonInfo`, `BoardBackground`, `MaterialReference` und alle Datenzugriffe über `DataStore` (02); `withFileURL` an `StorageService` (03); `LessonDetailView`, `DayView`, `SetupView`, `LessonInfoEditor`, `ScopedAppContent` aus 04; Einhängepunkte und „Dunkel“ aus 06 (Punkt 8); Bindung an den Datenort über `ClassroomServices.bind(store:)` innerhalb `DataScopedRoot` (08); Kamera-Berechtigung mit dem Koppeln geteilt (08); Freischaltung nach Nutzerentscheidung 2026-11-13.
 - **Glossar (PRD, Spalte „Im Code“):** Die Spalte führt Vorlage als `BoardTemplate` und Standbild als `CameraStill`; dieser Plan hat dafür keine eigenen Typen, sondern `BoardBackground.image` plus `TemplateRenderer` bzw. `CameraFeed.stillJPEG()`. **Offen:** entweder die Typen `BoardTemplate`/`CameraStill` einführen oder die Glossar-Spalte auf die tatsächlichen Code-Namen ändern. Fachbegriffe ohne Glossarzeile, die eine Lehrkraft sagen würde: Timer (`PhaseTimer`), Abdecken (`BoardCover`), Kaufangebot (`PurchaseOfferView`). Rein technisch und ohne Zeile (Punkt 10): `LessonSessionState`, `ClassScreenDisplay`, `ClassroomServices`, `SecondScreenRendering`.
 
 ## Annahmen, die ein Mensch bestätigen sollte
