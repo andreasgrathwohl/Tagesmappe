@@ -1,6 +1,6 @@
 ---
 status: draft
-date: 2026-11-13
+date: 2026-11-14
 ---
 
 # Frontstage — Gestaltung
@@ -81,6 +81,43 @@ Namen) entfällt damit. Revisit if gilt jetzt sinngemäß: Testerinnen erkennen 
 
 ---
 
+### UI-2 — Referenz ist die Tagesansicht am iPad quer, im Stehen bedient
+
+- category: 0
+- Constrained by: ADR-0001
+
+**Entscheidung:** Alle Gestaltungsrunden werden an der Tagesansicht („Heute“) auf einem iPad im Querformat
+gerendert, Fenstergröße etwa 1180 × 820 pt (iPad Air 11"). Modus: **Operate** – ein Werkzeug, das bedient wird,
+nicht überzeugt. Nutzungsszene: Die Lehrkraft steht vor der Klasse, schaut kurz auf das iPad auf dem Pult oder in
+der Hand, tippt einmal und ist wieder bei der Klasse; das Smartboard ist die zweite Fläche. Bestätigt von Andreas
+am 2026-11-14.
+
+**Kontext:** Feststellung, keine Auswahl. Heute baut die App auf Reitern auf (Heute, Vorbereiten, Jahresplan,
+Einrichten), am iPad als Leiste oder Seitenleiste wählbar (`Frontstage/App/RootView.swift:41`, `.sidebarAdaptable`);
+die Tagesansicht ist eine Liste von Stundenzeilen mit Stunde, Klasse · Fach, Aussage, Materialknöpfen und
+„Tafel“ (`Frontstage/UI/DayView/DayRowView.swift`), Zeilenhöhe füllt den Schirm, solange alles passt
+(`DayViewLayout`). Gerendert wird per **HTML-Nachbau** der echten Oberfläche mit Beispieldaten, weil die App
+unter Windows nicht läuft und jeder Simulator-Lauf macOS-Minuten kostet.
+
+**Verworfen, jeweils mit Vorzug:**
+- Vorbereiten am Mac als Referenz — dort verbringt man die meiste Zeit, und die Oberfläche ist am dichtesten.
+- Klassenbildschirm als Referenz — wirkt nach außen; wird aber kaum bedient, Operate-Entscheidungen ließen sich
+  dort nicht prüfen.
+- Rendern im Simulator per CI — originalgetreu, aber ein macOS-Lauf je Runde.
+- Rendern am eigenen Mac — originalgetreu und ohne CI, aber derzeit nicht verfügbar.
+
+**Konsequenzen mit Kosten:**
+- Vorbereiten und Jahresplan erben Beschlüsse, die an der Tagesansicht getroffen wurden; wo der Mac mit Maus und
+  hoher Dichte etwas anderes braucht, kann eine spätere Runde das ausdrücklich wieder aufmachen.
+- Der HTML-Nachbau zeigt Abstände, Schrift, Farbe und Formen verlässlich (Kategorien 2–7). Bedienkonzept,
+  Zustände und Bewegung (1, 8, 9) zeigt er nur angenähert; diese Beschlüsse sind beim ersten Bau am Gerät zu
+  bestätigen.
+
+**Revisit if:** Ein Mac steht zum Rendern bereit, oder die Prüfung am Gerät widerspricht einem Beschluss, der am
+Nachbau gefallen ist.
+
+---
+
 ## Wiederkehrende Fallen
 
 - **Eine Farbe, die zwei Dinge bedeutet, bedeutet keines.**
@@ -107,3 +144,4 @@ Namen) entfällt damit. Revisit if gilt jetzt sinngemäß: Testerinnen erkennen 
 - 2026-11-13: UI-1 new — App-Icon „Heute“, gewählt aus sechs Entwürfen
 - 2026-11-13: UI-1 changed — Produktname „Frontstage“ statt „Pult“; Icon bleibt, Quelldateien umbenannt nach `design/icon/frontstage-app-icon*.svg`
 - 2026-11-14: Q-37, Q-38, Q-39 new — Gestaltungslücken aus Teilplan 07 (Klassenbildschirm, Tafel, Kaufangebot), gebaut mit Systemvorgaben; die Prüfung nach `apple-design` steht noch aus
+- 2026-11-14: UI-2 new — Runde 0: Referenz Tagesansicht am iPad quer, Modus Operate, gerendert per HTML-Nachbau
