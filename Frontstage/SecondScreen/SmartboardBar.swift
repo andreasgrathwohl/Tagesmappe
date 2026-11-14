@@ -88,6 +88,7 @@
         Text("secondScreen.disconnected")
           .foregroundStyle(.secondary)
         Button("secondScreen.howTo") { showHowTo = true }
+          .frame(minHeight: 44)  // Tippfläche mindestens 44 pt (accessibility.md › Control size)
       }
     }
   }
