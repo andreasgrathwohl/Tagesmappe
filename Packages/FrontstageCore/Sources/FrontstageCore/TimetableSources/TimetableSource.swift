@@ -8,7 +8,7 @@ public enum TimetableSourceKind: String, Codable, Sendable, CaseIterable {
 }
 
 /// Fehler beim Abfragen einer Stundenplan-Quelle.
-public enum TimetableSourceError: Error, Equatable, Codable, Sendable {
+public enum TimetableSourceError: Error, Hashable, Codable, Sendable {
   case notConfigured
   case invalidCredentials
   case multipleSchoolsUnsupported
