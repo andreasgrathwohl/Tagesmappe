@@ -23,7 +23,10 @@ struct ResolvedMaterial: Sendable {
 
   /// Läuft Pfadbestandteil für Pfadbestandteil: erst der genaue Name, sonst Nachschlagen im
   /// Ordnerinhalt per `StoragePath.matchName` (NFC, Groß-/Kleinschreibung).
-  private func lookup(_ reference: MaterialReference) -> Lookup {
+  ///
+  /// Mit `resolvingFile: false` werden nur die Ordnerkomponenten aufgelöst; der Dateiname bleibt unverändert
+  /// (die Datei muss dann nicht existieren, z. B. für Notizen neben dem Dokument).
+  private func lookup(_ reference: MaterialReference, resolvingFile: Bool = true) -> Lookup {
     guard let grant = grants.grant(named: reference.folderGrantName),
       let grantURL = grants.resolvedURL(for: grant)
     else { return .grantMissing }
@@ -36,7 +39,11 @@ struct ResolvedMaterial: Sendable {
     guard !components.isEmpty else { return .fileMissing }
     let fileManager = FileManager.default
     var current = grantURL
-    for component in components {
+    for (index, component) in components.enumerated() {
+      if !resolvingFile, index == components.count - 1 {
+        current = current.appending(path: component, directoryHint: .notDirectory)
+        break
+      }
       let direct = current.appending(path: component, directoryHint: .inferFromPath)
       if fileManager.fileExists(atPath: direct.path(percentEncoded: false)) {
         current = direct
@@ -53,6 +60,13 @@ struct ResolvedMaterial: Sendable {
   /// Freigabe-URL + Pfad; `nil` = löst nicht auf (Freigabe oder Datei fehlt).
   func resolve(_ reference: MaterialReference) -> ResolvedMaterial? {
     if case .found(let resolved) = lookup(reference) { return resolved }
+    return nil
+  }
+
+  /// Wie `resolve`, löst aber nur die Ordner auf und hängt den Dateinamen unverändert an (Teilplan 06: Notizen
+  /// liegen neben dem Dokument). `nil` = Freigabe oder ein Ordner fehlt.
+  func resolveFolder(of reference: MaterialReference) -> ResolvedMaterial? {
+    if case .found(let resolved) = lookup(reference, resolvingFile: false) { return resolved }
     return nil
   }
 
