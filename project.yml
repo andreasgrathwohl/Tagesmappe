@@ -58,6 +58,10 @@ targets:
         com.apple.developer.icloud-services: [CloudKit]
         com.apple.developer.icloud-container-identifiers: [$(CLOUDKIT_CONTAINER_ID)]
         com.apple.developer.aps-environment: development
+        com.apple.security.app-sandbox: true
+        com.apple.security.files.user-selected.read-only: true
+        com.apple.security.files.bookmarks.app-scope: true
+        com.apple.security.network.client: true
     info:
       path: Config/Frontstage-macOS-Info.plist
       properties:
