@@ -106,7 +106,7 @@ import Testing
     let (session, _) = try makeSession()
     try session.open(tue8b)
     session.drawingChanged(PKDrawing())
-    #expect(session.liveDrawing == PKDrawing())
+    #expect(session.liveDrawing.strokes.isEmpty)  // PKDrawing == vergleicht die Identität, nicht den Inhalt
     try session.flush()
     #expect(session.pages[0].drawingData != nil)
     try session.close()
