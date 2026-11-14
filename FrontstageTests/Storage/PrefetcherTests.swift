@@ -12,7 +12,7 @@ import Testing
     let wanted = Set(keys)
     return links.filter { wanted.contains($0.key) }
   }
-  func folderGrantNames() throws -> Set<String> { Set(links.map(\.reference.folderGrantName)) }
+  func folderGrantNames() throws -> Set<String> { Set(links.map { $0.reference.folderGrantName }) }
   func replaceReferences(atLocation locationKey: String, with reference: MaterialReference) throws -> Int { 0 }
 }
 
