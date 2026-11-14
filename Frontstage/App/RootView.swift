@@ -83,7 +83,7 @@ struct RootView: View {
     .onChange(of: dataLocation.generation) { _, _ in
       activate(currentServices())
     }
-    // Szenen-Zubehör für den Zweitbildschirm meldet Teilplan 06 an dieser Stelle an.
+    // Das Szenen-Zubehör für den Zweitbildschirm hängt in `FrontstageApp` an dieser Ansicht (Teilplan 06).
   }
 
   /// Datenabhängiger Inhalt eines Bereichs.
