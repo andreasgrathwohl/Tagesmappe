@@ -37,8 +37,12 @@ struct PlanWeekSheet: View {
               }
             }
           }
-          Button("coursePlan.assessment.add") {
-            editor.addAssessment(kind: .test, title: "", day: nil)
+          if editor.canAddAssessments {
+            Button("coursePlan.assessment.add") {
+              editor.addAssessment(kind: .test, title: "", day: nil)
+            }
+          } else {
+            Text("coursePlan.assessment.needsWeek").foregroundStyle(.secondary)
           }
         } header: {
           Text("coursePlan.assessments")

@@ -138,8 +138,8 @@ import Testing
     #expect(store.revision == revision)
   }
 
-  @Test("Leistungsnachweis in einer Planwoche ohne Montag erscheint in der Liste des Sheets")
-  func unassignedWeekWithoutMondayListsNewAssessment() throws {
+  @Test("Planwoche ohne Montag: Leistungsnachweise lassen sich nicht eintragen")
+  func unassignedWeekWithoutMondayCannotAddAssessment() throws {
     let model = try makeModel()
     let planID = try #require(try store.coursePlanSummaries().first?.id)
     let loose = PlanWeek(
@@ -147,8 +147,33 @@ import Testing
     try store.savePlanWeek(loose, planID: planID)
     model.reload()
     let editor = model.editor(forUnassigned: loose)
+    #expect(!editor.canAddAssessments)
     editor.addAssessment(kind: .test, title: "Vokabeltest", day: nil)
-    #expect(editor.assessments.map(\.title) == ["Vokabeltest"])
+    #expect(editor.assessments.isEmpty)
+    #expect(try store.coursePlan(id: planID)?.assessments.isEmpty == true)
+  }
+
+  @Test("Speichern von Notizen überschreibt kein inzwischen geändertes Thema")
+  func savingNotesKeepsRemoteTopic() throws {
+    let model = try makeModel()
+    let week = try #require(weekEntry(model, number: 5)?.week)
+    let first = model.editor(for: week)
+    first.topic = "Unit 3"
+    first.save()
+    let planID = try #require(try store.coursePlanSummaries().first?.id)
+    let stored = try #require(weekEntry(model, number: 5)?.planWeek)
+    let sheet = model.editor(for: week)
+    // Das andere Gerät ändert das Thema, während das Sheet offen ist.
+    let remote = PlanWeek(
+      id: stored.id, monday: stored.monday, position: stored.position, topic: "Unit 4",
+      notes: nil, updatedAt: fixedNow)
+    try store.savePlanWeek(remote, planID: planID)
+    sheet.notes = "Vokabeln"
+    sheet.save()
+    let plan = try #require(try store.coursePlan(id: planID))
+    let result = try #require(plan.planWeeks.first { $0.id == stored.id })
+    #expect(result.topic == "Unit 4")
+    #expect(result.notes == "Vokabeln")
   }
 
   @Test("Zweimal Hinzufügen ohne Titel legt nur einen Platzhalter an")

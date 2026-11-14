@@ -92,6 +92,7 @@ import Observation
   }
 
   /// Sheet für eine nicht zugeordnete Planwoche; ihre Leistungsnachweise sind die mit gleichem Montag.
+  /// Ohne Montag lassen sich keine Leistungsnachweise eintragen (`canAddAssessments`).
   func editor(forUnassigned week: PlanWeek) -> PlanWeekEditor {
     let related = (layout?.unassignedAssessments ?? []).filter {
       week.monday != nil && $0.monday == week.monday

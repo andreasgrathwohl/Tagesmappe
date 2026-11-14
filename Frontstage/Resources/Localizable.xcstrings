@@ -3978,6 +3978,16 @@
         }
       }
     },
+    "coursePlan.assessment.needsWeek" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leistungsnachweise lassen sich erst eintragen, wenn die Woche einer Unterrichtswoche zugeordnet ist."
+          }
+        }
+      }
+    },
     "coursePlan.assessment.noDay" : {
       "localizations" : {
         "de" : {

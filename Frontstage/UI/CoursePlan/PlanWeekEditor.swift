@@ -20,9 +20,6 @@ import Observation
   /// Montag der Woche, auch bei einer nicht zugeordneten Planwoche mit Montag ohne Unterrichtswoche.
   private let monday: CalendarDay?
   private var planWeek: PlanWeek?
-  /// Kennungen der Leistungsnachweise dieses Sheets. Bei einer Planwoche ohne Montag lassen sie sich
-  /// nicht über den Montag finden, daher merkt sich der Editor die eigenen.
-  private var assessmentIDs: Set<UUID>
   private let now: @MainActor () -> Date
   private let onChange: @MainActor () -> Void
 
@@ -39,10 +36,12 @@ import Observation
     self.topic = planWeek?.topic ?? ""
     self.notes = planWeek?.notes ?? ""
     self.assessments = assessments
-    self.assessmentIDs = Set(assessments.map(\.id))
     self.now = now
     self.onChange = onChange
   }
+
+  /// Leistungsnachweise hängen nur über den Montag an einer Woche; ohne Montag lassen sie sich nicht eintragen.
+  var canAddAssessments: Bool { monday != nil }
 
   /// Tage, an denen ein Leistungsnachweis stehen kann (leer bei nicht zugeordneter Woche).
   var selectableDays: [CalendarDay] { week?.teachingDays ?? [] }
@@ -54,15 +53,31 @@ import Observation
   /// anderen Gerät – oder schriebe ein inzwischen veraltetes Thema zurück.
   func save() {
     errorKey = nil
+    // Frischer Stand aus dem Store: Ein Feld, das hier nicht bearbeitet wurde, behält den Wert, der
+    // inzwischen vom anderen Gerät kam – sonst überschriebe das Speichern von Notizen ein neues Thema.
+    let fresh = planWeek.flatMap { current in
+      (try? store.coursePlan(id: planID))?.planWeeks.first { $0.id == current.id }
+    }
+    let baseline = fresh ?? planWeek
+    // `PlanWeek` normalisiert Thema und Notizen (Trimmen); ohne Planwoche sind beide `nil`.
+    let edited = PlanWeek(
+      id: UUID(), monday: monday, position: 0, topic: topic, notes: notes, updatedAt: now())
+    let topicEdited = edited.topic != planWeek?.topic
+    let notesEdited = edited.notes != planWeek?.notes
     let saved = PlanWeek(
-      id: planWeek?.id ?? UUID(), monday: monday, position: planWeek?.position ?? week?.number ?? 0,
-      topic: topic, notes: notes, updatedAt: now())
-    // `PlanWeek` normalisiert Thema und Notizen; ohne Planwoche sind beide `nil`.
-    guard saved.topic != planWeek?.topic || saved.notes != planWeek?.notes else { return }
+      id: baseline?.id ?? UUID(), monday: monday,
+      position: baseline?.position ?? week?.number ?? 0,
+      topic: topicEdited ? topic : (baseline?.topic ?? ""),
+      notes: notesEdited ? notes : (baseline?.notes ?? ""), updatedAt: now())
+    guard saved.topic != baseline?.topic || saved.notes != baseline?.notes else { return }
     do {
       try store.savePlanWeek(saved, planID: planID)
       // Nach dem Löschen einer leeren Woche beginnt ein späteres Speichern wieder mit neuer id.
       planWeek = saved.isEmpty ? nil : saved
+      if let planWeek {
+        topic = planWeek.topic ?? ""
+        notes = planWeek.notes ?? ""
+      }
       onChange()
     } catch {
       errorKey = "coursePlan.error.save"
@@ -75,6 +90,7 @@ import Observation
   /// entsteht kein zweiter: Beide hätten denselben fachlichen Schlüssel, und das Zusammenführen
   /// (`CoursePlanMerger`) löschte einen davon wieder – ein Platzhalter verschwände unerwartet.
   func addAssessment(kind: AssessmentKind, title: String, day: CalendarDay?) {
+    guard canAddAssessments else { return }
     let validDay = day.flatMap { selectableDays.contains($0) ? $0 : nil }
     if Self.isBlank(title),
       assessments.contains(where: { $0.kind == kind && $0.day == validDay && Self.isBlank($0.title) })
@@ -108,7 +124,6 @@ import Observation
     errorKey = nil
     do {
       try store.saveAssessment(assessment, planID: planID)
-      assessmentIDs.insert(assessment.id)
       refreshAssessments()
       onChange()
     } catch {
@@ -117,14 +132,9 @@ import Observation
   }
 
   /// Liest die Leistungsnachweise dieser Woche aus dem Store; Reihenfolge wie im Layout.
-  /// Ohne Montag gelten die in diesem Sheet bekannten Kennungen.
   private func refreshAssessments() {
-    guard let content = try? store.coursePlan(id: planID) else { return }
-    let ids = assessmentIDs
-    let mine = content.assessments.filter { assessment in
-      if let monday { return assessment.monday == monday }
-      return ids.contains(assessment.id)
-    }
+    guard let monday, let content = try? store.coursePlan(id: planID) else { return }
+    let mine = content.assessments.filter { $0.monday == monday }
     assessments = mine.sorted { lhs, rhs in
       switch (lhs.day, rhs.day) {
       case let (l?, r?) where l != r: return l < r
