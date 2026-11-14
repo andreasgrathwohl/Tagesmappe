@@ -11,7 +11,8 @@ import PencilKit
 /// Kern; ausgeführt wird sie über `PenNoteFileAccessing` außerhalb des Hauptthreads.
 ///
 /// Swift-Hinweis: `Task {}` in einer `@MainActor`-Klasse erbt den Hauptakteur. `running` merkt sich den
-/// laufenden Durchgang, damit nie zwei gleichzeitig dieselben Dateien umbenennen.
+/// zuletzt angestoßenen Durchgang; der nächste wartet auf ihn, damit nie zwei gleichzeitig dieselben Dateien
+/// umbenennen.
 @MainActor final class PenNoteFileService: PenNoteFileRelocating {
   /// Erzeugt das Notiz-PDF der Stunde neu (nach dem Zusammenführen); Umsetzung in `ScopedServicesHolder`.
   typealias PDFMaker = @Sendable (MaterialReference, LessonKey) async -> Void
@@ -40,13 +41,21 @@ import PencilKit
   }
 
   func retryPending() async {
-    // Läuft schon ein Durchgang, auf sein Ende warten und danach selbst einen starten: Der Aufrufer darf
-    // erst zurückkehren, wenn auch seine Einträge abgearbeitet sind.
-    while let current = running { await current.value }
-    let task = Task { await self.runPass() }
+    // Jeder Durchgang hängt sich an den vorigen: Er wartet dessen Ende ab und läuft erst dann. Der Aufrufer
+    // kehrt erst zurück, wenn auch seine Einträge abgearbeitet sind, und nie laufen zwei Durchgänge zugleich.
+    //
+    // Swift-Hinweis: Früher stand hier `while let current = running { await current.value }`, und nur der
+    // Starter setzte `running` zurück. `await` auf einen schon beendeten Task kehrt ohne Unterbrechung zurück;
+    // weckte das Ende eines Durchgangs zuerst einen Wartenden statt des Starters, sah dieser den veralteten
+    // Task und drehte sich endlos auf dem Hauptakteur, ohne dass der Starter je wieder an die Reihe kam.
+    let previous = running
+    let task = Task {
+      await previous?.value
+      await self.runPass()
+    }
     running = task
     await task.value
-    running = nil
+    if running == task { running = nil }
   }
 
   private func runPass() async {
