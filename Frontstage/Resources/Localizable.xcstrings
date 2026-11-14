@@ -2260,6 +2260,176 @@
           }
         }
       }
+    },
+    "setup.nonTeaching.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unterrichtsfrei"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.defaultTitle" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unterrichtsfrei"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.empty" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch keine unterrichtsfreien Zeiträume."
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.add" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeitraum hinzufügen"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.from" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.to" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bis"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.name" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bezeichnung (z. B. Herbstferien)"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.save" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speichern"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.remove" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeitraum entfernen"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.materialCount %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material ohne Stunde: %lld"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.assign" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zuordnen …"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.removeNote" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Material bleibt erhalten."
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.error.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das hat nicht geklappt"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.error.fromAfterTo" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„Von“ darf nicht nach „Bis“ liegen."
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.error.saveFailed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speichern ist fehlgeschlagen."
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.error.ok" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
