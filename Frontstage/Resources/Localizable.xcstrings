@@ -1,6 +1,86 @@
 {
   "sourceLanguage" : "de",
   "strings" : {
+    "classScreen.upcoming" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gleich:"
+          }
+        }
+      }
+    },
+    "classScreen.until %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bis %@"
+          }
+        }
+      }
+    },
+    "classScreen.toPrepare %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bereitlegen: %@"
+          }
+        }
+      }
+    },
+    "classScreen.homework %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hausaufgabe: %@"
+          }
+        }
+      }
+    },
+    "workMode.individual" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einzelarbeit"
+          }
+        }
+      }
+    },
+    "workMode.pairs" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partnerarbeit"
+          }
+        }
+      }
+    },
+    "workMode.groups" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gruppenarbeit"
+          }
+        }
+      }
+    },
+    "timer.expired" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeit ist um"
+          }
+        }
+      }
+    },
     "timetableSource.title" : {
       "localizations" : {
         "de" : {

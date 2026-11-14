@@ -1,9 +1,13 @@
 import SwiftUI
 
-/// Schicht über allen Inhalten des Zweitbildschirms außer „Dunkel“.
+/// Schicht über allen Inhalten des Zweitbildschirms außer „Dunkel“: die Timer-Anzeige (FR-11.2).
+/// Ohne Kauf bleibt sie leer (FR-13).
 struct ClassScreenOverlay: View {
-  // Timer-Schicht (FR-11.2), Teilplan 07
+  @Environment(Unlock.self) private var unlock
+
   var body: some View {
-    EmptyView()
+    if unlock.isUnlocked {
+      PhaseTimerOverlay()
+    }
   }
 }
