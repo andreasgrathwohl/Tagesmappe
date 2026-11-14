@@ -98,3 +98,87 @@ enum AssignError: Error, Equatable {
     }
   }
 }
+
+// MARK: - Übernehmen, Schieben, Weiterreichen (FR-3.2, FR-3.3, FR-8)
+
+extension LessonActions {
+  /// FR-3.2: Klassen zur Wahl – alle Klassen im Stundenplan außer der eigenen.
+  func copyTargetClasses(for key: LessonKey) -> [SchoolClass] {
+    do {
+      return try store.selectableClasses(excluding: key.schoolClass)
+    } catch {
+      Self.logger.error("Klassenliste gescheitert: \(String(describing: error), privacy: .public)")
+      return []
+    }
+  }
+
+  /// FR-3.2: Unterrichtsstunden der gewählten Klasse ab dem Tag von `key`, höchstens 28 Tage, ohne
+  /// Ausfälle – die Lehrkraft wählt daraus; es gibt kein automatisches Ziel.
+  func copyTargetLessons(for schoolClass: SchoolClass, from key: LessonKey) -> [Lesson] {
+    do {
+      return try store.candidateLessons(for: schoolClass, from: key.date, maxDays: 28)
+    } catch {
+      Self.logger.error("Zielstunden gescheitert: \(String(describing: error), privacy: .public)")
+      return []
+    }
+  }
+
+  /// FR-3.2: kopiert alle Zuordnungen in die **gewählte** Zielstunde (ohne Stiftnotizen, FR-6.1);
+  /// liefert die Zahl der neuen Zuordnungen. Meldet nichts an die Notiz-Naht: Es zieht keine Datei um.
+  @discardableResult
+  func copyLinks(from key: LessonKey, to target: LessonKey) -> Int {
+    do {
+      return try store.copyMaterialLinks(from: key, to: target)
+    } catch {
+      Self.logger.error("Übernehmen gescheitert: \(String(describing: error), privacy: .public)")
+      return 0
+    }
+  }
+
+  /// FR-3.3 für ein Material (gleiche Klasse, gleiches Fach); nil → keine nächste Stunde oder
+  /// Fehler, nichts geändert und nichts gemeldet. Dieselbe Zuordnung wandert, Stiftnotizen mit.
+  @discardableResult
+  func moveToNextLesson(linkID: UUID) -> LessonKey? {
+    do {
+      // Vorher lesen: Nach dem Schieben ist der alte Schlüssel weg.
+      let before = try store.materialLinkItem(id: linkID)
+      guard let target = try store.moveLinkToNextLesson(id: linkID) else { return nil }
+      if let before, let old = before.lessonKey {
+        penNotes.linksMoved([PenNoteMove(reference: before.reference, from: old, to: target)])
+      }
+      return target
+    } catch {
+      Self.logger.error("Schieben gescheitert: \(String(describing: error), privacy: .public)")
+      return nil
+    }
+  }
+
+  /// FR-8: alles Material der Stunde in die nächste (Ausfälle übersprungen); Reihenfolge bleibt,
+  /// hinten an das Ziel angehängt. nil → keine nächste Stunde oder Fehler.
+  @discardableResult
+  func passOnAll(from key: LessonKey) -> LessonKey? {
+    do {
+      let items = try store.materialLinkItems(for: key)
+      guard let target = try store.moveAllLinksToNextLesson(from: key) else { return nil }
+      penNotes.linksMoved(items.map { PenNoteMove(reference: $0.reference, from: key, to: target) })
+      return target
+    } catch {
+      Self.logger.error("Weiterreichen gescheitert: \(String(describing: error), privacy: .public)")
+      return nil
+    }
+  }
+
+  /// Material ohne Stunde einer gewählten Unterrichtsstunde zuordnen (FR-7). Gemeldet wird nur, wenn
+  /// die Zuordnung einen gültigen alten Schlüssel hatte.
+  func move(linkID: UUID, to key: LessonKey) {
+    do {
+      let before = try store.materialLinkItem(id: linkID)
+      try store.moveLink(id: linkID, to: key)
+      if let before, let old = before.lessonKey, old != key {
+        penNotes.linksMoved([PenNoteMove(reference: before.reference, from: old, to: key)])
+      }
+    } catch {
+      Self.logger.error("Zuordnen gescheitert: \(String(describing: error), privacy: .public)")
+    }
+  }
+}

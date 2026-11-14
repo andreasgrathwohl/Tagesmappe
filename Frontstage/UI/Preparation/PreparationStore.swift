@@ -55,6 +55,7 @@ struct MaterialLinkItem: Identifiable, Hashable, Sendable {
   func materialLinkItems(for key: LessonKey) throws -> [MaterialLinkItem]
   func materialLinkItems(from: CalendarDay, through: CalendarDay) throws -> [MaterialLinkItem]
   func orphanedLinkItems(on day: CalendarDay) throws -> [MaterialLinkItem]
+  func materialLinkItem(id: UUID) throws -> MaterialLinkItem?
   func assignItem(_ reference: MaterialReference, to key: LessonKey, at index: Int?) throws -> MaterialLinkItem
   func moveLinkToNextLesson(id: UUID) throws -> LessonKey?
   func moveLink(id: UUID, to key: LessonKey) throws
@@ -79,6 +80,11 @@ extension DataStore: PreparationStore {
 
   func orphanedLinkItems(on day: CalendarDay) throws -> [MaterialLinkItem] {
     try orphanedLinks(on: day).map { MaterialLinkItem($0) }
+  }
+
+  /// Unbekannte id → `nil`.
+  func materialLinkItem(id: UUID) throws -> MaterialLinkItem? {
+    try link(id: id).map { MaterialLinkItem($0) }
   }
 
   func assignItem(_ reference: MaterialReference, to key: LessonKey, at index: Int?) throws -> MaterialLinkItem {
