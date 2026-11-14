@@ -2,7 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended)
 > or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax
-> for tracking. Setzt den Rahmen `2026-11-13-00-uebersicht.md` voraus.
+> for tracking. Setzt den Rahmen `2026-11-13-00-uebersicht.md` voraus (insbesondere Abstimmung Punkte 14 und 15).
+> **Überarbeitet 2026-11-14:** Der Koordinator hält einen `DataStore` und entsteht deshalb je Datenort innerhalb von
+> `DataScopedRoot` (Teilplan 08) – über `SourceCoordinatorHolder`, den auch die Hintergrund-Aktualisierung nutzt.
 
 **Goal:** Den Stundenplan samt Zeitraster, Vertretungen und Ausfällen aus Schulmanager Online übernehmen –
 hinter einer gemeinsamen Schnittstelle für Stundenplan-Quellen, mit Zugangsdaten nur im Schlüsselbund,
@@ -20,7 +22,7 @@ CommonCrypto (PBKDF2), BackgroundTasks + SwiftUI `.backgroundTask(.appRefresh(_:
 
 **Spec:** `docs/PRD.md` (FR-2, FR-2.2, FR-1.2 letzter Satz, FR-13.1, NFR-2, NFR-4, RISK-1, Q-16; AK-3, AK-20,
 AK-21, AK-41), `docs/adr/0004-schulmanager-als-austauschbarer-importbaustein.md`, `docs/ARCHITECTURE.md`
-(Area stundenplan-quellen, Area daten), `docs/adr/0002`, `0005`, `0009`; Mockups `mockup/einrichten.html`
+(Area stundenplan-quellen, Area daten), `docs/adr/0002`, `0005`, `0009`, `0012` (Datenort – nur für den Lebenszyklus des Koordinators); Mockups `mockup/einrichten.html`
 (`#quelle`, `#abgleich`) und `mockup/tagesansicht.html` (Kopfzeile „Stand“) nur als Veranschaulichung.
 
 ## Global Constraints
@@ -111,7 +113,7 @@ Paket-Ressourcen, damit `Package.swift` aus Teilplan 01 unberührt bleibt).
 **App** – `Frontstage/TimetableSources/`: `CredentialStore.swift`, `KeychainCredentialStore.swift`,
 `SchulmanagerPasswordHash.swift`, `HTTPTransport.swift`, `SchulmanagerTimetableSource.swift`,
 `SourceStatusStore.swift`, `PendingImportStore.swift`, `TimetableRepository.swift` (Protokoll und
-`extension DataStore: TimetableRepository`), `TimetableSourceCoordinator.swift`, `MorningRefresh.swift`.
+`extension DataStore: TimetableRepository`), `TimetableSourceCoordinator.swift`, `SourceCoordinatorHolder.swift` (Koordinator je Datenort, Aufgabe 10), `MorningRefresh.swift`.
 Oberfläche (eigenständige Ansichten; Teilplan 04 kommt nach diesem Teilplan und hängt sie in Einrichten und
 Tagesansicht ein – dieser Teilplan ändert keine Dateien von 04): `Frontstage/UI/Setup/TimetableSourceSettingsView.swift`,
 `Frontstage/UI/Setup/ImportPreviewView.swift`, `Frontstage/UI/DayView/SourceStatusBar.swift`.
@@ -740,15 +742,29 @@ Versuch gezählt; die Zusicherung ist `status == SourceStatus()`.
 
 **Files:**
 - Create: `Frontstage/TimetableSources/MorningRefresh.swift`
-- Modify: `Frontstage/App/FrontstageApp.swift` (Platzhalter aus Teilplan 01, mit Einbindung aus 02), `project.yml` (Info.plist des iPadOS-Ziels)
+- Create: `Frontstage/TimetableSources/SourceCoordinatorHolder.swift`
+- Modify: `Frontstage/App/FrontstageApp.swift` (Stand nach 02, 03 und 08 – vorher ganz lesen, nichts entfernen), `project.yml` (Info.plist des iPadOS-Ziels)
+- Test: `FrontstageTests/TimetableSources/SourceCoordinatorHolderTests.swift`
 
-Zum Zeitpunkt dieses Teilplans ist `FrontstageApp` noch der Platzhalter (Übersicht, Abstimmung Punkt 6). Teilplan
-04 ersetzt später nur den Inhalt des `WindowGroup` durch `RootView` und übernimmt Koordinator, Szenenphase und
-`.backgroundTask` aus diesem Schritt unverändert (Koordinator wandert in `AppEnvironment`).
+Zum Zeitpunkt dieses Teilplans ersetzt Teilplan 08 den Container-Aufbau in `FrontstageApp` durch
+`DataLocationController` und `DataScopedRoot` (Übersicht, Abstimmung 15): Alles, was einen `DataStore` hält, entsteht
+in der Ansicht in der Closure von `DataScopedRoot` neu, sobald der Datenort wechselt. Der Koordinator hält über
+`repository:` einen `DataStore` – er gehört also dorthin. `.backgroundTask` ist aber ein Szenen-Modifikator am
+`WindowGroup` und läuft auch, wenn das System die App nur im Hintergrund weckt und keine Ansicht aufbaut; er kann
+den Koordinator deshalb nicht aus einer Ansicht holen. Lösung: ein App-weiter `SourceCoordinatorHolder`, der den
+Koordinator **je `DataStore`** anlegt und zwischenspeichert. Ansicht und Hintergrundaufgabe fragen ihn mit dem
+aktuellen `DataStore` (`dataLocation.store`, Teilplan 08) – beide bekommen dasselbe Objekt, und nach einem Wechsel
+entsteht ein neuer Koordinator auf dem neuen Container. Teilplan 04 übernimmt die Ansicht als `ScopedAppContent`.
 
 **Interfaces:**
 
 ```swift
+/// Hält den Koordinator des aktuellen Datenorts (Übersicht, Abstimmung 15). Neuer DataStore → neuer Koordinator.
+@MainActor final class SourceCoordinatorHolder {
+  init(makeCoordinator: @escaping @MainActor (DataStore) -> TimetableSourceCoordinator = SourceCoordinatorHolder.live)
+  func coordinator(for store: DataStore) -> TimetableSourceCoordinator   // gleicher Store (ObjectIdentifier) → gleiches Objekt
+  static func live(_ store: DataStore) -> TimetableSourceCoordinator     // repository: store, makeSource: Manual/Schulmanager, Stores wie Aufgabe 9
+}
 enum MorningRefresh {
   static let taskIdentifier = "frontstage.timetable-source.morning-refresh"   // fest, unabhängig von der Bundle-ID aus CI
   #if os(iOS)
@@ -760,17 +776,24 @@ enum MorningRefresh {
 - [ ] **Schritt 10.1: `project.yml`** – im iPadOS-Ziel unter `info.properties`:
   `BGTaskSchedulerPermittedIdentifiers: [frontstage.timetable-source.morning-refresh]`,
   `UIBackgroundModes: [fetch]`. macOS-Ziel unverändert.
-- [ ] **Schritt 10.2: `FrontstageApp`** – Koordinator einmal als `@State` anlegen (`repository:` = der `DataStore`
-  aus Teilplan 02, `makeSource:` liefert `ManualTimetableSource()` bzw. `SchulmanagerTimetableSource(credentials: KeychainCredentialStore())`)
-  und per `.environment` an die Ansichten geben; `.onChange(of: scenePhase)`: `.active` → `Task { await coordinator.refresh(.appBecameActive) }`;
+- [ ] **Schritt 10.2: Test `SourceCoordinatorHolder`** (zwei `DataStore` aus `makeStore()`):
+  `@Test("Gleicher DataStore → derselbe Koordinator; neuer DataStore → neuer") func holderCachesPerStore()` und
+  `@Test("Nach Wechsel des Datenorts liest der Koordinator den neuen Stundenplan") func coordinatorFollowsStore()`
+  (Stundenplan nur im zweiten Store → `holder.coordinator(for: second)` sieht ihn über das Repository). Implementieren:
+  ein Eintrag (zuletzt gefragter Store + Koordinator); anderer Store → neu anlegen, alten verwerfen.
+- [ ] **Schritt 10.3: `FrontstageApp`** – im `App`-Typ `@State private var sourceCoordinators = SourceCoordinatorHolder()`.
+  In der Closure-Ansicht von `DataScopedRoot` (08; in Teilplan 04 `ScopedAppContent`): `let coordinator = sourceCoordinators.coordinator(for: store)`
+  per `.environment` an die Ansichten geben; `.onChange(of: scenePhase)`: `.active` → `Task { await coordinator.refresh(.appBecameActive) }`;
   `.background` → `MorningRefresh.schedule(...)` (nur iOS). Am `WindowGroup` (nur `#if os(iOS)`):
-  `.backgroundTask(.appRefresh(MorningRefresh.taskIdentifier)) { await coordinator.refresh(.backgroundRefresh); MorningRefresh.schedule(...) }`.
+  `.backgroundTask(.appRefresh(MorningRefresh.taskIdentifier)) { await sourceCoordinators.coordinator(for: dataLocation.store).refresh(.backgroundRefresh); MorningRefresh.schedule(...) }`
+  (Swift-Hinweis: die Closure läuft nicht auf dem Haupt-Actor; der Zugriff auf Halter und Controller braucht `await MainActor.run { … }`).
+  Kein Koordinator als `@State` im `App`-Typ.
   Swift-Hinweis: SwiftUI ruft diesen Block auf, wenn das System die Aufgabe startet; die nächste Aufgabe muss
   man selbst wieder anmelden, sonst läuft sie nur einmal. Am Mac genügt das Aktivieren (ADR-0004: maßgeblich ist
   das erste Öffnen).
-- [ ] **Schritt 10.3: Diff durchsehen** – Bezeichner in `project.yml` und Code wörtlich gleich; `import BackgroundTasks`
-  nur unter `#if os(iOS)`. Prüfung der Wirkung: Geräte-Checkliste AK-21.
-- [ ] **Schritt 10.4: Commit** `feat: refresh timetable source on activation and in background`
+- [ ] **Schritt 10.4: Diff durchsehen** – Bezeichner in `project.yml` und Code wörtlich gleich; `import BackgroundTasks`
+  nur unter `#if os(iOS)`; Koordinator nur über `SourceCoordinatorHolder`. Prüfung der Wirkung: Geräte-Checkliste AK-21.
+- [ ] **Schritt 10.5: Commit** `feat: refresh timetable source on activation and in background`
 
 ---
 
@@ -928,13 +951,12 @@ Ein Mensch mit iPad, Mac und **eigenem Schulmanager-Lehrerkonto**; Ergebnis abha
 
 ---
 
-## Abstimmungsbedarf mit anderen Teilplänen
-
 ## Produziert für spätere Teilpläne (Zusammenfassung)
 
 - **Kern:** `TimetableSourceKind` (`manual`, `schulmanager`), `TimetableSource`, `SourceSnapshot`, `SourceChange`,
   `SourceStatus`, `RefreshTrigger`, `MorningRefreshPolicy`.
-- **App (für Teilplan 04):** `TimetableSourceCoordinator` (`status`, `pendingPreview`, `isFetching`,
+- **App (für Teilplan 04):** `SourceCoordinatorHolder` (`coordinator(for:)`, im `App`-Typ; 04 holt den Koordinator in
+  `ScopedAppContent` darüber), `TimetableSourceCoordinator` (`status`, `pendingPreview`, `isFetching`,
   `refresh(_:)`, `applyPendingPreview(acceptedFromSource:)`, `discardPendingPreview()`, `switchSource(to:)`) und
   `TimetableRepository.timetableSourceKind()`; Ansichten `TimetableSourceSettingsView()`, `ImportPreviewView`,
   `SourceStatusBar()` – 04 hängt sie in Einrichten bzw. den Kopf der `DayView` ein.
@@ -945,7 +967,9 @@ Ein Mensch mit iPad, Mac und **eigenem Schulmanager-Lehrerkonto**; Ergebnis abha
   `ImportDiffer`-Regel aus 01 (Punkt 2); Datenzugriff über `TimetableRepository` mit Methoden aus 02; Herkunft und
   Hand-Markierung in 02 (`originRaw`, `isManuallyEdited`); Stand in `TimetableRecord.sourceFetchedAt`;
   Zusammenführen doppelter `.source`-Abweichungen beim Abgleich in 02 (`SyncMerger`, Abweichung nach Wert).
-  „Stand“ steht im Glossar (`sourceFetchedAt`).
+  „Stand“ steht im Glossar (`sourceFetchedAt`). Datenort (08): Koordinator je `DataStore` über `SourceCoordinatorHolder`
+  (Übersicht, Abstimmung 15); `SourceStatusStore` und `PendingImportStore` liegen je Gerät und bleiben bei einem Wechsel
+  des Datenorts stehen – die Vorschau gilt danach gegen den Stundenplan des neuen Orts (A3).
 
 ## Annahmen, die ein Mensch bestätigen sollte
 

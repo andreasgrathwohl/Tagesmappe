@@ -223,7 +223,9 @@ Sicherung und Wiederherstellung übernimmt der Datenort (gemäß ADR-0012): iClo
 oder der Datenordner in ihrem OneDrive. Der zu
 prüfende Wiederherstellungsweg ist: App auf einem zweiten Gerät mit demselben Apple-Konto
 installieren – Stundenplan und Zuordnungen erscheinen ohne Zutun; nur die Ordnerfreigaben müssen dort
-einmal neu erteilt werden.
+einmal neu erteilt werden. Bei Datenort OneDrive: das zweite Gerät koppeln oder OneDrive von Hand wählen und mit
+demselben Microsoft-Konto anmelden (FR-14.1). Stiftnotizen liegen neben dem Dokument in der Ablage (ADR-0011) und
+kommen mit dieser, nicht mit dem Datenort.
 
 ## Area: ablage
 
@@ -358,8 +360,9 @@ Schreiben), und der Übergang zwischen eigener Szene und Spiegelung beim App-Wec
 
 ### Darstellung
 
-- Die Datei wird über den Baustein „Ablage“ gelesen (Ordnerfreigabe, Area ablage) und nur gelesen –
-  die Anzeige schreibt nie in die Ablage (gemäß ADR-0006).
+- Die Datei wird über den Baustein „Ablage“ gelesen (Ordnerfreigabe, Area ablage) und nie verändert;
+  die Anzeige schreibt nur die Stiftnotizen daneben (Notiz-Datei und Notiz-PDF, Abschnitt Stiftnotizen, gemäß
+  ADR-0011).
 - Ein PDF wird seitenweise gezeigt; ein Bild gilt als Dokument mit einer Seite. Über jeder Seite liegt
   eine durchsichtige Zeichenfläche, die mit der Seite zoomt und verschiebt.
 - Geschrieben wird am Tablet mit dem Stift. Am Mac werden Stiftnotizen angezeigt, aber nicht
@@ -385,8 +388,9 @@ Schreiben), und der Übergang zwischen eigener Szene und Spiegelung beim App-Wec
   statt einer PDF-Seite liegt ein gezeichneter Hintergrund (leer, liniert, kariert) unter der
   Stiftschicht.
 - Je Seite ein Datensatz „Tafelseite“ an der Unterrichtsstunde (Area daten), gespeichert und
-  gespiegelt wie Stiftnotizen (ausgelagerte Zeichnungsdaten, Speichern beim Absetzen des Stifts).
-  Das folgt dem Muster von ADR-0006: Die App schreibt dafür nicht in die Ablage.
+  über den Datenort abgeglichen (ausgelagerte Zeichnungsdaten, Speichern beim Absetzen des Stifts; gemäß
+  ADR-0012). Die App schreibt dafür nicht in die Ablage – anders als bei Stiftnotizen (ADR-0011), denn ein Tafelbild
+  gehört zu keinem Dokument.
 - „Letztes Tafelbild“ (FR-12.3) wird berechnet, nicht gespeichert: die jüngste frühere
   Unterrichtsstunde mit gleicher Klasse und gleichem Fach, zu der Tafelseiten existieren. Fällt eine
   Unterrichtsstunde später aus dem Stundenplan, bleiben ihre Tafelseiten erhalten und darüber
@@ -401,7 +405,8 @@ Schreiben), und der Übergang zwischen eigener Szene und Spiegelung beim App-Wec
   wird nicht gespeichert. „Standbild“ legt eine neue Tafelseite an, deren Hintergrund das Bild ist
   (ausgelagerter Anhang wie die Zeichnungsdaten). Die App braucht dafür die Kamerafreigabe des
   Systems; ohne sie fehlt nur diese Funktion. Standbilder können Arbeiten von Schülerinnen und
-  Schülern zeigen – sie liegen wie alle App-Daten nur im iCloud-Bereich der Lehrkraft (NFR-2).
+  Schülern zeigen – sie liegen wie alle App-Daten nur im Datenort der Lehrkraft, also in ihrem iCloud oder
+  ihrem OneDrive (NFR-2, ADR-0012).
 - **Vorlage (FR-12.6):** Die gewählte Seite oder ihr Ausschnitt wird einmal als Bild gerendert und
   als Hintergrund der neuen Tafelseite gespeichert. Die Tafelseite hält damit ein Abbild, keinen
   Verweis: Ändert sich die Datei später, bleibt die Tafelseite, wie sie war. Das ist keine Kopie der
@@ -465,5 +470,6 @@ gehören sie zur Unterrichtsstunde. Das Original wird nie verändert.
 - 2026-11-14: daten changed — Datenort wählbar (ADR-0010 löst ADR-0002 ab, FR-14): Abschnitt Datenort, Datenordner-Abgleich, Betrieb; Bausteinbild ergänzt
 - 2026-11-14: daten changed — Datenort iCloud oder OneDrive über Microsoft Graph (ADR-0012 löst ADR-0010 ab): Abschnitt Datenort neu (App-Ordner, Delta, Buch je Gerät, inhaltsadressierte Anhänge, Wechsel in der laufenden App, Beitreten), Koppeln per QR-Code (FR-14.1); Bausteinbild: OneDrive-Abgleich statt Abgleich über die Dateien-Schnittstelle; Q-33, Q-34 new
 - 2026-11-14: anzeige changed — Stiftnotizen neben dem Dokument (ADR-0011 löst ADR-0006 ab): Notiz-Datei je Stunde und lesbares PDF; daten changed — Modell Stiftnotiz nur noch Ersatz
+- 2026-11-14: anzeige changed — Widersprüche zu ADR-0011/ADR-0012 bereinigt (beim Nachziehen der Teilpläne 04–07 gefunden): Darstellung schreibt Stiftnotizen neben das Dokument statt „schreibt nie in die Ablage (ADR-0006)“; Tafelseiten über den Datenort statt „Muster von ADR-0006“; Standbilder im Datenort statt „nur im iCloud-Bereich“; daten changed — Betrieb nennt den Wiederherstellungsweg bei OneDrive
 - 2026-11-13: Architecture Doc status ready — freigegeben von Andreas; offen bleiben Q-18 (am Gerät) und im PRD Q-22, beide blockieren den Bau nicht, weil für beide ein Rückfall beschrieben ist (Übergabe der Datei bzw. RISK-5)
 - 2026-11-13: anzeige changed — Klassenbildschirm im Verlauf der Stunde (FR-11.7), Kamera, Vorlage, Abdecken (FR-12.5 bis FR-12.7); daten changed — Stundenangaben mit Bereitlegen und Hausaufgabe, Tafelseite mit Bild als Hintergrund
