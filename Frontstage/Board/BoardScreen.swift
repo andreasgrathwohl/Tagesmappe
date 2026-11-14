@@ -113,9 +113,19 @@ struct BoardScreen: View {
   }
 
   @ViewBuilder private func stage(_ session: BoardSession) -> some View {
-    if canDraw(in: session), session.isCameraLive {
-      cameraStage(session)
-    } else if let page = session.currentPage {
+    #if os(iOS)
+      if canDraw(in: session), session.isCameraLive {
+        cameraStage(session)
+      } else {
+        pageStage(session)
+      }
+    #else
+      pageStage(session)
+    #endif
+  }
+
+  @ViewBuilder private func pageStage(_ session: BoardSession) -> some View {
+    if let page = session.currentPage {
       BoardPageSurface(
         page: page,
         drawing: Binding(get: { session.liveDrawing }, set: { session.drawingChanged($0) }),

@@ -40,7 +40,11 @@
     }
 
     /// Fragt bei Bedarf die Freigabe an und startet das Livebild. Ohne Freigabe bleibt `availability` der Grund.
+    ///
+    /// Ein früherer Sperrgrund (geteilte Ansicht) wird hier verworfen: `start()` läuft nur auf ausdrücklichen
+    /// Tipp, und bleibt die Sperre bestehen, meldet die Sitzung sie sofort neu.
     func start() async {
+      multitaskingBlocked = false
       if AVCaptureDevice.authorizationStatus(for: .video) == .notDetermined {
         _ = await AVCaptureDevice.requestAccess(for: .video)
       }
@@ -49,11 +53,12 @@
       await host.start(position: position)
     }
 
-    /// Beendet das Livebild und verwirft das letzte Bild.
+    /// Beendet das Livebild und verwirft das letzte Bild. Der Sperrgrund bleibt bewusst stehen, damit der
+    /// Hinweis „in geteilter Ansicht nicht verfügbar“ sichtbar bleibt; `start()` und das Ende der
+    /// Unterbrechung räumen ihn ab.
     func stop() {
       host.stop()
       latestFrame = nil
-      multitaskingBlocked = false
       refreshAvailability()
     }
 
@@ -224,9 +229,8 @@
       ) { [weak self] note in
         let raw = note.userInfo?[AVCaptureSessionInterruptionReasonKey] as? Int
         let reason = raw.flatMap { AVCaptureSession.InterruptionReason(rawValue: $0) }
-        if reason == .videoDeviceNotAvailableWithMultipleForegroundApps
-          || reason == .videoDeviceNotAvailableInBackground
-        {
+        // Nur die geteilte Ansicht sperrt; eine Unterbrechung im Hintergrund darf keine Sperre hinterlassen.
+        if reason == .videoDeviceNotAvailableWithMultipleForegroundApps {
           self?.report(blocked: true)
         }
       }
