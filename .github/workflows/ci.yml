@@ -18,7 +18,7 @@ jobs:
       - name: Core tests
         run: swift test --package-path Packages/FrontstageCore
       - name: Build macOS
-        run: xcodebuild build -project Frontstage.xcodeproj -scheme Frontstage-macOS -destination 'generic/platform=macOS' CODE_SIGNING_ALLOWED=NO
+        run: xcodebuild build -project Frontstage.xcodeproj -scheme Frontstage-macOS -destination 'generic/platform=macOS' CODE_SIGNING_ALLOWED=NO MSAL_CLIENT_ID="${{ secrets.MSAL_CLIENT_ID }}"
       - name: Pick iPad simulator
         id: sim
         run: |
@@ -37,7 +37,7 @@ jobs:
           echo "Gewählt: $PICK"
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
       - name: App tests (iPad simulator)
-        run: xcodebuild test -project Frontstage.xcodeproj -scheme Frontstage-iOS -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO
+        run: xcodebuild test -project Frontstage.xcodeproj -scheme Frontstage-iOS -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO MSAL_CLIENT_ID="${{ secrets.MSAL_CLIENT_ID }}"
       - name: Upload test results
         if: failure()
         uses: actions/upload-artifact@v4

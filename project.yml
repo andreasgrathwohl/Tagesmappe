@@ -14,14 +14,16 @@ settings:
     PRODUCT_NAME: Frontstage
     PRODUCT_MODULE_NAME: Frontstage
     PRODUCT_BUNDLE_IDENTIFIER: com.example.frontstage
+    MSAL_CLIENT_ID: ""  # Microsoft-App-Kennung; echte Kennung per CI-Secret oder lokal, nie im Repo
 packages:
   FrontstageCore: { path: Packages/FrontstageCore }
+  MSAL: { url: https://github.com/AzureAD/microsoft-authentication-library-for-objc, majorVersion: 2.0.0 }
 targets:
   Frontstage-iOS:
     type: application
     platform: iOS
     sources: [Frontstage]
-    dependencies: [{ package: FrontstageCore }]
+    dependencies: [{ package: FrontstageCore }, { package: MSAL }]
     settings:
       base:
         CLOUDKIT_CONTAINER_ID: iCloud.com.example.frontstage  # Platzhalter; echte Kennung per CI-Secret
@@ -34,6 +36,7 @@ targets:
         com.apple.developer.icloud-services: [CloudKit]
         com.apple.developer.icloud-container-identifiers: [$(CLOUDKIT_CONTAINER_ID)]
         aps-environment: development
+        keychain-access-groups: [$(AppIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)]
     info:
       path: Config/Frontstage-iOS-Info.plist
       properties:
@@ -43,12 +46,16 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         FrontstageCloudKitContainer: $(CLOUDKIT_CONTAINER_ID)
         UIBackgroundModes: [remote-notification]
+        MSALClientID: $(MSAL_CLIENT_ID)
+        CFBundleURLTypes:
+          - CFBundleURLSchemes: [msauth.$(PRODUCT_BUNDLE_IDENTIFIER)]
+        LSApplicationQueriesSchemes: [msauthv2, msauthv3, ms-powerpoint, ms-word, ms-excel]
     scheme: { testTargets: [FrontstageTests] }
   Frontstage-macOS:
     type: application
     platform: macOS
     sources: [Frontstage]
-    dependencies: [{ package: FrontstageCore }]
+    dependencies: [{ package: FrontstageCore }, { package: MSAL }]
     settings:
       base:
         CLOUDKIT_CONTAINER_ID: iCloud.com.example.frontstage  # Platzhalter; echte Kennung per CI-Secret
@@ -62,6 +69,7 @@ targets:
         com.apple.security.files.user-selected.read-only: true
         com.apple.security.files.bookmarks.app-scope: true
         com.apple.security.network.client: true
+        keychain-access-groups: [$(AppIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)]
     info:
       path: Config/Frontstage-macOS-Info.plist
       properties:
@@ -69,6 +77,9 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         FrontstageCloudKitContainer: $(CLOUDKIT_CONTAINER_ID)
+        MSALClientID: $(MSAL_CLIENT_ID)
+        CFBundleURLTypes:
+          - CFBundleURLSchemes: [msauth.$(PRODUCT_BUNDLE_IDENTIFIER)]
     scheme: {}
   FrontstageTests:
     type: bundle.unit-test
