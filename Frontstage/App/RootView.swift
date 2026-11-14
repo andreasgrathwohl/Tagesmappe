@@ -40,10 +40,7 @@ struct RootView: View {
   var body: some View {
     TabView(selection: $selection) {
       Tab(AppSection.dayView.titleKey, systemImage: AppSection.dayView.systemImage, value: AppSection.dayView) {
-        scoped {
-          // Platzhalter bis Aufgabe 8 (Tagesansicht).
-          Text("app.section.dayView")
-        }
+        scoped { DayScreen() }
       }
       Tab(
         AppSection.preparation.titleKey, systemImage: AppSection.preparation.systemImage,
@@ -62,6 +59,8 @@ struct RootView: View {
     .tabViewStyle(.sidebarAdaptable)
     .environment(account)
     .environment(dataLocation)
+    // „Ordner freigeben“ aus der Tagesansicht führt hierher.
+    .environment(\.showSetup, { selection = .setup })
     // `initial: true` ruft den Block auch beim ersten Erscheinen auf – sonst fehlt der Abruf, wenn die Szene
     // beim Kaltstart schon aktiv ist, bevor diese Ansicht steht. „Erstes Öffnen am Tag“ ist der Wechsel nach
     // `.active`, nicht der App-Start (AK-21); die Abfrage-Regeln entscheiden, ob gefragt wird.

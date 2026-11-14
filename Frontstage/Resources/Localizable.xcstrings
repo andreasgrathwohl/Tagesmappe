@@ -1060,6 +1060,346 @@
           }
         }
       }
+    },
+    "dayView.previous" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorheriger Tag"
+          }
+        }
+      }
+    },
+    "dayView.next" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nächster Tag"
+          }
+        }
+      }
+    },
+    "dayView.today" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heute"
+          }
+        }
+      }
+    },
+    "dayView.noLesson" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Stunden an diesem Tag"
+          }
+        }
+      }
+    },
+    "dayView.substitute" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vertretung"
+          }
+        }
+      }
+    },
+    "dayView.withoutLesson" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material ohne Stunde"
+          }
+        }
+      }
+    },
+    "dayView.assign" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zuordnen …"
+          }
+        }
+      }
+    },
+    "dayView.assign.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stunde wählen"
+          }
+        }
+      }
+    },
+    "dayView.assign.empty" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In den nächsten 14 Tagen gibt es keine Stunde."
+          }
+        }
+      }
+    },
+    "dayView.assign.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "dayView.assign.lesson %@ %lld %@ %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · %lld. Stunde · %@ %@"
+          }
+        }
+      }
+    },
+    "dayView.period %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld. Stunde"
+          }
+        }
+      }
+    },
+    "dayView.info.topic %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thema: %@"
+          }
+        }
+      }
+    },
+    "dayView.info.toPrepare %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bereitlegen: %@"
+          }
+        }
+      }
+    },
+    "dayView.info.homework %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hausaufgabe: %@"
+          }
+        }
+      }
+    },
+    "dayView.materialMore %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%lld"
+          }
+        }
+      }
+    },
+    "dayView.loading" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wird geladen …"
+          }
+        }
+      }
+    },
+    "dayView.openFailed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material konnte nicht geöffnet werden."
+          }
+        }
+      }
+    },
+    "dayView.relinkSaveFailed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die neue Verknüpfung konnte nicht gespeichert werden."
+          }
+        }
+      }
+    },
+    "dayView.outsideGrants" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Datei liegt in keinem freigegebenen Ordner."
+          }
+        }
+      }
+    },
+    "dayView.grantFolder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner freigeben"
+          }
+        }
+      }
+    },
+    "dayView.noNextLesson" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es gibt keine nächste Stunde."
+          }
+        }
+      }
+    },
+    "dayView.ok" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "dayView.openWithoutAutoSave" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ohne AutoSpeichern öffnen"
+          }
+        }
+      }
+    },
+    "dayView.openWithoutAutoSave.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material geöffnet. Lieber ohne AutoSpeichern öffnen?"
+          }
+        }
+      }
+    },
+    "dayView.relink" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neu verknüpfen"
+          }
+        }
+      }
+    },
+    "dayView.moveToNext" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In die nächste Stunde"
+          }
+        }
+      }
+    },
+    "dayView.passOn" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material weiterreichen"
+          }
+        }
+      }
+    },
+    "dayView.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ausfall markieren"
+          }
+        }
+      }
+    },
+    "dayView.uncancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ausfall aufheben"
+          }
+        }
+      }
+    },
+    "lesson.relink.carryNotes %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Am alten Ort liegen Notizen zu %lld Stunden. Mitnehmen?"
+          }
+        }
+      }
+    },
+    "lesson.relink.carryNotes.yes" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notizen mitnehmen"
+          }
+        }
+      }
+    },
+    "lesson.relink.carryNotes.no" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hier lassen"
+          }
+        }
+      }
+    },
+    "lesson.relink.carryNotesFailed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Notizen konnten nicht verschoben werden; sie liegen weiter am alten Ort."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

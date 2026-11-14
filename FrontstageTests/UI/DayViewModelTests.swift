@@ -235,6 +235,18 @@ import Testing
     #expect(vm.openingLinkIDs.isEmpty)
   }
 
+  @Test("FR-7: Zuordnungsziele sind die Stunden der nächsten 14 Tage ohne Ausfälle")
+  func assignableLessonsCoverTwoWeeksWithoutCancellations() throws {
+    try Fixtures.seed(data, [Fixtures.entry(.tuesday, 2, "8b", "Englisch")])
+    let vm = makeModel()
+    // Tage 0…13 ab Di 17.11.: die Dienstage 17.11. und 24.11., nicht der 1.12.
+    #expect(vm.assignableLessons().map(\.key.date) == [Fixtures.tue17, Fixtures.tue24])
+    #expect(vm.assignableLessons(days: 7).map(\.key.date) == [Fixtures.tue17])
+    try data.replaceScheduleChanges(
+      [.cancellation(Fixtures.key(.tue24, "8b", "Englisch"), .manual)], sourceFetchedAt: nil)
+    #expect(vm.assignableLessons().map(\.key.date) == [Fixtures.tue17])
+  }
+
   @Test("Ohne Stundenplan: leerer Tag ohne Absturz")
   func emptyDayWithoutTimetable() {
     let vm = makeModel()

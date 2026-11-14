@@ -49,6 +49,17 @@ import OSLog
     reload()
   }
 
+  /// Unterrichtsstunden der nächsten `days` Tage ab dem angezeigten Tag (ohne Ausfälle) – Auswahl für
+  /// „Material ohne Stunde zuordnen“ (FR-7); es gibt kein automatisches Ziel.
+  func assignableLessons(days: Int = 14) -> [Lesson] {
+    var result: [Lesson] = []
+    for offset in 0..<days {
+      let lessons = (try? environment.store.lessons(on: day.adding(days: offset))) ?? []
+      result += lessons.filter { !$0.isCancelled }
+    }
+    return result
+  }
+
   // MARK: Zeilenbau
 
   /// Baut `content` und `materialsWithoutLesson` neu und liest die Verfügbarkeit des Materials dieses Tages.
