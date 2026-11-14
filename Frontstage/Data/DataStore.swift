@@ -20,8 +20,8 @@ enum DataStoreError: Error, Equatable {
   /// Liefert den heutigen Tag; die Uhr wird nur hier gelesen, damit Tests sie festlegen können.
   let today: @MainActor () -> CalendarDay
 
-  /// Steigt nach jedem erfolgreichen `save()` und nach jedem Zusammenführen;
-  /// die Oberfläche lädt darauf neu.
+  /// Steigt nach jedem erfolgreichen `save()` (auch beim Zusammenführen, das über `saveAndBump()`
+  /// speichert); die Oberfläche lädt darauf neu.
   private(set) var revision: Int = 0
 
   init(
@@ -43,11 +43,6 @@ enum DataStoreError: Error, Equatable {
       modelContext.rollback()
       throw error
     }
-    revision += 1
-  }
-
-  /// Wird nach einem Zusammenführen (Sync) aufgerufen, damit die Oberfläche neu lädt.
-  func noteMerged() {
     revision += 1
   }
 

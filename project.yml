@@ -37,6 +37,10 @@ targets:
     info:
       path: Config/Frontstage-iOS-Info.plist
       properties:
+        # XcodeGen schreibt sonst feste Werte 1.0 (1) in die Datei, die MARKETING_VERSION und
+        # CURRENT_PROJECT_VERSION überdecken (TestFlight-Build-Nummer, Teilplan 04).
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         FrontstageCloudKitContainer: $(CLOUDKIT_CONTAINER_ID)
         UIBackgroundModes: [remote-notification]
     scheme: { testTargets: [FrontstageTests] }
@@ -57,6 +61,9 @@ targets:
     info:
       path: Config/Frontstage-macOS-Info.plist
       properties:
+        # Siehe Frontstage-iOS: Versionsschlüssel aus den Build-Einstellungen übernehmen.
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         FrontstageCloudKitContainer: $(CLOUDKIT_CONTAINER_ID)
     scheme: {}
   FrontstageTests:

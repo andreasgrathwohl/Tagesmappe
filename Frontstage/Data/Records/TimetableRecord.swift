@@ -2,7 +2,7 @@ import Foundation
 import SwiftData
 
 /// Gespeicherter Stundenplan (Glossar „Stundenplan“). Der Kern-Typ `Timetable` wird daraus berechnet.
-/// iCloud-Spiegelung (ADR-0002): alle Eigenschaften mit Vorgabe oder optional, Beziehungen optional.
+/// iCloud-Spiegelung (ADR-0010, vormals ADR-0002): alle Eigenschaften mit Vorgabe oder optional, Beziehungen optional.
 @Model
 final class TimetableRecord {
   var id: UUID = UUID()

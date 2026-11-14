@@ -1,7 +1,9 @@
 import Foundation
 import SwiftData
 
-/// Erzeugt die SwiftData-Container der App (iCloud-Spiegelung in die private Datenbank, ADR-0002).
+/// Erzeugt die SwiftData-Container der App (iCloud-Spiegelung in die private Datenbank,
+/// ADR-0002, abgelöst durch ADR-0010: iCloud bleibt einer der wählbaren Datenorte; der Ordner in der
+/// Ablage folgt in einem späteren Teilplan).
 enum ModelContainerFactory {
   /// Alle gespiegelten Modelle. Ordnerfreigaben gehören nicht dazu (nur lokal, Teilplan 03).
   /// Berechnet statt `static let`: Swift 6 strikt verlangt für statische Konstanten einen

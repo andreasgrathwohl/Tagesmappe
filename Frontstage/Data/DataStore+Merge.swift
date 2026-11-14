@@ -1,5 +1,6 @@
 import Foundation
 import FrontstageCore
+import OSLog
 import SwiftData
 
 /// Zusammenführen doppelter Datensätze nach einer iCloud-Synchronisierung (Architecture Doc,
@@ -9,50 +10,26 @@ extension DataStore {
   /// Unlesbare Einträge, Abweichungen und Zeiträume (Rohtext nicht auswertbar) fehlen im Schnappschuss
   /// und bleiben damit unangetastet.
   func makeSyncSnapshot() throws -> SyncSnapshot {
-    SyncSnapshot(
-      timetables: try modelContext.fetch(FetchDescriptor<TimetableRecord>()).map { $0.snapshot() },
-      entries: try modelContext.fetch(FetchDescriptor<TimetableEntryRecord>()).compactMap {
-        $0.snapshot()
-      },
-      links: try modelContext.fetch(FetchDescriptor<MaterialLinkRecord>()).map { $0.snapshot() },
-      penNotes: try modelContext.fetch(FetchDescriptor<PenNoteRecord>()).map { $0.snapshot() },
-      lessonInfos: try modelContext.fetch(FetchDescriptor<LessonInfoRecord>()).map { $0.snapshot() },
-      scheduleChanges: try modelContext.fetch(FetchDescriptor<ScheduleChangeRecord>()).compactMap {
-        $0.snapshot()
-      },
-      nonTeachingPeriods: try modelContext.fetch(FetchDescriptor<NonTeachingPeriodRecord>())
-        .compactMap { $0.snapshot() })
+    try LoadedRecords(modelContext).snapshot()
   }
 
   /// Schnappschuss → Plan → anwenden → speichern. Idempotent; ein leerer Plan speichert nichts.
   @discardableResult
   func mergeDuplicates() throws -> MergePlan {
-    let plan = SyncMerger.plan(for: try makeSyncSnapshot())
+    // Einmal laden: dieselben Datensätze liefern den Schnappschuss und die id-Wörterbücher.
+    let loaded = try LoadedRecords(modelContext)
+    let plan = SyncMerger.plan(for: loaded.snapshot())
     if plan.isEmpty { return plan }
 
     // Wörterbuch je Modell (id → Datensatz). Doppelte ids dürfte es nicht geben; falls doch, gewinnt
     // der erste Treffer, statt abzustürzen.
-    let timetables = Dictionary(
-      try modelContext.fetch(FetchDescriptor<TimetableRecord>()).map { ($0.id, $0) },
-      uniquingKeysWith: { first, _ in first })
-    let entries = Dictionary(
-      try modelContext.fetch(FetchDescriptor<TimetableEntryRecord>()).map { ($0.id, $0) },
-      uniquingKeysWith: { first, _ in first })
-    let links = Dictionary(
-      try modelContext.fetch(FetchDescriptor<MaterialLinkRecord>()).map { ($0.id, $0) },
-      uniquingKeysWith: { first, _ in first })
-    let notes = Dictionary(
-      try modelContext.fetch(FetchDescriptor<PenNoteRecord>()).map { ($0.id, $0) },
-      uniquingKeysWith: { first, _ in first })
-    let infos = Dictionary(
-      try modelContext.fetch(FetchDescriptor<LessonInfoRecord>()).map { ($0.id, $0) },
-      uniquingKeysWith: { first, _ in first })
-    let changes = Dictionary(
-      try modelContext.fetch(FetchDescriptor<ScheduleChangeRecord>()).map { ($0.id, $0) },
-      uniquingKeysWith: { first, _ in first })
-    let periods = Dictionary(
-      try modelContext.fetch(FetchDescriptor<NonTeachingPeriodRecord>()).map { ($0.id, $0) },
-      uniquingKeysWith: { first, _ in first })
+    let timetables = Self.byID(loaded.timetables, id: \.id)
+    let entries = Self.byID(loaded.entries, id: \.id)
+    let links = Self.byID(loaded.links, id: \.id)
+    let notes = Self.byID(loaded.penNotes, id: \.id)
+    let infos = Self.byID(loaded.lessonInfos, id: \.id)
+    let changes = Self.byID(loaded.scheduleChanges, id: \.id)
+    let periods = Self.byID(loaded.nonTeachingPeriods, id: \.id)
 
     // 1. Einträge an den behaltenen Stundenplan hängen (vor dem Löschen, sonst fiele der Eintrag
     //    mit dem aufgegebenen Stundenplan per Kaskade weg).
@@ -120,5 +97,57 @@ extension DataStore {
     // 6. Speichern (erhöht auch `revision`, damit die Oberfläche neu lädt).
     try saveAndBump()
     return plan
+  }
+
+  /// Zusammenführen nach einer bereits gespeicherten Änderung: Ein Fehler wird nur protokolliert,
+  /// damit der Aufrufer keinen Fehler meldet, obwohl seine Änderung gespeichert ist
+  /// (wie `SyncMergeTrigger`; der nächste Anlass führt erneut zusammen).
+  func mergeDuplicatesLoggingFailure() {
+    do {
+      try mergeDuplicates()
+    } catch {
+      Self.mergeLogger.error(
+        "Zusammenführen fehlgeschlagen: \(String(describing: error), privacy: .public)")
+    }
+  }
+
+  private static let mergeLogger = Logger(
+    subsystem: Bundle.main.bundleIdentifier ?? "com.example.frontstage", category: "sync")
+
+  /// id → Datensatz; bei doppelter id gewinnt der erste Treffer.
+  private static func byID<Record>(_ records: [Record], id: (Record) -> UUID) -> [UUID: Record] {
+    Dictionary(records.map { (id($0), $0) }, uniquingKeysWith: { first, _ in first })
+  }
+}
+
+/// Alle zusammenführbaren Datensätze, einmal geladen.
+@MainActor private struct LoadedRecords {
+  let timetables: [TimetableRecord]
+  let entries: [TimetableEntryRecord]
+  let links: [MaterialLinkRecord]
+  let penNotes: [PenNoteRecord]
+  let lessonInfos: [LessonInfoRecord]
+  let scheduleChanges: [ScheduleChangeRecord]
+  let nonTeachingPeriods: [NonTeachingPeriodRecord]
+
+  init(_ context: ModelContext) throws {
+    timetables = try context.fetch(FetchDescriptor<TimetableRecord>())
+    entries = try context.fetch(FetchDescriptor<TimetableEntryRecord>())
+    links = try context.fetch(FetchDescriptor<MaterialLinkRecord>())
+    penNotes = try context.fetch(FetchDescriptor<PenNoteRecord>())
+    lessonInfos = try context.fetch(FetchDescriptor<LessonInfoRecord>())
+    scheduleChanges = try context.fetch(FetchDescriptor<ScheduleChangeRecord>())
+    nonTeachingPeriods = try context.fetch(FetchDescriptor<NonTeachingPeriodRecord>())
+  }
+
+  func snapshot() -> SyncSnapshot {
+    SyncSnapshot(
+      timetables: timetables.map { $0.snapshot() },
+      entries: entries.compactMap { $0.snapshot() },
+      links: links.map { $0.snapshot() },
+      penNotes: penNotes.map { $0.snapshot() },
+      lessonInfos: lessonInfos.map { $0.snapshot() },
+      scheduleChanges: scheduleChanges.compactMap { $0.snapshot() },
+      nonTeachingPeriods: nonTeachingPeriods.compactMap { $0.snapshot() })
   }
 }

@@ -128,10 +128,10 @@ import Testing
     try store.assign(reference("Vokabeln.pdf"), to: mi8b)
     try store.savePenNote(
       for: vocabulary, pageIndex: 0, drawingData: Data([1]), pageWidth: 595, pageHeight: 842)
-    let neu = MaterialReference(
+    let renamed = MaterialReference(
       folderGrantName: "Unterricht", relativePath: "Englisch/Vokabeln neu.pdf", displayName: "Vokabeln neu",
       fileKind: .pdf)
-    #expect(try store.replaceReferences(atLocation: reference("Vokabeln.pdf").locationKey, with: neu) == 2)
+    #expect(try store.replaceReferences(atLocation: reference("Vokabeln.pdf").locationKey, with: renamed) == 2)
     #expect(try names(store, di8a) == ["Vokabeln neu", "Lösung"])
     #expect(try store.links(for: di8a).first?.penNotes?.count == 1)
   }
@@ -218,8 +218,8 @@ import Testing
         from: CalendarDay(year: 2026, month: 11, day: 16), to: CalendarDay(year: 2026, month: 11, day: 20),
         title: "Ferien"))
     #expect(try store.orphanedLinks(on: tue17).count == 1)
-    let do26 = CalendarDay(year: 2026, month: 11, day: 26)
-    let target = try #require(try store.lessons(on: do26).first).key
+    let thu26 = CalendarDay(year: 2026, month: 11, day: 26)
+    let target = try #require(try store.lessons(on: thu26).first).key
     try store.moveLink(link, to: target)
     #expect(try store.orphanedLinks(on: tue17).isEmpty)
     #expect(try store.links(for: target).count == 1)

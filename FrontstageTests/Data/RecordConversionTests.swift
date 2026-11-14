@@ -1,23 +1,45 @@
 import Foundation
 import FrontstageCore
+import SwiftData
 import Testing
 
 @testable import Frontstage
 
-@Suite struct RecordConversionTests {
+/// Jedes `@Model`-Objekt wird vor dem ersten Zugriff in einen eigenen In-Memory-Kontext eingefügt.
+/// Ohne Kontext hinge der Test davon ab, dass der Test-Host beim Start schon einen Container mit
+/// demselben Schema geladen hat; sonst bricht SwiftData mit „failed to find a currently active
+/// container“ ab.
+@MainActor @Suite struct RecordConversionTests {
+  private let container: ModelContainer  // festhalten, solange der Kontext lebt
+  private let context: ModelContext
+
+  init() throws {
+    container = try ModelContainerFactory.makeInMemoryContainer()
+    context = ModelContext(container)
+  }
+
+  /// Fügt den Datensatz in den Test-Kontext ein und gibt ihn zurück.
+  @discardableResult
+  private func inserted<Record: PersistentModel>(_ record: Record) -> Record {
+    context.insert(record)
+    return record
+  }
+
   @Test("Stundenplan hin und zurück, mit A/B-Wochen und Zeitraster")
   func timetableRoundTrip() {
     let entry = TimetableEntry(
       weekVariant: .a, weekday: .tuesday, period: 2, schoolClass: SchoolClass("8b"),
       subject: Subject("Englisch"))
-    let record = TimetableRecord(
-      name: "Beispielplan", weekVariantCount: 2,
-      referenceWeekAText: CalendarDay(year: 2026, month: 11, day: 16).storageText)
+    let record = inserted(
+      TimetableRecord(
+        name: "Beispielplan", weekVariantCount: 2,
+        referenceWeekAText: CalendarDay(year: 2026, month: 11, day: 16).storageText))
     record.setBellSchedule(
       BellSchedule(periods: [
         2: TimeOfDay(hour: 8, minute: 35)...TimeOfDay(hour: 9, minute: 20)
       ]))
-    let entryRecord = TimetableEntryRecord(timetable: record)
+    // Erst einfügen, dann die Beziehung setzen (wie `DataStore.insertEntryRecord`).
+    let entryRecord = inserted(TimetableEntryRecord())
     entryRecord.apply(entry, origin: .manual)
     record.entries = [entryRecord]
 
@@ -30,7 +52,7 @@ import Testing
 
   @Test("Fehlende Bezugswoche und unlesbares Zeitraster ergeben Rückfallwerte")
   func timetableFallbacks() {
-    let record = TimetableRecord()
+    let record = inserted(TimetableRecord())
     record.bellScheduleData = Data("kein json".utf8)
     let back = record.makeTimetable()
     #expect(back.referenceWeekA == CalendarDay(record.createdAt, calendar: .current))
@@ -39,7 +61,7 @@ import Testing
 
   @Test("Klasse wird normalisiert gespeichert, Fach mit Anzeigename")
   func entryStoresNormalizedClassAndSubjectDisplay() {
-    let record = TimetableEntryRecord()
+    let record = inserted(TimetableEntryRecord())
     record.apply(
       TimetableEntry(weekday: .monday, period: 1, schoolClass: SchoolClass("08B"), subject: Subject("Englisch")),
       origin: .source)
@@ -56,11 +78,11 @@ import Testing
     let substitute = ScheduleChange.substituteLesson(
       date: wed18, period: 4, schoolClass: SchoolClass("6c"), subject: Subject("Mathe"), .manual)
 
-    let first = ScheduleChangeRecord()
+    let first = inserted(ScheduleChangeRecord())
     first.apply(cancellation)
     #expect(first.makeChange() == cancellation)
 
-    let second = ScheduleChangeRecord()
+    let second = inserted(ScheduleChangeRecord())
     second.apply(substitute)
     #expect(second.makeChange() == substitute)
     #expect(second.snapshot()?.change == substitute)
@@ -69,7 +91,7 @@ import Testing
   @Test("Unterrichtsfreie Zeit hin und zurück")
   func nonTeachingPeriodRoundTrip() {
     let period = NonTeachingPeriod(from: tue17, to: thu19, title: "Studientage")
-    let record = NonTeachingPeriodRecord()
+    let record = inserted(NonTeachingPeriodRecord())
     record.apply(period)
     #expect(record.makePeriod() == period)
   }
@@ -77,7 +99,7 @@ import Testing
   @Test("Zuordnung trägt Schlüssel und Tag als Text")
   func linkStoresLessonKeyAndDayText() {
     let key = LessonKey(date: tue17, schoolClass: SchoolClass("8b"), subject: Subject("Englisch"), ordinal: 1)
-    let link = MaterialLinkRecord()
+    let link = inserted(MaterialLinkRecord())
     link.setLessonKey(key)
     #expect(link.dayText == "2026-11-17")
     #expect(link.lessonKey == key)
@@ -88,7 +110,7 @@ import Testing
     let ref = MaterialReference(
       folderGrantName: "Unterricht", relativePath: "Englisch/Folien.pptx", displayName: "Folien.pptx",
       fileKind: .presentation, oneDriveItemID: "01ABC", oneDriveDriveID: "b!x")
-    let link = MaterialLinkRecord()
+    let link = inserted(MaterialLinkRecord())
     link.setReference(ref)
     #expect(link.reference == ref)
     #expect(link.snapshot().fileIdentity == "onedrive:01ABC")
@@ -99,7 +121,7 @@ import Testing
 
   @Test("Tafelhintergrund: unbekannter Rohwert ergibt leer")
   func boardBackgroundFallsBackToBlank() {
-    let page = BoardPageRecord()
+    let page = inserted(BoardPageRecord())
     page.background = .grid
     #expect(page.backgroundRaw == "grid")
     page.backgroundRaw = "x"
@@ -108,8 +130,9 @@ import Testing
 
   @Test("Stiftnotiz-Abbild trägt die Zuordnung")
   func penNoteSnapshotCarriesLinkID() {
-    let link = MaterialLinkRecord()
-    let note = PenNoteRecord(materialLink: link, pageIndex: 3)
+    let link = inserted(MaterialLinkRecord())
+    let note = inserted(PenNoteRecord(materialLink: nil, pageIndex: 3))
+    note.materialLink = link
     let snapshot = note.snapshot()
     #expect(snapshot.linkID == link.id)
     #expect(snapshot.pageIndex == 3)
@@ -119,7 +142,7 @@ import Testing
   func lessonInfoApplyStampsOnlyChangedFields() {
     let t1 = Date(timeIntervalSince1970: 1_000)
     let t2 = Date(timeIntervalSince1970: 2_000)
-    let record = LessonInfoRecord()
+    let record = inserted(LessonInfoRecord())
     record.apply(LessonInfo(topic: "Unit 4 – Wortschatz", toPrepare: "Buch, Heft"), now: t1)
     record.apply(LessonInfo(topic: "Unit 4 – Wortschatz", toPrepare: nil), now: t2)
     #expect(record.topicUpdatedAt == t1)
@@ -132,11 +155,11 @@ import Testing
 
   @Test("Ungültige Rohwerte ergeben nil statt Absturz")
   func invalidRawValuesYieldNil() {
-    #expect(TimetableEntryRecord(weekdayRaw: 9).makeEntry() == nil)
-    #expect(TimetableEntryRecord(weekVariantRaw: "z").makeEntry() == nil)
-    #expect(TimetableEntryRecord(originRaw: "x").origin == .manual)
-    #expect(ScheduleChangeRecord(kindRaw: "x").makeChange() == nil)
-    #expect(NonTeachingPeriodRecord(fromText: "", toText: "2026-11-17").makePeriod() == nil)
-    #expect(MaterialLinkRecord(lessonKeyText: "").lessonKey == nil)
+    #expect(inserted(TimetableEntryRecord(weekdayRaw: 9)).makeEntry() == nil)
+    #expect(inserted(TimetableEntryRecord(weekVariantRaw: "z")).makeEntry() == nil)
+    #expect(inserted(TimetableEntryRecord(originRaw: "x")).origin == .manual)
+    #expect(inserted(ScheduleChangeRecord(kindRaw: "x")).makeChange() == nil)
+    #expect(inserted(NonTeachingPeriodRecord(fromText: "", toText: "2026-11-17")).makePeriod() == nil)
+    #expect(inserted(MaterialLinkRecord(lessonKeyText: "")).lessonKey == nil)
   }
 }

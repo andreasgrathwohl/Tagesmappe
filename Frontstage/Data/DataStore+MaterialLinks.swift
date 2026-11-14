@@ -146,7 +146,8 @@ extension DataStore {
 
   // MARK: - Verschieben (FR-3.3, FR-7, FR-8)
 
-  /// FR-3.3: ändert nur den Schlüssel; Stiftnotizen bleiben an der Zuordnung. nil → nichts geändert. Danach mergeDuplicates().
+  /// FR-3.3: ändert nur den Schlüssel; Stiftnotizen bleiben an der Zuordnung. nil → nichts geändert. Danach wird zusammengeführt;
+  /// ein Fehler dabei wird nur protokolliert, die Verschiebung bleibt gespeichert.
   @discardableResult
   func moveLinkToNextLesson(_ link: MaterialLinkRecord) throws -> LessonKey? {
     guard let key = link.lessonKey, let target = try nextLesson(after: key) else { return nil }
@@ -154,7 +155,7 @@ extension DataStore {
     link.setLessonKey(target)
     link.position = position
     try saveAndBump()
-    try mergeDuplicates()
+    mergeDuplicatesLoggingFailure()
     return target
   }
 
@@ -171,7 +172,7 @@ extension DataStore {
     }
     if !moving.isEmpty {
       try saveAndBump()
-      try mergeDuplicates()
+      mergeDuplicatesLoggingFailure()
     }
     return target
   }
