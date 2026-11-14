@@ -38,6 +38,13 @@ struct StoredPenNote {
     if case .blocked = location { return false }
     return true
   }
+  /// Seiten, die gerade nur im Datenort liegen, obwohl die Notiz-Datei gilt (Übernahme vorübergehend gescheitert).
+  private(set) var fallbackOnlyPages: Set<Int> = []
+  /// Ort für den Hinweis in der Anzeige: Solange Seiten nur im Datenort liegen, gilt der Ersatz-Hinweis.
+  var displayLocation: PenNoteLocation {
+    if location == .besideDocument, !fallbackOnlyPages.isEmpty { return .appDataFallback }
+    return location
+  }
 
   private let link: MaterialLinkRecord
   private let files: any PenNoteFileAccessing
@@ -101,53 +108,68 @@ struct StoredPenNote {
     }
 
     var result = fromFile
+    var retryPages: Set<Int> = []
     if location != .besideDocument || key == nil {
       // Blockiert oder ohne Schlüssel: Ersatz-Seiten nur anzeigen (bei blockiert zusätzlich, wenn vorhanden).
       for (index, note) in newestFallbackNotes() where result[index] == nil { result[index] = note }
     } else {
       let fallbackNotes = newestFallbackNotes()
-      let missing = fallbackNotes.filter { fromFile[$0.key] == nil }
       if !fallbackNotes.isEmpty {
-        result = await moveFallbackIntoFile(missing: missing, fromFile: fromFile, all: fallbackNotes)
+        (result, retryPages) = await reconcileFallback(fallbackNotes, fromFile: fromFile)
       }
     }
     // Im Speicher gehaltene, noch nicht geschriebene Zeichnungen gehen nicht verloren.
     for (index, note) in current where pending[index] != nil { result[index] = note }
     current = result
+    // Ersatz-Seiten, deren Übernahme nur vorübergehend scheiterte: der nächste `flush` schreibt sie in die Datei.
+    for index in retryPages where pending[index] == nil {
+      version += 1
+      pending[index] = version
+    }
     return result
   }
 
-  /// Übernimmt fehlende Ersatz-Seiten in die Datei; bei Erfolg werden die Datensätze gelöscht.
-  private func moveFallbackIntoFile(
-    missing: [Int: StoredPenNote], fromFile: [Int: StoredPenNote], all: [Int: StoredPenNote]
-  ) async -> [Int: StoredPenNote] {
+  /// Gleicht Ersatz-Seiten mit der gelesenen Notiz-Datei ab (Nachtrag 06): je Seite gewinnt der neuere Stand,
+  /// neuere Ersatz-Seiten werden in die Datei geschrieben, überholte Ersatz-Datensätze gelöscht.
+  /// - Returns: die anzuzeigenden Seiten und die Seiten, deren Schreiben später erneut versucht wird.
+  private func reconcileFallback(
+    _ fallbackNotes: [Int: StoredPenNote], fromFile: [Int: StoredPenNote]
+  ) async -> ([Int: StoredPenNote], Set<Int>) {
     var shown = fromFile
-    guard let key else { return shown }
-    // Nichts fehlt: die Datei gilt, die Ersatz-Datensätze bleiben unangetastet.
-    guard !missing.isEmpty else { return shown }
+    guard let key else { return (shown, []) }
+    let plan = PenNoteFallbackReconciliation.plan(
+      fileUpdatedAt: fromFile.mapValues(\.updatedAt), fallbackUpdatedAt: fallbackNotes.mapValues(\.updatedAt))
+    // Die Datei ist gelesen und hat diese Seiten gleich alt oder neuer: die Ersatz-Datensätze sind überholt.
+    removeFallbackPages(plan.obsoleteFallbackPages)
+    guard !plan.pagesToWrite.isEmpty else { return (shown, []) }
+
     var file = lastFile ?? emptyFile(for: key)
-    for (index, note) in missing.sorted(by: { $0.key < $1.key }) {
+    for index in plan.pagesToWrite.sorted() {
+      guard let note = fallbackNotes[index] else { continue }
+      shown[index] = note
       file = file.updating(
         pageIndex: index, drawing: note.drawing.dataRepresentation(),
         currentSize: note.savedSize ?? PageSize(width: 0, height: 0), now: note.updatedAt, device: device)
     }
     do {
-      let written = try await files.write(file, changedPages: Set(missing.keys), reference: reference, key: key)
+      let written = try await files.write(file, changedPages: plan.pagesToWrite, reference: reference, key: key)
       lastFile = written
       shown = Self.decode(written.pages)
-      removeFallbackLoggingFailure()
+      removeFallbackPages(plan.pagesToWrite)
+      // Die Datei hat sich geändert: das Notiz-PDF beim Schließen nachziehen.
+      hasChangesThisSession = true
+      return (shown, [])
     } catch PenNoteWriteError.notWritable {
       location = .appDataFallback
-      for (index, note) in all where shown[index] == nil { shown[index] = note }
     } catch PenNoteWriteError.blocked(let reason) {
       location = .blocked(reason)
-      for (index, note) in all where shown[index] == nil { shown[index] = note }
     } catch {
-      // Nächster Öffnungsversuch probiert es erneut; bis dahin sind die Ersatz-Seiten sichtbar.
+      // Vorübergehend gescheitert: Ersatz-Seiten bleiben sichtbar und im Datenort, bis ein `flush` sie schreibt.
       Self.logger.error("Ersatz-Notizen konnten nicht in die Notiz-Datei übernommen werden")
-      for (index, note) in all where shown[index] == nil { shown[index] = note }
+      fallbackOnlyPages = plan.pagesToWrite
+      return (shown, plan.pagesToWrite)
     }
-    return shown
+    return (shown, [])
   }
 
   // MARK: - Speichern
@@ -200,6 +222,12 @@ struct StoredPenNote {
         let written = try await files.write(file, changedPages: Set(pages.keys), reference: reference, key: key)
         lastFile = written
         clearPending(snapshot)
+        // Seiten, die bisher nur im Datenort lagen, stehen jetzt neuer in der Datei: Ersatz löschen (Nachtrag 06).
+        let movedFromFallback = fallbackOnlyPages.intersection(pages.keys)
+        if !movedFromFallback.isEmpty {
+          removeFallbackPages(movedFromFallback)
+          fallbackOnlyPages.subtract(movedFromFallback)
+        }
         return
       } catch PenNoteWriteError.notWritable {
         location = .appDataFallback
@@ -216,19 +244,41 @@ struct StoredPenNote {
     }
 
     if location == .appDataFallback {
-      var saved: [Int: Int] = [:]
-      for (index, note) in pages.sorted(by: { $0.key < $1.key }) {
-        do {
-          try fallback.savePenNote(
-            for: link, pageIndex: index, drawingData: note.drawing.dataRepresentation(),
-            pageWidth: note.savedSize?.width ?? 0, pageHeight: note.savedSize?.height ?? 0)
-          saved[index] = snapshot[index]
-        } catch {
-          Self.logger.error("Ersatz-Notiz konnte nicht gespeichert werden")
-        }
-      }
-      clearPending(saved)
+      clearPending(saveToFallback(pages, snapshot: snapshot, keepingTimestamps: false))
     }
+  }
+
+  /// Schreibt beim Schließen der Anzeige. Scheitert die Notiz-Datei (`.failed`, `.blocked`), wandern die
+  /// ausstehenden Seiten in den Ersatz im Datenort, statt mit dem Schließen verloren zu gehen; beim nächsten
+  /// Öffnen gleicht `loadAll` sie mit der Datei ab (Nachtrag 06).
+  func flushBeforeClose() async {
+    await flush()
+    guard !pending.isEmpty else { return }
+    let snapshot = pending
+    var pages: [Int: StoredPenNote] = [:]
+    for index in snapshot.keys { if let note = current[index] { pages[index] = note } }
+    Self.logger.error("Notiz-Datei beim Schließen nicht geschrieben, ausstehende Seiten gehen in den Datenort")
+    clearPending(saveToFallback(pages, snapshot: snapshot, keepingTimestamps: true))
+  }
+
+  /// Speichert Seiten als `PenNoteRecord`. Liefert die gespeicherten Seiten mit ihrem Versionszähler.
+  /// - Parameter keepingTimestamps: `updatedAt` der Zeichnung übernehmen statt „jetzt“.
+  private func saveToFallback(
+    _ pages: [Int: StoredPenNote], snapshot: [Int: Int], keepingTimestamps: Bool
+  ) -> [Int: Int] {
+    var saved: [Int: Int] = [:]
+    for (index, note) in pages.sorted(by: { $0.key < $1.key }) {
+      do {
+        try fallback.savePenNote(
+          for: link, pageIndex: index, drawingData: note.drawing.dataRepresentation(),
+          pageWidth: note.savedSize?.width ?? 0, pageHeight: note.savedSize?.height ?? 0,
+          updatedAt: keepingTimestamps ? note.updatedAt : .now)
+        saved[index] = snapshot[index]
+      } catch {
+        Self.logger.error("Ersatz-Notiz konnte nicht gespeichert werden")
+      }
+    }
+    return saved
   }
 
   private func clearPending(_ written: [Int: Int]) {
@@ -241,9 +291,11 @@ struct StoredPenNote {
     PenNoteFile(lessonKey: key, document: documentName, device: device, updatedAt: .now, pages: [])
   }
 
-  private func removeFallbackLoggingFailure() {
-    do { try fallback.removePenNotes(for: link) } catch {
-      Self.logger.error("Ersatz-Notizen konnten nach dem Umzug nicht gelöscht werden")
+  /// Löscht die Ersatz-Datensätze dieser Seiten; ein Fehler wird nur protokolliert (nächstes Öffnen räumt nach).
+  private func removeFallbackPages(_ pageIndices: Set<Int>) {
+    guard !pageIndices.isEmpty else { return }
+    do { try fallback.removePenNotes(for: link, pageIndices: pageIndices) } catch {
+      Self.logger.error("Ersatz-Notizen konnten nach dem Abgleich nicht gelöscht werden")
     }
   }
 

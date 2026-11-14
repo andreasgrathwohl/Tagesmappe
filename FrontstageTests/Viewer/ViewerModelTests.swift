@@ -109,4 +109,37 @@ import Testing
     #expect(model.notesLocation == .appDataFallback)
     #expect(await files.pdfWriteCount == 0)
   }
+
+  @Test("Nachtrag 06: Schließen während des Ladens bricht ab – danach kein Zustand, nichts auf dem Zweitbildschirm")
+  func closingWhileLoadingCancelsLoad() async throws {
+    let gate = LoadGate()
+    let (model, _, screen) = try await TestViewer.make(
+      kind: .pdf, data: TestDocuments.pdfData(pages: 1, size: .a4), notePages: [0],
+      beforeLoad: { await gate.wait() })
+    let loading = Task { await model.load() }
+    while !gate.isWaiting { await Task.yield() }
+    await model.close()
+    gate.open()
+    await loading.value
+    #expect(model.phase == .loading)
+    #expect(model.document == nil)
+    #expect(model.documentData == nil)
+    #expect(screen.state.mode == .classScreen)
+    #expect(screen.material == nil)
+  }
+
+  @Test("Nachtrag 06: Abbruch des aufrufenden Tasks (Ansicht verschwindet) bricht das Laden ab")
+  func cancellingCallerCancelsLoad() async throws {
+    let gate = LoadGate()
+    let (model, _, screen) = try await TestViewer.make(
+      kind: .pdf, data: TestDocuments.pdfData(pages: 1, size: .a4), beforeLoad: { await gate.wait() })
+    let loading = Task { await model.load() }
+    while !gate.isWaiting { await Task.yield() }
+    loading.cancel()
+    gate.open()
+    await loading.value
+    #expect(model.phase == .loading)
+    #expect(model.document == nil)
+    #expect(screen.material == nil)
+  }
 }

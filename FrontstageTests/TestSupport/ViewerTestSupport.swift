@@ -246,7 +246,7 @@ enum TestFiles {
 
 /// Notiz-Dateien im Speicher (je Ort ein temporärer Ordner, bedient vom echten `PenNoteFileStore`).
 actor InMemoryPenNoteFiles: PenNoteFileAccessing {
-  private let blocked: PenNoteBlockReason?
+  private var blocked: PenNoteBlockReason?
   private let notWritable: Bool
   private var unreachable: Bool
   private var folders: [String: URL] = [:]
@@ -263,6 +263,9 @@ actor InMemoryPenNoteFiles: PenNoteFileAccessing {
   }
 
   func setUnreachable(_ value: Bool) { unreachable = value }
+
+  /// Die Datei wird mitten in der Sitzung gesperrt (z. B. von einem anderen Gerät in neuerem Format geschrieben).
+  func setBlocked(_ reason: PenNoteBlockReason?) { blocked = reason }
 
   /// Legt eine Datei (und optional ihr Notiz-PDF) für den Ort ab.
   func put(_ file: PenNoteFile, for reference: MaterialReference, withPDF: Bool = false) throws {
@@ -375,7 +378,7 @@ struct StubReader: MaterialFileReading {
   static func make(
     kind: MaterialFileKind, data: Data = Data(), readError: (any Error)? = nil, notePages: [Int] = [],
     notes: [Int: PageSize] = [:], existingPDF: Bool = false, notWritable: Bool = false,
-    saveDelay: Duration = .milliseconds(500)
+    saveDelay: Duration = .milliseconds(500), beforeLoad: @escaping @MainActor () async -> Void = {}
   ) async throws -> (ViewerModel, InMemoryPenNoteFiles, SecondScreenState) {
     let (store, link) = try TestStore.contextWithLink(kind: kind)
     let files = InMemoryPenNoteFiles(notWritable: notWritable)
@@ -397,7 +400,23 @@ struct StubReader: MaterialFileReading {
     let penNotes = PenNoteStore(link: link, files: files, fallback: store, saveDelay: saveDelay)
     let model = ViewerModel(
       link: link, notes: penNotes, fileReader: StubReader(data: data, error: readError), files: files,
-      secondScreen: screen)
+      secondScreen: screen, beforeLoad: beforeLoad)
     return (model, files, screen)
+  }
+}
+
+/// Hält das Laden an, bis der Test es freigibt (Schließen während des Ladens).
+@MainActor final class LoadGate {
+  private(set) var isWaiting = false
+  private var continuation: CheckedContinuation<Void, Never>?
+
+  func wait() async {
+    isWaiting = true
+    await withCheckedContinuation { continuation = $0 }
+  }
+
+  func open() {
+    continuation?.resume()
+    continuation = nil
   }
 }

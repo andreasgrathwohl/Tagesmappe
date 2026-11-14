@@ -151,4 +151,98 @@ import Testing
     #expect(notes.location == .appDataFallback)
     #expect(try ctx.penNotes(for: link).count == 2)  // nichts gelöscht, solange der Ordner nicht beschreibbar ist
   }
+
+  // MARK: - Nachtrag 06: Ersatz beim Schließen und Abgleich beim Öffnen
+
+  @Test("Nachtrag 06: Notiz-Datei beim Schließen nicht schreibbar (.failed) → Seiten in den Datenort, nicht verworfen")
+  func failedWriteOnCloseKeepsPagesInFallback() async throws {
+    let (ctx, link) = try TestStore.contextWithLink()
+    let files = InMemoryPenNoteFiles()
+    let notes = PenNoteStore(link: link, files: files, fallback: ctx, saveDelay: .seconds(60))
+    _ = await notes.loadAll()
+    notes.scheduleSave(TestDrawings.twoWords, pageIndex: 1, pageSize: .a4)
+    let drawnAt = try #require(notes.currentNotes()[1]?.updatedAt)
+    await files.setUnreachable(true)
+    await notes.flushBeforeClose()
+    #expect(!notes.hasPendingChanges)
+    let records = try ctx.penNotes(for: link)
+    #expect(records.map(\.pageIndex) == [1])
+    #expect(records.first?.updatedAt == drawnAt)  // Zeitpunkt der Zeichnung, nicht des Schließens
+
+    // Nächstes Öffnen mit erreichbarer Datei: Seite wandert in die Datei, der Ersatz wird gelöscht.
+    await files.setUnreachable(false)
+    let reopened = await PenNoteStore(link: link, files: files, fallback: ctx).loadAll()
+    #expect(reopened[1]?.drawing.strokes.count == TestDrawings.twoWords.strokes.count)
+    #expect(await files.writeCount == 1)
+    #expect(try ctx.penNotes(for: link).isEmpty)
+  }
+
+  @Test("Nachtrag 06: Notiz-Datei mitten in der Sitzung gesperrt → beim Schließen in den Datenort")
+  func blockedWriteOnCloseKeepsPagesInFallback() async throws {
+    let (ctx, link) = try TestStore.contextWithLink()
+    let files = InMemoryPenNoteFiles()
+    let notes = PenNoteStore(link: link, files: files, fallback: ctx, saveDelay: .seconds(60))
+    _ = await notes.loadAll()
+    notes.scheduleSave(TestDrawings.word, pageIndex: 0, pageSize: .a4)
+    await files.setBlocked(.newerFormat)
+    await notes.flushBeforeClose()
+    #expect(notes.location == .blocked(.newerFormat))
+    #expect(await files.writeCount == 0)  // die gesperrte Datei wird nie angefasst
+    #expect(try ctx.penNotes(for: link).map(\.pageIndex) == [0])
+  }
+
+  @Test("Nachtrag 06: neuere Ersatz-Seite gewinnt gegen die Datei und wird zurückgeschrieben")
+  func newerFallbackPageWinsAndIsWrittenBack() async throws {
+    let (ctx, link) = try TestStore.contextWithLink()
+    let files = InMemoryPenNoteFiles()
+    // Datei: Seite 0 mit einem Strich, Stand 1_800_000_000.
+    try await files.put(TestFiles.note(TestKeys.tue8aEnglish, pages: [0]), for: link.reference)
+    try TestStore.addFallbackNote(
+      to: ctx, link: link, page: 0, drawing: TestDrawings.twoWords,
+      updatedAt: Date(timeIntervalSince1970: 1_800_000_600))
+    let notes = PenNoteStore(link: link, files: files, fallback: ctx)
+    let loaded = await notes.loadAll()
+    #expect(loaded[0]?.drawing.strokes.count == TestDrawings.twoWords.strokes.count)
+    #expect(await files.writeCount == 1)
+    #expect(try ctx.penNotes(for: link).isEmpty)
+    #expect(notes.hasChangesThisSession)  // das Notiz-PDF wird beim Schließen nachgezogen
+    let again = await PenNoteStore(link: link, files: files, fallback: ctx).loadAll()
+    #expect(again[0]?.drawing.strokes.count == TestDrawings.twoWords.strokes.count)
+  }
+
+  @Test("Nachtrag 06: Ersatz-Seiten, die die Datei gleich alt oder neuer hat, werden gelöscht")
+  func obsoleteFallbackPagesAreRemoved() async throws {
+    let (ctx, link) = try TestStore.contextWithLink()
+    let files = InMemoryPenNoteFiles()
+    let stamp = Date(timeIntervalSince1970: 1_800_000_000)  // Stand der Datei aus `TestFiles.note`
+    try await files.put(TestFiles.note(TestKeys.tue8aEnglish, pages: [0, 1]), for: link.reference)
+    try TestStore.addFallbackNote(to: ctx, link: link, page: 0, drawing: TestDrawings.twoWords, updatedAt: stamp)
+    try TestStore.addFallbackNote(
+      to: ctx, link: link, page: 1, drawing: TestDrawings.twoWords, updatedAt: stamp.addingTimeInterval(-60))
+    let loaded = await PenNoteStore(link: link, files: files, fallback: ctx).loadAll()
+    #expect(loaded[0]?.drawing.strokes.count == TestDrawings.word.strokes.count)
+    #expect(loaded[1]?.drawing.strokes.count == TestDrawings.word.strokes.count)
+    #expect(await files.writeCount == 0)
+    #expect(try ctx.penNotes(for: link).isEmpty)
+  }
+
+  @Test("Nachtrag 06: Übernahme scheitert vorübergehend → Hinweis Datenort, nächster flush schreibt in die Datei")
+  func temporarilyFailedMoveIsRetriedOnFlush() async throws {
+    let (ctx, link) = try TestStore.contextWithLink()
+    let files = InMemoryPenNoteFiles(unreachable: true)
+    try TestStore.addFallbackNote(to: ctx, link: link, page: 2, drawing: TestDrawings.word, updatedAt: .now)
+    let notes = PenNoteStore(link: link, files: files, fallback: ctx, saveDelay: .seconds(60))
+    let loaded = await notes.loadAll()
+    #expect(loaded[2] != nil)
+    #expect(notes.location == .besideDocument)
+    #expect(notes.displayLocation == .appDataFallback)  // die Anzeige zeigt den Ersatz-Hinweis
+    #expect(notes.hasPendingChanges)
+    #expect(try ctx.penNotes(for: link).count == 1)
+
+    await files.setUnreachable(false)
+    await notes.flush()
+    #expect(await files.writeCount == 1)
+    #expect(try ctx.penNotes(for: link).isEmpty)
+    #expect(notes.displayLocation == .besideDocument)
+  }
 }

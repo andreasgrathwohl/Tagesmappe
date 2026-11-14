@@ -1492,3 +1492,14 @@ Nicht in diesem Teilplan: FR-11, FR-11.1–11.3, FR-11.7 (Inhalt des Klassenbild
 10. **Dateiname der Stunden-Datei** in dateisicherer Form (`2026-11-17_8b_englisch_1.json`, Entscheidung 1) statt des wörtlichen `storageText` mit `|`, das OneDrive und Windows nicht erlauben.
 11. **Gleiches Dokument in zwei Fächern derselben Klasse am selben Tag** teilt sich einen Notiz-PDF-Namen (Entscheidung 6); die Notiz-Dateien bleiben getrennt.
 12. **Löschen der letzten Zuordnung** lässt Notiz-Datei und Notiz-PDF neben dem Dokument stehen (Area anzeige); Ersatz-Datensätze im Datenort werden dagegen mit der Zuordnung gelöscht (`.cascade`, Teilplan 02).
+
+## Nachtrag 2026-11-14 — Entscheidungen nach der Umsetzung
+
+Vier Festlegungen aus dem Review der Umsetzung (Bündel C), im Code umgesetzt:
+
+1. **Zweitbildschirm auf iPadOS 27 mit einem Xcode-26-Stand:** Der iOS-27-Weg über das Szenen-Zubehör bleibt in `#if compiler(>=6.4)`. `AppDelegate` nimmt die Rolle `.windowExternalDisplayNonInteractive` aber **immer** an (die Sperre `#unavailable(iOS 27)` ist entfernt), damit die Tagesansicht nie auf dem Bildschirm im Klassenraum landet (FR-6.2). Ob iPadOS 27 die Szene ohne Zubehör überhaupt verbindet, bleibt Geräteprüfung (Spalte iPadOS 27); der Punkt „Werkzeugstand“ unter Abstimmungsbedarf bleibt für den regulären iOS-27-Weg offen.
+2. **Schreiben der Notiz-Datei scheitert beim Schließen** (`.failed`, `.blocked`): `PenNoteStore.flushBeforeClose()` legt die ausstehenden Seiten als `PenNoteRecord` in den Datenort (mit dem Zeitpunkt der Zeichnung als `updatedAt`) statt sie zu verwerfen. Beim nächsten Öffnen gewinnt je Seite der neuere Stand (`PenNoteFallbackReconciliation`, Kern); neuere Ersatz-Seiten werden sofort in die Datei geschrieben, scheitert das vorübergehend, beim nächsten `flush`. Solange Seiten nur im Datenort liegen, zeigt die Anzeige den vorhandenen Ersatz-Hinweis (`PenNoteStore.displayLocation`).
+3. **Überholte Ersatz-Seiten:** Hat die gelesene Notiz-Datei eine Seite gleich alt oder neuer, werden ihre Ersatz-Datensätze gelöscht (`DataStore.removePenNotes(for:pageIndices:)`). Vorher blieben sie liegen, sobald keine Seite in der Datei fehlte.
+4. **Schließen während des Ladens** bricht das Laden kooperativ ab (`ViewerModel.close()` setzt `isClosed` und bricht den Lade-Task ab; `load()` prüft nach jedem `await`, reicht den Abbruch des aufrufenden Tasks weiter). Nach dem Schließen schreibt das Laden keinen Zustand mehr und öffnet nichts auf dem Zweitbildschirm.
+
+Belege: `PenNoteFallbackReconciliationTests` (Kern), `failedWriteOnCloseKeepsPagesInFallback`, `blockedWriteOnCloseKeepsPagesInFallback`, `newerFallbackPageWinsAndIsWrittenBack`, `obsoleteFallbackPagesAreRemoved`, `temporarilyFailedMoveIsRetriedOnFlush`, `closingWhileLoadingCancelsLoad`, `cancellingCallerCancelsLoad`.

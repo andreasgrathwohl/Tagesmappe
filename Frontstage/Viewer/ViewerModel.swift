@@ -26,8 +26,8 @@ import PencilKit
   var outdatedPages: [Int] { pages(with: .sizeChanged) }
   /// Notizen zu Seiten, die das Dokument nicht mehr hat, aufsteigend.
   var missingPages: [Int] { pages(with: .pageMissing) }
-  /// Wo die Notizen liegen – für den Hinweis in der Anzeige.
-  var notesLocation: PenNoteLocation { notes.location }
+  /// Wo die Notizen liegen – für den Hinweis in der Anzeige (auch Seiten, die vorerst nur im Datenort liegen).
+  var notesLocation: PenNoteLocation { notes.displayLocation }
   /// Zeichnen ist nur auf dem iPad möglich und nur, wenn die Notiz-Datei beschrieben werden darf.
   var canDraw: Bool {
     #if os(iOS)
@@ -47,6 +47,10 @@ import PencilKit
   private let beforeLoad: @MainActor () async -> Void
   /// Dieses Modell hat Material und Tafel auf den Zweitbildschirm gebracht; nur dann gibt `close()` sie frei.
   @ObservationIgnored private var presentsOnSecondScreen = false
+  /// Gesetzt von `close()`: Ein noch laufendes Laden schreibt danach keinen Zustand mehr (Nachtrag 06).
+  @ObservationIgnored private var isClosed = false
+  /// Das laufende Laden; `close()` bricht es kooperativ ab.
+  @ObservationIgnored private var loadTask: Task<Void, Never>?
   private static let logger = Logger(
     subsystem: Bundle.main.bundleIdentifier ?? "com.example.frontstage", category: "ViewerModel")
 
@@ -70,20 +74,48 @@ import PencilKit
 
   /// Liest das Material, lädt die Notizen und zeigt alles auf dem Zweitbildschirm. Scheitert Lesen oder
   /// Öffnen, ist die Anzeige „nicht verfügbar“; Zweitbildschirm und Notizen bleiben unberührt.
+  ///
+  /// Wird die Anzeige währenddessen geschlossen (oder der aufrufende Task abgebrochen), endet das Laden am
+  /// nächsten `await` ohne weitere Zustandsänderung – sonst öffnete ein spätes Laden das Material erneut auf
+  /// dem Zweitbildschirm, nachdem `close()` ihn schon freigegeben hat.
+  ///
+  /// Swift-Hinweis: Abbrechen ist in Swift kooperativ – `cancel()` setzt nur ein Kennzeichen, das der Code an
+  /// seinen Wartepunkten selbst prüfen muss (`Task.isCancelled`). `withTaskCancellationHandler` reicht den
+  /// Abbruch des Aufrufers (z. B. `.task` beim Verschwinden der Ansicht) an den inneren Task weiter.
   func load() async {
+    guard !isClosed else { return }
+    let task = Task { await self.performLoad() }
+    loadTask = task
+    await withTaskCancellationHandler {
+      await task.value
+    } onCancel: {
+      task.cancel()
+    }
+    if loadTask == task { loadTask = nil }
+  }
+
+  /// Abgebrochen oder geschlossen: kein Zustand mehr schreiben.
+  private var loadIsStale: Bool { isClosed || Task.isCancelled }
+
+  private func performLoad() async {
     phase = .loading
     await beforeLoad()
+    guard !loadIsStale else { return }
     let data: Data
     let loaded: PDFDocument
     do {
       data = try await fileReader.readData(for: reference)
+      try Task.checkCancellation()
       loaded = try MaterialDocumentLoader.makeDocument(from: data, kind: reference.fileKind)
     } catch {
+      guard !loadIsStale else { return }
       Self.logger.error("Material konnte nicht geladen werden")
       phase = .unavailable
       return
     }
+    guard !loadIsStale else { return }
     let stored = await notes.loadAll()
+    guard !loadIsStale else { return }
 
     var fits: [Int: PenNoteFit] = [:]
     for (index, note) in stored {
@@ -136,7 +168,11 @@ import PencilKit
 
   /// Speichert, schreibt bei Bedarf das Notiz-PDF und gibt den Zweitbildschirm frei (AK-13, AK-23).
   func close() async {
-    await notes.flush()
+    // Zuerst, vor jedem `await`: ein noch laufendes Laden darf danach nichts mehr öffnen.
+    isClosed = true
+    loadTask?.cancel()
+    // Scheitert die Notiz-Datei, landen ausstehende Seiten im Datenort statt verloren zu gehen.
+    await notes.flushBeforeClose()
     await writeNotesPDFIfNeeded()
     // Eine gescheiterte Anzeige hat nichts geöffnet und nimmt deshalb auch nichts weg (z. B. die Tafel).
     guard presentsOnSecondScreen else { return }

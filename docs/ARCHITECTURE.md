@@ -125,7 +125,7 @@ Vorgabewert, alle Beziehungen sind optional, und kein Modell nutzt Eindeutigkeit
 | Abweichung | Datum, Schlüssel der Unterrichtsstunde, Art (Ausfall, Vertretungsstunde), bei Vertretungsstunde: Stunde, Klasse, Fach | FR-8, FR-9, FR-2.2 |
 | Zuordnung | Schlüssel der Unterrichtsstunde, Position, Verweis auf das Material | FR-3, FR-3.1 |
 | Materialverweis | Ordnerfreigabe, Pfad darin, ggf. OneDrive-Kennung, Anzeigename, Dateiart | gemäß ADR-0003 |
-| Stiftnotiz | Verweis auf die Zuordnung, Seite (bei Bildern 1), Zeichnungsdaten, Seitengröße beim Zeichnen | **nur Ersatz** gemäß ADR-0011, wenn der Ordner des Dokuments nicht beschreibbar ist; sonst liegen Stiftnotizen neben dem Dokument (Area anzeige) |
+| Stiftnotiz | Verweis auf die Zuordnung, Seite (bei Bildern 1), Zeichnungsdaten, Seitengröße beim Zeichnen | **nur Ersatz** gemäß ADR-0011, wenn der Ordner des Dokuments nicht beschreibbar ist oder das Schreiben der Notiz-Datei beim Schließen scheitert; sonst liegen Stiftnotizen neben dem Dokument (Area anzeige) |
 | Stundenangaben | Schlüssel der Unterrichtsstunde, Thema, Bereitlegen, Hausaufgabe | FR-11.1; höchstens ein Datensatz je Unterrichtsstunde |
 | Tafelseite | Schlüssel der Unterrichtsstunde, Position, Hintergrund (leer, liniert, kariert oder ein Bild: Standbild der Kamera bzw. Vorlage, FR-12.5, FR-12.6), Zeichnungsdaten | FR-12.1, FR-12.2; die Tafelseiten einer Unterrichtsstunde bilden ihr Tafelbild; s. Area anzeige |
 | Ordnerfreigabe | dauerhafter Systemverweis auf einen freigegebenen Ordner | **nur lokal je Gerät**, nicht gespiegelt (s. Area ablage) |
@@ -339,6 +339,10 @@ Grundlage ist Apples Entwicklerdoku „Presenting content on a connected display
 - Weil die Tagesansicht nie auf dem Zweitbildschirm erscheinen darf (FR-6.2), wird das Zubehör an der
   Hauptansicht der App angemeldet und gilt damit, solange die App im Vordergrund ist – nicht erst, wenn
   die Anzeige offen ist. Sonst würde das System die Tagesansicht spiegeln.
+- Aus demselben Grund nimmt die App eine Szene mit dieser Rolle in jeder Version selbst an, auch ab
+  iOS 27: Fehlt in einem Stand der Weg über das Zubehör (gebaut mit einem Werkzeug ohne die
+  iOS-27-Schnittstellen), bekommt die Szene trotzdem den Inhalt des Zweitbildschirms und nie die
+  Hauptansicht.
 - Die Szene zeigt genau einen von vier Zuständen (FR-11.5): **Klassenbildschirm** (Ruhezustand,
   FR-11), **Material** (aktuelle Seite mit Stiftnotizen), **Tafel** (aktuelle Tafelseite, FR-12) oder
   **Dunkel** (FR-11.4) – immer ohne Bedienelemente. Blättern, Zoomen und Schreiben am Tablet werden
@@ -448,6 +452,13 @@ gehören sie zur Unterrichtsstunde. Das Original wird nie verändert.
   gehören der Lehrkraft, nicht der App.
 - Ist der Ordner des Dokuments nicht beschreibbar, liegen die Notizen der Stunde ersatzweise im
   Datenort (Area daten, Modell Stiftnotiz) und die Anzeige sagt das.
+- Scheitert das Schreiben der Notiz-Datei beim Schließen (Fehler oder gesperrte Datei), gehen die noch
+  nicht geschriebenen Seiten ebenfalls in den Ersatz im Datenort, statt verloren zu gehen. Beim nächsten
+  Öffnen gewinnt je Seite der neuere Stand; neuere Ersatz-Seiten werden so bald wie möglich in die
+  Notiz-Datei geschrieben, Ersatz-Seiten, die die Datei gleich alt oder neuer hat, werden gelöscht.
+  Solange Seiten nur im Datenort liegen, sagt die Anzeige das.
+- Wird die Anzeige geschlossen, während sie noch lädt, bricht das Laden ab und ändert danach nichts mehr
+  (auch nicht am Zweitbildschirm).
 - Seitengröße weicht ab oder Seite fehlt (Dokument ersetzt oder umgebaut): Notiz bleibt sichtbar mit
   Hinweis auf eine frühere Fassung, wird nie stillschweigend verworfen.
 - Neu verknüpfen: Die App sucht Notiz-Ordner und PDFs am alten Ort und bietet an, sie neben die neue
@@ -488,3 +499,4 @@ gehören sie zur Unterrichtsstunde. Das Original wird nie verändert.
 - 2026-11-13: Architecture Doc status ready — freigegeben von Andreas; offen bleiben Q-18 (am Gerät) und im PRD Q-22, beide blockieren den Bau nicht, weil für beide ein Rückfall beschrieben ist (Übergabe der Datei bzw. RISK-5)
 - 2026-11-13: anzeige changed — Klassenbildschirm im Verlauf der Stunde (FR-11.7), Kamera, Vorlage, Abdecken (FR-12.5 bis FR-12.7); daten changed — Stundenangaben mit Bereitlegen und Hausaufgabe, Tafelseite mit Bild als Hintergrund
 - 2026-11-14: stundenplan-quellen changed — Vorschau je Gerät gemerkt (Prüfsumme des Stundenplan-Teils) und bei neuerem gespiegeltem Stand verworfen; Gerät ohne Zugangsdaten fragt nicht ab und zeigt einen ruhigen Hinweis; Zugangsdaten nach falschen Zugangsdaten und mehreren Schulen gelöscht, nach Netz-/Server-/Formfehlern behalten (Abschlussreview Teilplan 05)
+- 2026-11-14: anzeige changed — Szene des Zweitbildschirms wird auch ab iOS 27 immer angenommen (FR-6.2, Stand ohne iOS-27-Werkzeug); Stiftnotizen: gescheitertes Schreiben beim Schließen geht in den Ersatz im Datenort, beim Öffnen gewinnt je Seite der neuere Stand, überholter Ersatz wird gelöscht; Schließen während des Ladens bricht das Laden ab (Nachtrag Teilplan 06)
