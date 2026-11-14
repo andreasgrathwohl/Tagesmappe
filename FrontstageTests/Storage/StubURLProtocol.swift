@@ -13,14 +13,33 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
   /// Antwort der Attrappe: Status und Rumpf als JSON-Zeichenkette.
   typealias Handler = @Sendable (URLRequest) -> (status: Int, body: String)
 
+  /// Ausführliche Antwort: mit Antwortköpfen (z. B. `Retry-After`) oder als Netzfehler.
+  enum Reply: Sendable {
+    case response(status: Int, headers: [String: String], body: String)
+    case failure(URLError.Code)
+  }
+
+  typealias Responder = @Sendable (URLRequest) -> Reply
+
   /// Eine Attrappe samt Aufzeichnung der eingegangenen Anfragen.
   final class Server: @unchecked Sendable {
     let id = UUID().uuidString
-    let handler: Handler
+    let responder: Responder
     private let lock = NSLock()
     private var recorded: [URLRequest] = []
 
-    init(handler: @escaping Handler) { self.handler = handler }
+    init(handler: @escaping Handler) {
+      self.responder = { request in
+        let answer = handler(request)
+        return .response(status: answer.status, headers: [:], body: answer.body)
+      }
+    }
+
+    private init(responder: @escaping Responder) { self.responder = responder }
+
+    /// Zweiter Weg neben `init(handler:)`: Antwortköpfe und Netzfehler. Als Fabrik statt zweitem
+    /// Initialisierer, damit `Server { … }` mit nachgestelltem Abschluss eindeutig bleibt.
+    static func responding(_ responder: @escaping Responder) -> Server { Server(responder: responder) }
 
     var requests: [URLRequest] {
       lock.lock()
@@ -70,11 +89,15 @@ final class StubURLProtocol: URLProtocol, @unchecked Sendable {
       return
     }
     server.record(request)
-    let answer = server.handler(request)
-    let response = HTTPURLResponse(url: url, statusCode: answer.status, httpVersion: nil, headerFields: nil)!
-    client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
-    client?.urlProtocol(self, didLoad: Data(answer.body.utf8))
-    client?.urlProtocolDidFinishLoading(self)
+    switch server.responder(request) {
+    case .failure(let code):
+      client?.urlProtocol(self, didFailWithError: URLError(code))
+    case .response(let status, let headers, let body):
+      let response = HTTPURLResponse(url: url, statusCode: status, httpVersion: nil, headerFields: headers)!
+      client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+      client?.urlProtocol(self, didLoad: Data(body.utf8))
+      client?.urlProtocolDidFinishLoading(self)
+    }
   }
 
   override func stopLoading() {}
