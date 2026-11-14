@@ -205,12 +205,14 @@ struct HandOffAnchorReader: View {
     }
 
     private final class ResolvingView: UIView {
-      var onResolve: ((HandOffAnchor, AuthPresentationAnchor) -> Void)? {
-        didSet { resolve() }
-      }
+      /// Wird bewusst ohne `didSet` gesetzt: `updateUIView` läuft mitten in einem SwiftUI-Update.
+      var onResolve: ((HandOffAnchor, AuthPresentationAnchor) -> Void)?
+      /// Zuletzt gemeldeter Rahmen; verhindert Wiederholungen ohne Änderung.
+      private var lastRect: CGRect?
 
       override func didMoveToWindow() {
         super.didMoveToWindow()
+        lastRect = nil
         resolve()
       }
 
@@ -219,9 +221,17 @@ struct HandOffAnchorReader: View {
         resolve()
       }
 
+      /// Meldet nur bei geändertem Rahmen und asynchron, damit der Empfänger nie während eines
+      /// SwiftUI-Updates Zustand schreibt.
       private func resolve() {
-        guard window != nil, let onResolve, let controller = owningController() else { return }
-        onResolve(HandOffAnchor(view: self, rect: bounds), controller)
+        guard window != nil, lastRect != bounds else { return }
+        lastRect = bounds
+        Task { @MainActor [weak self] in
+          guard let self, self.window != nil, let onResolve = self.onResolve,
+            let controller = self.owningController()
+          else { return }
+          onResolve(HandOffAnchor(view: self, rect: self.bounds), controller)
+        }
       }
 
       /// Läuft die Responder-Kette hinauf bis zum ersten ViewController.
@@ -248,18 +258,23 @@ struct HandOffAnchorReader: View {
     }
 
     private final class ResolvingView: NSView {
-      var onResolve: ((HandOffAnchor, AuthPresentationAnchor) -> Void)? {
-        didSet { resolve() }
-      }
+      /// Wird bewusst ohne `didSet` gesetzt: `updateNSView` läuft mitten in einem SwiftUI-Update.
+      var onResolve: ((HandOffAnchor, AuthPresentationAnchor) -> Void)?
 
       override func viewDidMoveToWindow() {
         super.viewDidMoveToWindow()
         resolve()
       }
 
+      /// Meldet nur beim Einhängen ins Fenster und asynchron (kein Zustandsschreiben im Update).
       private func resolve() {
-        guard let onResolve, let controller = window?.contentViewController else { return }
-        onResolve(HandOffAnchor(), controller)
+        guard window != nil else { return }
+        Task { @MainActor [weak self] in
+          guard let self, let onResolve = self.onResolve,
+            let controller = self.window?.contentViewController
+          else { return }
+          onResolve(HandOffAnchor(), controller)
+        }
       }
     }
   #endif
