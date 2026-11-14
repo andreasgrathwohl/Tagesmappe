@@ -158,36 +158,72 @@ wird, oder die automatische Wahl der laufenden Stunde stört beim Vorausschauen.
 
 ---
 
-### UI-4 — Die Zeilen füllen die Höhe: der ganze Tag ohne Scrollen
+### UI-4 — Die Tagesansicht ist kompakt: Systemdichte mit festen Zeilen
 
 - category: 2
 - Constrained by: UI-2, UI-3
 
-**Entscheidung:** Die Liste der Tagesansicht bleibt bei der heutigen Dichte: Die Zeilen teilen sich die verfügbare
-Höhe, höchstens 96 pt, mindestens 44 pt, 8 pt Abstand (`Frontstage/UI/DayView/DayViewLayout.swift`); bei 6 Stunden
-96 pt, bei 8 Stunden etwa 78 pt. Erst wenn selbst 44 pt nicht mehr passen, scrollt die Liste. Für den neuen
-Detailbereich (UI-3) gilt die Skala, die mit dieser Dichte gerendert wurde: 32 pt Rand, 24 pt zwischen
-Abschnitten, 16 pt zwischen Material-Zielen, Material-Ziele etwa 200 pt hoch. Gewählt von Andreas am 2026-11-15.
+**Entscheidung:** Die Liste der Tagesansicht hat feste Zeilen von 44 pt mit 4 pt Abstand; Abstandsskala 4/8 pt.
+Je Zeile oben Klasse · Fach mit Stunde und Uhrzeit rechtsbündig daneben, darunter eine Aussage- oder Themenzeile.
+Der Detailbereich (UI-3): 16 pt Rand, 16 pt zwischen Abschnitten, 8 pt zwischen Material-Zielen, Material-Ziele
+etwa 120 pt hoch. Auch ein Tag mit 8 Stunden belegt nur etwa die halbe Höhe; die Liste scrollt erst bei sehr
+vielen Einträgen oder großer Dynamic-Type-Stufe. Gewählt von Andreas am 2026-11-15 (zunächst A, dann geändert
+auf B).
 
 **Kontext:** Drei Varianten derselben Liste-und-Detail-Ansicht, je mit 6 und 8 Stunden gerendert (HTML-Nachbau).
-Der Nachbau aus Runde 1 hatte 6 statt 8 pt Zeilenabstand; maßgeblich ist der Wert im Code. Die Werte des
-Detailbereichs stammen aus dem Nachbau, weil es ihn im Code noch nicht gibt.
+Ist-Zustand im Code: Zeilen teilen sich die Höhe, 44–96 pt, 8 pt Abstand (`Frontstage/UI/DayView/DayViewLayout.swift`).
 
 **Verworfen, jeweils mit Vorzug:**
-- Kompakt (Zeilen 44 pt fest, Skala 4/8, Material-Ziele 120 pt) — Systemdichte von iPadOS, auch lange Tage
-  belegen nur die halbe Höhe.
+- Ist-Zustand (Zeilen füllen die Höhe, 96 pt bei 6 und etwa 78 pt bei 8 Stunden, Material-Ziele 200 pt) — der Tag
+  füllt immer den Schirm, große Zeilen ohne Scrollen.
 - Großzügig (Zeilen 112 pt fest, Skala 16/24/32, Material-Ziele 280 pt) — größte Ziele für die Bedienung im
-  Stehen auf Armlänge; dafür scrollt die Liste schon bei 6 Stunden.
+  Stehen; dafür scrollt die Liste schon bei 6 Stunden.
 
 **Konsequenzen mit Kosten:**
-- Die Zeilenhöhe ändert sich mit der Zahl der Stunden; ein langer Tag sieht dichter aus als ein kurzer. Die
-  Schriftskala (Runde 4) muss in die kleinste übliche Höhe (etwa 78 pt bei 8 Stunden) passen.
-- Bei großer Dynamic-Type-Stufe oder vielen Stunden fällt die Liste auf Scrollen zurück; der Detailbereich
-  scrollt eigenständig.
+- 44 pt ist Apples Mindestgröße für Tippziele; im Stehen auf Armlänge knapp. Die Stundenwahl in der Liste ist
+  dadurch das kleinste Ziel; das Material selbst liegt groß im Detailbereich.
+- Unter der Liste bleibt an kurzen Tagen viel freie Fläche; was dort steht (nichts, „Material ohne Stunde“ o. a.),
+  ist eine Frage der Zustände (Runde 8).
+- `DayViewLayout` (Zeilen füllen die Höhe) wird beim Bau ersetzt: feste Zeilenhöhe, Scrollen als Normalfall.
+- Die Schriftskala (Runde 4) muss zwei Zeilen in 44 pt tragen (im Nachbau 15/13 pt); der Zeilenaufbau aus dem
+  Nachbau ist dafür nur Platzhalter.
 - Beschluss am HTML-Nachbau; beim ersten Bau am Gerät bestätigen (UI-2).
 
-**Revisit if:** Am Gerät sind die Ziele bei 8 Stunden im Stehen zu klein, oder Runde 4 findet keine
-Schriftskala, die in 78 pt drei Zeilen trägt.
+**Revisit if:** Am Gerät wird im Stehen die falsche Stunde getroffen, oder zwei Textzeilen passen bei üblicher
+Dynamic-Type-Stufe nicht in 44 pt.
+
+*Überholter Wortlaut (2026-11-15, erste Wahl A, am selben Tag geändert):*
+
+> ### UI-4 — Die Zeilen füllen die Höhe: der ganze Tag ohne Scrollen
+>
+> - category: 2
+> - Constrained by: UI-2, UI-3
+>
+> **Entscheidung:** Die Liste der Tagesansicht bleibt bei der heutigen Dichte: Die Zeilen teilen sich die verfügbare
+> Höhe, höchstens 96 pt, mindestens 44 pt, 8 pt Abstand (`Frontstage/UI/DayView/DayViewLayout.swift`); bei 6 Stunden
+> 96 pt, bei 8 Stunden etwa 78 pt. Erst wenn selbst 44 pt nicht mehr passen, scrollt die Liste. Für den neuen
+> Detailbereich (UI-3) gilt die Skala, die mit dieser Dichte gerendert wurde: 32 pt Rand, 24 pt zwischen
+> Abschnitten, 16 pt zwischen Material-Zielen, Material-Ziele etwa 200 pt hoch. Gewählt von Andreas am 2026-11-15.
+>
+> **Kontext:** Drei Varianten derselben Liste-und-Detail-Ansicht, je mit 6 und 8 Stunden gerendert (HTML-Nachbau).
+> Der Nachbau aus Runde 1 hatte 6 statt 8 pt Zeilenabstand; maßgeblich ist der Wert im Code. Die Werte des
+> Detailbereichs stammen aus dem Nachbau, weil es ihn im Code noch nicht gibt.
+>
+> **Verworfen, jeweils mit Vorzug:**
+> - Kompakt (Zeilen 44 pt fest, Skala 4/8, Material-Ziele 120 pt) — Systemdichte von iPadOS, auch lange Tage
+>   belegen nur die halbe Höhe.
+> - Großzügig (Zeilen 112 pt fest, Skala 16/24/32, Material-Ziele 280 pt) — größte Ziele für die Bedienung im
+>   Stehen auf Armlänge; dafür scrollt die Liste schon bei 6 Stunden.
+>
+> **Konsequenzen mit Kosten:**
+> - Die Zeilenhöhe ändert sich mit der Zahl der Stunden; ein langer Tag sieht dichter aus als ein kurzer. Die
+>   Schriftskala (Runde 4) muss in die kleinste übliche Höhe (etwa 78 pt bei 8 Stunden) passen.
+> - Bei großer Dynamic-Type-Stufe oder vielen Stunden fällt die Liste auf Scrollen zurück; der Detailbereich
+>   scrollt eigenständig.
+> - Beschluss am HTML-Nachbau; beim ersten Bau am Gerät bestätigen (UI-2).
+>
+> **Revisit if:** Am Gerät sind die Ziele bei 8 Stunden im Stehen zu klein, oder Runde 4 findet keine
+> Schriftskala, die in 78 pt drei Zeilen trägt.
 
 ---
 
@@ -220,3 +256,4 @@ Schriftskala, die in 78 pt drei Zeilen trägt.
 - 2026-11-14: UI-2 new — Runde 0: Referenz Tagesansicht am iPad quer, Modus Operate, gerendert per HTML-Nachbau
 - 2026-11-14: UI-3 new — Runde 1: Tagesansicht als Liste und Detail, gewählt aus vier Varianten
 - 2026-11-15: UI-4 new — Runde 2: Dichte bleibt beim Ist-Zustand (Zeilen füllen die Höhe), Skala des Detailbereichs festgelegt
+- 2026-11-15: UI-4 changed — Andreas wählt doch die kompakte Dichte (B) statt des Ist-Zustands (A)
