@@ -420,12 +420,17 @@ Gemäß ADR-0011 (löst ADR-0006 ab) liegen Stiftnotizen neben dem Dokument in d
 gehören sie zur Unterrichtsstunde. Das Original wird nie verändert.
 
 - **Notiz-Datei:** neben `<Name>.<Endung>` der Ordner `<Name>.frontstage-notizen/`, darin je
-  Unterrichtsstunde `<Schlüssel der Unterrichtsstunde>.json` (Text des Schlüssels gemäß ADR-0005) mit
+  Unterrichtsstunde eine Datei mit dem Schlüssel in dateinamentauglicher Form, z. B.
+  `2026-11-17_8b_englisch_1.json` (umkehrbar; `|` aus dem Speichertext des Schlüssels ist in OneDrive und
+  Windows verboten; maßgeblich ist das Feld `lessonKey` in der Datei, gemäß ADR-0005) mit
   Zeichnungsdaten je Seite (PencilKit-Daten, Base64) und der Seitengröße beim Zeichnen. Je Stunde eine
   Datei, damit zwei Geräte nur bei derselben Stunde dieselbe Datei schreiben.
 - **Lesbares PDF:** beim Schließen der Anzeige `<Name> – Notizen <Klasse> <JJJJ-MM-TT>.pdf` daneben,
   erzeugt mit PDFKit: Seiten des Originals plus die Striche als Ink-Anmerkungen (bei Bildern: das Bild
-  als PDF-Seite). Wird bei jedem Schließen neu geschrieben; maßgeblich bleibt die Notiz-Datei.
+  als PDF-Seite). Geschrieben beim Schließen, wenn sich etwas geändert hat oder es fehlt; ohne Striche
+  wird es entfernt (sonst erzeugte jedes bloße Ansehen eine Datei, die der Anbieter abgleicht).
+  Maßgeblich bleibt die Notiz-Datei. Teilen sich zwei Dokumente den Grundnamen (`Tafelbild.pdf`,
+  `Tafelbild.png`), heißen die Stunden-Dateien `<Schlüssel>.<endung>.json`.
 - Geschrieben wird über den Baustein „Ablage“ (Ordnerfreigabe des Materials, Dateikoordination des
   Systems); gespeichert beim Absetzen des Stifts mit kurzer Verzögerung und sicher beim Schließen
   (AK-13). Der Abgleich zwischen Geräten läuft über den Ablage-Anbieter, unabhängig vom Datenort.
@@ -470,6 +475,7 @@ gehören sie zur Unterrichtsstunde. Das Original wird nie verändert.
 - 2026-11-14: daten changed — Datenort wählbar (ADR-0010 löst ADR-0002 ab, FR-14): Abschnitt Datenort, Datenordner-Abgleich, Betrieb; Bausteinbild ergänzt
 - 2026-11-14: daten changed — Datenort iCloud oder OneDrive über Microsoft Graph (ADR-0012 löst ADR-0010 ab): Abschnitt Datenort neu (App-Ordner, Delta, Buch je Gerät, inhaltsadressierte Anhänge, Wechsel in der laufenden App, Beitreten), Koppeln per QR-Code (FR-14.1); Bausteinbild: OneDrive-Abgleich statt Abgleich über die Dateien-Schnittstelle; Q-33, Q-34 new
 - 2026-11-14: anzeige changed — Stiftnotizen neben dem Dokument (ADR-0011 löst ADR-0006 ab): Notiz-Datei je Stunde und lesbares PDF; daten changed — Modell Stiftnotiz nur noch Ersatz
+- 2026-11-14: anzeige changed — Dateiname der Stunden-Datei dateinamentauglich, Notiz-PDF nur nach Änderung, gleicher Grundname (beim Nachziehen von Teilplan 06 gefunden)
 - 2026-11-14: anzeige changed — Widersprüche zu ADR-0011/ADR-0012 bereinigt (beim Nachziehen der Teilpläne 04–07 gefunden): Darstellung schreibt Stiftnotizen neben das Dokument statt „schreibt nie in die Ablage (ADR-0006)“; Tafelseiten über den Datenort statt „Muster von ADR-0006“; Standbilder im Datenort statt „nur im iCloud-Bereich“; daten changed — Betrieb nennt den Wiederherstellungsweg bei OneDrive
 - 2026-11-13: Architecture Doc status ready — freigegeben von Andreas; offen bleiben Q-18 (am Gerät) und im PRD Q-22, beide blockieren den Bau nicht, weil für beide ein Rückfall beschrieben ist (Übergabe der Datei bzw. RISK-5)
 - 2026-11-13: anzeige changed — Klassenbildschirm im Verlauf der Stunde (FR-11.7), Kamera, Vorlage, Abdecken (FR-12.5 bis FR-12.7); daten changed — Stundenangaben mit Bereitlegen und Hausaufgabe, Tafelseite mit Bild als Hintergrund

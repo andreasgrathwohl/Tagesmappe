@@ -52,7 +52,7 @@ Festgelegt (Beispiel Material `Arbeitsblatt Vokabeln.pdf`):
 - „In die nächste Stunde schieben“ und Weiterreichen bei Ausfall benennen Notiz-Datei-Eintrag und PDF
   auf die neue Unterrichtsstunde um; „Für <Klasse> übernehmen“ legt nichts an (FR-6.1).
 - Ist der Ordner des Dokuments nicht beschreibbar (z. B. ein nur lesend geteilter Ordner), liegen die
-  Notizen der Stunde ersatzweise im Datenort (ADR-0010) und die Anzeige sagt das.
+  Notizen der Stunde ersatzweise im Datenort (ADR-0012, damals ADR-0010) und die Anzeige sagt das.
 
 ### Consequences
 
