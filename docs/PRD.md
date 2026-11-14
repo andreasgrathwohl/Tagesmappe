@@ -76,8 +76,9 @@ Person (Q-13).
 | Kaufangebot | was statt einer gekauften Funktion erscheint, solange der Einmalkauf fehlt | Abo | `PurchaseOffer` |
 | Zustand des Materials | ob ein Material auf dem Gerät liegt, geladen wird oder nicht verfügbar ist | Ausfall | `MaterialAvailability` |
 | Übergabe | Material zum Bearbeiten an die zuständige App geben, ohne Kopie | Präsentieren | `handOff` |
-| Datenort | wo die App-Daten zwischen den Geräten einer Lehrkraft abgeglichen werden: iCloud oder ein Ordner in der Ablage | Ablage (dort liegt das Material) | `DataLocation` (`iCloud`, `folder`) |
-| Datenordner | der Ordner in der Ablage, den die Lehrkraft als Datenort gewählt hat; die App schreibt nur dort hinein | Ordnerfreigabe für Material | `DataFolder` |
+| Datenort | wo die App-Daten zwischen den Geräten einer Lehrkraft abgeglichen werden: iCloud oder OneDrive (direkt, nach Microsoft-Anmeldung) | Ablage (dort liegt das Material) | `DataLocation` (`iCloud`, `oneDrive`) |
+| Datenordner | der Ordner der App in OneDrive (`Apps/Frontstage`), in dem die App-Daten liegen, wenn OneDrive der Datenort ist; die App schreibt dort hinein | Ordnerfreigabe für Material | `DataFolder` |
+| Koppeln | ein zweites Gerät übernimmt per QR-Code den Datenort (und bei OneDrive den Datenordner) des ersten | Ordnerfreigabe (gibt einen Ordner für Material frei) | `pairing` |
 
 ## Constraints
 
@@ -368,7 +369,13 @@ Für Schulen, die für ihr Kollegium kaufen, eine eigene, bezahlte Fassung mit a
 In-App-Kauf, die über Apple School Manager verteilt werden kann (RISK-7). Erst, wenn Schulen danach
 fragen.
 
-### FR-14 — Datenort wählbar: iCloud oder ein Ordner in der Ablage [MVP]
+### FR-14 — Datenort wählbar: iCloud oder OneDrive [MVP]
+
+**Geändert 2026-11-14 (ADR-0012 löst ADR-0010 ab):** Datenort ist iCloud oder OneDrive – direkt über
+Microsoft Graph nach der Microsoft-Anmeldung, im Ordner der App in OneDrive (Datenordner). Ein
+beliebiger Ordner der Ablage (Nextcloud, Google Drive, iCloud Drive über die Dateien-App) wird aktuell
+nicht angeboten. Vom Nutzer: „Nextcloud will ich aktuell nicht anbieten, sondern OneDrive nativ.“ Der
+übrige Inhalt gilt weiter. Ursprünglicher Wortlaut (überholt, bleibt stehen):
 
 Die Lehrkraft wählt beim Einrichten, wo die App-Daten (Stundenplan, Abweichungen, Zuordnungen,
 Stiftnotizen, Stundenangaben, Tafelbilder) zwischen ihren Geräten abgeglichen werden: in iCloud oder
@@ -376,6 +383,16 @@ in einem Ordner ihrer Ablage (z. B. OneDrive, Google Drive, Schul-Nextcloud, iCl
 Datenorten funktionieren Vorbereiten am Mac und Unterrichten am iPad gleich. Ein späterer Wechsel des
 Datenorts nimmt alle Daten mit. Die App schreibt dabei nur in diesen Datenordner, nie in Material
 (FR-3.4). Vom Nutzer: „Nicht jeder nutzt iCloud, daher soll es auswählbar sein“ (ADR-0010).
+
+### FR-14.1 — Geräte per QR-Code koppeln [MVP]
+
+Auf dem ersten Gerät (Mac oder iPad) zeigt Einrichten einen QR-Code. Das zweite Gerät scannt ihn mit der
+Kamera und übernimmt Datenort und Datenordner, sodass beide Geräte denselben Datenort nutzen, ohne ihn
+von Hand zu wählen. Bei OneDrive meldet sich die Lehrkraft am zweiten Gerät mit demselben
+Microsoft-Konto an; die App prüft, dass sie denselben Datenordner erreicht. Funktioniert ohne jeden
+Server. Hat ein Gerät keine Kamera, zeigt es den QR-Code, und das andere scannt; von Hand wählen bleibt
+immer möglich. Vom Nutzer: „ohne Server und QR-Code zum Koppeln“. Verworfen: eigener Server mit
+Konto – widerspricht NFR-2.
 
 ### NFR-1 — Material sofort und aktuell verfügbar [MVP]
 
@@ -399,7 +416,7 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 ## Lieferstufen
 
 - **MVP:** FR-1, FR-1.1, FR-2, FR-2.2, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-7, FR-8,
-  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, FR-13.1, NFR-1 bis NFR-4, FR-1.2, FR-14 (geprüfte Zahl: 42). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
+  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, FR-13.1, NFR-1 bis NFR-4, FR-1.2, FR-14, FR-14.1 (geprüfte Zahl: 43). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
 - **Later:** FR-2.1, FR-7.1, FR-10, FR-13.2.
 
 ## Out of Scope
@@ -435,6 +452,13 @@ Umgang: Zielgruppe sind zunächst Lehrkräfte mit eigenem Tablet (Q-13), die sel
 Schulen, folgt die Schulversion (FR-13.2).
 
 ### RISK-9 — Abgleich über einen Ordner in der Ablage ist langsamer und anbieterabhängig
+
+**Geändert 2026-11-14 (ADR-0012):** Statt vom Verhalten einzelner Ablage-Anbieter hängt der zweite
+Datenort jetzt an Microsoft: Abgleich nur mit Netz und gültiger Microsoft-Anmeldung auf jedem Gerät;
+die Berechtigung `Files.ReadWrite` kann ein Schulträger für Nutzerzustimmung sperren (Q-34); ob die
+Änderungsabfrage (Delta) auf dem App-Ordner bei Schulkonten geht, ist am Gerät zu prüfen (Q-33, Rückfall:
+Ordner auflisten). Umgang: Stand des Abgleichs sichtbar machen, offline lokal weiterarbeiten, früh mit
+einem privaten und einem Schulkonto am Gerät prüfen. Ursprünglicher Wortlaut (überholt):
 
 Mit dem Datenort „Ordner in der Ablage“ (FR-14, ADR-0010) bestimmt der Ablage-Anbieter, wann eine am
 Mac vorbereitete Zuordnung auf dem iPad ankommt; manche Anbieter laden Dateien erst beim Öffnen und
@@ -546,7 +570,8 @@ muss.
 - AK-38 (FR-12.6): Aufbau: Unterrichtsstunde mit einem zugeordneten PDF. Handlung: in der Tafel „Vorlage“ wählen, Seite 1 des PDFs nehmen und einen Ausschnitt um Aufgabe 2 ziehen. Ergebnis: Eine neue Tafelseite zeigt den Ausschnitt vergrößert als Hintergrund und lässt sich beschreiben; das PDF in der Ablage ist unverändert.
 - AK-39 (FR-12.7): Aufbau: Tafelseite mit drei Zeilen, Tablet verbunden. Handlung: Abdecken wählen, die Abdeckung bis unter Zeile 1 ziehen, dann bis unter Zeile 2. Ergebnis: Der Zweitbildschirm zeigt erst nur Zeile 1, dann Zeile 1 und 2; am Tablet sind alle drei Zeilen durch die Abdeckung hindurch erkennbar.
 - AK-40 (FR-13): Aufbau: frisch geladene App, kein Kauf. Handlung: Stundenplan anlegen, Material zuordnen, öffnen, mit Apple TV verbunden ein PDF zeigen; dann Tafel und Klassenbildschirm antippen; Einmalkauf ausführen; App auf einem zweiten Gerät mit derselben Apple-ID öffnen. Ergebnis: Ohne Kauf funktioniert alles bis einschließlich PDF am Zweitbildschirm; Tafel und Klassenbildschirm zeigen ein Kaufangebot statt der Funktion; nach dem Kauf sind beide auf beiden Geräten frei, ohne erneute Zahlung und ohne Ablaufdatum.
-- AK-43 (FR-14): Aufbau: iPad und Mac ohne iCloud-Anmeldung, beide mit Zugriff auf denselben OneDrive-Ordner. Handlung: auf beiden Geräten beim Einrichten Datenort „Ordner in der Ablage“ und diesen Ordner wählen; am Mac einen Stundenplan-Eintrag anlegen und Material zuordnen; am iPad mit dem Stift eine Notiz auf ein PDF schreiben. Ergebnis: Eintrag und Zuordnung erscheinen am iPad, die Stiftnotiz am Mac, sobald der Anbieter die Dateien abgeglichen hat; das Material selbst ist unverändert; im Ordner liegen nur Dateien der App.
+- AK-43 (FR-14): Aufbau: iPad und Mac ohne iCloud-Anmeldung, auf beiden dasselbe Microsoft-Konto verfügbar. Handlung: auf beiden Geräten beim Einrichten Datenort „OneDrive“ wählen und mit diesem Konto anmelden (am zweiten Gerät auch per Koppeln, FR-14.1); am Mac einen Stundenplan-Eintrag anlegen und Material zuordnen; am iPad mit dem Stift eine Notiz auf ein PDF schreiben. Ergebnis: Eintrag und Zuordnung erscheinen am iPad, die Stiftnotiz am Mac, sobald beide Geräte online abgeglichen haben; das Material selbst ist unverändert; im Datenordner (`Apps/Frontstage` in OneDrive) liegen nur Dateien der App. (Geändert 2026-11-14, ADR-0012; vorher: gemeinsamer OneDrive-Ordner über die Dateien-App, Datenort „Ordner in der Ablage“.)
+- AK-44 (FR-14.1): Aufbau: Mac mit Datenort OneDrive und Daten (Stundenplan, Zuordnungen); iPad frisch installiert. Handlung: am Mac in Einrichten „Gerät koppeln“ öffnen; am iPad in Einrichten „Mit anderem Gerät koppeln“ wählen, den QR-Code scannen, mit demselben Microsoft-Konto anmelden und bestätigen. Ergebnis: Das iPad nutzt denselben Datenordner, die Daten vom Mac erscheinen dort; ist am Mac iCloud gewählt, stellt das iPad nach dem Scannen auf iCloud um. Ein QR-Code eines anderen Microsoft-Kontos wird mit einem Hinweis abgelehnt, ohne Daten zu ändern.
 - AK-41 (FR-13.1): Aufbau: kein Kauf. Handlung: Stundenplan-Quelle Schulmanager Online einrichten und importieren. Ergebnis: Der Import funktioniert ohne Kauf; die App bezeichnet die Anbindung als inoffiziell und ohne Gewähr.
 - AK-26 (FR-11.2): Aufbau: wie AK-24. Handlung: Timer auf 5 Minuten stellen und starten; nach 1 Minute anhalten; beenden. Ergebnis: Der Klassenbildschirm zählt von 5:00 herunter, bleibt beim Anhalten bei 4:00 stehen und zeigt nach dem Beenden keinen Timer mehr. Wird währenddessen ein PDF oder die Tafel gezeigt, bleibt die Restzeit auf dem Zweitbildschirm sichtbar; läuft der Timer ab, gibt es ein sichtbares und hörbares Signal.
 - AK-27 (FR-11.3): Aufbau: wie AK-24. Handlung: „Partnerarbeit“ wählen; Auswahl aufheben. Ergebnis: Der Klassenbildschirm zeigt Symbol und Wort „Partnerarbeit“, danach keine Arbeitsform.
@@ -598,6 +623,9 @@ muss.
 - 2026-11-13: FR-1.2 new — Zeitraster, abgeleitet aus FR-11 und FR-11.7 (Lücke beim Plan-Cold-Start-Check gefunden); Glossar um Zeitraster ergänzt; AK-42, Lieferstufen (41) und Abdeckung angepasst
 - 2026-11-13: FR-1.2 bestätigt von Andreas
 - 2026-11-14: FR-14 new — Datenort wählbar, iCloud oder Ordner in der Ablage (ADR-0010 löst ADR-0002 ab); AK-43, RISK-9, Glossar Datenort und Datenordner; Lieferstufen (42)
+- 2026-11-14: FR-14 changed — Datenort iCloud oder OneDrive direkt über Microsoft Graph (ADR-0012 löst ADR-0010 ab); Nextcloud und Google Drive aktuell nicht; AK-43, RISK-9, Glossar Datenort (`oneDrive` statt `folder`) und Datenordner (Ordner der App in OneDrive) angepasst
+- 2026-11-14: FR-14.1 new — Geräte per QR-Code koppeln; AK-44, Glossar Koppeln (`pairing`); Lieferstufen (43)
+- 2026-11-14: Verworfen (FR-14.1): eigener Server mit Website und Konto zum Koppeln oder Abgleichen – von Andreas abgelehnt, NFR-2 bleibt
 - 2026-11-14: FR-6.1 changed — Stiftnotizen neben dem Dokument als Notiz-Datei und lesbares PDF (ADR-0011 löst ADR-0006 ab); FR-3.4 präzisiert (abgeleitete Dateien); AK-13 ergänzt; Glossar Notiz-Datei, Notiz-PDF
 
 ## Anhang A — Abdeckung
@@ -651,6 +679,7 @@ nicht (Geschäftsmodell, quer zu allen Phasen).
 | FR-13 | AK-40 |
 | FR-13.1 | AK-41 |
 | FR-14 | AK-43 |
+| FR-14.1 | AK-44 |
 | FR-7 | AK-14 |
 | FR-8 | AK-15 |
 | FR-9 | AK-16 |
