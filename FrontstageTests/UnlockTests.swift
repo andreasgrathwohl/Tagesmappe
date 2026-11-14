@@ -32,7 +32,7 @@ import Testing
   @Test("Review Focus 4: Erstattung sperrt wieder")
   func refundRelocks() async throws {
     let transaction = try await session.buyProduct(identifier: Unlock.productID, options: [])
-    try session.refundTransaction(identifier: Int(transaction.id))
+    try session.refundTransaction(identifier: UInt(transaction.id))
     let unlock = Unlock(listenForUpdates: false)
     await unlock.refresh()
     #expect(unlock.isUnlocked == false)
