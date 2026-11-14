@@ -4,6 +4,33 @@ import Testing
 
 @testable import Frontstage
 
+/// Einmalige Sondierung, ob der Testlauf Schlüsselbundzugriff hat. Ein unsignierter Testhost
+/// (CI, `CODE_SIGNING_ALLOWED=NO`) bekommt `errSecMissingEntitlement` (-34018); nur dann gilt
+/// „nicht verfügbar“. Jeder andere Status zählt als verfügbar, damit echte Fehler nicht
+/// stillschweigend übersprungen werden.
+enum KeychainAvailability {
+  static let isAvailable: Bool = {
+    let attributes: [String: Any] = [
+      kSecClass as String: kSecClassGenericPassword,
+      kSecAttrService as String: "frontstage.tests.keychain-probe",
+      kSecAttrAccount as String: "probe",
+      kSecValueData as String: Data([0]),
+      kSecUseDataProtectionKeychain as String: true,
+    ]
+    let status = SecItemAdd(attributes as CFDictionary, nil)
+    if status == errSecSuccess || status == errSecDuplicateItem {
+      let remove: [String: Any] = [
+        kSecClass as String: kSecClassGenericPassword,
+        kSecAttrService as String: "frontstage.tests.keychain-probe",
+        kSecAttrAccount as String: "probe",
+        kSecUseDataProtectionKeychain as String: true,
+      ]
+      SecItemDelete(remove as CFDictionary)
+    }
+    return status != errSecMissingEntitlement
+  }()
+}
+
 @Suite struct KeychainCredentialStoreTests {
   private let credentials = SchulmanagerCredentials(username: "max@example.com", password: "Beispiel-Passwort-1")
 
@@ -12,7 +39,8 @@ import Testing
     return (KeychainCredentialStore(service: service), service)
   }
 
-  @Test("Zugangsdaten nur im Schlüsselbund, gerätegebunden (NFR-4, AK-20)")
+  @Test("Zugangsdaten nur im Schlüsselbund, gerätegebunden (NFR-4, AK-20)",
+    .enabled(if: KeychainAvailability.isAvailable, "Kein Schlüsselbund ohne Signatur (CI); AK-20 wird am Gerät geprüft"))
   func credentialsAreDeviceOnlyAndNotSynchronizable() throws {
     let (store, service) = makeStore()
     defer { try? store.delete() }
@@ -40,7 +68,8 @@ import Testing
     #expect(!defaultsText.contains("Beispiel-Passwort-1"))
   }
 
-  @Test("Speichern, Laden, Ersetzen und Löschen")
+  @Test("Speichern, Laden, Ersetzen und Löschen",
+    .enabled(if: KeychainAvailability.isAvailable, "Kein Schlüsselbund ohne Signatur (CI); AK-20 wird am Gerät geprüft"))
   func saveLoadDeleteRoundTrip() throws {
     let (store, _) = makeStore()
     defer { try? store.delete() }
