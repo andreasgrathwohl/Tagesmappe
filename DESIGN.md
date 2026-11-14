@@ -118,6 +118,46 @@ Nachbau gefallen ist.
 
 ---
 
+### UI-3 — Die Tagesansicht ist Liste und Detail: links der Tag, rechts die gewählte Stunde
+
+- category: 1
+- Constrained by: UI-2
+
+**Entscheidung:** Die Tagesansicht teilt sich in eine schmale Liste der Stunden des Tages (Stunde, Uhrzeit,
+Klasse · Fach, eine Aussagezeile) und einen Detailbereich mit der gewählten Unterrichtsstunde: Thema,
+Hinweise, das Material in Reihenfolge als große Ziele, die Tafel und die Aktionen der Stunde. Gewählt von
+Andreas am 2026-11-14 an vier gerenderten Varianten (HTML-Nachbau, UI-2).
+
+**Kontext:** Ist-Zustand war eine Liste über die ganze Breite mit Materialknöpfen in jeder Zeile
+(`Frontstage/UI/DayView/DayView.swift`, `DayRowView.swift`); Aktionen wie „Entfällt“ und „Weiterreichen“
+stecken im Kontextmenü. Vorbereiten und Jahresplan nutzen bereits Liste und Detail (`NavigationSplitView` in
+`PreparationView.swift`, `CoursePlanView.swift`) – die Tagesansicht schließt sich dieser Form an.
+
+**Verworfen, jeweils mit Vorzug:**
+- A, Ist-Zustand (Liste über die ganze Breite, Material in der Zeile) — der ganze Tag und jedes Material mit
+  einem Tipp erreichbar, ohne Auswahlschritt.
+- C, Fokus auf „Jetzt“ (laufende Stunde füllt den Schirm, Tag als Leiste) — größte Ziele, kürzester Blick im
+  Stehen.
+- D, Seitenpanel über der Liste — volle Liste bleibt sichtbar, Detail nur bei Bedarf.
+
+**Konsequenzen mit Kosten:**
+- Ein Material einer **anderen** als der gewählten Stunde braucht zwei Tipps (Stunde wählen, Material). Damit der
+  Unterricht beim einen Tipp bleibt (FR-5), muss beim Öffnen der Tagesansicht und beim Stundenwechsel die
+  laufende oder nächste Unterrichtsstunde automatisch gewählt sein; eine von Hand gewählte Stunde bleibt, bis
+  die Lehrkraft wechselt. Das ist Verhalten, im Bau festzulegen und am Gerät zu prüfen.
+- Die Liste zeigt je Stunde nur eine Aussagezeile; alle vier Aussagen (keine Stunde, ohne Material, nicht
+  verfügbar, Ausfall) müssen dort unterscheidbar bleiben (siehe „Wiederkehrende Fallen“).
+- Im Hochformat und in Split View wird die Liste schmal; dort darf sie als einklappbare Seitenleiste
+  erscheinen (Systemverhalten von `NavigationSplitView`).
+- Größe, Form und Farbe der Ziele im Detailbereich sind **nicht** mitentschieden (Runden 2–8); die Kacheln im
+  Nachbau waren nur Platzhalter.
+- Beschluss am HTML-Nachbau; beim ersten Bau am Gerät bestätigen (UI-2).
+
+**Revisit if:** Am Gerät zeigt sich, dass im Unterricht häufig Material außerhalb der gewählten Stunde geöffnet
+wird, oder die automatische Wahl der laufenden Stunde stört beim Vorausschauen.
+
+---
+
 ## Wiederkehrende Fallen
 
 - **Eine Farbe, die zwei Dinge bedeutet, bedeutet keines.**
@@ -145,3 +185,4 @@ Nachbau gefallen ist.
 - 2026-11-13: UI-1 changed — Produktname „Frontstage“ statt „Pult“; Icon bleibt, Quelldateien umbenannt nach `design/icon/frontstage-app-icon*.svg`
 - 2026-11-14: Q-37, Q-38, Q-39 new — Gestaltungslücken aus Teilplan 07 (Klassenbildschirm, Tafel, Kaufangebot), gebaut mit Systemvorgaben; die Prüfung nach `apple-design` steht noch aus
 - 2026-11-14: UI-2 new — Runde 0: Referenz Tagesansicht am iPad quer, Modus Operate, gerendert per HTML-Nachbau
+- 2026-11-14: UI-3 new — Runde 1: Tagesansicht als Liste und Detail, gewählt aus vier Varianten
