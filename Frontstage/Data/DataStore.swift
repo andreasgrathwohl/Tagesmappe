@@ -46,6 +46,20 @@ enum DataStoreError: Error, Equatable {
     revision += 1
   }
 
+  // MARK: - Änderungen von außen (Datenordner-Abgleich)
+
+  /// Änderungen von außen im Kontext ausführen, speichern, `revision` erhöhen. Kein Zusammenführen.
+  /// Wirft `body`, werden die halben Änderungen verworfen.
+  func applyExternalChanges(_ body: (ModelContext) throws -> Void) throws {
+    do {
+      try body(modelContext)
+    } catch {
+      modelContext.rollback()
+      throw error
+    }
+    try saveAndBump()
+  }
+
   // MARK: - Stundenplan (FR-1, FR-1.1, FR-1.2)
 
   /// Der älteste aktive Stundenplan. Gibt es auf zwei Geräten je einen, gewinnt der ältere.
