@@ -162,6 +162,14 @@ struct BoardScreen: View {
             backgroundMenu(session)
           }
         #endif
+        // Teilen-Dialog: erzeugt das PDF erst, wenn ein Ziel gewählt wird (FR-12.4).
+        ShareLink(
+          item: BoardDrawingPDF(pages: session.pages, fileName: pdfFileName(for: session)),
+          preview: SharePreview(Text("board.sharePDF"))
+        ) {
+          Label("board.sharePDF", systemImage: "square.and.arrow.up")
+            .frame(minHeight: 44)
+        }
         if case .own = session.mode {
           Button("board.previous", systemImage: "clock.arrow.circlepath") { showPrevious(session) }
             .frame(minHeight: 44)
@@ -245,6 +253,19 @@ struct BoardScreen: View {
   private func open() {
     guard let session else { return }
     do { try session.open(lessonKey) } catch { notice = .saveFailed }
+  }
+
+  /// „Tafelbild 8b Englisch 2026-11-17.pdf“ – für die gezeigte Stunde (bei „Letztes Tafelbild“ die frühere).
+  private func pdfFileName(for session: BoardSession) -> String {
+    let key: LessonKey
+    switch session.mode {
+    case .own(let own): key = own
+    case .previous(_, let shown): key = shown
+    case .closed: key = lessonKey
+    }
+    let name = String(
+      localized: "board.pdf.fileName \(key.schoolClass.normalized) \(key.subject.display) \(key.date.storageText)")
+    return name + ".pdf"
   }
 
   private func addPage(_ background: BoardBackground, _ session: BoardSession) {
