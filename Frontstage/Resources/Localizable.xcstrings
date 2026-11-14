@@ -180,6 +180,276 @@
           }
         }
       }
+    },
+    "setup.dataLocation.confirm.action" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wechseln"
+          }
+        }
+      }
+    },
+    "setup.dataLocation.confirm.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "setup.dataLocation.confirm.message" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle Daten werden an den neuen Ort übernommen. Der bisherige Ort bleibt unverändert."
+          }
+        }
+      }
+    },
+    "setup.dataLocation.confirm.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datenort wechseln?"
+          }
+        }
+      }
+    },
+    "setup.dataLocation.error.consent" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ohne Zustimmung in Microsoft kann OneDrive nicht Datenort sein."
+          }
+        }
+      }
+    },
+    "setup.dataLocation.error.failed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Wechsel ist fehlgeschlagen. Der bisherige Datenort gilt weiter."
+          }
+        }
+      }
+    },
+    "setup.dataLocation.error.newerApp" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Datenordner stammt aus einer neueren App-Version. Bitte die App aktualisieren."
+          }
+        }
+      }
+    },
+    "setup.dataLocation.error.notSignedIn" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Anmeldung bei Microsoft wurde nicht abgeschlossen."
+          }
+        }
+      }
+    },
+    "setup.dataLocation.error.offline" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Netz: OneDrive ist gerade nicht erreichbar."
+          }
+        }
+      }
+    },
+    "setup.dataLocation.folder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner in OneDrive"
+          }
+        }
+      }
+    },
+    "setup.dataLocation.footer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auf allen Geräten muss derselbe Datenort gewählt sein. Material wird nie verändert."
+          }
+        }
+      }
+    },
+    "setup.dataLocation.iCloud" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud"
+          }
+        }
+      }
+    },
+    "setup.dataLocation.oneDrive" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OneDrive"
+          }
+        }
+      }
+    },
+    "setup.dataLocation.oneDriveUnavailable" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OneDrive ist in dieser Version nicht eingerichtet."
+          }
+        }
+      }
+    },
+    "setup.dataLocation.pair" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gerät koppeln"
+          }
+        }
+      }
+    },
+    "setup.dataLocation.signIn" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmelden"
+          }
+        }
+      }
+    },
+    "setup.dataLocation.syncNow" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jetzt abgleichen"
+          }
+        }
+      }
+    },
+    "setup.dataLocation.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datenort"
+          }
+        }
+      }
+    },
+    "sync.status.failed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stand des Abgleichs: fehlgeschlagen"
+          }
+        }
+      }
+    },
+    "sync.status.needsNewerApp" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stand des Abgleichs: neuere App-Version nötig"
+          }
+        }
+      }
+    },
+    "sync.status.neverSynced" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stand des Abgleichs: noch nicht abgeglichen"
+          }
+        }
+      }
+    },
+    "sync.status.offline %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stand des Abgleichs: offline – %lld Änderungen warten"
+          }
+        }
+      }
+    },
+    "sync.status.pending %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stand des Abgleichs: %lld Änderungen warten aufs Schreiben"
+          }
+        }
+      }
+    },
+    "sync.status.signInRequired" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stand des Abgleichs: Anmeldung bei Microsoft nötig"
+          }
+        }
+      }
+    },
+    "sync.status.syncing" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stand des Abgleichs: wird abgeglichen …"
+          }
+        }
+      }
+    },
+    "sync.status.upToDate %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stand des Abgleichs: %@"
+          }
+        }
+      }
+    },
+    "sync.status.waiting %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stand des Abgleichs: %lld Einträge warten auf OneDrive"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

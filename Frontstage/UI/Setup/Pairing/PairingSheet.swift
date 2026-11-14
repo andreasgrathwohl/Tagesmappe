@@ -5,14 +5,14 @@ import SwiftUI
 ///
 /// Swift-Hinweis: SwiftUI kennt keine View-Controller; MSAL verlangt aber einen. Ein unsichtbarer
 /// Representable legt einen an und reicht ihn über einen Halter nach außen.
-@MainActor private final class AnchorHolder {
+@MainActor final class AnchorHolder {
   var anchor: AuthPresentationAnchor?
 }
 
 #if os(iOS)
   import UIKit
 
-  private struct AnchorReader: UIViewControllerRepresentable {
+  struct AnchorReader: UIViewControllerRepresentable {
     let holder: AnchorHolder
     func makeUIViewController(context: Context) -> UIViewController {
       let controller = UIViewController()
@@ -29,7 +29,7 @@ import SwiftUI
     override func loadView() { view = NSView() }
   }
 
-  private struct AnchorReader: NSViewControllerRepresentable {
+  struct AnchorReader: NSViewControllerRepresentable {
     let holder: AnchorHolder
     func makeNSViewController(context: Context) -> NSViewController {
       let controller = EmptyViewController()
