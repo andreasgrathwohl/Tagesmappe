@@ -288,19 +288,13 @@ extension MicrosoftAccount: DataLocationAccount {}
   }
 
   private static func encodeMarker(_ marker: LibraryMarker) throws -> Data {
-    let encoder = JSONEncoder()
-    encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
-    encoder.dateEncodingStrategy = .iso8601
-    return try encoder.encode(marker)
+    try DataFolderCoding.encodeMarker(marker)
   }
 
   /// Liest `library.json`; eine nicht lesbare Datei bricht den Wechsel ab (nichts wird überschrieben).
   private static func decodeMarker(_ data: Data) throws -> LibraryMarker {
-    let iso = JSONDecoder()
-    iso.dateDecodingStrategy = .iso8601
-    if let marker = try? iso.decode(LibraryMarker.self, from: data) { return marker }
     do {
-      return try JSONDecoder().decode(LibraryMarker.self, from: data)
+      return try DataFolderCoding.decodeMarker(data)
     } catch {
       throw DataLocationError.moveFailed
     }

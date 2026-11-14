@@ -56,6 +56,24 @@ public enum DataFolderCoding {
     return try decoder.decode(RecordEnvelope.self, from: data)
   }
 
+  /// `library.json`: gleiches Format wie die Datensätze (sortiert, eingerückt, ISO 8601 UTC mit Millisekunden).
+  public static func encodeMarker(_ marker: LibraryMarker) throws -> Data {
+    try encoder.encode(marker)
+  }
+
+  /// Liest `library.json`. Das Datum darf mit oder ohne Millisekunden stehen (andere Schreiber).
+  public static func decodeMarker(_ data: Data) throws -> LibraryMarker {
+    let lenient = JSONDecoder()
+    lenient.dateDecodingStrategy = .custom { decoder in
+      let text = try decoder.singleValueContainer().decode(String.self)
+      if let date = try? Date.ISO8601FormatStyle(includingFractionalSeconds: true).parse(text) { return date }
+      if let date = try? Date.ISO8601FormatStyle().parse(text) { return date }
+      throw DecodingError.dataCorrupted(
+        .init(codingPath: decoder.codingPath, debugDescription: "Kein ISO-8601-Datum: \(text)"))
+    }
+    return try lenient.decode(LibraryMarker.self, from: data)
+  }
+
   /// Kanonische Form des Inhalts (sortiert, ohne Einrückung) als Grundlage der Prüfsumme.
   public static func encodePayload(_ payload: RecordPayload) throws -> Data {
     let encoder = JSONEncoder()

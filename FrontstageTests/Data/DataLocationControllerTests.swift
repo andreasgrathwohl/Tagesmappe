@@ -92,6 +92,23 @@ import Testing
     #expect(paths.contains(RemoteLayout.libraryPath))
   }
 
+  @Test("FR-14.1: library.json mit Millisekunden im Datenordner lässt sich beitreten")
+  func joiningFolderWithMillisecondMarkerWorks() async throws {
+    let libraryID = UUID()
+    let json = Data(
+      """
+      {"createdAt":"2026-11-14T10:00:00.123Z","formatVersion":1,"libraryID":"\(libraryID.uuidString)"}
+      """.utf8)
+    _ = try await remote.upload(json, to: RemoteLayout.libraryPath, ifMatch: nil)
+    let device = makeDevice("ipad", remote: remote)
+    try seed(device)
+
+    let verdict = try await device.controller.switchToOneDrive(anchor: makeAnchor())
+
+    #expect(verdict == .ok)
+    #expect(device.settings.dataFolder?.libraryID == libraryID)
+  }
+
   @Test("Review Focus 5: Beitreten – Stand im Datenordner gewinnt, nur lokal Vorhandenes kommt dazu")
   func joiningFilledFolderKeepsFolderState() async throws {
     let mac = makeDevice("mac", remote: remote)

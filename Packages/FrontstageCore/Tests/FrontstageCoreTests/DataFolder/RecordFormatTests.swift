@@ -146,4 +146,28 @@ struct RecordFormatTests {
   func dataLocationRawValues() {
     #expect(DataLocation.allCases.map(\.rawValue) == ["iCloud", "oneDrive"])
   }
+
+  @Test("FR-14.1: library.json mit Millisekunden wird gelesen, der Rundlauf bleibt exakt")
+  func markerWithMillisecondsRoundTrips() throws {
+    let json = Data(
+      """
+      {"createdAt":"2026-11-14T10:00:00.123Z","formatVersion":1,"libraryID":"00000000-0000-0000-0000-000000000001"}
+      """.utf8)
+    let marker = try DataFolderCoding.decodeMarker(json)
+    #expect(marker.libraryID == id(1))
+    #expect(abs(marker.createdAt.timeIntervalSince1970.truncatingRemainder(dividingBy: 1) - 0.123) < 0.001)
+
+    let again = try DataFolderCoding.decodeMarker(try DataFolderCoding.encodeMarker(marker))
+    #expect(again == marker)
+    #expect(String(decoding: try DataFolderCoding.encodeMarker(marker), as: UTF8.self).contains(".123Z"))
+  }
+
+  @Test("FR-14.1: library.json ohne Millisekunden (ältere Schreiber) bleibt lesbar")
+  func markerWithoutMillisecondsIsAccepted() throws {
+    let json = Data(
+      """
+      {"createdAt":"2026-11-14T10:00:00Z","formatVersion":1,"libraryID":"00000000-0000-0000-0000-000000000001"}
+      """.utf8)
+    #expect(try DataFolderCoding.decodeMarker(json).libraryID == id(1))
+  }
 }
