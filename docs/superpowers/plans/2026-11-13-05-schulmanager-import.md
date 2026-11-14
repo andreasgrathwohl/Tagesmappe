@@ -44,6 +44,14 @@ Es gelten **alle** Zeilen aus `2026-11-13-00-uebersicht.md`, Abschnitt „Global
   inoffiziell ist und ohne Gewähr erfolgt.
 - **Belegte Schnittstelle, keine erfundene:** Endpunkte und Feldnamen stammen aus der Quellenliste unten;
   was dort nicht belegt ist, kommt aus der Befundtabelle von Aufgabe 1 und nirgendwo sonst her.
+- **Öffentliche Initialisierer (Übersicht, Abstimmung 1):** Jeder `public struct` dieses Teilplans im Kern
+  (`DerivedTimetable`, `SourceSnapshot`, `SchulmanagerAPIShape`, `SchulmanagerLessonInfo`, `SchulmanagerLesson`,
+  `SchulmanagerLogin`, `AppliedTimetable`) bekommt einen öffentlichen Initialisierer mit allen Eigenschaften –
+  die App-Tests importieren `FrontstageCore` ohne `@testable` und bauen diese Werte selbst.
+- **Testen (Übersicht, Global Constraints):** Aufgaben 2–6 berühren nur den Kern und laufen TDD lokal mit
+  `.\scripts\swift-test.ps1 -Filter <Suite>` (RED und GREEN belegen). Aufgaben 7–13 sind App-Code: „Test
+  ausführen“ heißt dort der CI-Lauf in Aufgabe 14; vorher Diff durchsehen. Testdateien folgen dem Muster im
+  Repo (`@Suite("…") struct …Tests` mit `@Test`-Methoden).
 
 ### Quellen zur inoffiziellen Schnittstelle (gelesen 2026-11-13)
 
@@ -257,7 +265,9 @@ func manualSourceReturnsNil() async throws {
 @Test func jsonValuePathLookup()   // {"user":{"associatedTeacher":{"id":"T-100"}}}[["user","associatedTeacher","id"]] == .string("T-100"); fehlender Pfad → nil
 @Test func sourceKindRawValues()   // TimetableSourceKind.allCases.map(\.rawValue) == ["manual", "schulmanager"] (gespeichert in TimetableRecord.sourceKindRaw)
 ```
-(`d(_:_:_:)` ist ein Test-Helfer für `CalendarDay`.)
+(`d(_:_:_:)` ist der vorhandene Test-Helfer für `CalendarDay` aus `Tests/FrontstageCoreTests/Fixtures.swift`,
+dort auch `t(_:_:)`, `entry(_:_:_:_:variant:)` und `timetable(_:bell:variants:)` – nicht neu anlegen, sonst
+doppelte Deklaration im Testmodul.)
 
 - [ ] **Schritt 2.2: Typen umsetzen** wie im Interfaces-Block. `JSONValue` dekodiert über
   `singleValueContainer` in der Reihenfolge null, bool, number, string, array, object.
@@ -359,6 +369,10 @@ func parsesClassHours()                            // [{1,"07:45:00","08:30:00"}
 @Test func callsBodyHasTwoRequestsAndRange()       // requests.count == 2; requests[0].parameters.start == "2026-11-16", end == "2026-12-13"; ohne bundleVersion kein Schlüssel "bundleVersion"
 @Test func loginBodyFields()                       // mobileApp == false, institutionId == null, hash übernommen
 ```
+Die Tests übergeben eine eigene Test-Form `SchulmanagerFixtures.shape` (z. B. `teacherObjectPath ["user",
+"associatedTeacher"]`, `teacherIDPath ["id"]`) statt `.recorded`, damit sie nicht an den Werten der
+Befundtabelle hängen. Bodies im Test über `JSONDecoder().decode(JSONValue.self, from:)` lesen (gleiches
+Ergebnis unter Windows und macOS).
 - [ ] **Schritt 3.2: Umsetzen** – Dekodieren über `JSONDecoder` mit privaten `Decodable`-Hilfstypen (Felder
   optional, Prüfung danach), Bodies über `JSONSerialization` aus `JSONValue`. `SchulmanagerAPIShape.recorded`
   mit den Werten der Befundtabelle; jeder Wert mit Kommentar `// Befund Bn, <Datum>`.
@@ -632,6 +646,9 @@ func fetchProducesSnapshotWithThreeEntries()   // Fixture AK-3 → timetable == 
 @Test func offlineIsOffline()                    // URLError(.notConnectedToInternet) → .offline
 @Test func serverErrorIsServer()                 // Calls 503 → .server(status: 503)
 ```
+Die Tests übergeben `shape:` mit einer eigenen Test-Form (Lehrer-Objekt unter `user.associatedTeacher`, ID `id`),
+nicht `.recorded`; die Fixtures des Kerns sind im App-Testziel nicht sichtbar, die nötigen JSON-Texte liegen in
+der Testdatei.
 - [ ] **Schritt 8.2: Umsetzen.**
 - [ ] **Schritt 8.3: Diff durchsehen** – Passwort nur im Login-Body; JWT nur als lokale Variable in `fetch`.
 - [ ] **Schritt 8.4: Commit** `feat: add Schulmanager Online timetable source`
@@ -679,6 +696,7 @@ struct ImportPreview { var snapshot: SourceSnapshot; var diff: ImportDiff; var b
 @MainActor @Observable final class TimetableSourceCoordinator {
   init(repository: any TimetableRepository, makeSource: @escaping (TimetableSourceKind) -> any TimetableSource,
        statusStore: SourceStatusStore, pendingStore: PendingImportStore, calendar: Calendar = .current, now: @escaping () -> Date = Date.init)
+  let repository: any TimetableRepository           // lesend für Ansichten (Quelle, Stand) und den Halter-Test (Aufgabe 10)
   private(set) var status: SourceStatus
   private(set) var pendingPreview: ImportPreview?
   private(set) var isFetching: Bool
@@ -740,6 +758,8 @@ Versuch gezählt; die Zusicherung ist `status == SourceStatus()`.
 
 ### Aufgabe 10: Morgendliche Aktualisierung – Aktivieren und BGAppRefreshTask (App)
 
+Design-Takt: keiner (nur Verdrahtung, keine sichtbare Oberfläche)
+
 **Files:**
 - Create: `Frontstage/TimetableSources/MorningRefresh.swift`
 - Create: `Frontstage/TimetableSources/SourceCoordinatorHolder.swift`
@@ -775,16 +795,22 @@ enum MorningRefresh {
 
 - [ ] **Schritt 10.1: `project.yml`** – im iPadOS-Ziel unter `info.properties`:
   `BGTaskSchedulerPermittedIdentifiers: [frontstage.timetable-source.morning-refresh]`,
-  `UIBackgroundModes: [fetch]`. macOS-Ziel unverändert.
+  `fetch` an den vorhandenen Eintrag anhängen: `UIBackgroundModes: [remote-notification, fetch]`
+  (`remote-notification` stammt aus 02/08 und bleibt). macOS-Ziel unverändert.
 - [ ] **Schritt 10.2: Test `SourceCoordinatorHolder`** (zwei `DataStore` aus `makeStore()`):
   `@Test("Gleicher DataStore → derselbe Koordinator; neuer DataStore → neuer") func holderCachesPerStore()` und
   `@Test("Nach Wechsel des Datenorts liest der Koordinator den neuen Stundenplan") func coordinatorFollowsStore()`
-  (Stundenplan nur im zweiten Store → `holder.coordinator(for: second)` sieht ihn über das Repository). Implementieren:
+  (Stundenplan nur im zweiten Store → `holder.coordinator(for: second).repository` liefert ihn). Der Test übergibt
+  `makeCoordinator` mit Test-Stores (`UserDefaults(suiteName:)`, temporärer Ordner), nicht `live`. Implementieren:
   ein Eintrag (zuletzt gefragter Store + Koordinator); anderer Store → neu anlegen, alten verwerfen.
 - [ ] **Schritt 10.3: `FrontstageApp`** – im `App`-Typ `@State private var sourceCoordinators = SourceCoordinatorHolder()`.
   In der Closure-Ansicht von `DataScopedRoot` (08; in Teilplan 04 `ScopedAppContent`): `let coordinator = sourceCoordinators.coordinator(for: store)`
-  per `.environment` an die Ansichten geben; `.onChange(of: scenePhase)`: `.active` → `Task { await coordinator.refresh(.appBecameActive) }`;
-  `.background` → `MorningRefresh.schedule(...)` (nur iOS). Am `WindowGroup` (nur `#if os(iOS)`):
+  per `.environment` an die Ansichten geben; `.onChange(of: scenePhase, initial: true)` (liest den vorhandenen
+  `@Environment(\.scenePhase)` des `App`-Typs): `.active` → `Task { await coordinator.refresh(.appBecameActive) }`;
+  `.background` → `MorningRefresh.schedule(...)` (nur iOS). Swift-Hinweis: `initial: true` ruft den Block auch beim
+  ersten Erscheinen auf – sonst fehlt der Abruf, wenn die Szene beim Kaltstart schon aktiv ist, bevor die Ansicht steht.
+  Der vorhandene `.onChange(of: scenePhase)` am `WindowGroup` aus 08 (`dataLocation.sceneDidBecomeActive()` /
+  `sceneDidEnterBackground()`) bleibt unverändert. Am `WindowGroup` (nur `#if os(iOS)`):
   `.backgroundTask(.appRefresh(MorningRefresh.taskIdentifier)) { await sourceCoordinators.coordinator(for: dataLocation.store).refresh(.backgroundRefresh); MorningRefresh.schedule(...) }`
   (Swift-Hinweis: die Closure läuft nicht auf dem Haupt-Actor; der Zugriff auf Halter und Controller braucht `await MainActor.run { … }`).
   Kein Koordinator als `@State` im `App`-Typ.
@@ -808,7 +834,8 @@ Design-Takt: Hauptstufe
 
 **Interfaces:**
 - Consumes: `TimetableSourceCoordinator`, `CredentialStore`.
-- Produces: `struct TimetableSourceSettingsView: View { init() }` (liest den Koordinator aus `@Environment`).
+- Produces: `struct TimetableSourceSettingsView: View { init() }` (liest den Koordinator aus `@Environment`;
+  Zugangsdaten über `KeychainCredentialStore()` mit dem Vorgabe-Dienst, denselben wie `SourceCoordinatorHolder.live`).
 
 Muss leisten (Mockup `einrichten.html#quelle` zeigt das Was, nicht das Wie): Wahl „von Hand“ / „Schulmanager
 Online“ (`switchSource`); Anmeldung mit Benutzername und Passwort (`SecureField`, Speichern erst nach
@@ -908,6 +935,11 @@ func showsFetchedAt()                   // fetchedAt 2026-11-17 07:30, now 07:31
 @Test func threeFailuresWin()           // consecutiveFailures 3 → .suggestManualMaintenance
 @Test func manualSourceHidesBar()       // kind .manual → isVisible == false
 ```
+`stale` rechnet das Modell aus `fetchedAt` (gespiegelter Stand: kein Wert oder nicht am Kalendertag von `now`),
+nicht aus `status.lastSuccessAt` – sonst wäre `showsFetchedAt` mit `SourceStatus()` schon `.stale`. Tests ohne
+eigene Angabe: `kind .schulmanager`, `status SourceStatus()`, `hasPendingPreview false`, `hasCredentials true`.
+Wie die Einrichten-Ansicht prüft die Leiste Zugangsdaten über `KeychainCredentialStore()`, Quelle und Stand über
+`coordinator.repository`.
 - [ ] **Schritt 13.3: Ansicht bauen** – Zustand nie nur über Farbe (DESIGN.md, Fallen): Symbol plus Text.
   Wortlaut offen.
 - [ ] **Schritt 13.4: Diff durchsehen.**
@@ -919,6 +951,11 @@ func showsFetchedAt()                   // fetchedAt 2026-11-17 07:30, now 07:31
 
 **Files:** keine Änderung (bei Fehlern: Korrektur in der betroffenen Aufgabe, eigener Commit).
 
+**Diese Aufgabe führt der Controller aus, nicht ein Implementierer** (Sparregel der Übersicht und `CLAUDE.md`:
+CI kostet macOS-Minuten). Im Bündel B läuft der CI-Lauf gemeinsam mit Teilplan 04 einmal am Bündelende.
+
+- [ ] **Schritt 14.0: Syntaxprüfung** – `.\scripts\swift-parse.ps1` lokal, Syntaxfehler vor dem Lauf beheben
+  (Übersicht, Global Constraints).
 - [ ] **Schritt 14.1: Branch pushen** und Lauf starten:
 
 ```bash
@@ -956,7 +993,7 @@ Ein Mensch mit iPad, Mac und **eigenem Schulmanager-Lehrerkonto**; Ergebnis abha
 - **Kern:** `TimetableSourceKind` (`manual`, `schulmanager`), `TimetableSource`, `SourceSnapshot`, `SourceChange`,
   `SourceStatus`, `RefreshTrigger`, `MorningRefreshPolicy`.
 - **App (für Teilplan 04):** `SourceCoordinatorHolder` (`coordinator(for:)`, im `App`-Typ; 04 holt den Koordinator in
-  `ScopedAppContent` darüber), `TimetableSourceCoordinator` (`status`, `pendingPreview`, `isFetching`,
+  `ScopedAppContent` darüber), `TimetableSourceCoordinator` (`repository`, `status`, `pendingPreview`, `isFetching`,
   `refresh(_:)`, `applyPendingPreview(acceptedFromSource:)`, `discardPendingPreview()`, `switchSource(to:)`) und
   `TimetableRepository.timetableSourceKind()`; Ansichten `TimetableSourceSettingsView()`, `ImportPreviewView`,
   `SourceStatusBar()` – 04 hängt sie in Einrichten bzw. den Kopf der `DayView` ein.
