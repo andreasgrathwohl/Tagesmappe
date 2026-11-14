@@ -45,7 +45,8 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         FrontstageCloudKitContainer: $(CLOUDKIT_CONTAINER_ID)
-        UIBackgroundModes: [remote-notification]
+        UIBackgroundModes: [remote-notification, fetch]
+        BGTaskSchedulerPermittedIdentifiers: [frontstage.timetable-source.morning-refresh]
         MSALClientID: $(MSAL_CLIENT_ID)
         NSCameraUsageDescription: "Die Kamera nimmt Bilder für die Tafel auf und liest den Code zum Koppeln von Geräten."
         CFBundleURLTypes:
