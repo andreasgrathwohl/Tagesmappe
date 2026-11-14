@@ -142,6 +142,76 @@ struct RecordFormatTests {
     #expect(order.count == SyncModel.allCases.count)
   }
 
+  @Test("FR-15: Jahresplan-Modelle hin und zurück")
+  func coursePlanPayloadsRoundTrip() throws {
+    let payloads: [(SyncModel, RecordPayload)] = [
+      (
+        .schoolYear,
+        .schoolYear(
+          SchoolYearPayload(
+            createdAt: created, firstDayText: "2026-08-10", secondTermStartText: "2027-02-01",
+            lastDayText: "2027-06-25", gradeOverrides: ["ef": 11]))
+      ),
+      (
+        .coursePlan,
+        .coursePlan(
+          CoursePlanPayload(
+            createdAt: created, subjectText: "Mathematik", gradeLevel: 8, startYear: 2026, notes: "Notiz"))
+      ),
+      (
+        .planWeek,
+        .planWeek(
+          PlanWeekPayload(
+            createdAt: created, coursePlanID: id(2), mondayText: "2026-11-16", position: 3, topic: "Brüche",
+            notes: nil, updatedAt: created))
+      ),
+      (
+        .assessment,
+        .assessment(
+          AssessmentPayload(
+            createdAt: created, coursePlanID: id(2), mondayText: "2026-11-16", dayText: "2026-11-18",
+            kindRaw: "test", title: "Arbeit 1", updatedAt: created))
+      ),
+    ]
+    for (index, entry) in payloads.enumerated() {
+      let env = RecordEnvelope(
+        id: id(10 + index), model: entry.0, updatedAt: Date(timeIntervalSince1970: 1_795_000_000.125),
+        deviceID: "device-A", deleted: false, payload: entry.1)
+      #expect(try DataFolderCoding.decode(try DataFolderCoding.encode(env)) == env)
+    }
+  }
+
+  @Test("Eltern vor Kindern: Jahresplan vor Planwoche und Leistungsnachweis")
+  func coursePlanApplyOrder() {
+    let order = SyncModel.applyOrder
+    #expect(order.firstIndex(of: .coursePlan)! < order.firstIndex(of: .planWeek)!)
+    #expect(order.firstIndex(of: .coursePlan)! < order.firstIndex(of: .assessment)!)
+    #expect(
+      Array(order.prefix(8)) == [
+        .timetable, .timetableEntry, .nonTeachingPeriod, .scheduleChange, .materialLink, .penNote, .lessonInfo,
+        .boardPage,
+      ])
+  }
+
+  @Test("parentID der Planwoche und des Leistungsnachweises")
+  func coursePlanParentIDs() {
+    let week = RecordPayload.planWeek(
+      PlanWeekPayload(
+        createdAt: created, coursePlanID: id(5), mondayText: nil, position: 0, topic: nil, notes: nil,
+        updatedAt: created))
+    let assessment = RecordPayload.assessment(
+      AssessmentPayload(
+        createdAt: created, coursePlanID: id(6), mondayText: nil, dayText: nil, kindRaw: "test", title: "",
+        updatedAt: created))
+    let year = RecordPayload.schoolYear(
+      SchoolYearPayload(
+        createdAt: created, firstDayText: "", secondTermStartText: "", lastDayText: "", gradeOverrides: [:]))
+    #expect(week.parentID == id(5))
+    #expect(assessment.parentID == id(6))
+    #expect(year.parentID == nil)
+    #expect(week.attachments.isEmpty && assessment.attachments.isEmpty && year.attachments.isEmpty)
+  }
+
   @Test("Datenort-Rohwerte laut Glossar")
   func dataLocationRawValues() {
     #expect(DataLocation.allCases.map(\.rawValue) == ["iCloud", "oneDrive"])

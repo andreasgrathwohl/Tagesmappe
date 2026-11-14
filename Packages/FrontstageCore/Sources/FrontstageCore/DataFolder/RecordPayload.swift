@@ -210,6 +210,10 @@ public enum RecordPayload: Hashable, Sendable {
   case penNote(PenNotePayload)
   case lessonInfo(LessonInfoPayload)
   case boardPage(BoardPagePayload)
+  case schoolYear(SchoolYearPayload)
+  case coursePlan(CoursePlanPayload)
+  case planWeek(PlanWeekPayload)
+  case assessment(AssessmentPayload)
 
   public var model: SyncModel {
     switch self {
@@ -221,6 +225,10 @@ public enum RecordPayload: Hashable, Sendable {
     case .penNote: .penNote
     case .lessonInfo: .lessonInfo
     case .boardPage: .boardPage
+    case .schoolYear: .schoolYear
+    case .coursePlan: .coursePlan
+    case .planWeek: .planWeek
+    case .assessment: .assessment
     }
   }
 
@@ -239,11 +247,13 @@ public enum RecordPayload: Hashable, Sendable {
     return result
   }
 
-  /// `timetableID` bzw. `materialLinkID`.
+  /// `timetableID`, `materialLinkID` bzw. `coursePlanID`.
   public var parentID: UUID? {
     switch self {
     case .timetableEntry(let entry): entry.timetableID
     case .penNote(let note): note.materialLinkID
+    case .planWeek(let week): week.coursePlanID
+    case .assessment(let assessment): assessment.coursePlanID
     default: nil
     }
   }
@@ -261,6 +271,10 @@ extension RecordPayload: Encodable {
     case .penNote(let value): try value.encode(to: encoder)
     case .lessonInfo(let value): try value.encode(to: encoder)
     case .boardPage(let value): try value.encode(to: encoder)
+    case .schoolYear(let value): try value.encode(to: encoder)
+    case .coursePlan(let value): try value.encode(to: encoder)
+    case .planWeek(let value): try value.encode(to: encoder)
+    case .assessment(let value): try value.encode(to: encoder)
     }
   }
 
@@ -275,6 +289,10 @@ extension RecordPayload: Encodable {
     case .penNote: self = .penNote(try PenNotePayload(from: decoder))
     case .lessonInfo: self = .lessonInfo(try LessonInfoPayload(from: decoder))
     case .boardPage: self = .boardPage(try BoardPagePayload(from: decoder))
+    case .schoolYear: self = .schoolYear(try SchoolYearPayload(from: decoder))
+    case .coursePlan: self = .coursePlan(try CoursePlanPayload(from: decoder))
+    case .planWeek: self = .planWeek(try PlanWeekPayload(from: decoder))
+    case .assessment: self = .assessment(try AssessmentPayload(from: decoder))
     }
   }
 }
