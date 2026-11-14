@@ -135,22 +135,10 @@ struct TimetableSourceSettingsView: View {
     .foregroundStyle(.red)
   }
 
-  /// Platzhalter, bis Aufgabe 12 `ImportPreviewView` liefert: übernimmt oder verwirft die Vorschau
-  /// (ohne Auswahl bei Konflikten: von Hand geänderte Fassungen bleiben, AK-3).
-  private var previewSheet: some View {
-    NavigationStack {
-      Form {
-        Text("timetableSource.preview.placeholder")
-        Button("timetableSource.preview.accept") {
-          try? coordinator.applyPendingPreview(acceptedFromSource: [])
-          isShowingPreview = false
-        }
-        Button("timetableSource.preview.discard", role: .destructive) {
-          coordinator.discardPendingPreview()
-          isShowingPreview = false
-        }
-      }
-      .navigationTitle("timetableSource.preview.title")
+  /// Vorschau als Sheet; ist sie inzwischen weg (übernommen oder verworfen), bleibt das Sheet leer und schließt sich.
+  @ViewBuilder private var previewSheet: some View {
+    if let preview = coordinator.pendingPreview {
+      ImportPreviewView(preview: preview)
     }
   }
 

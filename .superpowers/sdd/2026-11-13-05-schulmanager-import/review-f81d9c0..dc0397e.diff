@@ -1,0 +1,632 @@
+# Review package: f81d9c0..dc0397e
+
+## Commits
+dc0397e feat(ui): add timetable source settings
+
+## Files changed
+ Frontstage/Resources/Localizable.xcstrings         | 310 +++++++++++++++++++++
+ .../UI/Setup/TimetableSourceSettingsView.swift     | 246 ++++++++++++++++
+ .../TimetableSources/SourceStringsTests.swift      |  34 +++
+ 3 files changed, 590 insertions(+)
+
+## Diff
+diff --git a/Frontstage/Resources/Localizable.xcstrings b/Frontstage/Resources/Localizable.xcstrings
+index a0d4547..d02eb0d 100644
+--- a/Frontstage/Resources/Localizable.xcstrings
++++ b/Frontstage/Resources/Localizable.xcstrings
+@@ -1,13 +1,323 @@
+ {
+   "sourceLanguage" : "de",
+   "strings" : {
++    "timetableSource.title" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Stundenplan-Quelle"
++          }
++        }
++      }
++    },
++    "timetableSource.source" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Quelle"
++          }
++        }
++      }
++    },
++    "timetableSource.source.manual" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Von Hand"
++          }
++        }
++      }
++    },
++    "timetableSource.source.schulmanager" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Schulmanager Online"
++          }
++        }
++      }
++    },
++    "timetableSource.unofficialNotice" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Inoffizielle Anbindung, ohne Gewähr: Schulmanager Online bietet diese Schnittstelle nicht offiziell an. Sie kann sich jederzeit ändern oder ausfallen."
++          }
++        }
++      }
++    },
++    "timetableSource.account.title" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Anmeldung"
++          }
++        }
++      }
++    },
++    "timetableSource.username" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Benutzername"
++          }
++        }
++      }
++    },
++    "timetableSource.password" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Passwort"
++          }
++        }
++      }
++    },
++    "timetableSource.signIn" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Anmelden"
++          }
++        }
++      }
++    },
++    "timetableSource.signedIn" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Angemeldet"
++          }
++        }
++      }
++    },
++    "timetableSource.signedOut" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Nicht angemeldet"
++          }
++        }
++      }
++    },
++    "timetableSource.signOut" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Abmelden"
++          }
++        }
++      }
++    },
++    "timetableSource.credentialsNotice" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Zugangsdaten bleiben nur auf diesem Gerät im Schlüsselbund."
++          }
++        }
++      }
++    },
++    "timetableSource.importNow" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Jetzt importieren"
++          }
++        }
++      }
++    },
++    "timetableSource.fetchedAt %@" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Stand: %@"
++          }
++        }
++      }
++    },
++    "timetableSource.neverImported" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Noch nicht importiert"
++          }
++        }
++      }
++    },
++    "timetableSource.preview.available" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Eine Vorschau liegt zur Übernahme bereit."
++          }
++        }
++      }
++    },
++    "timetableSource.preview.show" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Vorschau ansehen"
++          }
++        }
++      }
++    },
++    "timetableSource.preview.title" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Vorschau"
++          }
++        }
++      }
++    },
++    "timetableSource.preview.placeholder" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Der Stundenplan der Quelle weicht vom vorhandenen ab. Übernehmen ersetzt ihn; von Hand geänderte Stunden bleiben erhalten."
++          }
++        }
++      }
++    },
++    "timetableSource.preview.accept" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Übernehmen"
++          }
++        }
++      }
++    },
++    "timetableSource.preview.discard" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Verwerfen"
++          }
++        }
++      }
++    },
++    "timetableSource.error.notConfigured" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Keine Zugangsdaten hinterlegt."
++          }
++        }
++      }
++    },
++    "timetableSource.error.invalidCredentials" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Benutzername oder Passwort wurden nicht akzeptiert."
++          }
++        }
++      }
++    },
++    "timetableSource.error.multipleSchools" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Das Konto gehört zu mehreren Schulen; das wird noch nicht unterstützt."
++          }
++        }
++      }
++    },
++    "timetableSource.error.offline" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Keine Verbindung. Der letzte Stand bleibt erhalten."
++          }
++        }
++      }
++    },
++    "timetableSource.error.server %lld" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Der Server antwortet mit Fehler %lld. Der letzte Stand bleibt erhalten."
++          }
++        }
++      }
++    },
++    "timetableSource.error.unexpected" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Die Antwort des Anbieters war unerwartet. Der letzte Stand bleibt erhalten."
++          }
++        }
++      }
++    },
++    "timetableSource.error.tooSoon" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Zu kurz nach der letzten Abfrage. Bitte später erneut versuchen."
++          }
++        }
++      }
++    },
++    "timetableSource.error.storage" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Die Einstellung konnte nicht gespeichert werden."
++          }
++        }
++      }
++    },
++    "timetableSource.error.keychain" : {
++      "localizations" : {
++        "de" : {
++          "stringUnit" : {
++            "state" : "translated",
++            "value" : "Die Zugangsdaten konnten nicht im Schlüsselbund gespeichert werden."
++          }
++        }
++      }
++    },
+     "app.placeholder.title" : {
+       "localizations" : {
+         "de" : {
+           "stringUnit" : {
+             "state" : "translated",
+             "value" : "Frontstage"
+           }
+         }
+       }
+     },
+diff --git a/Frontstage/UI/Setup/TimetableSourceSettingsView.swift b/Frontstage/UI/Setup/TimetableSourceSettingsView.swift
+new file mode 100644
+index 0000000..f3fab2d
+--- /dev/null
++++ b/Frontstage/UI/Setup/TimetableSourceSettingsView.swift
+@@ -0,0 +1,246 @@
++import FrontstageCore
++import SwiftData
++import SwiftUI
++
++extension TimetableSourceError {
++  /// Schlüssel des Fehlertexts in `Localizable.xcstrings` (Wortlaut ist offen; Platzhalter, unpersönliche Anrede).
++  var settingsMessageKey: String {
++    switch self {
++    case .notConfigured: "timetableSource.error.notConfigured"
++    case .invalidCredentials: "timetableSource.error.invalidCredentials"
++    case .multipleSchoolsUnsupported: "timetableSource.error.multipleSchools"
++    case .offline: "timetableSource.error.offline"
++    case .server: "timetableSource.error.server"
++    case .unexpectedResponse: "timetableSource.error.unexpected"
++    }
++  }
++}
++
++/// „Einrichten › Stundenplan-Quelle“ (FR-2, FR-13.1): Quelle wählen, bei Schulmanager Online anmelden,
++/// jetzt importieren, abmelden. Eigenständige Ansicht als `Form`-Inhalt; Teilplan 04 hängt sie in Einrichten ein.
++/// Systemstandard; Gestaltung (Wortlaut, Anordnung) ist offen.
++///
++/// Swift-Hinweis: `@Environment(Type.self)` liest ein `@Observable`-Objekt, das ein Elternteil mit
++/// `.environment(objekt)` bereitgestellt hat. Fehlt es, bricht SwiftUI ab – die Ansicht verlangt es also.
++/// Das Passwort lebt nur in `@State` dieser Ansicht und wird nach dem Speichern geleert.
++struct TimetableSourceSettingsView: View {
++  @Environment(TimetableSourceCoordinator.self) private var coordinator
++
++  /// Dieselben Zugangsdaten und derselbe Dienst wie in `SourceCoordinatorHolder.live`.
++  private let credentials: any CredentialStore = KeychainCredentialStore()
++
++  @State private var kind: TimetableSourceKind = .manual
++  @State private var hasCredentials = false
++  @State private var username = ""
++  @State private var password = ""
++  @State private var isWorking = false
++  @State private var errorMessageKey: String?
++  @State private var errorServerStatus: Int?
++  @State private var isShowingPreview = false
++
++  init() {}
++
++  var body: some View {
++    Form {
++      sourceSection
++      if kind == .schulmanager {
++        accountSection
++        if hasCredentials { importSection }
++      }
++      Section {
++        Text("timetableSource.unofficialNotice")
++      }
++    }
++    .navigationTitle("timetableSource.title")
++    .task { reload() }
++    .sheet(isPresented: $isShowingPreview) { previewSheet }
++  }
++
++  // MARK: - Abschnitte
++
++  private var sourceSection: some View {
++    Section("timetableSource.source") {
++      Picker("timetableSource.source", selection: kindBinding) {
++        Text("timetableSource.source.manual").tag(TimetableSourceKind.manual)
++        Text("timetableSource.source.schulmanager").tag(TimetableSourceKind.schulmanager)
++      }
++      .pickerStyle(.inline)
++      .labelsHidden()
++      .disabled(isWorking)
++    }
++  }
++
++  @ViewBuilder private var accountSection: some View {
++    Section {
++      if hasCredentials {
++        Label("timetableSource.signedIn", systemImage: "checkmark.circle")
++        Button("timetableSource.signOut", role: .destructive) { signOut() }
++          .disabled(isWorking)
++      } else {
++        Label("timetableSource.signedOut", systemImage: "person.crop.circle.badge.xmark")
++        TextField("timetableSource.username", text: $username)
++          .textContentType(.username)
++          .autocorrectionDisabled()
++          #if os(iOS)
++            .textInputAutocapitalization(.never)
++            .keyboardType(.emailAddress)
++          #endif
++        SecureField("timetableSource.password", text: $password)
++          .textContentType(.password)
++        Button("timetableSource.signIn") { Task { await signIn() } }
++          .disabled(isWorking || username.isEmpty || password.isEmpty)
++      }
++      if isWorking { ProgressView() }
++      if let errorMessageKey {
++        errorLabel(key: errorMessageKey, serverStatus: errorServerStatus)
++      }
++    } header: {
++      Text("timetableSource.account.title")
++    } footer: {
++      Text("timetableSource.credentialsNotice")
++    }
++  }
++
++  @ViewBuilder private var importSection: some View {
++    Section {
++      if let fetchedAt = try? coordinator.repository.sourceFetchedAt() {
++        Text("timetableSource.fetchedAt \(fetchedAt.formatted(date: .abbreviated, time: .shortened))")
++      } else {
++        Text("timetableSource.neverImported").foregroundStyle(.secondary)
++      }
++      if let error = coordinator.status.lastError {
++        errorLabel(
++          key: error.settingsMessageKey, serverStatus: serverStatus(of: error))
++      }
++      Button("timetableSource.importNow") { Task { await importNow() } }
++        .disabled(isWorking || coordinator.isFetching)
++      if coordinator.pendingPreview != nil {
++        Text("timetableSource.preview.available")
++        Button("timetableSource.preview.show") { isShowingPreview = true }
++      }
++    }
++  }
++
++  /// Fehler mit Symbol und Text, nie nur über Farbe.
++  @ViewBuilder private func errorLabel(key: String, serverStatus: Int?) -> some View {
++    Label {
++      if let serverStatus {
++        Text("timetableSource.error.server \(serverStatus)")
++      } else {
++        Text(LocalizedStringKey(key))
++      }
++    } icon: {
++      Image(systemName: "exclamationmark.triangle")
++    }
++    .foregroundStyle(.red)
++  }
++
++  /// Platzhalter, bis Aufgabe 12 `ImportPreviewView` liefert: übernimmt oder verwirft die Vorschau
++  /// (ohne Auswahl bei Konflikten: von Hand geänderte Fassungen bleiben, AK-3).
++  private var previewSheet: some View {
++    NavigationStack {
++      Form {
++        Text("timetableSource.preview.placeholder")
++        Button("timetableSource.preview.accept") {
++          try? coordinator.applyPendingPreview(acceptedFromSource: [])
++          isShowingPreview = false
++        }
++        Button("timetableSource.preview.discard", role: .destructive) {
++          coordinator.discardPendingPreview()
++          isShowingPreview = false
++        }
++      }
++      .navigationTitle("timetableSource.preview.title")
++    }
++  }
++
++  // MARK: - Aktionen
++
++  private var kindBinding: Binding<TimetableSourceKind> {
++    Binding(
++      get: { kind },
++      set: { new in
++        do {
++          try coordinator.switchSource(to: new)
++          kind = new
++          errorMessageKey = nil
++        } catch {
++          setError("timetableSource.error.storage")
++        }
++      })
++  }
++
++  private func reload() {
++    kind = (try? coordinator.repository.timetableSourceKind()) ?? .manual
++    hasCredentials = (try? credentials.load()) != nil
++  }
++
++  /// Speichern erst nach erfolgreichem Probe-Import: speichern → abfragen → bei falschen Zugangsdaten wieder löschen.
++  private func signIn() async {
++    isWorking = true
++    defer { isWorking = false }
++    errorMessageKey = nil
++    do {
++      try credentials.save(SchulmanagerCredentials(username: username, password: password))
++    } catch {
++      return setError("timetableSource.error.keychain")
++    }
++    let attemptBefore = coordinator.status.lastAttemptAt
++    await coordinator.refresh(.userRequest)
++    let attempted = coordinator.status.lastAttemptAt != attemptBefore
++
++    if !attempted {
++      // Abfrage wurde nicht gestartet (zu kurzer Abstand oder läuft schon): nichts ist geprüft.
++      try? credentials.delete()
++      return setError("timetableSource.error.tooSoon")
++    }
++    if coordinator.status.lastError == .invalidCredentials {
++      try? credentials.delete()
++      return setError(TimetableSourceError.invalidCredentials.settingsMessageKey)
++    }
++    password = ""
++    username = ""
++    hasCredentials = true
++    if coordinator.pendingPreview != nil { isShowingPreview = true }
++  }
++
++  private func importNow() async {
++    isWorking = true
++    defer { isWorking = false }
++    await coordinator.refresh(.userRequest)
++    if coordinator.pendingPreview != nil { isShowingPreview = true }
++  }
++
++  private func signOut() {
++    do {
++      try credentials.delete()
++      hasCredentials = false
++      errorMessageKey = nil
++    } catch {
++      setError("timetableSource.error.keychain")
++    }
++  }
++
++  private func setError(_ key: String, serverStatus: Int? = nil) {
++    errorMessageKey = key
++    errorServerStatus = serverStatus
++  }
++
++  private func serverStatus(of error: TimetableSourceError) -> Int? {
++    if case .server(let status) = error { return status }
++    return nil
++  }
++}
++
++#Preview {
++  // Vorschau mit leerem Speicher im Arbeitsspeicher und ohne echte Quelle.
++  let container = try! ModelContainerFactory.makeInMemoryContainer()
++  let store = DataStore(modelContext: container.mainContext)
++  let coordinator = TimetableSourceCoordinator(
++    repository: store, makeSource: { _ in ManualTimetableSource() },
++    statusStore: SourceStatusStore(defaults: UserDefaults(suiteName: "preview.timetableSource")!),
++    pendingStore: PendingImportStore(
++      directory: FileManager.default.temporaryDirectory.appendingPathComponent("preview-pending")))
++  NavigationStack { TimetableSourceSettingsView() }
++    .environment(coordinator)
++}
+diff --git a/FrontstageTests/TimetableSources/SourceStringsTests.swift b/FrontstageTests/TimetableSources/SourceStringsTests.swift
+new file mode 100644
+index 0000000..aa08d43
+--- /dev/null
++++ b/FrontstageTests/TimetableSources/SourceStringsTests.swift
+@@ -0,0 +1,34 @@
++import Foundation
++import FrontstageCore
++import Testing
++
++@testable import Frontstage
++
++@Suite("Texte der Stundenplan-Quelle")
++struct SourceStringsTests {
++  private func text(_ key: String) -> String {
++    Bundle.main.localizedString(forKey: key, value: nil, table: nil)
++  }
++
++  @Test("Anbindung als inoffiziell und ohne Gewähr bezeichnet (FR-13.1, AK-41)")
++  func unofficialNoticeNamesBoth() {
++    let notice = text("timetableSource.unofficialNotice")
++    #expect(notice.contains("inoffiziell") || notice.contains("Inoffiziell"))
++    #expect(notice.contains("ohne Gewähr"))
++  }
++
++  @Test("Jeder Fehler der Quelle hat einen übersetzten Text")
++  func everyErrorHasAText() {
++    let errors: [TimetableSourceError] = [
++      .notConfigured, .invalidCredentials, .multipleSchoolsUnsupported, .offline,
++      .unexpectedResponse("x"),
++    ]
++    for error in errors {
++      let key = error.settingsMessageKey
++      #expect(text(key) != key, "Schlüssel \(key) fehlt im Katalog")
++    }
++    // Mit Zahl im Schlüssel, deshalb getrennt.
++    #expect(TimetableSourceError.server(status: 500).settingsMessageKey == "timetableSource.error.server")
++    #expect(text("timetableSource.error.server %lld") != "timetableSource.error.server %lld")
++  }
++}

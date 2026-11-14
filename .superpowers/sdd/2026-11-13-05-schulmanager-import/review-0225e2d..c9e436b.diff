@@ -1,0 +1,415 @@
+# Review package: 0225e2d..c9e436b
+
+## Commits
+c9e436b feat(core): derive weekly timetable and changes from Schulmanager lessons
+
+## Files changed
+ .../SchulmanagerChangeExtractor.swift              |  40 ++++++
+ .../SchulmanagerTimetableDeriver.swift             | 125 +++++++++++++++++++
+ .../SchulmanagerChangeExtractorTests.swift         |  77 ++++++++++++
+ .../SchulmanagerTimetableDeriverTests.swift        | 136 +++++++++++++++++++++
+ 4 files changed, 378 insertions(+)
+
+## Diff
+diff --git a/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/SchulmanagerChangeExtractor.swift b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/SchulmanagerChangeExtractor.swift
+new file mode 100644
+index 0000000..732fb0c
+--- /dev/null
++++ b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/SchulmanagerChangeExtractor.swift
+@@ -0,0 +1,40 @@
++/// Erkennt aus datierten Schulmanager-Stunden die Abweichungen (Ausfall, Vertretung) einer Lehrkraft.
++public enum SchulmanagerChangeExtractor {
++  private struct Slot: Hashable {
++    var schoolClass: SchoolClass
++    var subject: Subject
++  }
++
++  public static func changes(in lessons: [SchulmanagerLesson], teacherID: String) -> [SourceChange] {
++    var result: [SourceChange] = []
++    var seen = Set<SourceChange>()
++    func add(_ change: SourceChange) {
++      if seen.insert(change).inserted { result.append(change) }
++    }
++
++    for lesson in lessons {
++      guard lesson.type == .cancelledLesson || lesson.type == .changedLesson else { continue }
++      let own = slots(of: lesson.originals.filter { $0.teacherIDs.contains(teacherID) })
++      let actual: [Slot]
++      if let info = lesson.actual, info.teacherIDs.contains(teacherID) {
++        actual = slots(of: [info])
++      } else {
++        actual = []
++      }
++      // Gleiche Klasse und gleiches Fach bleiben unverändert (nur Raum oder Mitlehrkraft geändert).
++      for slot in own where !actual.contains(slot) {
++        add(.cancelled(date: lesson.date, period: lesson.period, schoolClass: slot.schoolClass, subject: slot.subject))
++      }
++      for slot in actual where !own.contains(slot) {
++        add(.substitute(date: lesson.date, period: lesson.period, schoolClass: slot.schoolClass, subject: slot.subject))
++      }
++    }
++    return result
++  }
++
++  private static func slots(of infos: [SchulmanagerLessonInfo]) -> [Slot] {
++    infos.flatMap { info in
++      info.classNames.map { Slot(schoolClass: SchoolClass($0), subject: Subject(info.subjectName)) }
++    }
++  }
++}
+diff --git a/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/SchulmanagerTimetableDeriver.swift b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/SchulmanagerTimetableDeriver.swift
+new file mode 100644
+index 0000000..a7a4cc1
+--- /dev/null
++++ b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/SchulmanagerTimetableDeriver.swift
+@@ -0,0 +1,125 @@
++/// Leitet aus datierten Schulmanager-Stunden den Wochenplan einer Lehrkraft ab, einschließlich A/B-Wochen.
++///
++/// Die Quelle liefert nur datierte Stunden, keinen Wochenrhythmus. Der Rhythmus wird aus zwei
++/// aufeinanderfolgenden Unterrichtswochen erschlossen: Was in beiden Wochen steht, gilt jede Woche; was nur in
++/// einer steht, gehört zu deren Variante. Ferien und Feiertage dürfen dabei keinen Planunterschied vortäuschen.
++public enum SchulmanagerTimetableDeriver {
++  /// Eine feste Stunde ohne Wochenvariante.
++  private struct Slot: Hashable {
++    var weekday: Weekday
++    var period: Int
++    var schoolClass: SchoolClass
++    var subject: Subject
++  }
++
++  public static func derive(
++    lessons: [SchulmanagerLesson], teacherID: String, existing: Timetable?
++  ) -> TimetableDerivationOutcome {
++    // 1. Geplante eigene Stunden je Woche und Wochentag.
++    var weeks: [CalendarDay: [Weekday: Set<Slot>]] = [:]
++    for lesson in lessons {
++      let infos: [SchulmanagerLessonInfo]
++      switch lesson.type {
++      case .regularLesson: infos = lesson.actual.map { [$0] } ?? []
++      case .cancelledLesson, .changedLesson: infos = lesson.originals
++      case .event: infos = []
++      }
++      let weekday = lesson.date.weekday
++      for info in infos where info.teacherIDs.contains(teacherID) {
++        for className in info.classNames {
++          let slot = Slot(
++            weekday: weekday, period: lesson.period, schoolClass: SchoolClass(className),
++            subject: Subject(info.subjectName))
++          weeks[lesson.date.mondayOfWeek, default: [:]][weekday, default: []].insert(slot)
++        }
++      }
++    }
++
++    // 2. Nutzbar ist eine Woche mit mindestens einer geplanten Stunde (Slots sind nie leer eingetragen).
++    let usable = weeks.keys.sorted()
++    guard let first = usable.first else { return .noLessonsInRange }
++
++    // 3. Erstes Paar unmittelbar aufeinanderfolgender nutzbarer Wochen.
++    let pair = usable.first(where: { weeks[$0.adding(days: 7)] != nil })
++
++    let existingHasVariants = existing?.weekVariantCount == 2
++
++    // 4. Nur eine Woche.
++    guard let week1 = pair else {
++      if existingHasVariants { return .weekVariantsUndetermined }
++      let slots = weeks[first, default: [:]].values.flatMap { $0 }
++      let entries = sorted(slots.map { ($0, nil) })
++      return .derived(
++        DerivedTimetable(
++          entries: entries, weekVariantCount: 1, referenceWeekA: existing?.referenceWeekA))
++    }
++
++    // 5. Paar: je Wochentag vergleichen.
++    let week2 = week1.adding(days: 7)
++    let days1 = weeks[week1, default: [:]]
++    let days2 = weeks[week2, default: [:]]
++    // 6. Benennung der Varianten.
++    let variant1: WeekVariant
++    let variant2: WeekVariant
++    let reference: CalendarDay?
++    if let existing, existingHasVariants {
++      // Eine Woche mit Planunterschied wird nie ohne Variante benannt; hier nur Zuordnung.
++      variant1 = TimetableCalculator.weekVariant(for: week1, timetable: existing) ?? .a
++      variant2 = TimetableCalculator.weekVariant(for: week2, timetable: existing) ?? .b
++      reference = existing.referenceWeekA
++    } else {
++      variant1 = .a
++      variant2 = .b
++      reference = week1
++    }
++
++    var result: [(Slot, WeekVariant?)] = []
++    for weekday in Weekday.allCases {
++      let s1 = days1[weekday]
++      let s2 = days2[weekday]
++      switch (s1, s2) {
++      case (nil, nil): break
++      case (let only?, nil), (nil, let only?):
++        // Der Tag zählt nur in einer Woche (Feiertag): kein Planunterschied.
++        result += only.map { ($0, nil) }
++      case (let a?, let b?):
++        result += a.intersection(b).map { ($0, nil) }
++        result += a.subtracting(b).map { ($0, variant1) }
++        result += b.subtracting(a).map { ($0, variant2) }
++      }
++    }
++
++    let hasVariants = result.contains { $0.1 != nil }
++    if hasVariants {
++      return .derived(
++        DerivedTimetable(entries: sorted(result), weekVariantCount: 2, referenceWeekA: reference))
++    }
++    return .derived(
++      DerivedTimetable(
++        entries: sorted(result), weekVariantCount: 1, referenceWeekA: existing?.referenceWeekA))
++  }
++
++  /// Deterministische Reihenfolge: Wochentag, Stunde, Variante (ohne vor A vor B), Klasse, Fach.
++  private static func sorted(_ items: [(Slot, WeekVariant?)]) -> [TimetableEntry] {
++    func rank(_ v: WeekVariant?) -> Int {
++      switch v {
++      case nil: 0
++      case .a?: 1
++      case .b?: 2
++      }
++    }
++    return items.sorted { l, r in
++      let lk = (l.0.weekday.rawValue, l.0.period, rank(l.1))
++      let rk = (r.0.weekday.rawValue, r.0.period, rank(r.1))
++      if lk != rk { return lk < rk }
++      if l.0.schoolClass.normalized != r.0.schoolClass.normalized {
++        return l.0.schoolClass.normalized < r.0.schoolClass.normalized
++      }
++      return l.0.subject.normalized < r.0.subject.normalized
++    }.map {
++      TimetableEntry(
++        weekVariant: $0.1, weekday: $0.0.weekday, period: $0.0.period,
++        schoolClass: $0.0.schoolClass, subject: $0.0.subject)
++    }
++  }
++}
+diff --git a/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/SchulmanagerChangeExtractorTests.swift b/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/SchulmanagerChangeExtractorTests.swift
+new file mode 100644
+index 0000000..e57580e
+--- /dev/null
++++ b/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/SchulmanagerChangeExtractorTests.swift
+@@ -0,0 +1,77 @@
++import Testing
++
++@testable import FrontstageCore
++
++@Suite("SchulmanagerChangeExtractor")
++struct SchulmanagerChangeExtractorTests {
++  private func info(_ subject: String, _ cls: String, _ teacher: String) -> SchulmanagerLessonInfo {
++    SchulmanagerLessonInfo(subjectName: subject, classNames: [cls], teacherIDs: [teacher])
++  }
++
++  private func lesson(
++    _ day: CalendarDay, _ period: Int, _ type: SchulmanagerLessonType, actual: SchulmanagerLessonInfo?,
++    originals: [SchulmanagerLessonInfo]
++  ) -> SchulmanagerLesson {
++    SchulmanagerLesson(
++      date: day, period: period, type: type, actual: actual, originals: originals,
++      isCancelled: type == .cancelledLesson, isSubstitution: type == .changedLesson)
++  }
++
++  @Test("Vertretung 3. Stunde 6c (AK-21)")
++  func substitutionBecomesSubstitute() {
++    let l = lesson(
++      d(2026, 11, 17), 3, .changedLesson, actual: info("Mathematik", "6c", "T-100"),
++      originals: [info("Mathematik", "6c", "T-200")])
++    #expect(
++      SchulmanagerChangeExtractor.changes(in: [l], teacherID: "T-100") == [
++        .substitute(
++          date: d(2026, 11, 17), period: 3, schoolClass: SchoolClass("6c"), subject: Subject("Mathematik"))
++      ])
++  }
++
++  @Test("Eigene ausgefallene Stunde")
++  func cancelledOwnLessonBecomesCancelled() {
++    let l = lesson(
++      d(2026, 11, 17), 4, .cancelledLesson, actual: nil, originals: [info("Englisch", "9c", "T-100")])
++    #expect(
++      SchulmanagerChangeExtractor.changes(in: [l], teacherID: "T-100") == [
++        .cancelled(
++          date: d(2026, 11, 17), period: 4, schoolClass: SchoolClass("9c"), subject: Subject("Englisch"))
++      ])
++  }
++
++  @Test("Raumwechsel ist keine Abweichung")
++  func roomChangeIsNoChange() {
++    let l = lesson(
++      d(2026, 11, 17), 2, .changedLesson, actual: info("Englisch", "8b", "T-100"),
++      originals: [info("Englisch", "8b", "T-100")])
++    #expect(SchulmanagerChangeExtractor.changes(in: [l], teacherID: "T-100").isEmpty)
++  }
++
++  @Test("Abgegebene Stunde gilt als ausgefallen")
++  func lessonGivenAwayIsCancelled() {
++    let l = lesson(
++      d(2026, 11, 17), 2, .changedLesson, actual: info("Deutsch", "7a", "T-200"),
++      originals: [info("Deutsch", "7a", "T-100")])
++    #expect(
++      SchulmanagerChangeExtractor.changes(in: [l], teacherID: "T-100") == [
++        .cancelled(
++          date: d(2026, 11, 17), period: 2, schoolClass: SchoolClass("7a"), subject: Subject("Deutsch"))
++      ])
++  }
++
++  @Test("Fremder Ausfall wird ignoriert")
++  func foreignCancellationIsIgnored() {
++    let l = lesson(
++      d(2026, 11, 17), 4, .cancelledLesson, actual: nil, originals: [info("Englisch", "9c", "T-200")])
++    #expect(SchulmanagerChangeExtractor.changes(in: [l], teacherID: "T-100").isEmpty)
++  }
++
++  @Test("Gemeinsame Stunde zweier Klassen ergibt je Klasse einen Ausfall, ohne Doppelte")
++  func sharedLessonYieldsOneCancellationPerClass() {
++    let shared = SchulmanagerLessonInfo(
++      subjectName: "Deutsch", classNames: ["8a", "8b"], teacherIDs: ["T-100"])
++    let l = lesson(d(2026, 11, 18), 2, .cancelledLesson, actual: nil, originals: [shared, shared])
++    #expect(SchulmanagerChangeExtractor.changes(in: [l, l], teacherID: "T-100").count == 2)
++  }
++}
+diff --git a/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/SchulmanagerTimetableDeriverTests.swift b/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/SchulmanagerTimetableDeriverTests.swift
+new file mode 100644
+index 0000000..f2a5b46
+--- /dev/null
++++ b/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/SchulmanagerTimetableDeriverTests.swift
+@@ -0,0 +1,136 @@
++import Testing
++
++@testable import FrontstageCore
++
++@Suite("SchulmanagerTimetableDeriver")
++struct SchulmanagerTimetableDeriverTests {
++  private let me = "T-100"
++
++  private func lesson(
++    _ day: CalendarDay, _ period: Int, _ cls: String, _ subject: String, teacher: String = "T-100",
++    type: SchulmanagerLessonType = .regularLesson
++  ) -> SchulmanagerLesson {
++    let info = SchulmanagerLessonInfo(subjectName: subject, classNames: [cls], teacherIDs: [teacher])
++    return SchulmanagerLesson(
++      date: day, period: period, type: type, actual: type == .regularLesson ? info : nil,
++      originals: type == .regularLesson ? [] : [info], isCancelled: false, isSubstitution: false)
++  }
++
++  private func derived(_ outcome: TimetableDerivationOutcome) -> DerivedTimetable? {
++    if case .derived(let value) = outcome { return value }
++    return nil
++  }
++
++  @Test("A/B-Wochen aus zwei Wochen erkennen (Werte aus AK-2)")
++  func derivesWeekVariants() throws {
++    let lessons = [
++      lesson(d(2026, 11, 16), 1, "7a", "Deutsch"), lesson(d(2026, 11, 17), 2, "8b", "Englisch"),
++      lesson(d(2026, 11, 23), 1, "9c", "Englisch"), lesson(d(2026, 11, 24), 2, "8b", "Englisch"),
++    ]
++    let result = try #require(
++      derived(SchulmanagerTimetableDeriver.derive(lessons: lessons, teacherID: me, existing: nil)))
++    #expect(
++      result.entries == [
++        entry(.monday, 1, "7a", "Deutsch", variant: .a),
++        entry(.monday, 1, "9c", "Englisch", variant: .b),
++        entry(.tuesday, 2, "8b", "Englisch"),
++      ])
++    #expect(result.weekVariantCount == 2)
++    #expect(result.referenceWeekA == d(2026, 11, 16))
++  }
++
++  @Test("Drei Einträge aus der Quelle (AK-3)")
++  func derivesThreeEntriesFromIdenticalWeeks() throws {
++    var lessons: [SchulmanagerLesson] = []
++    for week in [d(2026, 11, 16), d(2026, 11, 23)] {
++      lessons += [
++        lesson(week.adding(days: 1), 2, "8b", "Englisch"), lesson(week.adding(days: 2), 4, "7a", "Deutsch"),
++        lesson(week.adding(days: 4), 2, "8a", "Englisch"),
++      ]
++    }
++    let result = try #require(
++      derived(SchulmanagerTimetableDeriver.derive(lessons: lessons, teacherID: me, existing: nil)))
++    #expect(result.entries.count == 3)
++    #expect(result.entries.allSatisfy { $0.weekVariant == nil })
++    #expect(result.weekVariantCount == 1)
++  }
++
++  @Test("Eine leere Ferienwoche wird übersprungen")
++  func holidayWeekIsSkipped() throws {
++    var lessons: [SchulmanagerLesson] = []
++    // Die Woche ab 2026-11-16 ist leer.
++    for week in [d(2026, 11, 23), d(2026, 11, 30)] {
++      lessons += [lesson(week, 1, "7a", "Deutsch"), lesson(week.adding(days: 1), 2, "8b", "Englisch")]
++    }
++    let result = try #require(
++      derived(SchulmanagerTimetableDeriver.derive(lessons: lessons, teacherID: me, existing: nil)))
++    #expect(result.entries.count == 2)
++    #expect(result.weekVariantCount == 1)
++  }
++
++  @Test("Ein einzelner fehlender Wochentag ist keine Variante")
++  func singleMissingWeekdayIsNotAVariant() throws {
++    let w1 = d(2026, 11, 16)
++    let w2 = d(2026, 11, 23)
++    // Mittwoch 2026-11-18 ohne Stunden (Feiertag); der Mittwoch der zweiten Woche hat eine.
++    let lessons = [
++      lesson(w1, 1, "7a", "Deutsch"), lesson(w1.adding(days: 1), 2, "8b", "Englisch"),
++      lesson(w2, 1, "7a", "Deutsch"), lesson(w2.adding(days: 1), 2, "8b", "Englisch"),
++      lesson(w2.adding(days: 2), 3, "9c", "Physik"),
++    ]
++    let result = try #require(
++      derived(SchulmanagerTimetableDeriver.derive(lessons: lessons, teacherID: me, existing: nil)))
++    #expect(result.entries.contains(entry(.wednesday, 3, "9c", "Physik")))
++    #expect(result.weekVariantCount == 1)
++  }
++
++  @Test("Nur Ereignisse im Zeitraum lassen den Plan unberührt")
++  func noLessonsInRangeLeavesTimetableAlone() {
++    let event = SchulmanagerLesson(
++      date: d(2026, 11, 16), period: 1, type: .event, actual: nil, originals: [], isCancelled: false,
++      isSubstitution: false)
++    #expect(
++      SchulmanagerTimetableDeriver.derive(lessons: [event], teacherID: me, existing: nil)
++        == .noLessonsInRange)
++  }
++
++  @Test("Eine Woche bei vorhandenem A/B ist unbestimmt")
++  func singleWeekWithExistingABIsUndetermined() {
++    let existing = Timetable(weekVariantCount: 2, referenceWeekA: d(2026, 11, 16))
++    let outcome = SchulmanagerTimetableDeriver.derive(
++      lessons: [lesson(d(2026, 11, 16), 1, "7a", "Deutsch")], teacherID: me, existing: existing)
++    #expect(outcome == .weekVariantsUndetermined)
++  }
++
++  @Test("Benennung der Varianten folgt dem vorhandenen Plan")
++  func usesExistingVariantNaming() throws {
++    let existing = Timetable(weekVariantCount: 2, referenceWeekA: d(2026, 11, 23))
++    let lessons = [lesson(d(2026, 11, 16), 1, "7a", "Deutsch"), lesson(d(2026, 11, 23), 1, "9c", "Englisch")]
++    let result = try #require(
++      derived(SchulmanagerTimetableDeriver.derive(lessons: lessons, teacherID: me, existing: existing)))
++    #expect(
++      result.entries == [
++        entry(.monday, 1, "9c", "Englisch", variant: .a),
++        entry(.monday, 1, "7a", "Deutsch", variant: .b),
++      ])
++    #expect(result.referenceWeekA == d(2026, 11, 23))
++  }
++
++  @Test("Stunden fremder Lehrkräfte werden ignoriert")
++  func foreignLessonsAreIgnored() throws {
++    let lessons = [
++      lesson(d(2026, 11, 16), 1, "7a", "Deutsch"), lesson(d(2026, 11, 16), 2, "8b", "Kunst", teacher: "T-200"),
++    ]
++    let result = try #require(
++      derived(SchulmanagerTimetableDeriver.derive(lessons: lessons, teacherID: me, existing: nil)))
++    #expect(result.entries == [entry(.monday, 1, "7a", "Deutsch")])
++  }
++
++  @Test("Ausgefallene Stunden gehören weiter zum geplanten Plan")
++  func cancelledLessonsStayInPlan() throws {
++    let lessons = [lesson(d(2026, 11, 16), 1, "7a", "Deutsch", type: .cancelledLesson)]
++    let result = try #require(
++      derived(SchulmanagerTimetableDeriver.derive(lessons: lessons, teacherID: me, existing: nil)))
++    #expect(result.entries == [entry(.monday, 1, "7a", "Deutsch")])
++  }
++}

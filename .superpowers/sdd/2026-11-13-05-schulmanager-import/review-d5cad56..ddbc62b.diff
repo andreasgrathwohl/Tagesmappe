@@ -1,0 +1,242 @@
+# Review package: d5cad56..ddbc62b
+
+## Commits
+ddbc62b feat(core): add TimetableSource protocol and shared source types
+
+## Files changed
+ .../TimetableSources/JSONValue.swift               | 55 ++++++++++++++
+ .../TimetableSources/TimetableSource.swift         | 87 ++++++++++++++++++++++
+ .../TimetableSources/TimetableSourceTests.swift    | 70 +++++++++++++++++
+ 3 files changed, 212 insertions(+)
+
+## Diff
+diff --git a/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/JSONValue.swift b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/JSONValue.swift
+new file mode 100644
+index 0000000..4852a6c
+--- /dev/null
++++ b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/JSONValue.swift
+@@ -0,0 +1,55 @@
++import Foundation
++
++/// Roher JSON-Wert, damit etwa das Kontoobjekt der Quelle unverändert weitergereicht werden kann.
++public enum JSONValue: Hashable, Codable, Sendable {
++  case string(String)
++  case number(Double)
++  case bool(Bool)
++  case object([String: JSONValue])
++  case array([JSONValue])
++  case null
++
++  public init(from decoder: any Decoder) throws {
++    let container = try decoder.singleValueContainer()
++    // Reihenfolge wichtig: Bool vor Zahl, damit `true` nicht als Zahl gelesen wird.
++    if container.decodeNil() {
++      self = .null
++    } else if let value = try? container.decode(Bool.self) {
++      self = .bool(value)
++    } else if let value = try? container.decode(Double.self) {
++      self = .number(value)
++    } else if let value = try? container.decode(String.self) {
++      self = .string(value)
++    } else if let value = try? container.decode([JSONValue].self) {
++      self = .array(value)
++    } else if let value = try? container.decode([String: JSONValue].self) {
++      self = .object(value)
++    } else {
++      throw DecodingError.dataCorruptedError(
++        in: container, debugDescription: "Kein gültiger JSON-Wert")
++    }
++  }
++
++  public func encode(to encoder: any Encoder) throws {
++    var container = encoder.singleValueContainer()
++    switch self {
++    case .string(let value): try container.encode(value)
++    case .number(let value): try container.encode(value)
++    case .bool(let value): try container.encode(value)
++    case .object(let value): try container.encode(value)
++    case .array(let value): try container.encode(value)
++    case .null: try container.encodeNil()
++    }
++  }
++
++  /// Objektpfad; `nil`, sobald ein Schlüssel fehlt oder ein Zwischenwert kein Objekt ist.
++  /// Der leere Pfad liefert den Wert selbst.
++  public subscript(path: [String]) -> JSONValue? {
++    var current = self
++    for key in path {
++      guard case .object(let object) = current, let next = object[key] else { return nil }
++      current = next
++    }
++    return current
++  }
++}
+diff --git a/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/TimetableSource.swift b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/TimetableSource.swift
+new file mode 100644
+index 0000000..12c7c35
+--- /dev/null
++++ b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/TimetableSource.swift
+@@ -0,0 +1,87 @@
++import Foundation
++
++/// Art der Stundenplan-Quelle (Glossar: Stundenplan-Quelle). Liegt im Kern, damit der Rohwert gespeichert
++/// (`TimetableRecord.sourceKindRaw`) und angezeigt werden kann. WebUntis kommt später als weiterer Fall (FR-2.1).
++public enum TimetableSourceKind: String, Codable, Sendable, CaseIterable {
++  case manual
++  case schulmanager
++}
++
++/// Fehler beim Abfragen einer Stundenplan-Quelle.
++public enum TimetableSourceError: Error, Equatable, Codable, Sendable {
++  case notConfigured
++  case invalidCredentials
++  case multipleSchoolsUnsupported
++  case offline
++  case server(status: Int)
++  /// Text nur zur Diagnose, nie mit Zugangsdaten.
++  case unexpectedResponse(String)
++}
++
++/// Abweichung, wie die Quelle sie meldet – noch ohne Schlüssel der Unterrichtsstunde (ADR-0005).
++public enum SourceChange: Hashable, Codable, Sendable {
++  case cancelled(date: CalendarDay, period: Int, schoolClass: SchoolClass, subject: Subject)
++  case substitute(date: CalendarDay, period: Int, schoolClass: SchoolClass, subject: Subject)
++}
++
++/// Aus datierten Stunden abgeleiteter Wochenplan.
++public struct DerivedTimetable: Hashable, Codable, Sendable {
++  public var entries: [TimetableEntry]
++  public var weekVariantCount: Int
++  public var referenceWeekA: CalendarDay?
++
++  public init(entries: [TimetableEntry], weekVariantCount: Int, referenceWeekA: CalendarDay?) {
++    self.entries = entries
++    self.weekVariantCount = weekVariantCount
++    self.referenceWeekA = referenceWeekA
++  }
++}
++
++/// Ergebnis der Wochenplan-Ableitung.
++public enum TimetableDerivationOutcome: Hashable, Codable, Sendable {
++  case derived(DerivedTimetable)
++  /// Zum Beispiel Sommerferien: Der Stundenplan bleibt, wie er ist.
++  case noLessonsInRange
++  /// Nur eine Unterrichtswoche, der vorhandene Plan hat aber A/B.
++  case weekVariantsUndetermined
++}
++
++/// Stand einer Abfrage bei einer Quelle.
++public struct SourceSnapshot: Hashable, Codable, Sendable {
++  public var kind: TimetableSourceKind
++  public var fetchedAt: Date
++  public var range: ClosedRange<CalendarDay>
++  public var timetable: TimetableDerivationOutcome
++  public var bellSchedule: BellSchedule?
++  public var changes: [SourceChange]
++
++  public init(
++    kind: TimetableSourceKind, fetchedAt: Date, range: ClosedRange<CalendarDay>,
++    timetable: TimetableDerivationOutcome, bellSchedule: BellSchedule?, changes: [SourceChange]
++  ) {
++    self.kind = kind
++    self.fetchedAt = fetchedAt
++    self.range = range
++    self.timetable = timetable
++    self.bellSchedule = bellSchedule
++    self.changes = changes
++  }
++}
++
++/// Gemeinsame Schnittstelle aller Stundenplan-Quellen (Area stundenplan-quellen, ADR-0004).
++public protocol TimetableSource: Sendable {
++  var kind: TimetableSourceKind { get }
++  /// `nil`: Diese Quelle liefert nichts, der Stundenplan wird in der App gepflegt („von Hand“).
++  /// `existing` braucht die Quelle, um A/B-Wochen gleich zu benennen wie der vorhandene Stundenplan.
++  func fetch(range: ClosedRange<CalendarDay>, existing: Timetable?, now: Date) async throws
++    -> SourceSnapshot?
++}
++
++/// Quelle „von Hand“: liefert nichts.
++public struct ManualTimetableSource: TimetableSource {
++  public init() {}
++  public var kind: TimetableSourceKind { .manual }
++  public func fetch(range: ClosedRange<CalendarDay>, existing: Timetable?, now: Date) async throws
++    -> SourceSnapshot?
++  { nil }
++}
+diff --git a/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/TimetableSourceTests.swift b/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/TimetableSourceTests.swift
+new file mode 100644
+index 0000000..f6bdada
+--- /dev/null
++++ b/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/TimetableSourceTests.swift
+@@ -0,0 +1,70 @@
++import Foundation
++import Testing
++
++@testable import FrontstageCore
++
++@Suite("TimetableSource")
++struct TimetableSourceTests {
++  @Test("Quelle „von Hand“ liefert nichts (Area stundenplan-quellen)")
++  func manualSourceReturnsNil() async throws {
++    let source = ManualTimetableSource()
++    #expect(source.kind == .manual)
++    let result = try await source.fetch(
++      range: d(2026, 11, 16)...d(2026, 12, 13), existing: nil, now: Date(timeIntervalSince1970: 0))
++    #expect(result == nil)
++  }
++
++  @Test("Stand übersteht Speichern und Laden")
++  func snapshotRoundTripsThroughJSON() throws {
++    let derived = DerivedTimetable(
++      entries: [entry(.monday, 1, "8b", "Mathe", variant: .a)], weekVariantCount: 2,
++      referenceWeekA: d(2026, 11, 16))
++    let snapshot = SourceSnapshot(
++      kind: .schulmanager, fetchedAt: Date(timeIntervalSince1970: 1_700_000_000),
++      range: d(2026, 11, 16)...d(2026, 12, 13), timetable: .derived(derived),
++      bellSchedule: BellSchedule(periods: [1: t(7, 45)...t(8, 30)]),
++      changes: [
++        .substitute(
++          date: d(2026, 11, 17), period: 2, schoolClass: SchoolClass("9c"), subject: Subject("Deutsch"))
++      ])
++    let data = try JSONEncoder().encode(snapshot)
++    let decoded = try JSONDecoder().decode(SourceSnapshot.self, from: data)
++    #expect(decoded == snapshot)
++  }
++
++  @Test("Fehler und Ergebnisarten übersteht Speichern und Laden")
++  func errorsAndOutcomesRoundTrip() throws {
++    for error in [
++      TimetableSourceError.notConfigured, .server(status: 503), .unexpectedResponse("x"),
++    ] {
++      let decoded = try JSONDecoder().decode(
++        TimetableSourceError.self, from: JSONEncoder().encode(error))
++      #expect(decoded == error)
++    }
++    for outcome in [
++      TimetableDerivationOutcome.noLessonsInRange, .weekVariantsUndetermined,
++    ] {
++      let decoded = try JSONDecoder().decode(
++        TimetableDerivationOutcome.self, from: JSONEncoder().encode(outcome))
++      #expect(decoded == outcome)
++    }
++  }
++
++  @Test("Pfadzugriff auf JSON-Werte")
++  func jsonValuePathLookup() throws {
++    let json = #"{"user":{"associatedTeacher":{"id":"T-100"}},"n":1.5,"ok":true,"l":[null,"a"]}"#
++    let value = try JSONDecoder().decode(JSONValue.self, from: Data(json.utf8))
++    #expect(value[["user", "associatedTeacher", "id"]] == .string("T-100"))
++    #expect(value[["user", "missing"]] == nil)
++    #expect(value[["user", "associatedTeacher", "id", "deeper"]] == nil)
++    #expect(value[["n"]] == .number(1.5))
++    #expect(value[["ok"]] == .bool(true))
++    #expect(value[["l"]] == .array([.null, .string("a")]))
++    #expect(value[[]] == value)
++  }
++
++  @Test("Gespeicherte Rohwerte der Quellenart")
++  func sourceKindRawValues() {
++    #expect(TimetableSourceKind.allCases.map(\.rawValue) == ["manual", "schulmanager"])
++  }
++}

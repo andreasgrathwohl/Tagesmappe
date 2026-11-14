@@ -1,0 +1,765 @@
+# Review package: ddbc62b..0225e2d
+
+## Commits
+0225e2d feat(core): parse Schulmanager responses and build requests
+
+## Files changed
+ .../TimetableSources/SchulmanagerAPIShape.swift    |  73 +++++++
+ .../SchulmanagerRequestBuilder.swift               |  58 ++++++
+ .../SchulmanagerResponseParser.swift               | 229 +++++++++++++++++++++
+ .../TimetableSources/SchulmanagerFixtures.swift    |  48 +++++
+ .../SchulmanagerRequestBuilderTests.swift          |  93 +++++++++
+ .../SchulmanagerResponseParserTests.swift          | 213 +++++++++++++++++++
+ 6 files changed, 714 insertions(+)
+
+## Diff
+diff --git a/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/SchulmanagerAPIShape.swift b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/SchulmanagerAPIShape.swift
+new file mode 100644
+index 0000000..6c5d394
+--- /dev/null
++++ b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/SchulmanagerAPIShape.swift
+@@ -0,0 +1,73 @@
++import Foundation
++
++/// Pfade, Schlüssel und Aufrufnamen der inoffiziellen Schulmanager-Online-Schnittstelle
++/// (FR-13.1: inoffiziell, ohne Gewähr). Eigener Typ, damit Tests eine eigene Form übergeben können
++/// und eine Änderung der Schnittstelle an genau einer Stelle nachgezogen wird.
++public struct SchulmanagerAPIShape: Sendable {
++  /// Einziger Fremd-Host (NFR-2).
++  public var host: String
++  public var saltPath: String
++  public var loginPath: String
++  public var callsPath: String
++  /// Pfad zum Objekt der Lehrkraft in der Login-Antwort.
++  public var teacherObjectPath: [String]
++  /// Pfad zur ID der Lehrkraft, relativ zum Lehrer-Objekt.
++  public var teacherIDPath: [String]
++  public var lessonsModule: String
++  public var lessonsEndpoint: String
++  /// Schlüssel in `parameters`, der die Lehrkraft trägt.
++  public var teacherParameterKey: String
++  /// `true`: das ganze Lehrer-Objekt wird übergeben, sonst nur die ID.
++  public var passesWholeTeacherObject: Bool
++  public var classHoursModule: String
++  public var classHoursEndpoint: String
++  public var classHoursParameters: [String: JSONValue]
++  /// `nil`: das Feld `bundleVersion` wird weggelassen.
++  public var bundleVersion: String?
++
++  public init(
++    host: String, saltPath: String, loginPath: String, callsPath: String,
++    teacherObjectPath: [String], teacherIDPath: [String],
++    lessonsModule: String, lessonsEndpoint: String,
++    teacherParameterKey: String, passesWholeTeacherObject: Bool,
++    classHoursModule: String, classHoursEndpoint: String,
++    classHoursParameters: [String: JSONValue], bundleVersion: String?
++  ) {
++    self.host = host
++    self.saltPath = saltPath
++    self.loginPath = loginPath
++    self.callsPath = callsPath
++    self.teacherObjectPath = teacherObjectPath
++    self.teacherIDPath = teacherIDPath
++    self.lessonsModule = lessonsModule
++    self.lessonsEndpoint = lessonsEndpoint
++    self.teacherParameterKey = teacherParameterKey
++    self.passesWholeTeacherObject = passesWholeTeacherObject
++    self.classHoursModule = classHoursModule
++    self.classHoursEndpoint = classHoursEndpoint
++    self.classHoursParameters = classHoursParameters
++    self.bundleVersion = bundleVersion
++  }
++
++  /// Vorläufige Werte. Die Prüfung mit einem echten Lehrerkonto (Q-16, Aufgabe 1) steht aus: Was für
++  /// Eltern- und Schülerkonten dokumentiert ist, gilt hier als Annahme; Lehrer-spezifische Werte
++  /// (B1–B4, B8, B10) sind Platzhalter und müssen nach dem Prüfschritt ersetzt werden.
++  /// Quellen: rwunsch/schulmanager-online-hass (MIT), `const.py`, `api.py`,
++  /// `documentation/Schedules_API_Documentation.md`.
++  public static let recorded = SchulmanagerAPIShape(
++    host: "login.schulmanager-online.de",  // belegt (const.py)
++    saltPath: "/api/get-salt",  // belegt in const.py; Authentication_Guide nennt /api/salt (B9 offen)
++    loginPath: "/api/login",  // belegt
++    callsPath: "/api/calls",  // belegt
++    teacherObjectPath: ["user", "associatedTeacher"],  // unbelegt, Q-16 offen (B1)
++    teacherIDPath: ["id"],  // unbelegt, Q-16 offen (B2)
++    lessonsModule: "schedules",  // belegt für Schüler; Lehrer unbelegt (B3)
++    lessonsEndpoint: "get-actual-lessons",  // belegt für Schüler; Lehrer unbelegt (B3)
++    teacherParameterKey: "teacher",  // unbelegt, Q-16 offen (B4); bei Schülern "student"
++    passesWholeTeacherObject: true,  // unbelegt, Q-16 offen (B4); bei Schülern das ganze Objekt
++    classHoursModule: "schedules",  // belegt für Schüler (B8)
++    classHoursEndpoint: "get-class-hours",  // belegt für Schüler (B8)
++    classHoursParameters: [:],  // unbelegt, Q-16 offen (B8); bei Schülern {"classId": …}
++    bundleVersion: nil  // unbelegt, Q-16 offen (B10)
++  )
++}
+diff --git a/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/SchulmanagerRequestBuilder.swift b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/SchulmanagerRequestBuilder.swift
+new file mode 100644
+index 0000000..1210e98
+--- /dev/null
++++ b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/SchulmanagerRequestBuilder.swift
+@@ -0,0 +1,58 @@
++import Foundation
++
++/// Baut die Anfrage-Bodies für Salt, Login und Abfrage. Reine Datenumwandlung, kein Netz.
++public enum SchulmanagerRequestBuilder {
++  /// Body für die Salt-Abfrage.
++  public static func saltBody(username: String) throws -> Data {
++    try encode(
++      .object([
++        "emailOrUsername": .string(username),
++        "mobileApp": .bool(false),
++        "institutionId": .null,
++      ]))
++  }
++
++  /// Body für die Anmeldung; `hash` ist das abgeleitete Passwort (PBKDF2, in der App berechnet).
++  public static func loginBody(username: String, password: String, hash: String) throws -> Data {
++    try encode(
++      .object([
++        "emailOrUsername": .string(username),
++        "password": .string(password),
++        "hash": .string(hash),
++        "mobileApp": .bool(false),
++        "institutionId": .null,
++      ]))
++  }
++
++  /// Ein POST mit zwei Teilaufrufen: [0] Stunden im Zeitraum, [1] Stundenzeiten.
++  /// Das Token gehört in die Kopfzeile `Authorization`, nie in den Body.
++  public static func callsBody(
++    shape: SchulmanagerAPIShape, login: SchulmanagerLogin, range: ClosedRange<CalendarDay>
++  ) throws -> Data {
++    let teacher: JSONValue =
++      shape.passesWholeTeacherObject ? login.teacherObject : .string(login.teacherID)
++    let lessonRequest: JSONValue = .object([
++      "moduleName": .string(shape.lessonsModule),
++      "endpointName": .string(shape.lessonsEndpoint),
++      "parameters": .object([
++        shape.teacherParameterKey: teacher,
++        "start": .string(range.lowerBound.storageText),
++        "end": .string(range.upperBound.storageText),
++      ]),
++    ])
++    let classHoursRequest: JSONValue = .object([
++      "moduleName": .string(shape.classHoursModule),
++      "endpointName": .string(shape.classHoursEndpoint),
++      "parameters": .object(shape.classHoursParameters),
++    ])
++    var body: [String: JSONValue] = ["requests": .array([lessonRequest, classHoursRequest])]
++    if let version = shape.bundleVersion { body["bundleVersion"] = .string(version) }
++    return try encode(.object(body))
++  }
++
++  private static func encode(_ value: JSONValue) throws -> Data {
++    let encoder = JSONEncoder()
++    encoder.outputFormatting = [.sortedKeys]
++    return try encoder.encode(value)
++  }
++}
+diff --git a/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/SchulmanagerResponseParser.swift b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/SchulmanagerResponseParser.swift
+new file mode 100644
+index 0000000..7109ecd
+--- /dev/null
++++ b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/SchulmanagerResponseParser.swift
+@@ -0,0 +1,229 @@
++import Foundation
++
++/// Eine Unterrichtsstunde, wie Schulmanager sie meldet (Fach, Klassen, Lehrkräfte).
++public struct SchulmanagerLessonInfo: Hashable, Sendable {
++  public var subjectName: String
++  /// Sortierte Klassennamen (Ersatz: Gruppennamen, wenn keine Klasse genannt ist).
++  public var classNames: [String]
++  public var teacherIDs: [String]
++
++  public init(subjectName: String, classNames: [String], teacherIDs: [String]) {
++    self.subjectName = subjectName
++    self.classNames = classNames
++    self.teacherIDs = teacherIDs
++  }
++}
++
++public enum SchulmanagerLessonType: String, Sendable {
++  case regularLesson, cancelledLesson, changedLesson, event
++}
++
++/// Eine datierte Stunde aus `get-actual-lessons`.
++public struct SchulmanagerLesson: Hashable, Sendable {
++  public var date: CalendarDay
++  public var period: Int
++  public var type: SchulmanagerLessonType
++  public var actual: SchulmanagerLessonInfo?
++  public var originals: [SchulmanagerLessonInfo]
++  public var isCancelled: Bool
++  public var isSubstitution: Bool
++
++  public init(
++    date: CalendarDay, period: Int, type: SchulmanagerLessonType, actual: SchulmanagerLessonInfo?,
++    originals: [SchulmanagerLessonInfo], isCancelled: Bool, isSubstitution: Bool
++  ) {
++    self.date = date
++    self.period = period
++    self.type = type
++    self.actual = actual
++    self.originals = originals
++    self.isCancelled = isCancelled
++    self.isSubstitution = isSubstitution
++  }
++}
++
++/// Ergebnis der Anmeldung. Das Token lebt nur im Speicher eines Imports.
++public struct SchulmanagerLogin: Sendable {
++  public var jwt: String
++  public var teacherObject: JSONValue
++  public var teacherID: String
++
++  public init(jwt: String, teacherObject: JSONValue, teacherID: String) {
++    self.jwt = jwt
++    self.teacherObject = teacherObject
++    self.teacherID = teacherID
++  }
++}
++
++/// Liest die Antworten von Schulmanager. Jede Abweichung vom erwarteten Aufbau ist ein Fehler
++/// (`unexpectedResponse`), damit nie ein Teilimport entsteht. Fehlertexte nennen nur Feldnamen,
++/// nie Werte aus der Antwort (kein Token, keine Namen).
++public enum SchulmanagerResponseParser {
++  /// Salz als blanker JSON-String oder als `{"salt": …}`.
++  public static func salt(from data: Data) throws -> String {
++    let root = try decode(data)
++    switch root {
++    case .string(let salt) where !salt.isEmpty: return salt
++    case .object(let object):
++      if case .string(let salt)? = object["salt"], !salt.isEmpty { return salt }
++    default: break
++    }
++    throw fail("Salt fehlt")
++  }
++
++  public static func login(from data: Data, shape: SchulmanagerAPIShape) throws -> SchulmanagerLogin {
++    let root = try decode(data)
++    guard case .object(let object) = root else { throw fail("Anmeldeantwort ist kein Objekt") }
++    guard case .string(let jwt)? = object["jwt"], !jwt.isEmpty else {
++      if object["multipleAccounts"] != nil { throw TimetableSourceError.multipleSchoolsUnsupported }
++      throw fail("Anmeldeantwort ohne Token")
++    }
++    guard let teacher = root[shape.teacherObjectPath], case .object = teacher else {
++      throw fail("Lehrer-Objekt fehlt")
++    }
++    guard let id = teacher[shape.teacherIDPath].flatMap(text) else { throw fail("Lehrer-ID fehlt") }
++    return SchulmanagerLogin(jwt: jwt, teacherObject: teacher, teacherID: id)
++  }
++
++  /// Stunden aus dem Teilergebnis `index` einer Abfrage.
++  public static func lessons(fromCalls data: Data, at index: Int) throws -> [SchulmanagerLesson] {
++    guard case .array(let elements) = try callData(data, at: index) else {
++      throw fail("Stunden sind keine Liste")
++    }
++    return try elements.map(lesson)
++  }
++
++  /// Zeitraster aus dem Teilergebnis `index` einer Abfrage.
++  public static func bellSchedule(fromCalls data: Data, at index: Int) throws -> BellSchedule {
++    guard case .array(let elements) = try callData(data, at: index) else {
++      throw fail("Stundenzeiten sind keine Liste")
++    }
++    var periods: [Int: ClosedRange<TimeOfDay>] = [:]
++    for element in elements {
++      guard let number = element[["number"]].flatMap(integer),
++        let from = element[["from"]].flatMap(timeText).flatMap(time),
++        let until = element[["until"]].flatMap(timeText).flatMap(time), from <= until
++      else { throw fail("Stundenzeit unvollständig oder ungültig") }
++      periods[number] = from...until
++    }
++    return BellSchedule(periods: periods)
++  }
++
++  // MARK: - Teilantworten
++
++  private static func callData(_ data: Data, at index: Int) throws -> JSONValue {
++    let root = try decode(data)
++    guard case .array(let results)? = root[["results"]], results.indices.contains(index) else {
++      throw fail("Teilantwort \(index) fehlt")
++    }
++    let result = results[index]
++    guard case .number(let status)? = result[["status"]], status == 200,
++      let payload = result[["data"]]
++    else { throw fail("Teilantwort \(index) ohne Status 200") }
++    return payload
++  }
++
++  private static func lesson(_ element: JSONValue) throws -> SchulmanagerLesson {
++    guard case .string(let dateText)? = element[["date"]],
++      let date = CalendarDay(storageText: String(dateText.prefix(10)))
++    else { throw fail("Datum fehlt oder ist ungültig") }
++    guard let period = element[["classHour", "number"]].flatMap(integer) else {
++      throw fail("Stundennummer fehlt")
++    }
++    guard case .string(let typeText)? = element[["type"]],
++      let type = SchulmanagerLessonType(rawValue: typeText)
++    else { throw fail("Unbekannter Stundentyp") }
++
++    var actual: SchulmanagerLessonInfo?
++    var originals: [SchulmanagerLessonInfo] = []
++    if type == .event {
++      // Ereignisse tragen oft kein Fach; sie zählen nicht als Unterricht.
++      actual = element[["actualLesson"]].flatMap { try? info($0) }
++    } else {
++      if let node = element[["actualLesson"]], node != .null { actual = try info(node) }
++      if case .array(let nodes)? = element[["originalLessons"]] { originals = try nodes.map(info) }
++    }
++    return SchulmanagerLesson(
++      date: date, period: period, type: type, actual: actual, originals: originals,
++      isCancelled: bool(element[["isCancelled"]]),
++      isSubstitution: bool(element[["isSubstitution"]]))
++  }
++
++  private static func info(_ node: JSONValue) throws -> SchulmanagerLessonInfo {
++    let name = node[["subject", "name"]].flatMap(text) ?? ""
++    let abbreviation = node[["subject", "abbreviation"]].flatMap(text) ?? ""
++    let subject = !name.isEmpty ? name : abbreviation
++    guard !subject.isEmpty else { throw fail("Fach fehlt") }
++
++    var classNames = names(node[["classes"]])
++    if classNames.isEmpty { classNames = names(node[["studentGroups"]]) }
++
++    var teacherIDs: [String] = []
++    if case .array(let teachers)? = node[["teachers"]] {
++      teacherIDs = teachers.compactMap { $0[["id"]].flatMap(text) }
++    }
++    return SchulmanagerLessonInfo(
++      subjectName: subject, classNames: classNames.sorted(), teacherIDs: teacherIDs)
++  }
++
++  // MARK: - Hilfen
++
++  private static func decode(_ data: Data) throws -> JSONValue {
++    do { return try JSONDecoder().decode(JSONValue.self, from: data) } catch {
++      throw fail("Antwort ist kein gültiges JSON")
++    }
++  }
++
++  private static func fail(_ reason: String) -> TimetableSourceError { .unexpectedResponse(reason) }
++
++  private static func names(_ node: JSONValue?) -> [String] {
++    guard case .array(let items)? = node else { return [] }
++    return items.compactMap { item in
++      guard case .string(let name)? = item[["name"]], !name.isEmpty else { return nil }
++      return name
++    }
++  }
++
++  private static func bool(_ node: JSONValue?) -> Bool {
++    if case .bool(let value)? = node { return value }
++    return false
++  }
++
++  /// Text oder ganze Zahl als Text (IDs kommen je nach Konto als Zahl oder Text).
++  private static func text(_ node: JSONValue) -> String? {
++    switch node {
++    case .string(let value): return value.isEmpty ? nil : value
++    case .number(let value):
++      return value == value.rounded() && abs(value) < 1e15 ? String(Int(value)) : nil
++    default: return nil
++    }
++  }
++
++  /// Zahl oder Text mit ganzer Zahl (B5: `classHour.number` kann beides sein).
++  private static func integer(_ node: JSONValue) -> Int? {
++    switch node {
++    case .number(let value): return value == value.rounded() && abs(value) < 1e9 ? Int(value) : nil
++    case .string(let value): return Int(value.trimmingCharacters(in: .whitespaces))
++    default: return nil
++    }
++  }
++
++  private static func timeText(_ node: JSONValue) -> String? {
++    if case .string(let value) = node { return value }
++    return nil
++  }
++
++  /// `HH:MM:SS` oder `HH:MM`; Sekunden werden abgeschnitten.
++  private static func time(_ text: String) -> TimeOfDay? {
++    let parts = text.split(separator: ":", omittingEmptySubsequences: false)
++    guard parts.count == 2 || parts.count == 3,
++      parts.allSatisfy({ $0.count == 2 && $0.allSatisfy { $0.isASCII && $0.isNumber } }),
++      let hour = Int(parts[0]), let minute = Int(parts[1]),
++      (0...23).contains(hour), (0...59).contains(minute)
++    else { return nil }
++    if parts.count == 3 {
++      guard let second = Int(parts[2]), (0...59).contains(second) else { return nil }
++    }
++    return TimeOfDay(hour: hour, minute: minute)
++  }
++}
+diff --git a/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/SchulmanagerFixtures.swift b/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/SchulmanagerFixtures.swift
+new file mode 100644
+index 0000000..4706903
+--- /dev/null
++++ b/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/SchulmanagerFixtures.swift
+@@ -0,0 +1,48 @@
++import Foundation
++
++@testable import FrontstageCore
++
++/// Erfundene Beispieldaten für die Schulmanager-Tests (keine echten Personen, Klassen oder Kennungen).
++enum SchulmanagerFixtures {
++  /// Eigene Test-Form, damit die Tests nicht an den vorläufigen Werten von `.recorded` hängen.
++  static let shape = SchulmanagerAPIShape(
++    host: "login.schulmanager-online.de", saltPath: "/api/get-salt", loginPath: "/api/login",
++    callsPath: "/api/calls", teacherObjectPath: ["user", "associatedTeacher"], teacherIDPath: ["id"],
++    lessonsModule: "schedules", lessonsEndpoint: "get-actual-lessons",
++    teacherParameterKey: "teacher", passesWholeTeacherObject: true,
++    classHoursModule: "schedules", classHoursEndpoint: "get-class-hours",
++    classHoursParameters: ["scope": .string("all")], bundleVersion: nil)
++
++  static func data(_ text: String) -> Data { Data(text.utf8) }
++
++  static let loginResponse = """
++    {"jwt":"jwt-beispiel","user":{"id":"U-1","associatedTeacher":{"id":"T-100","abbreviation":"XY"}}}
++    """
++
++  static let multipleAccountsResponse = """
++    {"multipleAccounts":[{"institutionId":1},{"institutionId":2}]}
++    """
++
++  /// Vertretung: Fach Mathematik in 6c, die Lehrkraft T-100 übernimmt von T-200.
++  static let substitutionElement = """
++    {"date":"2026-11-17","classHour":{"id":"h3","number":"3"},"type":"changedLesson",
++     "actualLesson":{"subject":{"name":"Mathematik","abbreviation":"M"},"teachers":[{"id":"T-100","abbreviation":"XY"}],"classes":[{"id":"c6","name":"6c"}],"studentGroups":[]},
++     "originalLessons":[{"subject":{"name":"Mathematik","abbreviation":"M"},"teachers":[{"id":"T-200","abbreviation":"ZZ"}],"classes":[{"id":"c6","name":"6c"}],"studentGroups":[]}],
++     "isCancelled":false,"isSubstitution":true,"isNew":false}
++    """
++
++  /// Ausfall: Deutsch in 8a und 8b gemeinsam, Lehrkraft T-100.
++  static let cancelledElement = """
++    {"date":"2026-11-18","classHour":{"id":"h2","number":2},"type":"cancelledLesson",
++     "actualLesson":null,
++     "originalLessons":[{"subject":{"name":"Deutsch","abbreviation":"D"},"teachers":[{"id":"T-100"}],"classes":[{"name":"8b"},{"name":"8a"}],"studentGroups":[]}],
++     "isCancelled":true,"isSubstitution":false,"isNew":false}
++    """
++
++  static func calls(lessons: String, status: Int = 200, classHours: String = "[]") -> Data {
++    data(
++      """
++      {"results":[{"status":\(status),"data":\(lessons)},{"status":200,"data":\(classHours)}]}
++      """)
++  }
++}
+diff --git a/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/SchulmanagerRequestBuilderTests.swift b/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/SchulmanagerRequestBuilderTests.swift
+new file mode 100644
+index 0000000..1340bdd
+--- /dev/null
++++ b/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/SchulmanagerRequestBuilderTests.swift
+@@ -0,0 +1,93 @@
++import Foundation
++import Testing
++
++@testable import FrontstageCore
++
++@Suite("SchulmanagerRequestBuilder")
++struct SchulmanagerRequestBuilderTests {
++  private typealias F = SchulmanagerFixtures
++
++  private func login() -> SchulmanagerLogin {
++    SchulmanagerLogin(
++      jwt: "jwt-beispiel", teacherObject: .object(["id": .string("T-100")]), teacherID: "T-100")
++  }
++
++  private func decode(_ data: Data) throws -> JSONValue {
++    try JSONDecoder().decode(JSONValue.self, from: data)
++  }
++
++  @Test func saltBodyFields() throws {
++    let body = try decode(SchulmanagerRequestBuilder.saltBody(username: "max@example.com"))
++    #expect(body[["emailOrUsername"]] == .string("max@example.com"))
++    #expect(body[["mobileApp"]] == .bool(false))
++    #expect(body[["institutionId"]] == .null)
++  }
++
++  @Test func loginBodyFields() throws {
++    let body = try decode(
++      SchulmanagerRequestBuilder.loginBody(
++        username: "max@example.com", password: "pw-beispiel", hash: "abcdef"))
++    #expect(body[["emailOrUsername"]] == .string("max@example.com"))
++    #expect(body[["password"]] == .string("pw-beispiel"))
++    #expect(body[["hash"]] == .string("abcdef"))
++    #expect(body[["mobileApp"]] == .bool(false))
++    #expect(body[["institutionId"]] == .null)
++  }
++
++  @Test func callsBodyHasTwoRequestsAndRange() throws {
++    let data = try SchulmanagerRequestBuilder.callsBody(
++      shape: F.shape, login: login(), range: d(2026, 11, 16)...d(2026, 12, 13))
++    let body = try decode(data)
++    guard case .array(let requests)? = body[["requests"]] else {
++      Issue.record("requests fehlt")
++      return
++    }
++    #expect(requests.count == 2)
++    #expect(requests[0][["moduleName"]] == .string("schedules"))
++    #expect(requests[0][["endpointName"]] == .string("get-actual-lessons"))
++    #expect(requests[0][["parameters", "start"]] == .string("2026-11-16"))
++    #expect(requests[0][["parameters", "end"]] == .string("2026-12-13"))
++    #expect(requests[0][["parameters", "teacher", "id"]] == .string("T-100"))
++    #expect(requests[1][["endpointName"]] == .string("get-class-hours"))
++    #expect(requests[1][["parameters", "scope"]] == .string("all"))
++    #expect(body[["bundleVersion"]] == nil)
++  }
++
++  @Test func callsBodyIncludesBundleVersionWhenKnown() throws {
++    var shape = F.shape
++    shape.bundleVersion = "bv-beispiel"
++    let body = try decode(
++      SchulmanagerRequestBuilder.callsBody(
++        shape: shape, login: login(), range: d(2026, 11, 16)...d(2026, 11, 20)))
++    #expect(body[["bundleVersion"]] == .string("bv-beispiel"))
++  }
++
++  @Test func callsBodyCanPassOnlyTheTeacherID() throws {
++    var shape = F.shape
++    shape.passesWholeTeacherObject = false
++    let body = try decode(
++      SchulmanagerRequestBuilder.callsBody(
++        shape: shape, login: login(), range: d(2026, 11, 16)...d(2026, 11, 20)))
++    guard case .array(let requests)? = body[["requests"]] else {
++      Issue.record("requests fehlt")
++      return
++    }
++    #expect(requests[0][["parameters", "teacher"]] == .string("T-100"))
++  }
++
++  @Test func callsBodyNeverContainsTheToken() throws {
++    let data = try SchulmanagerRequestBuilder.callsBody(
++      shape: F.shape, login: login(), range: d(2026, 11, 16)...d(2026, 11, 20))
++    #expect(!String(decoding: data, as: UTF8.self).contains("jwt-beispiel"))
++  }
++
++  @Test func recordedShapeUsesOnlyTheSingleHost() {
++    #expect(SchulmanagerAPIShape.recorded.host == "login.schulmanager-online.de")
++    for path in [
++      SchulmanagerAPIShape.recorded.saltPath, SchulmanagerAPIShape.recorded.loginPath,
++      SchulmanagerAPIShape.recorded.callsPath,
++    ] {
++      #expect(path.hasPrefix("/api/"))
++    }
++  }
++}
+diff --git a/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/SchulmanagerResponseParserTests.swift b/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/SchulmanagerResponseParserTests.swift
+new file mode 100644
+index 0000000..fa5b2e0
+--- /dev/null
++++ b/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/SchulmanagerResponseParserTests.swift
+@@ -0,0 +1,213 @@
++import Foundation
++import Testing
++
++@testable import FrontstageCore
++
++@Suite("SchulmanagerResponseParser")
++struct SchulmanagerResponseParserTests {
++  private typealias F = SchulmanagerFixtures
++
++  @Test("Salz als blanker String und als Objekt")
++  func saltAcceptsBareStringAndObject() throws {
++    #expect(try SchulmanagerResponseParser.salt(from: F.data("\"beispielsalz\"")) == "beispielsalz")
++    #expect(
++      try SchulmanagerResponseParser.salt(from: F.data("{\"salt\":\"beispielsalz\"}")) == "beispielsalz")
++  }
++
++  @Test func saltMissingThrows() {
++    #expect(throws: TimetableSourceError.self) {
++      try SchulmanagerResponseParser.salt(from: F.data("{\"other\":1}"))
++    }
++  }
++
++  @Test func loginExtractsJwtAndTeacher() throws {
++    let login = try SchulmanagerResponseParser.login(
++      from: F.data(F.loginResponse), shape: F.shape)
++    #expect(login.jwt == "jwt-beispiel")
++    #expect(login.teacherID == "T-100")
++    #expect(login.teacherObject[["abbreviation"]] == .string("XY"))
++  }
++
++  @Test("Mehrere Schulen werden nicht unterstützt (RISK-1)")
++  func loginWithMultipleAccountsIsUnsupported() {
++    #expect(throws: TimetableSourceError.multipleSchoolsUnsupported) {
++      try SchulmanagerResponseParser.login(from: F.data(F.multipleAccountsResponse), shape: F.shape)
++    }
++  }
++
++  @Test func loginWithoutTeacherObjectThrows() {
++    #expect(throws: TimetableSourceError.self) {
++      try SchulmanagerResponseParser.login(from: F.data("{\"jwt\":\"x\",\"user\":{}}"), shape: F.shape)
++    }
++  }
++
++  @Test func loginAcceptsNumericTeacherID() throws {
++    let json = "{\"jwt\":\"x\",\"user\":{\"associatedTeacher\":{\"id\":42}}}"
++    let login = try SchulmanagerResponseParser.login(from: F.data(json), shape: F.shape)
++    #expect(login.teacherID == "42")
++  }
++
++  @Test func parsesSubstitutionElement() throws {
++    let data = F.calls(lessons: "[\(F.substitutionElement)]")
++    let lessons = try SchulmanagerResponseParser.lessons(fromCalls: data, at: 0)
++    #expect(lessons.count == 1)
++    let lesson = lessons[0]
++    #expect(lesson.date == d(2026, 11, 17))
++    #expect(lesson.period == 3)
++    #expect(lesson.type == .changedLesson)
++    #expect(lesson.isSubstitution)
++    #expect(!lesson.isCancelled)
++    #expect(lesson.actual?.classNames == ["6c"])
++    #expect(lesson.actual?.subjectName == "Mathematik")
++    #expect(lesson.actual?.teacherIDs == ["T-100"])
++    #expect(lesson.originals[0].teacherIDs == ["T-200"])
++  }
++
++  @Test func parsesCancelledElementWithSortedClasses() throws {
++    let data = F.calls(lessons: "[\(F.cancelledElement)]")
++    let lesson = try SchulmanagerResponseParser.lessons(fromCalls: data, at: 0)[0]
++    #expect(lesson.type == .cancelledLesson)
++    #expect(lesson.actual == nil)
++    #expect(lesson.isCancelled)
++    #expect(lesson.originals[0].classNames == ["8a", "8b"])
++  }
++
++  @Test func periodNumberAsIntOrString() throws {
++    for number in ["3", "\"3\""] {
++      let element = """
++        {"date":"2026-11-17","classHour":{"number":\(number)},"type":"regularLesson",
++         "actualLesson":{"subject":{"name":"Deutsch"},"teachers":[],"classes":[{"name":"9c"}]},
++         "originalLessons":[]}
++        """
++      let lessons = try SchulmanagerResponseParser.lessons(
++        fromCalls: F.calls(lessons: "[\(element)]"), at: 0)
++      #expect(lessons[0].period == 3)
++    }
++  }
++
++  @Test func subjectFallsBackToAbbreviation() throws {
++    let element = """
++      {"date":"2026-11-17","classHour":{"number":1},"type":"regularLesson",
++       "actualLesson":{"subject":{"name":"","abbreviation":"E"},"teachers":[],"classes":[{"name":"9c"}]},
++       "originalLessons":[]}
++      """
++    let lesson = try SchulmanagerResponseParser.lessons(
++      fromCalls: F.calls(lessons: "[\(element)]"), at: 0)[0]
++    #expect(lesson.actual?.subjectName == "E")
++  }
++
++  @Test func subjectMissingThrows() {
++    let element = """
++      {"date":"2026-11-17","classHour":{"number":1},"type":"regularLesson",
++       "actualLesson":{"subject":{"name":"","abbreviation":""},"teachers":[],"classes":[{"name":"9c"}]},
++       "originalLessons":[]}
++      """
++    #expect(throws: TimetableSourceError.self) {
++      try SchulmanagerResponseParser.lessons(fromCalls: F.calls(lessons: "[\(element)]"), at: 0)
++    }
++  }
++
++  @Test func unknownLessonTypeThrows() {
++    let element = """
++      {"date":"2026-11-17","classHour":{"number":1},"type":"somethingNew",
++       "actualLesson":null,"originalLessons":[]}
++      """
++    #expect(throws: TimetableSourceError.self) {
++      try SchulmanagerResponseParser.lessons(fromCalls: F.calls(lessons: "[\(element)]"), at: 0)
++    }
++  }
++
++  @Test("Teilantwort mit Status ungleich 200: nichts wird gelesen (kein Teilimport)")
++  func nonOkSubResultThrows() {
++    let data = F.calls(lessons: "[\(F.substitutionElement)]", status: 500)
++    #expect(throws: TimetableSourceError.self) {
++      try SchulmanagerResponseParser.lessons(fromCalls: data, at: 0)
++    }
++  }
++
++  @Test func missingSubResultThrows() {
++    #expect(throws: TimetableSourceError.self) {
++      try SchulmanagerResponseParser.lessons(fromCalls: F.calls(lessons: "[]"), at: 2)
++    }
++  }
++
++  @Test func oneBadElementFailsTheWholeList() {
++    let bad = "{\"date\":\"kaputt\",\"classHour\":{\"number\":1},\"type\":\"regularLesson\"}"
++    #expect(throws: TimetableSourceError.self) {
++      try SchulmanagerResponseParser.lessons(
++        fromCalls: F.calls(lessons: "[\(F.substitutionElement),\(bad)]"), at: 0)
++    }
++  }
++
++  @Test func eventWithoutSubjectIsKept() throws {
++    let element = """
++      {"date":"2026-11-17","classHour":{"number":4},"type":"event",
++       "actualLesson":{"subject":null,"teachers":[],"classes":[]},"originalLessons":[]}
++      """
++    let lesson = try SchulmanagerResponseParser.lessons(
++      fromCalls: F.calls(lessons: "[\(element)]"), at: 0)[0]
++    #expect(lesson.type == .event)
++    #expect(lesson.actual == nil)
++  }
++
++  @Test func classFallsBackToStudentGroup() throws {
++    let element = """
++      {"date":"2026-11-17","classHour":{"number":1},"type":"regularLesson",
++       "actualLesson":{"subject":{"name":"Deutsch"},"teachers":[],"classes":[],"studentGroups":[{"name":"8b"}]},
++       "originalLessons":[]}
++      """
++    let lesson = try SchulmanagerResponseParser.lessons(
++      fromCalls: F.calls(lessons: "[\(element)]"), at: 0)[0]
++    #expect(lesson.actual?.classNames == ["8b"])
++  }
++
++  @Test("Zeitraster aus der Quelle übernehmen (FR-1.2, Werte aus AK-42)")
++  func parsesClassHours() throws {
++    let hours = """
++      [{"number":1,"from":"07:45:00","until":"08:30:00"},{"number":2,"from":"08:35:00","until":"09:20:00"}]
++      """
++    let bell = try SchulmanagerResponseParser.bellSchedule(
++      fromCalls: F.calls(lessons: "[]", classHours: hours), at: 1)
++    #expect(bell.periods.count == 2)
++    #expect(bell.periods[2] == t(8, 35)...t(9, 20))
++    #expect(bell.periods[1] == t(7, 45)...t(8, 30))
++  }
++
++  @Test func classHoursAcceptShortTimeFormat() throws {
++    let hours = "[{\"number\":\"1\",\"from\":\"07:45\",\"until\":\"08:30\"}]"
++    let bell = try SchulmanagerResponseParser.bellSchedule(
++      fromCalls: F.calls(lessons: "[]", classHours: hours), at: 1)
++    #expect(bell.periods[1] == t(7, 45)...t(8, 30))
++  }
++
++  @Test func malformedTimeThrows() {
++    let hours = "[{\"number\":1,\"from\":\"8.35\",\"until\":\"09:20:00\"}]"
++    #expect(throws: TimetableSourceError.self) {
++      try SchulmanagerResponseParser.bellSchedule(
++        fromCalls: F.calls(lessons: "[]", classHours: hours), at: 1)
++    }
++  }
++
++  @Test func reversedTimeRangeThrows() {
++    let hours = "[{\"number\":1,\"from\":\"09:00:00\",\"until\":\"08:00:00\"}]"
++    #expect(throws: TimetableSourceError.self) {
++      try SchulmanagerResponseParser.bellSchedule(
++        fromCalls: F.calls(lessons: "[]", classHours: hours), at: 1)
++    }
++  }
++
++  @Test func errorTextsNeverContainResponseValues() {
++    let element = """
++      {"date":"2026-11-17","classHour":{"number":1},"type":"geheimerTyp-Beispiel",
++       "actualLesson":null,"originalLessons":[]}
++      """
++    do {
++      _ = try SchulmanagerResponseParser.lessons(fromCalls: F.calls(lessons: "[\(element)]"), at: 0)
++      Issue.record("Fehler erwartet")
++    } catch let TimetableSourceError.unexpectedResponse(text) {
++      #expect(!text.contains("geheimerTyp"))
++    } catch {
++      Issue.record("Falscher Fehler")
++    }
++  }
++}

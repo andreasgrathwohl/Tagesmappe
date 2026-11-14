@@ -760,6 +760,166 @@
           }
         }
       }
+    },
+    "importPreview.fetchedAt %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stand der Quelle: %@"
+          }
+        }
+      }
+    },
+    "importPreview.noDifferences" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Import ändert am Stundenplan nichts."
+          }
+        }
+      }
+    },
+    "importPreview.added" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neu"
+          }
+        }
+      }
+    },
+    "importPreview.changed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geändert"
+          }
+        }
+      }
+    },
+    "importPreview.conflicts" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von Hand geändert"
+          }
+        }
+      }
+    },
+    "importPreview.conflicts.footer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Für diese Stunden weicht die Quelle von der eigenen Fassung ab. Ohne Auswahl bleibt die eigene Fassung erhalten."
+          }
+        }
+      }
+    },
+    "importPreview.removed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfällt"
+          }
+        }
+      }
+    },
+    "importPreview.bellScheduleChanged" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Zeitraster ändert sich."
+          }
+        }
+      }
+    },
+    "importPreview.keepMine" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meine Fassung behalten"
+          }
+        }
+      }
+    },
+    "importPreview.takeSource" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fassung der Quelle übernehmen"
+          }
+        }
+      }
+    },
+    "importPreview.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "importPreview.apply" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Übernehmen"
+          }
+        }
+      }
+    },
+    "importPreview.error.apply" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Übernahme ist fehlgeschlagen. Es wurde nichts geändert."
+          }
+        }
+      }
+    },
+    "importPreview.period %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld. Std."
+          }
+        }
+      }
+    },
+    "importPreview.weekA" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A-Woche"
+          }
+        }
+      }
+    },
+    "importPreview.weekB" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "B-Woche"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

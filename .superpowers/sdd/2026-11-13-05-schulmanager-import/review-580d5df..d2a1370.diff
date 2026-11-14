@@ -1,0 +1,698 @@
+# Review package: 580d5df..d2a1370
+
+## Commits
+d2a1370 feat: coordinate timetable source refresh, preview and changes
+
+## Files changed
+ .../TimetableSources/PendingImportStore.swift      |  36 +++
+ .../TimetableSources/SourceStatusStore.swift       |  26 ++
+ .../TimetableSources/TimetableRepository.swift     |  37 +++
+ .../TimetableSourceCoordinator.swift               | 232 ++++++++++++++++
+ .../TimetableRepositoryTests.swift                 |  25 ++
+ .../TimetableSourceCoordinatorTests.swift          | 291 +++++++++++++++++++++
+ 6 files changed, 647 insertions(+)
+
+## Diff
+diff --git a/Frontstage/TimetableSources/PendingImportStore.swift b/Frontstage/TimetableSources/PendingImportStore.swift
+new file mode 100644
+index 0000000..7bada4f
+--- /dev/null
++++ b/Frontstage/TimetableSources/PendingImportStore.swift
+@@ -0,0 +1,36 @@
++import Foundation
++import FrontstageCore
++
++/// Hält den Stand einer Abfrage, dessen Stundenplan-Teil noch auf die Vorschau wartet.
++/// Eine Datei nur auf diesem Gerät (nicht gespiegelt); sie enthält Stunden, nie Zugangsdaten.
++struct PendingImportStore {
++  private let fileURL: URL
++
++  init(directory: URL) {
++    fileURL = directory.appendingPathComponent("pending-import.json")
++  }
++
++  /// Standardort: `Application Support/TimetableSources`.
++  static func defaultDirectory() -> URL {
++    URL.applicationSupportDirectory.appendingPathComponent("TimetableSources", isDirectory: true)
++  }
++
++  /// Fehlt die Datei oder ist sie unlesbar → `nil`.
++  func load() -> SourceSnapshot? {
++    guard let data = try? Data(contentsOf: fileURL) else { return nil }
++    return try? JSONDecoder().decode(SourceSnapshot.self, from: data)
++  }
++
++  /// `nil` löscht die Datei.
++  func save(_ snapshot: SourceSnapshot?) throws {
++    guard let snapshot else {
++      if FileManager.default.fileExists(atPath: fileURL.path) {
++        try FileManager.default.removeItem(at: fileURL)
++      }
++      return
++    }
++    try FileManager.default.createDirectory(
++      at: fileURL.deletingLastPathComponent(), withIntermediateDirectories: true)
++    try JSONEncoder().encode(snapshot).write(to: fileURL, options: .atomic)
++  }
++}
+diff --git a/Frontstage/TimetableSources/SourceStatusStore.swift b/Frontstage/TimetableSources/SourceStatusStore.swift
+new file mode 100644
+index 0000000..a3f2e94
+--- /dev/null
++++ b/Frontstage/TimetableSources/SourceStatusStore.swift
+@@ -0,0 +1,26 @@
++import Foundation
++import FrontstageCore
++
++/// Merkt sich den Stand der Quelle (Zeitpunkte, Fehlzähler) nur auf diesem Gerät in `UserDefaults`.
++/// `SourceStatus` enthält nie Zugangsdaten oder Token – nur Zeiten, Zähler und den Fehlertyp.
++struct SourceStatusStore {
++  private static let key = "timetableSource.status"
++  private let defaults: UserDefaults
++
++  init(defaults: UserDefaults = .standard) {
++    self.defaults = defaults
++  }
++
++  /// Fehlt der Eintrag oder ist er unlesbar → leerer Stand.
++  func load() -> SourceStatus {
++    guard let data = defaults.data(forKey: Self.key),
++      let status = try? JSONDecoder().decode(SourceStatus.self, from: data)
++    else { return SourceStatus() }
++    return status
++  }
++
++  func save(_ status: SourceStatus) {
++    guard let data = try? JSONEncoder().encode(status) else { return }
++    defaults.set(data, forKey: Self.key)
++  }
++}
+diff --git a/Frontstage/TimetableSources/TimetableRepository.swift b/Frontstage/TimetableSources/TimetableRepository.swift
+new file mode 100644
+index 0000000..ff705da
+--- /dev/null
++++ b/Frontstage/TimetableSources/TimetableRepository.swift
+@@ -0,0 +1,37 @@
++import Foundation
++import FrontstageCore
++
++/// Schmale Sicht auf die App-Daten für die Stundenplan-Quellen – ohne SwiftData-Typen nach außen.
++/// Die Signaturen entsprechen den `DataStore`-Methoden aus Teilplan 02; Tests können einen Zähler dazwischenhängen.
++@MainActor protocol TimetableRepository: AnyObject {
++  func timetable() throws -> Timetable?
++  /// Einträge mit Herkunft `.manual` oder von Hand geändert (Eingabe für `ImportDiffer`, AK-3).
++  func manuallyEditedEntries() throws -> Set<TimetableEntry>
++  func nonTeachingPeriods() throws -> [NonTeachingPeriod]
++  func scheduleChanges() throws -> [ScheduleChange]
++  func timetableSourceRaw() throws -> String
++  func setTimetableSourceRaw(_ raw: String) throws
++  /// „Stand“ (Glossar): gespiegelt, also auch auf dem zweiten Gerät sichtbar.
++  func sourceFetchedAt() throws -> Date?
++  /// Schreibt Einträge, Wochenvarianten und Zeitraster in einem Speichervorgang.
++  func replaceTimetable(
++    entries: [TimetableEntry], manuallyEdited: Set<TimetableEntry>, weekVariantCount: Int,
++    referenceWeekA: CalendarDay?, bellSchedule: BellSchedule?
++  ) throws
++  /// Ersetzt alle Abweichungen und setzt, wenn nicht `nil`, den Stand – ein Speichervorgang.
++  func replaceScheduleChanges(_ changes: [ScheduleChange], sourceFetchedAt: Date?) throws
++}
++
++/// `DataStore` erfüllt das Protokoll mit seinen vorhandenen Methoden (gleiche Signaturen).
++extension DataStore: TimetableRepository {}
++
++extension TimetableRepository {
++  /// Unbekannter Rohwert → `.manual`.
++  func timetableSourceKind() throws -> TimetableSourceKind {
++    TimetableSourceKind(rawValue: try timetableSourceRaw()) ?? .manual
++  }
++
++  func setTimetableSourceKind(_ kind: TimetableSourceKind) throws {
++    try setTimetableSourceRaw(kind.rawValue)
++  }
++}
+diff --git a/Frontstage/TimetableSources/TimetableSourceCoordinator.swift b/Frontstage/TimetableSources/TimetableSourceCoordinator.swift
+new file mode 100644
+index 0000000..93c060e
+--- /dev/null
++++ b/Frontstage/TimetableSources/TimetableSourceCoordinator.swift
+@@ -0,0 +1,232 @@
++import Foundation
++import FrontstageCore
++import Observation
++
++/// Was die Vorschau eines Imports zeigt: der Stand der Quelle und sein Abgleich mit dem vorhandenen Stundenplan.
++struct ImportPreview: Equatable {
++  var snapshot: SourceSnapshot
++  var diff: ImportDiff
++  var bellScheduleChanged: Bool
++
++  // `ImportDiff` ist nicht `Equatable` (enthält Tupel-Arrays); deshalb von Hand.
++  static func == (lhs: ImportPreview, rhs: ImportPreview) -> Bool {
++    lhs.snapshot == rhs.snapshot && lhs.bellScheduleChanged == rhs.bellScheduleChanged
++      && lhs.diff.added == rhs.diff.added && lhs.diff.removed == rhs.diff.removed
++      && lhs.diff.changed.elementsEqual(rhs.diff.changed, by: { $0.old == $1.old && $0.new == $1.new })
++      && lhs.diff.manualConflicts.elementsEqual(
++        rhs.diff.manualConflicts, by: { $0.mine == $1.mine && $0.source == $1.source })
++  }
++}
++
++/// Steuert die Abfrage der Stundenplan-Quelle: wann gefragt wird, was sofort gilt (Abweichungen, FR-2.2)
++/// und was erst nach der Vorschau übernommen wird (Stundenplan, Zeitraster).
++///
++/// Grundsatz „kein Teilimport“ (Area stundenplan-quellen): Bis `fetch` und Auswertung vollständig vorliegen,
++/// wird nichts geschrieben. Fehler landen in `status`, nie als Wurf bei `refresh`.
++///
++/// Swift-Hinweis: `@Observable` (Observation-Framework) macht gespeicherte Eigenschaften für SwiftUI
++/// beobachtbar; `@MainActor` hält alle Zugriffe auf dem Haupt-Thread, wie es der SwiftData-Kontext des
++/// `DataStore` verlangt. Der Netzzugriff selbst läuft in einem abgekoppelten Task außerhalb davon.
++@MainActor @Observable final class TimetableSourceCoordinator {
++  /// Lesend für Ansichten (Quelle, Stand) und Tests.
++  let repository: any TimetableRepository
++
++  private(set) var status: SourceStatus
++  private(set) var pendingPreview: ImportPreview?
++  private(set) var isFetching = false
++
++  private let makeSource: (TimetableSourceKind) -> any TimetableSource
++  private let statusStore: SourceStatusStore
++  private let pendingStore: PendingImportStore
++  private let calendar: Calendar
++  private let now: () -> Date
++
++  /// Fragt die Quelle für heute und die folgenden 27 Tage (vier Wochen) ab.
++  private static let fetchSpanDays = 27
++
++  init(
++    repository: any TimetableRepository,
++    makeSource: @escaping (TimetableSourceKind) -> any TimetableSource,
++    statusStore: SourceStatusStore, pendingStore: PendingImportStore,
++    calendar: Calendar = .current, now: @escaping () -> Date = Date.init
++  ) {
++    self.repository = repository
++    self.makeSource = makeSource
++    self.statusStore = statusStore
++    self.pendingStore = pendingStore
++    self.calendar = calendar
++    self.now = now
++    status = statusStore.load()
++    // Eine gemerkte Vorschau gilt nur noch, wenn sie gegen den heutigen Stand noch etwas zu zeigen hat.
++    if let stored = pendingStore.load() {
++      pendingPreview = try? Self.makePreview(from: stored, repository: repository)
++    }
++  }
++
++  // MARK: - Abfrage
++
++  func refresh(_ trigger: RefreshTrigger) async {
++    guard !isFetching else { return }
++
++    // 0. Von Hand: nichts abfragen, nichts zählen, nichts schreiben.
++    let kind: TimetableSourceKind
++    let existing: Timetable?
++    do {
++      kind = try repository.timetableSourceKind()
++      existing = try repository.timetable()
++    } catch {
++      return recordFailure(.unexpectedResponse("Datenspeicher nicht lesbar"))
++    }
++    guard kind != .manual else { return }
++    guard MorningRefreshPolicy.shouldFetch(trigger, status: status, now: now(), calendar: calendar)
++    else { return }
++
++    // 1. Versuch vermerken, dann abfragen – bis hierhin ist nichts außer dem Zähler geschrieben.
++    updateStatus(status.recordingAttempt(trigger, at: now(), calendar: calendar))
++    isFetching = true
++    defer { isFetching = false }
++
++    let source = makeSource(kind)
++    let fetchTime = now()
++    let today = CalendarDay(fetchTime, calendar: calendar)
++    let range = today...today.adding(days: Self.fetchSpanDays)
++    let snapshot: SourceSnapshot?
++    do {
++      // Abgekoppelt vom Haupt-Thread: Passwort-Hash (99 999 Runden) und Netz dürfen die Oberfläche nicht halten.
++      snapshot = try await Task.detached {
++        try await source.fetch(range: range, existing: existing, now: fetchTime)
++      }.value
++    } catch let error as TimetableSourceError {
++      return recordFailure(error)
++    } catch {
++      return recordFailure(.unexpectedResponse("Unbekannter Fehler"))
++    }
++    guard let snapshot else { return }
++
++    // Wurde die Quelle während der Abfrage gewechselt, ist das Ergebnis überholt.
++    guard (try? repository.timetableSourceKind()) == kind else { return }
++
++    do {
++      // 2. Stundenplan-Teil: nur eine Vorschau vorbereiten, nichts übernehmen.
++      let preview = try Self.makePreview(from: snapshot, repository: repository)
++      try pendingStore.save(preview == nil ? nil : snapshot)
++      pendingPreview = preview
++
++      // 3. Abweichungen gelten sofort (FR-2.2), gegen den aktuellen Stundenplan.
++      try storeChanges(of: snapshot, stampFetchedAt: true)
++    } catch {
++      return recordFailure(.unexpectedResponse("Datenspeicher nicht schreibbar"))
++    }
++    updateStatus(status.recordingSuccess(at: now()))
++  }
++
++  // MARK: - Vorschau
++
++  /// Übernimmt die Vorschau: Stundenplan und Zeitraster, danach die Abweichungen gegen den neuen Plan.
++  /// `acceptedFromSource`: Quell-Fassungen, die eine von Hand bearbeitete Fassung ersetzen sollen.
++  func applyPendingPreview(acceptedFromSource: Set<TimetableEntry>) throws {
++    guard let preview = pendingPreview,
++      case .derived(let derived) = preview.snapshot.timetable
++    else { return }
++    // Gegen den heutigen Stand neu abgleichen: Zwischenzeitliche Handarbeit bleibt geschützt.
++    let existing = try repository.timetable()?.entries ?? []
++    let manuallyEdited = try repository.manuallyEditedEntries()
++    let diff = ImportDiffer.compare(
++      existing: existing, manuallyEdited: manuallyEdited, imported: derived.entries)
++    let applied = ImportApplier.apply(
++      diff, existing: existing, manuallyEdited: manuallyEdited,
++      acceptedFromSource: acceptedFromSource)
++    try repository.replaceTimetable(
++      entries: applied.entries, manuallyEdited: applied.manuallyEdited,
++      weekVariantCount: derived.weekVariantCount, referenceWeekA: derived.referenceWeekA,
++      bellSchedule: preview.snapshot.bellSchedule)
++    try storeChanges(of: preview.snapshot, stampFetchedAt: false)
++    clearPreview()
++  }
++
++  func discardPendingPreview() {
++    clearPreview()
++  }
++
++  // MARK: - Quelle wechseln
++
++  /// Setzt die Quelle. Beim Wechsel auf „von Hand“ fallen die Quell-Abweichungen ab heute weg (Annahme A4);
++  /// Zugangsdaten bleiben bis „Abmelden“. Der Stand beginnt neu.
++  func switchSource(to kind: TimetableSourceKind) throws {
++    guard try repository.timetableSourceKind() != kind else { return }
++    try repository.setTimetableSourceKind(kind)
++    clearPreview()
++    updateStatus(SourceStatus())
++    if kind == .manual {
++      let today = CalendarDay(now(), calendar: calendar)
++      let kept = try repository.scheduleChanges().filter { change in
++        !(Self.origin(of: change) == .source && Self.date(of: change) >= today)
++      }
++      try repository.replaceScheduleChanges(kept, sourceFetchedAt: nil)
++    }
++  }
++
++  // MARK: - Hilfen
++
++  /// Ordnet die Abweichungen des Stands gegen den aktuellen Stundenplan zu und ersetzt die der Quelle im Zeitraum.
++  private func storeChanges(of snapshot: SourceSnapshot, stampFetchedAt: Bool) throws {
++    let timetable =
++      try repository.timetable()
++      ?? Timetable(referenceWeekA: snapshot.range.lowerBound.mondayOfWeek)
++    let resolved = SourceChangeResolver.resolve(
++      snapshot.changes, timetable: timetable,
++      nonTeachingPeriods: try repository.nonTeachingPeriods()
++    ).resolved
++    let merged = ScheduleChangeMerger.replacingSourceChanges(
++      in: try repository.scheduleChanges(), with: resolved, range: snapshot.range)
++    try repository.replaceScheduleChanges(
++      merged, sourceFetchedAt: stampFetchedAt ? snapshot.fetchedAt : nil)
++  }
++
++  /// `nil`, wenn der Stundenplan-Teil nichts zu zeigen hat: kein Unterschied und gleiches Zeitraster,
++  /// oder die Ableitung war nicht möglich (`.noLessonsInRange`, `.weekVariantsUndetermined`).
++  private static func makePreview(from snapshot: SourceSnapshot, repository: any TimetableRepository)
++    throws -> ImportPreview?
++  {
++    guard case .derived(let derived) = snapshot.timetable else { return nil }
++    let existingTimetable = try repository.timetable()
++    let diff = ImportDiffer.compare(
++      existing: existingTimetable?.entries ?? [],
++      manuallyEdited: try repository.manuallyEditedEntries(), imported: derived.entries)
++    let bellChanged =
++      snapshot.bellSchedule.map { $0 != (existingTimetable?.bellSchedule ?? BellSchedule()) } ?? false
++    let nothingToShow =
++      diff.added.isEmpty && diff.changed.isEmpty && diff.manualConflicts.isEmpty
++      && diff.removed.isEmpty && !bellChanged
++    return nothingToShow
++      ? nil : ImportPreview(snapshot: snapshot, diff: diff, bellScheduleChanged: bellChanged)
++  }
++
++  private func clearPreview() {
++    pendingPreview = nil
++    try? pendingStore.save(nil)
++  }
++
++  private func recordFailure(_ error: TimetableSourceError) {
++    updateStatus(status.recordingFailure(error, at: now()))
++  }
++
++  private func updateStatus(_ new: SourceStatus) {
++    status = new
++    statusStore.save(new)
++  }
++
++  private static func origin(of change: ScheduleChange) -> Origin {
++    switch change {
++    case let .cancellation(_, origin): return origin
++    case let .substituteLesson(_, _, _, _, origin): return origin
++    }
++  }
++
++  private static func date(of change: ScheduleChange) -> CalendarDay {
++    switch change {
++    case let .cancellation(key, _): return key.date
++    case let .substituteLesson(date, _, _, _, _): return date
++    }
++  }
++}
+diff --git a/FrontstageTests/TimetableSources/TimetableRepositoryTests.swift b/FrontstageTests/TimetableSources/TimetableRepositoryTests.swift
+new file mode 100644
+index 0000000..412f495
+--- /dev/null
++++ b/FrontstageTests/TimetableSources/TimetableRepositoryTests.swift
+@@ -0,0 +1,25 @@
++import Foundation
++import FrontstageCore
++import Testing
++
++@testable import Frontstage
++
++@MainActor @Suite("TimetableRepository")
++struct TimetableRepositoryTests {
++  @Test("Quelle wird als Rohwert gespeichert und als TimetableSourceKind gelesen")
++  func repositoryMapsSourceKind() throws {
++    let store = try makeStore()
++    let repository: any TimetableRepository = store
++    #expect(try repository.timetableSourceKind() == .manual)
++    try repository.setTimetableSourceKind(.schulmanager)
++    #expect(try repository.timetableSourceRaw() == "schulmanager")
++    #expect(try repository.timetableSourceKind() == .schulmanager)
++  }
++
++  @Test("Unbekannter Rohwert wird zu „von Hand“")
++  func unknownRawValueMapsToManual() throws {
++    let store = try makeStore()
++    try store.setTimetableSourceRaw("webuntis-zukunft")
++    #expect(try store.timetableSourceKind() == .manual)
++  }
++}
+diff --git a/FrontstageTests/TimetableSources/TimetableSourceCoordinatorTests.swift b/FrontstageTests/TimetableSources/TimetableSourceCoordinatorTests.swift
+new file mode 100644
+index 0000000..c3475e4
+--- /dev/null
++++ b/FrontstageTests/TimetableSources/TimetableSourceCoordinatorTests.swift
+@@ -0,0 +1,291 @@
++import Foundation
++import FrontstageCore
++import Testing
++
++@testable import Frontstage
++
++/// Quelle mit vorbereitetem Ergebnis; zählt die Aufrufe.
++private final class FakeSource: TimetableSource, @unchecked Sendable {
++  private let lock = NSLock()
++  private var _calls = 0
++  private let result: Result<SourceSnapshot?, TimetableSourceError>
++
++  init(_ result: Result<SourceSnapshot?, TimetableSourceError>) { self.result = result }
++
++  var kind: TimetableSourceKind { .schulmanager }
++  var calls: Int { lock.withLock { _calls } }
++
++  func fetch(range: ClosedRange<CalendarDay>, existing: Timetable?, now: Date) async throws
++    -> SourceSnapshot?
++  {
++    lock.withLock { _calls += 1 }
++    return try result.get()
++  }
++}
++
++/// Reicht an den echten `DataStore` weiter und zählt die Schreibaufrufe.
++@MainActor private final class CountingRepository: TimetableRepository {
++  let inner: DataStore
++  private(set) var writes = 0
++  init(_ inner: DataStore) { self.inner = inner }
++
++  func timetable() throws -> Timetable? { try inner.timetable() }
++  func manuallyEditedEntries() throws -> Set<TimetableEntry> { try inner.manuallyEditedEntries() }
++  func nonTeachingPeriods() throws -> [NonTeachingPeriod] { try inner.nonTeachingPeriods() }
++  func scheduleChanges() throws -> [ScheduleChange] { try inner.scheduleChanges() }
++  func timetableSourceRaw() throws -> String { try inner.timetableSourceRaw() }
++  func sourceFetchedAt() throws -> Date? { try inner.sourceFetchedAt() }
++  func setTimetableSourceRaw(_ raw: String) throws {
++    writes += 1
++    try inner.setTimetableSourceRaw(raw)
++  }
++  func replaceTimetable(
++    entries: [TimetableEntry], manuallyEdited: Set<TimetableEntry>, weekVariantCount: Int,
++    referenceWeekA: CalendarDay?, bellSchedule: BellSchedule?
++  ) throws {
++    writes += 1
++    try inner.replaceTimetable(
++      entries: entries, manuallyEdited: manuallyEdited, weekVariantCount: weekVariantCount,
++      referenceWeekA: referenceWeekA, bellSchedule: bellSchedule)
++  }
++  func replaceScheduleChanges(_ changes: [ScheduleChange], sourceFetchedAt: Date?) throws {
++    writes += 1
++    try inner.replaceScheduleChanges(changes, sourceFetchedAt: sourceFetchedAt)
++  }
++}
++
++/// Steuerbare Uhr (Test-Host, nur Haupt-Thread).
++@MainActor private final class TestClock {
++  var value: Date
++  init(_ value: Date) { self.value = value }
++}
++
++@MainActor @Suite("TimetableSourceCoordinator")
++struct TimetableSourceCoordinatorTests {
++  private let calendar: Calendar = {
++    var calendar = Calendar(identifier: .gregorian)
++    calendar.timeZone = TimeZone(secondsFromGMT: 0)!
++    return calendar
++  }()
++
++  private let mo5_8a = TimetableEntry(
++    weekday: .monday, period: 5, schoolClass: SchoolClass("8a"), subject: Subject("Englisch"))
++  private let di2_8b = TimetableEntry(
++    weekday: .tuesday, period: 2, schoolClass: SchoolClass("8b"), subject: Subject("Englisch"))
++  private let mi3_8b = TimetableEntry(
++    weekday: .wednesday, period: 3, schoolClass: SchoolClass("8b"), subject: Subject("Englisch"))
++  private let fr4_9c = TimetableEntry(
++    weekday: .friday, period: 4, schoolClass: SchoolClass("9c"), subject: Subject("Deutsch"))
++
++  private var morning: Date {
++    calendar.date(from: DateComponents(year: 2026, month: 11, day: 17, hour: 7))!
++  }
++
++  private func snapshot(
++    entries: [TimetableEntry], changes: [SourceChange] = [], bell: BellSchedule? = nil, at: Date
++  ) -> SourceSnapshot {
++    SourceSnapshot(
++      kind: .schulmanager, fetchedAt: at, range: tue17...tue17.adding(days: 27),
++      timetable: .derived(
++        DerivedTimetable(
++          entries: entries, weekVariantCount: 1,
++          referenceWeekA: CalendarDay(year: 2026, month: 11, day: 16))),
++      bellSchedule: bell, changes: changes)
++  }
++
++  /// Gemeinsamer Aufbau: Koordinator mit eigener Ablage je Test.
++  private struct Env {
++    let coordinator: TimetableSourceCoordinator
++    let defaults: UserDefaults
++    let directory: URL
++    let suite: String
++
++    func cleanUp() {
++      defaults.removePersistentDomain(forName: suite)
++      try? FileManager.default.removeItem(at: directory)
++    }
++  }
++
++  private func makeEnv(
++    repository: any TimetableRepository, source: any TimetableSource, clock: TestClock
++  ) -> Env {
++    let suite = "coordinator-tests-\(UUID().uuidString)"
++    let defaults = UserDefaults(suiteName: suite)!
++    let directory = FileManager.default.temporaryDirectory.appendingPathComponent(
++      "coordinator-tests-\(UUID().uuidString)", isDirectory: true)
++    let coordinator = TimetableSourceCoordinator(
++      repository: repository, makeSource: { _ in source },
++      statusStore: SourceStatusStore(defaults: defaults), pendingStore: PendingImportStore(directory: directory),
++      calendar: calendar, now: { clock.value })
++    return Env(coordinator: coordinator, defaults: defaults, directory: directory, suite: suite)
++  }
++
++  @Test("Kein Teilimport: Fehler lässt alles unberührt (Area stundenplan-quellen)")
++  func failedFetchLeavesEverythingUntouched() async throws {
++    let store = try makeStore()
++    try store.setTimetableSourceKind(.schulmanager)
++    let earlier = morning.addingTimeInterval(-86_400)
++    try store.replaceScheduleChanges([], sourceFetchedAt: earlier)
++    let repository = CountingRepository(store)
++    let env = makeEnv(
++      repository: repository, source: FakeSource(.failure(.offline)), clock: TestClock(morning))
++    defer { env.cleanUp() }
++
++    await env.coordinator.refresh(.userRequest)
++
++    #expect(repository.writes == 0)
++    #expect(env.coordinator.status.consecutiveFailures == 1)
++    #expect(env.coordinator.status.lastError == .offline)
++    #expect(try store.sourceFetchedAt() == earlier)
++  }
++
++  @Test("Dreimal Fehler empfiehlt die Pflege von Hand")
++  func threeFailuresSuggestManualMaintenance() async throws {
++    let store = try makeStore()
++    try store.setTimetableSourceKind(.schulmanager)
++    let clock = TestClock(morning)
++    let env = makeEnv(repository: store, source: FakeSource(.failure(.offline)), clock: clock)
++    defer { env.cleanUp() }
++
++    for _ in 0..<3 {
++      await env.coordinator.refresh(.userRequest)
++      clock.value = clock.value.addingTimeInterval(61)
++    }
++
++    #expect(env.coordinator.status.suggestsManualMaintenance)
++  }
++
++  @Test("Vertretung steht ohne Rückfrage in der 3. Stunde (AK-21)")
++  func sourceChangesAreAppliedWithoutPreview() async throws {
++    let store = try makeStore()
++    try store.addEntry(mo5_8a, origin: .source)
++    try store.setTimetableSourceKind(.schulmanager)
++    let change = SourceChange.substitute(
++      date: tue17, period: 3, schoolClass: SchoolClass("6c"), subject: Subject("Mathematik"))
++    let source = FakeSource(.success(snapshot(entries: [mo5_8a], changes: [change], at: morning)))
++    let env = makeEnv(repository: store, source: source, clock: TestClock(morning))
++    defer { env.cleanUp() }
++
++    await env.coordinator.refresh(.appBecameActive)
++
++    #expect(env.coordinator.pendingPreview == nil)
++    let lessons = try store.lessons(on: tue17)
++    #expect(
++      lessons.contains {
++        $0.period == 3 && $0.key.schoolClass == SchoolClass("6c") && $0.isSubstituteLesson
++      })
++    #expect(try store.sourceFetchedAt() == morning)
++    #expect(env.coordinator.status.lastSuccessAt == morning)
++  }
++
++  @Test("Unterschiede im Stundenplan warten auf die Vorschau")
++  func timetableDifferencesWaitForPreview() async throws {
++    let store = try makeStore()
++    try store.setTimetableSourceKind(.schulmanager)
++    let before = try store.timetable()?.entries
++    let source = FakeSource(.success(snapshot(entries: [di2_8b, mi3_8b, fr4_9c], at: morning)))
++    let env = makeEnv(repository: store, source: source, clock: TestClock(morning))
++    defer { env.cleanUp() }
++
++    await env.coordinator.refresh(.appBecameActive)
++
++    #expect(env.coordinator.pendingPreview?.diff.added.count == 3)
++    #expect(try store.timetable()?.entries == before)
++    // Die Vorschau überlebt einen Neustart: gleicher Speicherort, neuer Koordinator.
++    let restarted = TimetableSourceCoordinator(
++      repository: store, makeSource: { _ in source },
++      statusStore: SourceStatusStore(defaults: env.defaults),
++      pendingStore: PendingImportStore(directory: env.directory), calendar: calendar,
++      now: { morning })
++    #expect(restarted.pendingPreview != nil)
++  }
++
++  @Test("AK-3: Übernahme behält den von Hand angelegten Eintrag")
++  func applyingPreviewKeepsManualEntry() async throws {
++    let store = try makeStore()
++    try store.addEntry(mo5_8a, origin: .manual)
++    try store.setTimetableSourceKind(.schulmanager)
++    let source = FakeSource(.success(snapshot(entries: [di2_8b, mi3_8b, fr4_9c], at: morning)))
++    let env = makeEnv(repository: store, source: source, clock: TestClock(morning))
++    defer { env.cleanUp() }
++    await env.coordinator.refresh(.appBecameActive)
++
++    try env.coordinator.applyPendingPreview(acceptedFromSource: [])
++
++    #expect(try store.timetable()?.entries.count == 4)
++    #expect(try store.manuallyEditedEntries() == [mo5_8a])
++    #expect(env.coordinator.pendingPreview == nil)
++    #expect(PendingImportStore(directory: env.directory).load() == nil)
++  }
++
++  @Test("Von Hand: es wird nie abgefragt")
++  func manualSourceNeverFetches() async throws {
++    let store = try makeStore()
++    let source = FakeSource(.success(snapshot(entries: [di2_8b], at: morning)))
++    let env = makeEnv(repository: store, source: source, clock: TestClock(morning))
++    defer { env.cleanUp() }
++
++    await env.coordinator.refresh(.appBecameActive)
++    await env.coordinator.refresh(.userRequest)
++
++    #expect(source.calls == 0)
++    #expect(env.coordinator.status == SourceStatus())
++    #expect(try store.timetable()?.entries ?? [] == [])
++  }
++
++  @Test("Erstes Aktivieren am Tag fragt ab, ein zweites nach Erfolg nicht (AK-21)")
++  func activationTriggersFetchOncePerDay() async throws {
++    let store = try makeStore()
++    try store.setTimetableSourceKind(.schulmanager)
++    let clock = TestClock(morning)
++    let source = FakeSource(.success(snapshot(entries: [], at: morning)))
++    let env = makeEnv(repository: store, source: source, clock: clock)
++    defer { env.cleanUp() }
++
++    await env.coordinator.refresh(.appBecameActive)
++    clock.value = clock.value.addingTimeInterval(3 * 3600)
++    await env.coordinator.refresh(.appBecameActive)
++
++    #expect(source.calls == 1)
++  }
++
++  @Test("Weder Passwort noch Token landen in Datei oder UserDefaults")
++  func persistedStateNeverContainsSecrets() async throws {
++    let store = try makeStore()
++    try store.setTimetableSourceKind(.schulmanager)
++    let source = FakeSource(.success(snapshot(entries: [di2_8b], at: morning)))
++    let env = makeEnv(repository: store, source: source, clock: TestClock(morning))
++    defer { env.cleanUp() }
++
++    await env.coordinator.refresh(.appBecameActive)
++
++    let file = try Data(contentsOf: env.directory.appendingPathComponent("pending-import.json"))
++    let fileText = String(decoding: file, as: UTF8.self)
++    let defaultsText = "\(env.defaults.dictionaryRepresentation())"
++    for secret in ["Beispiel-Passwort-1", "jwt-beispiel"] {
++      #expect(!fileText.contains(secret))
++      #expect(!defaultsText.contains(secret))
++    }
++  }
++
++  @Test("Wechsel auf „von Hand“ entfernt Quell-Abweichungen ab heute")
++  func switchingToManualDropsFutureSourceChanges() async throws {
++    let store = try makeStore()
++    try store.setTimetableSourceKind(.schulmanager)
++    func cancellation(_ day: CalendarDay) -> ScheduleChange {
++      .cancellation(
++        LessonKey(date: day, schoolClass: SchoolClass("8b"), subject: Subject("Englisch"), ordinal: 1),
++        .source)
++    }
++    let past = CalendarDay(year: 2026, month: 11, day: 10)
++    try store.replaceScheduleChanges([cancellation(past), cancellation(wed18)], sourceFetchedAt: nil)
++    let env = makeEnv(
++      repository: store, source: FakeSource(.success(nil)), clock: TestClock(morning))
++    defer { env.cleanUp() }
++
++    try env.coordinator.switchSource(to: .manual)
++
++    #expect(try store.scheduleChanges() == [cancellation(past)])
++    #expect(try store.timetableSourceKind() == .manual)
++  }
++}

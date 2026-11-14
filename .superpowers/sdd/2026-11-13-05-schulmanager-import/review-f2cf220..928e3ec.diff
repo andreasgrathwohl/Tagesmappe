@@ -1,0 +1,293 @@
+# Review package: f2cf220..928e3ec
+
+## Commits
+928e3ec feat(core): add source status and morning refresh policy
+
+## Files changed
+ .../TimetableSources/MorningRefreshPolicy.swift    |  32 +++++
+ .../TimetableSources/SourceStatus.swift            |  70 +++++++++++
+ .../TimetableSources/TimetableSource.swift         |   2 +-
+ .../MorningRefreshPolicyTests.swift                | 133 +++++++++++++++++++++
+ 4 files changed, 236 insertions(+), 1 deletion(-)
+
+## Diff
+diff --git a/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/MorningRefreshPolicy.swift b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/MorningRefreshPolicy.swift
+new file mode 100644
+index 0000000..f2fad24
+--- /dev/null
++++ b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/MorningRefreshPolicy.swift
+@@ -0,0 +1,32 @@
++import Foundation
++
++/// Wann die Quelle abgefragt wird (ADR-0004, RISK-1): schonend, damit kein Konto gesperrt wird.
++public enum MorningRefreshPolicy {
++  public static let automaticAttemptsPerDay = 3
++  public static let automaticRetryInterval: TimeInterval = 30 * 60
++  public static let userRequestInterval: TimeInterval = 60
++
++  /// Automatisch: kein Erfolg heute, weniger als 3 automatische Versuche heute, letzter Versuch ≥ 30 min her.
++  /// Knopfdruck: letzter Versuch ≥ 60 s her (auch nach einem Erfolg heute).
++  public static func shouldFetch(
++    _ trigger: RefreshTrigger, status: SourceStatus, now: Date, calendar: Calendar
++  ) -> Bool {
++    let sinceLastAttempt = status.lastAttemptAt.map { now.timeIntervalSince($0) }
++    if trigger == .userRequest {
++      return sinceLastAttempt.map { $0 >= userRequestInterval } ?? true
++    }
++    guard status.isStale(now: now, calendar: calendar) else { return false }
++    let today = CalendarDay(now, calendar: calendar)
++    let attemptsToday = status.automaticAttemptsDay == today ? status.automaticAttemptsCount : 0
++    guard attemptsToday < automaticAttemptsPerDay else { return false }
++    return sinceLastAttempt.map { $0 >= automaticRetryInterval } ?? true
++  }
++
++  /// Nächster Tag 05:30 Ortszeit – frühester Beginn der Hintergrund-Aktualisierung (ADR-0004).
++  public static func nextBackgroundBeginDate(after now: Date, calendar: Calendar) -> Date {
++    let tomorrow = CalendarDay(now, calendar: calendar).adding(days: 1)
++    let components = DateComponents(
++      year: tomorrow.year, month: tomorrow.month, day: tomorrow.day, hour: 5, minute: 30)
++    return calendar.date(from: components) ?? now.addingTimeInterval(24 * 3600)
++  }
++}
+diff --git a/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/SourceStatus.swift b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/SourceStatus.swift
+new file mode 100644
+index 0000000..ba47679
+--- /dev/null
++++ b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/SourceStatus.swift
+@@ -0,0 +1,70 @@
++import Foundation
++
++/// Auslöser einer Abfrage bei der Stundenplan-Quelle.
++public enum RefreshTrigger: String, Codable, Sendable {
++  /// Szene wird aktiv (nicht: App startet) – maßgeblich für „erstes Öffnen am Tag“ (AK-21).
++  case appBecameActive
++  case backgroundRefresh
++  case userRequest
++
++  /// Automatisch ausgelöst, also an Tageslimit und Abstand gebunden.
++  var isAutomatic: Bool { self != .userRequest }
++}
++
++/// Stand der Quelle: Zeitpunkte, Fehlzähler und Zähler der automatischen Versuche des Tages.
++/// Enthält nie Zugangsdaten oder Token (Fehlertexte nur zur Diagnose).
++public struct SourceStatus: Hashable, Codable, Sendable {
++  public var lastSuccessAt: Date?
++  public var lastAttemptAt: Date?
++  public var consecutiveFailures: Int
++  public var lastError: TimetableSourceError?
++  public var automaticAttemptsDay: CalendarDay?
++  public var automaticAttemptsCount: Int
++
++  public init() {
++    consecutiveFailures = 0
++    automaticAttemptsCount = 0
++  }
++
++  /// Vermerkt den Beginn eines Versuchs; automatische Versuche zählen je Kalendertag.
++  public func recordingAttempt(_ trigger: RefreshTrigger, at: Date, calendar: Calendar)
++    -> SourceStatus
++  {
++    var copy = self
++    copy.lastAttemptAt = at
++    if trigger.isAutomatic {
++      let today = CalendarDay(at, calendar: calendar)
++      if automaticAttemptsDay == today {
++        copy.automaticAttemptsCount += 1
++      } else {
++        copy.automaticAttemptsDay = today
++        copy.automaticAttemptsCount = 1
++      }
++    }
++    return copy
++  }
++
++  public func recordingSuccess(at: Date) -> SourceStatus {
++    var copy = self
++    copy.lastSuccessAt = at
++    copy.consecutiveFailures = 0
++    copy.lastError = nil
++    return copy
++  }
++
++  public func recordingFailure(_ error: TimetableSourceError, at: Date) -> SourceStatus {
++    var copy = self
++    copy.consecutiveFailures += 1
++    copy.lastError = error
++    return copy
++  }
++
++  /// Ab drei Fehlern in Folge soll die Oberfläche die Pflege von Hand anbieten (Area stundenplan-quellen).
++  public var suggestsManualMaintenance: Bool { consecutiveFailures >= 3 }
++
++  /// Kein Erfolg am Kalendertag von `now`.
++  public func isStale(now: Date, calendar: Calendar) -> Bool {
++    guard let lastSuccessAt else { return true }
++    return CalendarDay(lastSuccessAt, calendar: calendar) != CalendarDay(now, calendar: calendar)
++  }
++}
+diff --git a/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/TimetableSource.swift b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/TimetableSource.swift
+index 12c7c35..6a24699 100644
+--- a/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/TimetableSource.swift
++++ b/Packages/FrontstageCore/Sources/FrontstageCore/TimetableSources/TimetableSource.swift
+@@ -1,21 +1,21 @@
+ import Foundation
+ 
+ /// Art der Stundenplan-Quelle (Glossar: Stundenplan-Quelle). Liegt im Kern, damit der Rohwert gespeichert
+ /// (`TimetableRecord.sourceKindRaw`) und angezeigt werden kann. WebUntis kommt später als weiterer Fall (FR-2.1).
+ public enum TimetableSourceKind: String, Codable, Sendable, CaseIterable {
+   case manual
+   case schulmanager
+ }
+ 
+ /// Fehler beim Abfragen einer Stundenplan-Quelle.
+-public enum TimetableSourceError: Error, Equatable, Codable, Sendable {
++public enum TimetableSourceError: Error, Hashable, Codable, Sendable {
+   case notConfigured
+   case invalidCredentials
+   case multipleSchoolsUnsupported
+   case offline
+   case server(status: Int)
+   /// Text nur zur Diagnose, nie mit Zugangsdaten.
+   case unexpectedResponse(String)
+ }
+ 
+ /// Abweichung, wie die Quelle sie meldet – noch ohne Schlüssel der Unterrichtsstunde (ADR-0005).
+diff --git a/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/MorningRefreshPolicyTests.swift b/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/MorningRefreshPolicyTests.swift
+new file mode 100644
+index 0000000..cd91461
+--- /dev/null
++++ b/Packages/FrontstageCore/Tests/FrontstageCoreTests/TimetableSources/MorningRefreshPolicyTests.swift
+@@ -0,0 +1,133 @@
++import Foundation
++import Testing
++
++@testable import FrontstageCore
++
++@Suite("MorningRefreshPolicy")
++struct MorningRefreshPolicyTests {
++  private let calendar: Calendar = {
++    var calendar = Calendar(identifier: .gregorian)
++    calendar.timeZone = TimeZone(identifier: "Europe/Berlin")!
++    return calendar
++  }()
++
++  private func date(_ day: Int, _ hour: Int, _ minute: Int, second: Int = 0) -> Date {
++    calendar.date(
++      from: DateComponents(
++        year: 2026, month: 11, day: day, hour: hour, minute: minute, second: second))!
++  }
++
++  @Test("Erstes Aktivieren am neuen Tag fragt ab (AK-21)")
++  func activationOnNewDayTriggersFetch() {
++    var status = SourceStatus()
++    status = status.recordingSuccess(at: date(16, 7, 28))
++    #expect(
++      MorningRefreshPolicy.shouldFetch(
++        .appBecameActive, status: status, now: date(17, 7, 30), calendar: calendar))
++  }
++
++  @Test("Nach einem Erfolg heute keine zweite automatische Abfrage")
++  func noSecondAutomaticFetchAfterSuccess() {
++    let status = SourceStatus()
++      .recordingAttempt(.appBecameActive, at: date(17, 7, 29), calendar: calendar)
++      .recordingSuccess(at: date(17, 7, 30))
++    #expect(
++      !MorningRefreshPolicy.shouldFetch(
++        .appBecameActive, status: status, now: date(17, 10, 0), calendar: calendar))
++    #expect(
++      !MorningRefreshPolicy.shouldFetch(
++        .backgroundRefresh, status: status, now: date(17, 10, 0), calendar: calendar))
++  }
++
++  @Test("Automatischer Wiederholversuch erst nach 30 Minuten")
++  func automaticRetryWaits30Minutes() {
++    let status = SourceStatus()
++      .recordingAttempt(.appBecameActive, at: date(17, 7, 30), calendar: calendar)
++      .recordingFailure(.offline, at: date(17, 7, 30))
++    #expect(
++      !MorningRefreshPolicy.shouldFetch(
++        .appBecameActive, status: status, now: date(17, 7, 45), calendar: calendar))
++    #expect(
++      MorningRefreshPolicy.shouldFetch(
++        .appBecameActive, status: status, now: date(17, 8, 0), calendar: calendar))
++  }
++
++  @Test("Höchstens 3 automatische Versuche je Tag")
++  func automaticAttemptsAreCappedPerDay() {
++    var status = SourceStatus()
++    for hour in [7, 8, 9] {
++      status = status
++        .recordingAttempt(.backgroundRefresh, at: date(17, hour, 0), calendar: calendar)
++        .recordingFailure(.offline, at: date(17, hour, 0))
++    }
++    #expect(status.automaticAttemptsCount == 3)
++    #expect(
++      !MorningRefreshPolicy.shouldFetch(
++        .appBecameActive, status: status, now: date(17, 12, 0), calendar: calendar))
++    #expect(
++      MorningRefreshPolicy.shouldFetch(
++        .appBecameActive, status: status, now: date(18, 7, 0), calendar: calendar))
++  }
++
++  @Test("Knopfdruck wird entprellt, auch nach Erfolg heute")
++  func userRequestIsDebounced() {
++    let attempt = SourceStatus()
++      .recordingAttempt(.userRequest, at: date(17, 7, 30), calendar: calendar)
++    #expect(
++      !MorningRefreshPolicy.shouldFetch(
++        .userRequest, status: attempt, now: date(17, 7, 30, second: 30), calendar: calendar))
++    #expect(
++      MorningRefreshPolicy.shouldFetch(
++        .userRequest, status: attempt, now: date(17, 7, 31, second: 1), calendar: calendar))
++    let succeeded = attempt.recordingSuccess(at: date(17, 7, 30))
++    #expect(
++      MorningRefreshPolicy.shouldFetch(
++        .userRequest, status: succeeded, now: date(17, 9, 0), calendar: calendar))
++  }
++
++  @Test("Knopfdruck zählt nicht zu den automatischen Versuchen")
++  func userRequestDoesNotCountAsAutomatic() {
++    let status = SourceStatus()
++      .recordingAttempt(.userRequest, at: date(17, 7, 30), calendar: calendar)
++    #expect(status.automaticAttemptsCount == 0)
++  }
++
++  @Test("Drei Fehler in Folge empfehlen Pflege von Hand")
++  func threeFailuresSuggestManualMaintenance() {
++    var status = SourceStatus()
++    status = status.recordingFailure(.offline, at: date(17, 7, 0))
++    status = status.recordingFailure(.offline, at: date(17, 8, 0))
++    #expect(!status.suggestsManualMaintenance)
++    status = status.recordingFailure(.server(status: 500), at: date(17, 9, 0))
++    #expect(status.suggestsManualMaintenance)
++    #expect(status.lastError == .server(status: 500))
++    status = status.recordingSuccess(at: date(18, 7, 0))
++    #expect(!status.suggestsManualMaintenance)
++    #expect(status.lastError == nil)
++  }
++
++  @Test("Veraltet, wenn der letzte Erfolg nicht heute war")
++  func staleWhenLastSuccessYesterday() {
++    #expect(SourceStatus().isStale(now: date(17, 9, 0), calendar: calendar))
++    let yesterday = SourceStatus().recordingSuccess(at: date(16, 7, 28))
++    #expect(yesterday.isStale(now: date(17, 9, 0), calendar: calendar))
++    let today = SourceStatus().recordingSuccess(at: date(17, 7, 28))
++    #expect(!today.isStale(now: date(17, 9, 0), calendar: calendar))
++  }
++
++  @Test("Hintergrund-Beginn: nächster Tag 05:30 Ortszeit")
++  func nextBackgroundBeginIsNextDayHalfPastFive() {
++    let begin = MorningRefreshPolicy.nextBackgroundBeginDate(
++      after: date(16, 21, 0), calendar: calendar)
++    #expect(begin == date(17, 5, 30))
++  }
++
++  @Test("Status übersteht Kodieren und Dekodieren")
++  func statusRoundTripsThroughJSON() throws {
++    let status = SourceStatus()
++      .recordingAttempt(.appBecameActive, at: date(17, 7, 30), calendar: calendar)
++      .recordingFailure(.invalidCredentials, at: date(17, 7, 30))
++    let data = try JSONEncoder().encode(status)
++    #expect(try JSONDecoder().decode(SourceStatus.self, from: data) == status)
++  }
++}
