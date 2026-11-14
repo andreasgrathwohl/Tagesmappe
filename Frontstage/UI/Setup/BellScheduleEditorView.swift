@@ -91,7 +91,7 @@ struct BellScheduleEditorView: View {
       get: { Self.date(for: edge == .start ? range.lowerBound : range.upperBound) },
       set: { newDate in
         let time = TimeOfDay(newDate, calendar: .current)
-        do {
+        do throws(BellScheduleError) {
           switch edge {
           case .start: try model.set(period: period, start: time, end: range.upperBound)
           case .end: try model.set(period: period, start: range.lowerBound, end: time)

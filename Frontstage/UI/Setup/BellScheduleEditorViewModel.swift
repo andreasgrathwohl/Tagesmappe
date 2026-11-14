@@ -60,14 +60,14 @@ enum BellScheduleError: Error, Equatable {
     guard let next = nextPeriod() else { return }
     var updated = schedule
     updated.periods[next.number] = next.range
-    do { try persist(updated) } catch { lastFailure = error }
+    do throws(BellScheduleError) { try persist(updated) } catch { lastFailure = error }
   }
 
   func removeLastPeriod() {
     guard let last = schedule.periods.keys.max() else { return }
     var updated = schedule
     updated.periods[last] = nil
-    do { try persist(updated) } catch { lastFailure = error }
+    do throws(BellScheduleError) { try persist(updated) } catch { lastFailure = error }
   }
 
   // MARK: - Intern
