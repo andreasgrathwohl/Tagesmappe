@@ -1,16 +1,70 @@
 import FrontstageCore
+import Foundation
 import Observation
 
 /// Flüchtiger Zustand der laufenden Unterrichtsstunde: Timer und Arbeitsform (FR-11.2, FR-11.3).
 ///
-/// PLATZHALTER aus Aufgabe 4, damit `ClassroomServices` übersetzt; Aufgabe 5 ersetzt die Datei um
-/// `lessonKey`, `lessonDidChange(to:)` und die Timer-Steuerung.
+/// Nichts davon wird gespeichert oder gespiegelt. Der Timer rechnet aus einem Endzeitpunkt und überdauert
+/// den Stundenwechsel (er gehört dem Unterricht, nicht der Stunde); die Arbeitsform gilt nur für die
+/// Unterrichtsstunde, für die sie gewählt wurde.
 @MainActor @Observable final class LessonSessionState {
   var timer = PhaseTimer()
   var workMode: WorkMode?
-  @ObservationIgnored let signal: TimerSignalPlayer?
+  /// Die Unterrichtsstunde, für die `workMode` gilt; `nil`, solange keine läuft.
+  private(set) var lessonKey: LessonKey?
+
+  @ObservationIgnored private let signal: TimerSignalPlayer?
+  /// Wartet bis zum Endzeitpunkt und spielt dann das Signal. Erbt den MainActor.
+  @ObservationIgnored private var signalTask: Task<Void, Never>?
 
   init(signal: TimerSignalPlayer?) {
     self.signal = signal
+  }
+
+  /// Meldet die aktuelle Unterrichtsstunde. Wechselt sie, wird die Arbeitsform zurückgesetzt;
+  /// der Timer bleibt unberührt. Dieselbe Stunde erneut zu melden ändert nichts.
+  func lessonDidChange(to key: LessonKey?) {
+    guard key != lessonKey else { return }
+    lessonKey = key
+    workMode = nil
+  }
+
+  func startTimer(minutes: Int, now: Date) {
+    timer.start(duration: TimeInterval(max(0, minutes)) * 60, now: now)
+    scheduleSignal()
+  }
+
+  func pauseTimer(now: Date) {
+    timer.pause(now: now)
+    cancelSignal()
+  }
+
+  func resumeTimer(now: Date) {
+    timer.resume(now: now)
+    scheduleSignal()
+  }
+
+  func stopTimer() {
+    timer.stop()
+    cancelSignal()
+  }
+
+  private func cancelSignal() {
+    signalTask?.cancel()
+    signalTask = nil
+  }
+
+  /// Plant das Signal zum Endzeitpunkt neu. `Task.sleep(for:)` mit der Restdauer, weil `ContinuousClock`
+  /// nicht an `Date` gebunden ist. Kehrt die App erst nach dem Ablauf zurück, lehnt `shouldPlaySignal`
+  /// das verspätete Signal ab (Review Focus 1).
+  private func scheduleSignal() {
+    cancelSignal()
+    guard case .running(let endDate) = timer.state else { return }
+    signalTask = Task { [weak self] in
+      let delay = max(0, endDate.timeIntervalSinceNow)
+      do { try await Task.sleep(for: .seconds(delay)) } catch { return }
+      guard let self, !Task.isCancelled else { return }
+      if self.timer.shouldPlaySignal(at: .now) { self.signal?.play() }
+    }
   }
 }
