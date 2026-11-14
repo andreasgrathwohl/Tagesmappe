@@ -124,7 +124,7 @@ public struct SecondScreenSelection: Hashable, Sendable {
   public private(set) var mode: SecondScreenContent            // Start: .classScreen
   public private(set) var isMaterialOpen: Bool               // Start: false
   public private(set) var isBoardAvailable: Bool             // Start: false
-  public var availableModes: Set<SecondScreenContent> { get }   // .classScreen, .dark immer; .material/.board nur wenn verfügbar
+  public var availableModes: [SecondScreenContent] { get }   // feste Reihenfolge classScreen, material?, board?, dark; .classScreen und .dark immer
   @discardableResult public mutating func select(_ mode: SecondScreenContent) -> Bool   // false = nicht verfügbar, unverändert
   public mutating func toggleDark()
   public mutating func materialOpened()

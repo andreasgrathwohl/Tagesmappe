@@ -17,7 +17,7 @@ public enum SecondScreenContent: String, Sendable, Hashable, CaseIterable {
 ///
 /// Der Zustand ist flüchtig und hält weder Dateien noch Daten. „Dunkel“ merkt sich
 /// den davor sichtbaren Inhalt, damit der Rückweg dasselbe zeigt (AK-28).
-public struct SecondScreenSelection: Sendable, Equatable {
+public struct SecondScreenSelection: Sendable, Hashable {
   /// Aktuell gezeigter Inhalt.
   public private(set) var mode: SecondScreenContent = .classScreen
   /// Inhalt, zu dem „Dunkel“ zurückführt. Nie `.dark`; solange nicht dunkel, gleich `mode`.
@@ -26,6 +26,11 @@ public struct SecondScreenSelection: Sendable, Equatable {
   private var boardAvailable = false
 
   public init() {}
+
+  /// Ein Material ist geöffnet und damit wählbar.
+  public var isMaterialOpen: Bool { materialAvailable }
+  /// Die Tafel ist verfügbar und damit wählbar.
+  public var isBoardAvailable: Bool { boardAvailable }
 
   /// Wählbare Inhalte in fester Reihenfolge: Klassenbildschirm, Material, Tafel, Dunkel.
   public var availableModes: [SecondScreenContent] {
