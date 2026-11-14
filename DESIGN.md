@@ -1,6 +1,6 @@
 ---
 status: draft
-date: 2026-11-14
+date: 2026-11-15
 ---
 
 # Frontstage — Gestaltung
@@ -158,6 +158,39 @@ wird, oder die automatische Wahl der laufenden Stunde stört beim Vorausschauen.
 
 ---
 
+### UI-4 — Die Zeilen füllen die Höhe: der ganze Tag ohne Scrollen
+
+- category: 2
+- Constrained by: UI-2, UI-3
+
+**Entscheidung:** Die Liste der Tagesansicht bleibt bei der heutigen Dichte: Die Zeilen teilen sich die verfügbare
+Höhe, höchstens 96 pt, mindestens 44 pt, 8 pt Abstand (`Frontstage/UI/DayView/DayViewLayout.swift`); bei 6 Stunden
+96 pt, bei 8 Stunden etwa 78 pt. Erst wenn selbst 44 pt nicht mehr passen, scrollt die Liste. Für den neuen
+Detailbereich (UI-3) gilt die Skala, die mit dieser Dichte gerendert wurde: 32 pt Rand, 24 pt zwischen
+Abschnitten, 16 pt zwischen Material-Zielen, Material-Ziele etwa 200 pt hoch. Gewählt von Andreas am 2026-11-15.
+
+**Kontext:** Drei Varianten derselben Liste-und-Detail-Ansicht, je mit 6 und 8 Stunden gerendert (HTML-Nachbau).
+Der Nachbau aus Runde 1 hatte 6 statt 8 pt Zeilenabstand; maßgeblich ist der Wert im Code. Die Werte des
+Detailbereichs stammen aus dem Nachbau, weil es ihn im Code noch nicht gibt.
+
+**Verworfen, jeweils mit Vorzug:**
+- Kompakt (Zeilen 44 pt fest, Skala 4/8, Material-Ziele 120 pt) — Systemdichte von iPadOS, auch lange Tage
+  belegen nur die halbe Höhe.
+- Großzügig (Zeilen 112 pt fest, Skala 16/24/32, Material-Ziele 280 pt) — größte Ziele für die Bedienung im
+  Stehen auf Armlänge; dafür scrollt die Liste schon bei 6 Stunden.
+
+**Konsequenzen mit Kosten:**
+- Die Zeilenhöhe ändert sich mit der Zahl der Stunden; ein langer Tag sieht dichter aus als ein kurzer. Die
+  Schriftskala (Runde 4) muss in die kleinste übliche Höhe (etwa 78 pt bei 8 Stunden) passen.
+- Bei großer Dynamic-Type-Stufe oder vielen Stunden fällt die Liste auf Scrollen zurück; der Detailbereich
+  scrollt eigenständig.
+- Beschluss am HTML-Nachbau; beim ersten Bau am Gerät bestätigen (UI-2).
+
+**Revisit if:** Am Gerät sind die Ziele bei 8 Stunden im Stehen zu klein, oder Runde 4 findet keine
+Schriftskala, die in 78 pt drei Zeilen trägt.
+
+---
+
 ## Wiederkehrende Fallen
 
 - **Eine Farbe, die zwei Dinge bedeutet, bedeutet keines.**
@@ -186,3 +219,4 @@ wird, oder die automatische Wahl der laufenden Stunde stört beim Vorausschauen.
 - 2026-11-14: Q-37, Q-38, Q-39 new — Gestaltungslücken aus Teilplan 07 (Klassenbildschirm, Tafel, Kaufangebot), gebaut mit Systemvorgaben; die Prüfung nach `apple-design` steht noch aus
 - 2026-11-14: UI-2 new — Runde 0: Referenz Tagesansicht am iPad quer, Modus Operate, gerendert per HTML-Nachbau
 - 2026-11-14: UI-3 new — Runde 1: Tagesansicht als Liste und Detail, gewählt aus vier Varianten
+- 2026-11-15: UI-4 new — Runde 2: Dichte bleibt beim Ist-Zustand (Zeilen füllen die Höhe), Skala des Detailbereichs festgelegt
