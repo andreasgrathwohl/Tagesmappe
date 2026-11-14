@@ -920,6 +920,86 @@
           }
         }
       }
+    },
+    "sourceStatus.refresh" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualisieren"
+          }
+        }
+      }
+    },
+    "sourceStatus.fetchedToday %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stand: heute, %@"
+          }
+        }
+      }
+    },
+    "sourceStatus.fetchedOther %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stand: %@"
+          }
+        }
+      }
+    },
+    "sourceStatus.neverFetched" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch kein Stand"
+          }
+        }
+      }
+    },
+    "sourceStatus.notice.stale" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Stand ist nicht von heute."
+          }
+        }
+      }
+    },
+    "sourceStatus.notice.manualMaintenance" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Abfrage schlägt wiederholt fehl. Der Stundenplan kann auch von Hand gepflegt werden."
+          }
+        }
+      }
+    },
+    "sourceStatus.notice.previewPending" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine Änderung am Stundenplan wartet auf Übernahme."
+          }
+        }
+      }
+    },
+    "sourceStatus.notice.notSignedIn" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht angemeldet. Anmelden unter Einrichten."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
