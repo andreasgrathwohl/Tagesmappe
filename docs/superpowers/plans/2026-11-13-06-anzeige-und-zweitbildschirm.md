@@ -84,7 +84,7 @@ Es gelten **alle** Global Constraints der Übersicht (`2026-11-13-00-uebersicht.
 | `Frontstage/Viewer/PenNotes/PenNoteStore.swift` | Notizen einer geöffneten Anzeige: Ort wählen, laden, verzögert speichern, Ersatz |
 | `Frontstage/Viewer/PenNotes/PenNotePDFWriter.swift` | Notiz-PDF mit Ink-Anmerkungen |
 | `Frontstage/Viewer/PenNotes/PenNoteFileService.swift`, `PendingPenNoteMoves.swift` | Naht `PenNoteFileRelocating` (04): Schieben, Neu verknüpfen, Warteliste |
-| `Frontstage/Data/DataStore.swift` | **Modify** (Teilplan 02): `removePenNotes(for:)` – einzige Ergänzung |
+| `Frontstage/Data/DataStore+MaterialLinks.swift` | **Modify** (Teilplan 02, Abschnitt „Stiftnotizen“ neben `penNotes(for:)`/`savePenNote`): `removePenNotes(for:)` – einzige Ergänzung |
 | `Frontstage/Viewer/MaterialDocumentLoader.swift` | Daten + Dateiart → `PDFDocument` (Bild = eine Seite) |
 | `Frontstage/Viewer/ViewerModel.swift` | Zustand einer geöffneten Anzeige |
 | `Frontstage/Viewer/PDFCanvasView.swift` | iPad: `PDFView` + `PKCanvasView` je Seite (`#if os(iOS)`) |
@@ -107,7 +107,7 @@ Es gelten **alle** Global Constraints der Übersicht (`2026-11-13-00-uebersicht.
 | `Frontstage/ClassScreen/ClassroomEnvironment.swift` | `extension View { func classroomEnvironment() -> some View }` (Platzhalter: `self`; 07: eigene Modelle in die Umgebung beider Szenen) |
 | `Frontstage/App/FrontstageApp.swift` | **Modify** (Inhalt aus 04/08): App-Delegate, Zubehör und Umgebung am `DataScopedRoot` |
 | `Frontstage/App/ScopedAppContent.swift` | **Modify** (Teilplan 04): in `ScopedServicesHolder.services(for:)` `viewerAvailable`, `penNotes` |
-| `Frontstage/App/RootView.swift` | **Modify** (Teilplan 04): Nachholen der Warteliste in `activate(_:)`, Szenen-Zubehör |
+| `Frontstage/App/RootView.swift` | **Modify** (Teilplan 04): Nachholen der Warteliste in `activate(_:)`; den Platzhalter-Kommentar zum Szenen-Zubehör am Ende von `body` auf `FrontstageApp` verweisen lassen (angemeldet wird dort, Task 11 Step 8) |
 | `Frontstage/UI/DayView/DayView.swift` | **Modify** (aus Teilplan 04): Smartboard-Leiste unten, Öffnen von PDF/Bild in der Anzeige |
 | `Frontstage/Resources/Localizable.xcstrings` | **Modify**: Schlüssel dieses Teilplans |
 | `FrontstageTests/Viewer/*Tests.swift`, `FrontstageTests/SecondScreen/SecondScreenStateTests.swift`, `FrontstageTests/TestSupport/ViewerTestSupport.swift` | App-Tests (Simulator) |
@@ -572,11 +572,12 @@ struct PenNoteFileTests {
 
   @Test("JSON-Rundlauf: Base64-Zeichnung, Zeit mit Millisekunden, sortierte Schlüssel")
   func roundTrip() throws {
-    let original = file([page(0, 7, at: 1_763_368_500.123)], at: t(1_763_368_500.123))
+    // .125 statt .123: binär exakt darstellbar, sonst kann der Rundlauf über Millisekunden-Text um ein ulp abweichen
+    let original = file([page(0, 7, at: 1_763_368_500.125)], at: t(1_763_368_500.125))
     let data = try PenNoteFileCoding.encode(original)
     let text = String(decoding: data, as: UTF8.self)
     #expect(text.contains("\"lessonKey\" : \"2026-11-17|8b|englisch|1\""))
-    #expect(text.contains(".123Z"))
+    #expect(text.contains(".125Z"))
     #expect(try PenNoteFileCoding.decode(data) == original)
   }
   @Test("Review Focus 4: neueres Format wird erkannt, nicht als leer gelesen")
@@ -629,7 +630,7 @@ struct PenNoteFileTests {
   - `PenNoteFit.evaluate`: `pageIndex >= pageCount` → `.pageMissing`; gespeicherte Größe fehlt oder Breite/Höhe ≤ 0 → `.fits`; sonst Vergleich je Achse mit `tolerance`.
   - `PenNoteFileLayout`: Endung = Teil hinter dem letzten `.` des Dateinamens (kein Punkt oder Punkt an Stelle 0 → keine Endung). Stunden-Datei: `key.storageText` mit `|` → `_`, `%` → `-`, Endung `.json`; Umkehrung ersetzt nur in Klasse und Fach `-` zurück zu `%` (das Datum enthält `-` und bleibt) und prüft über `LessonKey(storageText:)`; Ausweichname `<stamm>.<endung klein>.json`. Notiz-PDF: `"<Name ohne Endung> – Notizen <sanitized(schoolClass.normalized)> <date.storageText>"` + (`ordinal > 1` ? `" (\(ordinal))"` : `""`) + `".pdf"`, Halbgeviertstrich `–` (U+2013) mit Leerzeichen. `isNotesPath`: Pfad NFC, keine Komponente `..` oder leer; entweder genau `<Ordner>/<Datei>.json` mit `lessonKey(fromLessonFileName:) != nil`, genau `<Ordner>` selbst, oder genau ein Notiz-PDF ohne Unterordner.
   - `PenNoteFile`: `pages` nach dem Ändern sortiert, je `index` einmal; `belongs` vergleicht `precomposedStringWithCanonicalMapping.lowercased()`; `merged`: Seiten aus `onDisk` übernehmen, dann jede Seite aus `changedPages` aus `local` setzen, Seiten nur in `local` (nicht in `changedPages`, nicht auf der Platte) behalten; `updatedAt`/`device` von `local`. `union`: alle Seiten beider, gleiche `index` → `drawing = combine(a, b)`, Größe von `a`, `updatedAt = now`.
-  - `PenNoteFileCoding`: `JSONEncoder` mit `.sortedKeys, .prettyPrinted`, Datum als Text über `ISO8601DateFormatter` mit `.withInternetDateTime, .withFractionalSeconds` (UTC); `Data` als Base64 (Standard des Encoders). `decode`: zuerst nur `format` lesen – fehlt es oder ist das JSON kaputt → `.unreadable`; `format > currentFormat` → `.newerFormat(format)`; dann ganz dekodieren.
+  - `PenNoteFileCoding`: `JSONEncoder` mit `.sortedKeys, .prettyPrinted`, Datum als Text über `Date.ISO8601FormatStyle(includingFractionalSeconds: true)` (UTC; Vorbild `DataFolderCoding` im Kern – `Sendable`, anders als ein geteilter `ISO8601DateFormatter` unter Swift 6); `Data` als Base64 (Standard des Encoders). `decode`: zuerst nur `format` lesen – fehlt es oder ist das JSON kaputt → `.unreadable`; `format > currentFormat` → `.newerFormat(format)`; dann ganz dekodieren.
   - `///`-Doku deutsch mit Verweis auf ADR-0011 und die Entscheidungen 1–4, 6, 8.
 
 - [ ] **Step 4: GREEN belegen** – `.\scripts\swift-test.ps1 -Filter PenNote` grün; danach die ganze Kern-Suite.
@@ -653,6 +654,9 @@ Design-Takt: keiner
 - [ ] **Step 1: Failing Tests schreiben**
 
 ```swift
+import Testing
+@testable import FrontstageCore
+
 struct PenNoteRelocationTests {
   let doc = "Arbeitsblatt Vokabeln.pdf"
   let folder = "Arbeitsblatt Vokabeln.frontstage-notizen"
@@ -785,7 +789,7 @@ Swift-Hinweis: `@Observable` (Framework Observation) macht jede gespeicherte Eig
 ```
 
 - [ ] **Step 2: Diff durchsehen.**
-- [ ] **Step 3: `SecondScreenState` implementieren** – dünne Hülle um `SecondScreenSelection`; `static let shared = SecondScreenState()`; `displayConnected` ruft `state.displayConnected()`; `screenAspectRatio` nur übernehmen, wenn Wert > 0. `MaterialPresentation` in derselben Datei.
+- [ ] **Step 3: `SecondScreenState` implementieren** – dünne Hülle um `SecondScreenSelection`; `static let shared = SecondScreenState()`; `displayConnected` ruft `state.displayConnected()`; `screenAspectRatio` nur übernehmen, wenn Wert > 0. `setBoardLesson(_:)` setzt `boardLessonKey` und ruft `state.setBoardAvailable(key != nil)` (Test `boardRequiresLesson`); `openMaterial`/`closeMaterial` rufen `materialOpened()`/`materialClosed()` und setzen bzw. leeren `material`. `MaterialPresentation` in derselben Datei.
 - [ ] **Step 4: Diff durchsehen** – Datei kompiliert auch für macOS (nur `PencilKit`, `Foundation`, `Observation`, `FrontstageCore`).
 - [ ] **Step 5: Commit** – `git commit -m "feat(second-screen): observable shared state for both scenes"`
 
@@ -810,9 +814,13 @@ Swift-Hinweis: `NSFileCoordinator` sorgt dafür, dass der Ablage-Anbieter (iClou
 - [ ] **Step 1: Failing Tests schreiben** (temporärer Ordner als Stand-in für den Ordner des Dokuments; `PenNoteFileStore` arbeitet nur mit URLs und ist ohne `StorageService` prüfbar)
 
 ```swift
-import Testing, PencilKit, PDFKit
+import Foundation
+import FrontstageCore
+import PDFKit
+import PencilKit
+import Testing
+
 @testable import Frontstage
-@testable import FrontstageCore
 
 @MainActor struct DrawingGeometryTests {
   @Test("Umrechnung in Seitenkoordinaten und zurück verliert nichts")
@@ -908,7 +916,9 @@ import Testing, PencilKit, PDFKit
 }
 ```
 
-`ViewerTestSupport.swift` (Create): `TestDrawings` (`line(from:to:)`, `word`, `twoWords` – aus `PKStroke`s gebaut), `TestDocuments` (`page(width:height:rotation:)`, `pdfData(pages:size:)`, `pngData(width:height:)`), `TestKeys` (`tue8aEnglish`, `wed8bEnglish`, `thu8aEnglish`, `tue8bEnglish`, `thu8bEnglish` – nur `8a`/`8b`, „Englisch“, 17.–19.11.2026), `PageSize.a4` (`595 × 842`, Test-Erweiterung), `TestFolders` (temporäre Ordner, Dokument mit/ohne Notiz-Datei und Notiz-PDF, nur-lesend), `TestFiles.note(_:pages:document:)`, `TestStore.contextWithLink(key:kind:)` → `(DataStore, MaterialLinkRecord)` über `makeStore()` (02) und `assign(_:to:at:)`, `TestStore.addFallbackNote(to:link:page:drawing:updatedAt:size:)` über `savePenNote` bzw. direkt im `modelContext` (doppelte Datensätze nachstellen), `InMemoryPenNoteFiles` (`actor`, `PenNoteFileAccessing`; hält Dateien je `MaterialReference.locationKey` als `PenNoteFileStore` auf einem temporären Ordner und kann `notWritable`, `blocked(_)` und „Ort nicht erreichbar“ auf Wunsch auslösen; zählt Schreibaufrufe).
+`ViewerTestSupport.swift` (Create): `TestDrawings` (`line(from:to:)`, `word`, `twoWords` – aus `PKStroke`s gebaut), `TestDocuments` (`page(width:height:rotation:)`, `pdfData(pages:size:)`, `pngData(width:height:)`), `TestKeys` (`tue8aEnglish`, `wed8bEnglish`, `thu8aEnglish`, `tue8bEnglish`, `thu8bEnglish` – nur `8a`/`8b`, „Englisch“, 17.–19.11.2026), `PageSize.a4` (`595 × 842`, Test-Erweiterung), `TestFolders` (`make(with: [String: Data]) -> URL`, `documentWithNote(pages:documentName: = "Arbeitsblatt Vokabeln.pdf", withPDF: = false) -> (URL, LessonKey)` mit Schlüssel `TestKeys.tue8bEnglish`, `documentWithRawNote(_: Data)`, `rawNote(beside:key:) -> Data`, `readOnlyDocument()` – temporäre Ordner), `TestFiles.note(_:pages:document: = "Arbeitsblatt Vokabeln.pdf")`, `TestFiles.reference(_ relativePath:)` (Freigabe-Name fest, `displayName` = letzter Pfadteil, `fileKind` aus der Endung), `TestStore.contextWithLink(key: = TestKeys.tue8aEnglish, kind: = .pdf)` → `(DataStore, MaterialLinkRecord)` über `makeStore()` (02) und `assign(_:to:at:)`, `TestStore.addLink(to:sameFileAs:key:) -> MaterialLinkRecord` (gleicher Verweis, andere Stunde), `TestStore.addFallbackNote(to:link:page:drawing:updatedAt:size:)` über `savePenNote` bzw. direkt im `modelContext` (doppelte Datensätze nachstellen), `InMemoryPenNoteFiles` (`actor`, `PenNoteFileAccessing`; `init(blocked: PenNoteBlockReason? = nil, notWritable: Bool = false, unreachable: Bool = false)`; hält Dateien je `MaterialReference.locationKey` als `PenNoteFileStore` auf einem temporären Ordner; `put(_:for:withPDF: = false)`, `setUnreachable(_:)`, `writeCount`, `pdfWriteCount`, `lessonKeys(for:) -> [LessonKey]`, `pdfNames(for:) -> [String]`, `documentName(for:key:) -> String?`). Die Hilfen ohne `@MainActor` außer `TestStore` (die Suiten `PenNoteFileStoreTests` und `PenNotePDFWriterTests` laufen nicht auf dem Hauptakteur); PDF-Testdaten über CoreGraphics/PDFKit, nicht über UIKit-Renderer. `TestViewer`, `StubReader`, `StubError` ergänzt Task 7, `PendingPenNoteMoves.inTemporaryDirectory()` Task 9.
+
+Kopf jeder neuen App-Testdatei dieses Teilplans (auch Task 4, 6–9) wie oben: `import Foundation`, `import FrontstageCore` (nicht `@testable` – der Kern ist ein eigenes Paket, die Bestandstests importieren ihn ebenso), `PDFKit`/`PencilKit` nach Bedarf, `import Testing`, `@testable import Frontstage`. Mehrere Module in einer `import`-Zeile gibt es in Swift nicht. `DataStore` ist im Testziel über `TestSupport/TypeAliases.swift` eindeutig.
 
 - [ ] **Step 2: Diff durchsehen** (erwartet im CI ohne Step 3: Kompilierfehler).
 
@@ -935,7 +945,7 @@ Design-Takt: keiner
 
 **Files:**
 - Create: `Frontstage/Viewer/PenNotes/PenNoteStore.swift`
-- Modify: `Frontstage/Data/DataStore.swift` (Teilplan 02) – neue Methode `func removePenNotes(for link: MaterialLinkRecord) throws` (löscht die `PenNoteRecord`s der Zuordnung, speichert; der Abgleich aus 08 schreibt dafür Löschmarken)
+- Modify: `Frontstage/Data/DataStore+MaterialLinks.swift` (Teilplan 02; Abschnitt „Stiftnotizen“, dort stehen `penNotes(for:)` und `savePenNote`) – neue Methode `func removePenNotes(for link: MaterialLinkRecord) throws` (löscht die `PenNoteRecord`s der Zuordnung, speichert; der Abgleich aus 08 schreibt dafür Löschmarken)
 - Test: `FrontstageTests/Viewer/PenNoteStoreTests.swift`
 
 **Interfaces:**
@@ -1093,7 +1103,8 @@ Design-Takt: keiner
     await model.load()
     model.drawingChanged(TestDrawings.word, pageIndex: 0)
     await model.close()
-    #expect(await files.writeCount == 1 && await files.pdfWriteCount == 1)
+    #expect(await files.writeCount == 1)          // `await` rechts von `&&` kompiliert nicht – je Wert ein #expect
+    #expect(await files.pdfWriteCount == 1)
     #expect(screen.state.mode == .classScreen && screen.material == nil)
   }
   @Test("Nur ansehen (z. B. am Mac): kein Notiz-PDF beim Schließen (Entscheidung 5)")
@@ -1106,12 +1117,13 @@ Design-Takt: keiner
   func fallbackWritesNoPDF() async throws {
     let (model, files, _) = try await TestViewer.make(kind: .pdf, data: TestDocuments.pdfData(pages: 1, size: .a4), notWritable: true)
     await model.load(); model.drawingChanged(TestDrawings.word, pageIndex: 0); await model.close()
-    #expect(model.notesLocation == .appDataFallback && await files.pdfWriteCount == 0)
+    #expect(model.notesLocation == .appDataFallback)
+    #expect(await files.pdfWriteCount == 0)
   }
 }
 ```
 
-`TestViewer.make(...)` (in `ViewerTestSupport.swift` ergänzen) baut `DataStore` + Zuordnung, `InMemoryPenNoteFiles`, `StubReader`, `SecondScreenState()` und das `ViewerModel`; `StubReader`/`StubError` ebenda.
+`TestViewer.make(kind:data: = Data(), readError: (any Error)? = nil, notePages: [Int] = [], notes: [Int: PageSize] = [:], existingPDF: Bool = false, notWritable: Bool = false, saveDelay: Duration = .milliseconds(500)) async throws -> (ViewerModel, InMemoryPenNoteFiles, SecondScreenState)` (in `ViewerTestSupport.swift` ergänzen) baut `DataStore` + Zuordnung, `InMemoryPenNoteFiles` (Notizseiten mit `TestDrawings.word`), `StubReader`, `SecondScreenState()` und das `ViewerModel`; `StubReader`/`StubError` (`unresolvable`) ebenda.
 
 - [ ] **Step 2: Diff durchsehen.**
 - [ ] **Step 3: `MaterialDocumentLoader` implementieren.** `.pdf`: `PDFDocument(data:)`, `nil` oder `pageCount == 0` → `.unreadable`. `.image`: iOS `UIImage(data:)`, macOS `NSImage(data:)`; vor `PDFPage(image:)` die Bildausrichtung einmal in ein aufrecht gezeichnetes Bild überführen (iOS: `UIGraphicsImageRenderer`, weil `PDFPage(image:)` die EXIF-Ausrichtung sonst nicht sicher übernimmt – am Gerät mit einem Hochkant-Foto prüfen); dann ein neues `PDFDocument()` mit `insert(_:at: 0)`. Andere Arten → `.unsupportedKind`. Nicht an den `@MainActor` gebunden (läuft auch im Notiz-PDF außerhalb des Hauptthreads).
@@ -1232,7 +1244,7 @@ Design-Takt: keiner
 - [ ] **Step 3: Implementieren.**
   - `PendingPenNoteMoves`: JSON-Datei `Application Support/PenNotes/pending-moves.json` (`isExcludedFromBackup = true`, nur dieses Gerät, nicht abgeglichen); Eintrag = `folderGrantName`, `relativePath`, `displayName`, `fileKindRaw`, `fromKeyText`, `toKeyText` (keine Inhalte). `inTemporaryDirectory()` nur im Testziel.
   - `linksMoved`: Einträge **zuerst** anhängen und speichern (synchron), dann `Task { await retryPending() }`.
-  - `retryPending`: Einträge in Reihenfolge; je Eintrag `files.existingNotesPaths(ref)` → `nil` (Ort nicht erreichbar) → abbrechen, Rest bleibt; sonst `PenNoteRelocation.planMove(...)` aus den vorhandenen Pfaden (ein halb ausgeführter früherer Versuch ergibt so nur noch den Rest) → `files.apply(plan, from: ref, to: ref)`; Erfolg → Eintrag entfernen und für `plan.regeneratePDFFor` `await makePDF(ref, key)`; `.blocked`/`.failed` → abbrechen, Rest bleibt (nächstes Aktivwerden); `.notWritable` → Eintrag entfernen (die Notizen dieser Zuordnung liegen dann ohnehin im Ersatz, der mit der Zuordnung wandert). Nie zwei Läufe gleichzeitig (Merker `isRunning`).
+  - `retryPending`: Einträge in Reihenfolge; je Eintrag `files.existingNotesPaths(ref)` → `nil` (Ort nicht erreichbar) → abbrechen, Rest bleibt; sonst `PenNoteRelocation.planMove(...)` aus den vorhandenen Pfaden (ein halb ausgeführter früherer Versuch ergibt so nur noch den Rest) → `files.apply(plan, from: ref, to: ref)`; Erfolg → Eintrag entfernen und für `plan.regeneratePDFFor` `await makePDF(ref, key)`; `.blocked`/`.failed` → abbrechen, Rest bleibt (nächstes Aktivwerden); `.notWritable` → Eintrag entfernen (die Notizen dieser Zuordnung liegen dann ohnehin im Ersatz, der mit der Zuordnung wandert). Nie zwei Läufe gleichzeitig: den laufenden Durchgang als `Task` merken; ein zweiter Aufruf wartet auf dessen Ende (`await running.value`) und startet danach selbst einen Durchgang, statt sofort zurückzukehren – sonst endet `await service.retryPending()` in den Tests nach `linksMoved` (das schon einen Durchgang angestoßen hat), bevor umbenannt ist.
   - `notesCount(beside:)`: `existingNotesPaths(old)` → Zahl der Stunden-Dateien (`lessonKey(fromLessonFileName:) != nil`).
   - `moveNotes(from:to:)`: `planRelink(...)` aus beiden Pfadlisten → `files.apply(plan, from: old, to: new)` → `regeneratePDFFor` neu erzeugen. Fehler werden geworfen (Teilplan 04 zeigt einen Hinweis).
   - `makePDF` (in `ScopedServicesHolder.services(for:)` gesetzt, Task 10): Dokument über `ScopedFileReader` lesen, `MaterialDocumentLoader`, Notizen über `files.read`, `PenNotePDFWriter.makePDF`, `files.writePDF`.
@@ -1268,7 +1280,7 @@ Design-Takt: voll
 
 - [ ] **Step 3: `PDFDisplayView` (iOS und macOS) – nur anzeigen.** Eigenes `PDFDocument(data:)` je Instanz (ein Dokument nicht zwischen mehreren `PDFView`s teilen), im Coordinator nach `documentData` zwischengespeichert; `isUserInteractionEnabled = false` (iOS); Seite per `go(to:)`, Ausschnitt per `go(to:on:)`, wenn `visibleRect` gesetzt. Überlagerung: iOS eine nicht bedienbare `PKCanvasView` (`isUserInteractionEnabled = false`), macOS ein `NSImageView` mit `drawing.image(from:scale:)` (PencilKit hat am Mac keine Zeichenfläche, `PKDrawing` gibt es dort – Quelle oben). Zeichnung jeweils mit `toViewSpace` auf die Größe der Überlagerung.
 
-- [ ] **Step 4: `ViewerView`.** Holt den `MaterialLinkRecord` über `DataStore.link(id:)` (`DataStore`, `StorageService` und `AppEnvironment` aus der Umgebung), baut `PenNoteStore(link:files: StoragePenNoteFiles(storage:), fallback: dataStore)` und `ViewerModel(…, beforeLoad: { await environment.penNotes.retryPending() })`, ruft `.task { await model.load() }`. `ScopedFileReader.readData`: `storage.readableFile(for:)` → `nil` wirft; sonst koordiniert lesen (`NSFileCoordinator`, `.withoutChanges`) außerhalb des Hauptthreads, danach in jedem Fall `close()`.
+- [ ] **Step 4: `ViewerView`.** Holt den `MaterialLinkRecord` über `DataStore.link(id:)` (`DataStore`, `StorageService` und `AppEnvironment` aus der Umgebung), baut `PenNoteStore(link:files: StoragePenNoteFiles(storage:), fallback: dataStore)` und `ViewerModel(…, beforeLoad: { await environment.penNotes.retryPending() })`, ruft `.task { await model.load() }`. `ScopedFileReader.readData`: `storage.readableFile(for:)` → `nil` wirft; sonst koordiniert lesen (`NSFileCoordinator`, `.withoutChanges`) außerhalb des Hauptthreads, danach in jedem Fall `close()`. Genau das tut seit Teilplan 03 schon `StorageService.withFileURL(for:_:)` (öffnet über `resolver.open` = `readableFile`, prüft die Verfügbarkeit, liest koordiniert in `Task.detached`, schließt per `defer`) – also `try await storage.withFileURL(for: reference) { try Data(contentsOf: $0) }`, keine zweite Koordination.
   - Inhalt: iOS `PDFCanvasView`, macOS `PDFDisplayView` + Seiten-Knöpfe; `.loading` → `ProgressView`, `.unavailable` → `ContentUnavailableView` (Systemstandard) mit Text `viewer.unavailable`.
   - Navigationsleiste: Titel = `displayName` des Materials, Zurück/„Fertig“ → `Task { await model.close(); dismiss() }` (Knopf bis dahin deaktiviert, damit nicht doppelt geschlossen wird); Seitenanzeige `viewer.pageOfPages` („Seite %lld von %lld“), vorige/nächste Seite.
   - Hinweis bei `outdatedPages` nicht leer: Banner `viewer.outdatedNotes.title` / `.body` mit Seitenzahlen, Knopf `viewer.outdatedNotes.hide` (blendet für diese Sitzung aus; Notizen bleiben). Bei `missingPages` nicht leer: Banner `viewer.missingPages` mit Knopf `viewer.missingPages.show`, der die Notizen dieser Seiten als Bild (`PKDrawing.image(from: bounds, scale:)`) in einem Blatt zeigt.
@@ -1277,7 +1289,7 @@ Design-Takt: voll
   - Unten: `SmartboardBar()` nur `#if os(iOS)`.
   - Offene Kategorien (Systemstandard nehmen, im Abschlussbericht nennen): Wortlaut aller Texte, Darstellung der Hinweis-Banner, Seitenübersicht (Mockup zeigt eine; hier **nicht** gebaut – Abschlussbericht).
 
-- [ ] **Step 5: Einbindung** – `DayView`: `MaterialOpenAction.viewer(item)` (Teilplan 04, gilt für `fileKind.opensInViewer`) öffnet `ViewerView(linkID: item.id)`; ebenso `OpenOutcome.showInViewer(file)` aus `StorageService.open` (dann `file.close()` und `ViewerView` liest selbst). `ScopedServicesHolder.services(for:)`: `viewerAvailable = true`, `penNotes = PenNoteFileService(...)` mit `makePDF` gemäß Task 9 (nutzt dieselben `StorageService`-gebundenen Bausteine); `retryPending()` in `RootView.activate(_:)`. Nach einem Wechsel des Datenorts entsteht der Dienst mit dem neuen Dienste-Satz neu – die Warteliste liegt in einer Datei und geht dabei nicht verloren.
+- [ ] **Step 5: Einbindung** – `DayView`: `MaterialOpenAction.viewer(item)` (Teilplan 04, gilt für `fileKind.opensInViewer`) öffnet `ViewerView(linkID: item.id)`; ebenso `OpenOutcome.showInViewer(file)` aus `StorageService.open` (dann `file.close()` und `ViewerView` liest selbst; die Zuordnungs-ID kommt über das vorhandene `currentRow(for: reference)?.id` in `DayView.handle(_:_:)` – der Fall trägt nur den Verweis). Der Zweig `.viewer(let item)` in `DayView.open(_:anchor:)` ruft heute noch `start(…)` (Platzhalter aus 04) und wird ersetzt. `ScopedServicesHolder.services(for:)`: `viewerAvailable = true`, `penNotes = PenNoteFileService(...)` mit `makePDF` gemäß Task 9 (nutzt dieselben `StorageService`-gebundenen Bausteine); `retryPending()` in `RootView.activate(_:)`. Nach einem Wechsel des Datenorts entsteht der Dienst mit dem neuen Dienste-Satz neu – die Warteliste liegt in einer Datei und geht dabei nicht verloren.
 
 - [ ] **Step 6: Texte** in `Localizable.xcstrings` (Schlüssel englisch, Werte deutsch, Platzhalter-Wortlaut aus dem Mockup): `viewer.unavailable` = „Material nicht verfügbar“, `viewer.pageOfPages` = „Seite %1$lld von %2$lld“, `viewer.outdatedNotes.title` = „Notizen zu einer früheren Fassung“, `viewer.outdatedNotes.body` = „Die Datei wurde in der Ablage geändert. Die Notizen dieser Stunde bleiben erhalten, liegen aber womöglich nicht mehr an der richtigen Stelle.“, `viewer.outdatedNotes.hide` = „Ausblenden“, `viewer.missingPages` = „Notizen zu Seiten, die es nicht mehr gibt“, `viewer.missingPages.show` = „Notizen ansehen“, `viewer.done` = „Fertig“, `viewer.notesInAppData` = „Der Ordner dieses Materials ist nicht beschreibbar. Die Notizen dieser Stunde liegen deshalb in Frontstage statt neben dem Dokument.“, `viewer.notesNotDownloaded` = „Die Notizen dieser Stunde sind noch nicht geladen. Schreiben ist möglich, sobald sie da sind.“, `viewer.notesUnreadable` = „Die Notiz-Datei dieser Stunde ist nicht lesbar. Sie bleibt unverändert; Schreiben ist ausgeschaltet.“, `viewer.notesNewerFormat` = „Die Notizen stammen aus einer neueren Frontstage-Version. Zum Weiterschreiben die App aktualisieren.“
 
@@ -1296,7 +1308,7 @@ Design-Takt: Hauptstufe
 **Files:**
 - Create: `Frontstage/SecondScreen/SecondScreenRootView.swift`, `Frontstage/SecondScreen/SecondScreenEnvironment.swift`, `Frontstage/SecondScreen/ExternalDisplaySceneDelegate.swift`, `Frontstage/SecondScreen/SceneAccessoryRegistrar.swift`, `Frontstage/App/AppDelegate.swift`
 - Create (Einhängepunkte, Besitzer Teilplan 07): `Frontstage/ClassScreen/ClassScreenView.swift`, `Frontstage/ClassScreen/ClassScreenOverlay.swift`, `Frontstage/ClassScreen/ClassroomEnvironment.swift`, `Frontstage/Board/BoardView.swift`
-- Modify: `Frontstage/App/FrontstageApp.swift` (Inhalt aus 04 und 08; vorher ganz lesen, nichts entfernen)
+- Modify: `Frontstage/App/FrontstageApp.swift` (Inhalt aus 04 und 08; vorher ganz lesen, nichts entfernen), `Frontstage/App/RootView.swift` (nur der Kommentar zum Szenen-Zubehör, Step 8)
 
 **Interfaces:**
 - Consumes: `SecondScreenState` (Task 4), `PDFDisplayView` (Task 10), `DataScopedRoot` (08).
@@ -1345,11 +1357,11 @@ configuration.delegateClass = ExternalDisplaySceneDelegate.self
 registration = target.registerSceneAccessory(.externalNonInteractive(sceneConfiguration: configuration))
 ```
 
-`registration` als `AnyObject?` speichern (der Typ `UISceneAccessoryRegistration` existiert erst ab 27). `registersSecondScreenAccessory()` = `.background(SceneAccessoryRegistrar().frame(width: 0, height: 0))`. Quelle: Apple, Abschnitt „Register a scene accessory for noninteractive content“ (Code dort mit `UISceneConfiguration()` + `delegateClass`; `init(name:sessionRole:)` ist gleichwertig und setzt die Rolle ausdrücklich).
+`registration` als `AnyObject?` speichern (der Typ `UISceneAccessoryRegistration` existiert erst ab 27). **SDK-Stand:** Die CI baut heute mit Xcode 26.6 (iOS-SDK 26.5, Swift 6.3.3; Lauf 43567142097). Dort gibt es `UISceneAccessory`, `registerSceneAccessory` und `.externalNonInteractive` nicht – `#available` schützt nur zur Laufzeit, der Compiler meldet trotzdem „cannot find …“. Den iOS-27-Block deshalb zusätzlich in `#if compiler(>=6.4)` (Swift-Stand von Xcode 27) einschließen; vor dem Lauf in der CI-Ausgabe `xcodebuild -version` prüfen. Mit Xcode 26 gebaut fehlt der iOS-27-Weg (siehe Abstimmungsbedarf, Werkzeugstand). `registersSecondScreenAccessory()` = `.background(SceneAccessoryRegistrar().frame(width: 0, height: 0))`. Quelle: Apple, Abschnitt „Register a scene accessory for noninteractive content“ (Code dort mit `UISceneConfiguration()` + `delegateClass`; `init(name:sessionRole:)` ist gleichwertig und setzt die Rolle ausdrücklich).
 
-- [ ] **Step 8: `FrontstageApp` anpassen** – unter `#if os(iOS)`: `@UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate` (Swift-Hinweis: verbindet einen UIKit-App-Delegate mit dem SwiftUI-Lebenszyklus); der `RootView` im `WindowGroup` erhält `.registersSecondScreenAccessory()` (seit Teilplan 04 steht dort `RootView`, `DataScopedRoot` liegt darin je Bereich). Für beide Plattformen: `.secondScreenEnvironment()` am `RootView` – **außen**, nicht in `ScopedAppContent`, damit Zubehör und Umgebung einen Wechsel des Datenorts (`.id(generation)`, Teilplan 08) überstehen. `SecondScreenState.shared` hält keinen `DataStore` und darf deshalb App-weit sein; Modelle mit `DataStore` bringt Teilplan 07 über `classroomEnvironment()` und bindet sie dort an den aktuellen Datenort.
+- [ ] **Step 8: `FrontstageApp` anpassen** – unter `#if os(iOS)`: `@UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate` (Swift-Hinweis: verbindet einen UIKit-App-Delegate mit dem SwiftUI-Lebenszyklus); der `RootView` im `WindowGroup` erhält `.registersSecondScreenAccessory()` (seit Teilplan 04 steht dort `RootView`, `DataScopedRoot` liegt darin je Bereich). Für beide Plattformen: `.secondScreenEnvironment()` am `RootView` – **außen**, nicht in `ScopedAppContent`, damit Zubehör und Umgebung einen Wechsel des Datenorts (`.id(generation)`, Teilplan 08) überstehen. `SecondScreenState.shared` hält keinen `DataStore` und darf deshalb App-weit sein; Modelle mit `DataStore` bringt Teilplan 07 über `classroomEnvironment()` und bindet sie dort an den aktuellen Datenort. Der Kommentar „Szenen-Zubehör für den Zweitbildschirm meldet Teilplan 06 an dieser Stelle an.“ am Ende von `RootView.body` wird auf diese Stelle in `FrontstageApp` umgeschrieben (sonst widersprechen sich Code und Kommentar).
 
-- [ ] **Step 9: Diff durchsehen** – jede Nutzung von `UISceneAccessory`/`registerSceneAccessory` hinter `#available(iOS 27, *)`; die iOS-26-Rollenprüfung hinter `#unavailable(iOS 27)`; macOS-Ziel sieht nichts davon; `Info.plist`/`project.yml` unverändert (SwiftUI erzeugt das Szenen-Manifest). Fällt am Gerät die Szene auf 26 nicht an, ist der erste Prüfschritt `UIApplicationSceneManifest` in `project.yml` (Geräte-Checkliste, Punkt 23-d).
+- [ ] **Step 9: Diff durchsehen** – jede Nutzung von `UISceneAccessory`/`registerSceneAccessory` hinter `#available(iOS 27, *)` und innerhalb `#if compiler(>=6.4)`; die iOS-26-Rollenprüfung hinter `#unavailable(iOS 27)`; macOS-Ziel sieht nichts davon; `Info.plist`/`project.yml` unverändert (SwiftUI erzeugt das Szenen-Manifest). Fällt am Gerät die Szene auf 26 nicht an, ist der erste Prüfschritt `UIApplicationSceneManifest` in `project.yml` (Geräte-Checkliste, Punkt 23-d).
 
 - [ ] **Step 10: Commit** – `git commit -m "feat(second-screen): non-interactive external display scene for iOS 26 and 27"`
 
@@ -1371,13 +1383,13 @@ Design-Takt: voll
 - [ ] **Step 1: Skill `apple-design` laden.**
 
 - [ ] **Step 2: `SmartboardBar`** – eine Zeile mit:
-  - **Vorschaubild** (FR-11.5): `SecondScreenRootView(state:)` – dieselbe Ansicht, kein Bildschirmfoto – in einem Rahmen mit `model.screenAspectRatio`, gezeichnet in einer festen virtuellen Größe von 960 Punkten Breite und per `.scaleEffect` auf die Vorschaubreite verkleinert, damit Schriftgrößen des Klassenbildschirms im selben Verhältnis erscheinen; `.allowsHitTesting(false)`; Bedienungshilfe-Text `secondScreen.preview.accessibility` mit dem Modusnamen und, wenn getrennt, `secondScreen.disconnected`. Das Vorschaubild ist auch ohne verbundenen Bildschirm sichtbar.
+  - **Vorschaubild** (FR-11.5): `SecondScreenRootView(state:)` – dieselbe Ansicht, kein Bildschirmfoto – in einem Rahmen mit `state.screenAspectRatio` (`state` = `SecondScreenState` aus der Umgebung), gezeichnet in einer festen virtuellen Größe von 960 Punkten Breite und per `.scaleEffect` auf die Vorschaubreite verkleinert, damit Schriftgrößen des Klassenbildschirms im selben Verhältnis erscheinen; `.allowsHitTesting(false)`; Bedienungshilfe-Text `secondScreen.preview.accessibility` mit dem Modusnamen und, wenn getrennt, `secondScreen.disconnected`. Das Vorschaubild ist auch ohne verbundenen Bildschirm sichtbar.
   - **Umschalter**: `Picker` mit `.segmented` über `[.classScreen, .material, .board, .dark]`, Bindung liest `state.content` und ruft `state.select(_:)`; nicht verfügbare Inhalte `.disabled` (Systemstandard; Darstellung ist offene Kategorie). „Dunkel“ ist immer verfügbar und kostenlos (FR-11.4, FR-13).
   - `ClassroomControls()` (Einhängepunkt: Platzhalter `EmptyView()`, Kommentar „Timer und Arbeitsform, Teilplan 07“).
   - **Verbindungsstand**: verbunden → Symbol + `secondScreen.connected`; getrennt → `secondScreen.disconnected` und Knopf `secondScreen.howTo`, der `ConnectHowToView` als `.sheet` öffnet. Der Name des Apple TV wird nicht gezeigt (keine Schnittstelle dafür; Mockup zeigt ihn nur zur Veranschaulichung).
-  - Änderungen erscheinen ohne Zutun, weil die Leiste `model.isConnected` beobachtet (AK-35: „wenige Sekunden nach dem Verbinden“).
+  - Änderungen erscheinen ohne Zutun, weil die Leiste `state.isConnected` beobachtet (AK-35: „wenige Sekunden nach dem Verbinden“).
 
-- [ ] **Step 3: `ConnectHowToView`** – Titel `secondScreen.howTo.title`, Abschnitt AirPlay mit drei nummerierten Schritten, Abschnitt Kabel, Hinweis `secondScreen.howTo.autoDetect`, Knopf `viewer.done`. Kein Sprung ins Kontrollzentrum (keine Schnittstelle, FR-11.6). Schließt sich von selbst, sobald `model.isConnected` wahr wird.
+- [ ] **Step 3: `ConnectHowToView`** – Titel `secondScreen.howTo.title`, Abschnitt AirPlay mit drei nummerierten Schritten, Abschnitt Kabel, Hinweis `secondScreen.howTo.autoDetect`, Knopf `viewer.done`. Kein Sprung ins Kontrollzentrum (keine Schnittstelle, FR-11.6). Schließt sich von selbst, sobald `state.isConnected` wahr wird.
 
 - [ ] **Step 4: Texte** (Platzhalter-Wortlaut aus `mockup/anzeige.html`, unpersönlich): `secondScreen.mode.classScreen` = „Klassenbildschirm“, `secondScreen.mode.material` = „Material“, `secondScreen.mode.board` = „Tafel“, `secondScreen.mode.dark` = „Dunkel“, `secondScreen.connected` = „Bildschirm verbunden“, `secondScreen.disconnected` = „Kein Bildschirm verbunden“, `secondScreen.howTo` = „So verbinden“, `secondScreen.howTo.title` = „Mit dem Bildschirm verbinden“, `secondScreen.howTo.autoDetect` = „Frontstage erkennt die Verbindung von selbst und zeigt dann den Klassenbildschirm.“, `secondScreen.howTo.airplay` = „Per AirPlay“, `secondScreen.howTo.step1` = „Von der rechten oberen Ecke nach unten wischen: Das Kontrollzentrum öffnet sich.“, `secondScreen.howTo.step2` = „„Bildschirmsynchronisierung“ antippen.“, `secondScreen.howTo.step3` = „Das Apple TV des Raums wählen.“, `secondScreen.howTo.cable` = „Per Kabel“, `secondScreen.howTo.cableText` = „Adapter (USB-C auf HDMI) anstecken – fertig. Das geht ohne Handgriff und auch, wenn das Schulnetz ausfällt.“, `secondScreen.preview.accessibility` = „Vorschaubild des Zweitbildschirms: %@“.
 
@@ -1395,7 +1407,9 @@ Design-Takt: keiner
 
 **Files:** –
 
-- [ ] **Step 1: Gesamtdiff des Teilplans durchsehen** gegen die Global Constraints: Kern ohne Fremdimporte (lokal grün belegt in Task 1–3); `#available`-/`#unavailable`-Weichen; `#if os(iOS)` um UIKit, `PKCanvasView`, `PKToolPicker`, `SmartboardBar`; jeder Schreibpfad über `PenNoteFileStore` mit `isNotesPath`; keine Bezeichner außerhalb der Glossar-Spalte und der Interfaces-Blöcke (`PenNoteFile` = Glossar „Notiz-Datei“; das Notiz-PDF erscheint im Code nur als `PenNotePDFWriter` und `notesPDFName`); Datenhygiene in Tests (nur `8a`/`8b`, erfundene Materialnamen).
+**Diese Aufgabe führt der Controller aus, nicht ein Implementierer** (Sparregel der Übersicht und `CLAUDE.md`: CI kostet macOS-Minuten, höchstens ein Lauf). Im Bündel C läuft der CI-Lauf gemeinsam mit Teilplan 07 (dessen Aufgabe 14) einmal am Bündelende; die Implementierer der Aufgaben 4–12 starten keinen Lauf.
+
+- [ ] **Step 1: Gesamtdiff des Teilplans durchsehen** und vorher `.\scripts\swift-parse.ps1` (Syntaxprüfung, Übersicht) – gegen die Global Constraints: Kern ohne Fremdimporte (lokal grün belegt in Task 1–3); `#available`-/`#unavailable`-Weichen; `#if os(iOS)` um UIKit, `PKCanvasView`, `PKToolPicker`, `SmartboardBar`; jeder Schreibpfad über `PenNoteFileStore` mit `isNotesPath`; keine Bezeichner außerhalb der Glossar-Spalte und der Interfaces-Blöcke (`PenNoteFile` = Glossar „Notiz-Datei“; das Notiz-PDF erscheint im Code nur als `PenNotePDFWriter` und `notesPDFName`); Datenhygiene in Tests (nur `8a`/`8b`, erfundene Materialnamen).
 - [ ] **Step 2: Branch pushen und Lauf anstoßen**
 
 ```bash
@@ -1404,7 +1418,7 @@ gh workflow run ci.yml --ref "$(git branch --show-current)"
 gh run watch "$(gh run list --workflow ci.yml --branch "$(git branch --show-current)" --limit 1 --json databaseId --jq '.[0].databaseId')"
 ```
 
-Erwartet: Job `core` grün mit `SecondScreenSelectionTests` (10), `PenNoteFitTests` (5), `PenNoteFileLayoutTests` (6), `PenNoteFileTests` (7), `PenNoteRelocationTests` (6); Job `app` (`xcodebuild test`, iPad-Simulator) grün mit `SecondScreenStateTests` (7), `DrawingGeometryTests` (5), `PenNoteFileStoreTests` (7), `PenNoteStoreTests` (10), `ViewerModelTests` (9), `PenNotePDFWriterTests` (5), `PenNoteFileServiceTests` (7); macOS-Ziel baut. `readOnlyFolderIsNotWritable` setzt Dateirechte im Simulator – scheitert der Test dort nur am Test-Aufbau, wird er mit Begründung auf die Geräte-Checkliste (Zeile 13-e) verlegt, nicht gelöscht.
+Erwartet (`ci.yml` hat einen Job `build-and-test` mit den Schritten „Core tests“, „Build macOS“, „App tests (iPad simulator)“): Schritt „Core tests“ grün mit `SecondScreenSelectionTests` (10), `PenNoteFitTests` (5), `PenNoteFileLayoutTests` (6), `PenNoteFileTests` (7), `PenNoteRelocationTests` (6); Schritt „App tests“ (`xcodebuild test`, iPad-Simulator) grün mit `SecondScreenStateTests` (7), `DrawingGeometryTests` (5), `PenNoteFileStoreTests` (7), `PenNoteStoreTests` (10), `ViewerModelTests` (9), `PenNotePDFWriterTests` (5), `PenNoteFileServiceTests` (7); macOS-Ziel baut. `readOnlyFolderIsNotWritable` setzt Dateirechte im Simulator – scheitert der Test dort nur am Test-Aufbau, wird er mit Begründung auf die Geräte-Checkliste (Zeile 13-e) verlegt, nicht gelöscht.
 - [ ] **Step 3: Bei Fehlschlag** `gh run view --log-failed`, Ursache mit superpowers:systematic-debugging klären, alle Korrekturen sammeln, Diff durchsehen, **ein** neuer Lauf.
 
 ---
@@ -1458,8 +1472,9 @@ Nicht in diesem Teilplan: FR-11, FR-11.1–11.3, FR-11.7 (Inhalt des Klassenbild
 
 ## Abstimmungsbedarf
 
-- **Teilplan 03 (in Umsetzung auf einem anderen Branch):** zwei additive Ergänzungen in Task 5 – `MaterialResolver.resolveFolder(of:)` und `StorageService.withDocumentLocation(for:_:)`. Sie setzen die schreibende Ordnerfreigabe voraus, die 03 umsetzt (Bookmark ohne Nur-lesen-Option, Entitlement `files.user-selected.read-write`). Weicht der Stand von 03 davon ab, ist das vor Task 5 zu klären.
-- **Teilplan 02 (in Umsetzung):** eine additive Methode `DataStore.removePenNotes(for:)` (Task 6). `PenNoteRecord` bleibt unverändert und wird von 08 weiter abgeglichen.
+- **Teilplan 03 (umgesetzt, Bündel A):** zwei additive Ergänzungen in Task 5 – `MaterialResolver.resolveFolder(of:)` und `StorageService.withDocumentLocation(for:_:)`; beide fehlen im Code noch. Die schreibende Ordnerfreigabe ist vorhanden (Preflight 2026-11-14: `FolderGrantStore` mit `.withSecurityScope` ohne Nur-lesen-Option, macOS-Entitlement `files.user-selected.read-write` in `project.yml`). Beide Ergänzungen gehören in dieselbe Datei wie die Klasse, weil sie `private` Mitglieder (`resolver`, `lookup`) nutzen.
+- **Teilplan 02 (umgesetzt):** eine additive Methode `DataStore.removePenNotes(for:)` (Task 6, in `DataStore+MaterialLinks.swift`). `PenNoteRecord` bleibt unverändert und wird von 08 weiter abgeglichen.
+- **Werkzeugstand (Preflight 2026-11-14, Entwurfsebene, offen):** Die CI (`macos-26`) baut mit Xcode 26.6 / iOS-SDK 26.5. Die iOS-27-Schnittstellen aus Task 11 (`UISceneAccessory`) kompilieren dort nicht; Task 11 schließt sie deshalb in `#if compiler(>=6.4)` ein. Folge: Ein mit Xcode 26 gebauter Stand (CI, TestFlight) hat **keinen** iOS-27-Weg – auf iPadOS 27 erschiene dann gar kein Zweitbildschirm (ADR-0007, Geräte-Checkliste Spalte iPadOS 27). Zu entscheiden: Xcode 27 in `ci.yml`/TestFlight-Workflow auswählen (sofern auf dem Runner vorhanden) oder den iOS-27-Weg bis dahin bewusst zurückstellen.
 - **Teilplan 07** füllt nur die Einhängepunkte `ClassScreenView`, `BoardView`, `ClassScreenOverlay`, `ClassroomControls`, `classroomEnvironment()` (Namen und `init()` bleiben); ruft `SecondScreenState.setBoardLesson(_:)` und, für die geöffnete Tafel, `select(.board)` sowie `setBoardAvailable(_:)` (Task 4; Regel getestet in `boardUnavailableFallsBack`, Task 1). Modelle mit `DataStore` bindet 07 selbst an den aktuellen Datenort (`ClassroomServices.bind(store:)`, Teilplan 07).
 - **Glossar:** `PenNoteFile` (Notiz-Datei) und `PenNotePDF` (Notiz-PDF) stehen im Glossar; im Code heißt die Erzeugung `PenNotePDFWriter`, ein eigener Typ `PenNotePDF` entsteht nicht (es ist nur eine Datei). Technische Namen ohne Glossarzeile: `SecondScreenContent`, `PenNoteFit`, `PageSize`, `MaterialPresentation`, `PenNoteFileLayout`, `PenNoteRelocation`, `PenNoteStore`, `PenNoteFileService`. Falls „Smartboard-Leiste“ als Begriff in Dokumente eingeht, braucht sie eine Glossar-Zeile (Code-Name hier: `SmartboardBar`).
 
