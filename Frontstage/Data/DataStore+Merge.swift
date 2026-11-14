@@ -19,7 +19,9 @@ extension DataStore {
     // Einmal laden: dieselben Datensätze liefern den Schnappschuss und die id-Wörterbücher.
     let loaded = try LoadedRecords(modelContext)
     let plan = SyncMerger.plan(for: loaded.snapshot())
-    if plan.isEmpty { return plan }
+    let coursePlan = CoursePlanMerger.plan(for: loaded.coursePlanSnapshot())
+    // Früher Ausgang nur, wenn beide Pläne leer sind: Doppelte Jahrespläne allein müssen laufen.
+    if plan.isEmpty && coursePlan.isEmpty { return plan }
 
     // Wörterbuch je Modell (id → Datensatz). Doppelte ids dürfte es nicht geben; falls doch, gewinnt
     // der erste Treffer, statt abzustürzen.
@@ -94,7 +96,45 @@ extension DataStore {
       }
     }
 
-    // 6. Speichern (erhöht auch `revision`, damit die Oberfläche neu lädt).
+    // 6. Jahrespläne: Kinder an den behaltenen Plan hängen, Wochen-Inhalt übernehmen, dann löschen
+    //    (Kinder zuerst; sonst nähme die Kaskade der Pläne sie mit und ein zweites Löschen träfe Totes).
+    let years = Self.byID(loaded.schoolYears, id: \.id)
+    let coursePlans = Self.byID(loaded.coursePlans, id: \.id)
+    let weeks = Self.byID(loaded.planWeeks, id: \.id)
+    let assessments = Self.byID(loaded.assessments, id: \.id)
+
+    for (childID, planID) in coursePlan.parentChanges {
+      guard let target = coursePlans[planID] else { continue }
+      if let week = weeks[childID] {
+        week.coursePlan = target
+      } else if let assessment = assessments[childID] {
+        assessment.coursePlan = target
+      }
+    }
+
+    for (keeperID, sourceID) in coursePlan.weekContentSources {
+      guard let keeper = weeks[keeperID], let source = weeks[sourceID] else { continue }
+      keeper.topic = source.topic
+      keeper.notes = source.notes
+      keeper.updatedAt = source.updatedAt
+    }
+
+    for id in coursePlan.deletions {
+      if let record = weeks[id] {
+        modelContext.delete(record)
+      } else if let record = assessments[id] {
+        modelContext.delete(record)
+      }
+    }
+    for id in coursePlan.deletions {
+      if let record = coursePlans[id] {
+        modelContext.delete(record)
+      } else if let record = years[id] {
+        modelContext.delete(record)
+      }
+    }
+
+    // 7. Speichern (erhöht auch `revision`, damit die Oberfläche neu lädt).
     try saveAndBump()
     return plan
   }
@@ -129,8 +169,16 @@ extension DataStore {
   let lessonInfos: [LessonInfoRecord]
   let scheduleChanges: [ScheduleChangeRecord]
   let nonTeachingPeriods: [NonTeachingPeriodRecord]
+  let schoolYears: [SchoolYearRecord]
+  let coursePlans: [CoursePlanRecord]
+  let planWeeks: [PlanWeekRecord]
+  let assessments: [AssessmentRecord]
 
   init(_ context: ModelContext) throws {
+    schoolYears = try context.fetch(FetchDescriptor<SchoolYearRecord>())
+    coursePlans = try context.fetch(FetchDescriptor<CoursePlanRecord>())
+    planWeeks = try context.fetch(FetchDescriptor<PlanWeekRecord>())
+    assessments = try context.fetch(FetchDescriptor<AssessmentRecord>())
     timetables = try context.fetch(FetchDescriptor<TimetableRecord>())
     entries = try context.fetch(FetchDescriptor<TimetableEntryRecord>())
     links = try context.fetch(FetchDescriptor<MaterialLinkRecord>())
@@ -138,6 +186,33 @@ extension DataStore {
     lessonInfos = try context.fetch(FetchDescriptor<LessonInfoRecord>())
     scheduleChanges = try context.fetch(FetchDescriptor<ScheduleChangeRecord>())
     nonTeachingPeriods = try context.fetch(FetchDescriptor<NonTeachingPeriodRecord>())
+  }
+
+  /// Unlesbare Schuljahre, Jahrespläne (Jahrgang außerhalb 1...13) und Leistungsnachweise
+  /// (unbekannte Art) fehlen und bleiben unangetastet.
+  func coursePlanSnapshot() -> CoursePlanMergeSnapshot {
+    CoursePlanMergeSnapshot(
+      years: schoolYears.compactMap { record in
+        record.makeSchoolYear().map {
+          CoursePlanMergeSnapshot.Year(id: record.id, startYear: $0.startYear, createdAt: record.createdAt)
+        }
+      },
+      plans: coursePlans.compactMap { record in
+        record.key.map { CoursePlanMergeSnapshot.Plan(id: record.id, key: $0, createdAt: record.createdAt) }
+      },
+      weeks: planWeeks.map { record in
+        let week = record.makePlanWeek()
+        return CoursePlanMergeSnapshot.Week(
+          id: record.id, planID: record.coursePlan?.id, monday: week.monday,
+          createdAt: record.createdAt, updatedAt: record.updatedAt)
+      },
+      assessments: assessments.compactMap { record in
+        record.makeAssessment().map {
+          CoursePlanMergeSnapshot.Item(
+            id: record.id, planID: record.coursePlan?.id, monday: $0.monday, day: $0.day,
+            kind: $0.kind, title: $0.title, createdAt: record.createdAt)
+        }
+      })
   }
 
   func snapshot() -> SyncSnapshot {

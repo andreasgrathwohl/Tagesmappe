@@ -35,6 +35,10 @@ enum RecordCodecError: Error, Equatable {
     try result += context.fetch(FetchDescriptor<PenNoteRecord>()).map { export($0) }
     try result += context.fetch(FetchDescriptor<LessonInfoRecord>()).map { export($0) }
     try result += context.fetch(FetchDescriptor<BoardPageRecord>()).map { export($0) }
+    try result += context.fetch(FetchDescriptor<SchoolYearRecord>()).map { export($0) }
+    try result += context.fetch(FetchDescriptor<CoursePlanRecord>()).map { export($0) }
+    try result += context.fetch(FetchDescriptor<PlanWeekRecord>()).map { export($0) }
+    try result += context.fetch(FetchDescriptor<AssessmentRecord>()).map { export($0) }
     return result
   }
 
@@ -54,6 +58,10 @@ enum RecordCodecError: Error, Equatable {
       case let record as PenNoteRecord: result.append(export(record))
       case let record as LessonInfoRecord: result.append(export(record))
       case let record as BoardPageRecord: result.append(export(record))
+      case let record as SchoolYearRecord: result.append(export(record))
+      case let record as CoursePlanRecord: result.append(export(record))
+      case let record as PlanWeekRecord: result.append(export(record))
+      case let record as AssessmentRecord: result.append(export(record))
       default: continue
       }
     }
@@ -71,6 +79,10 @@ enum RecordCodecError: Error, Equatable {
     ids.formUnion(try fetchIDs(PenNoteRecord.self, \.id, in: context))
     ids.formUnion(try fetchIDs(LessonInfoRecord.self, \.id, in: context))
     ids.formUnion(try fetchIDs(BoardPageRecord.self, \.id, in: context))
+    ids.formUnion(try fetchIDs(SchoolYearRecord.self, \.id, in: context))
+    ids.formUnion(try fetchIDs(CoursePlanRecord.self, \.id, in: context))
+    ids.formUnion(try fetchIDs(PlanWeekRecord.self, \.id, in: context))
+    ids.formUnion(try fetchIDs(AssessmentRecord.self, \.id, in: context))
     return ids
   }
 
@@ -171,6 +183,38 @@ enum RecordCodecError: Error, Equatable {
       backgroundRaw: record.backgroundRaw, backgroundImage: image, drawing: drawing,
       updatedAt: record.updatedAt)
     return ExportedRecord(id: record.id, payload: .boardPage(payload), attachmentData: files)
+  }
+
+  private static func export(_ record: SchoolYearRecord) -> ExportedRecord {
+    // Unlesbare Zuordnung von Hand wird wie „keine“ behandelt.
+    let overrides =
+      record.gradeOverridesData.flatMap { try? JSONDecoder().decode([String: Int].self, from: $0) } ?? [:]
+    let payload = SchoolYearPayload(
+      createdAt: record.createdAt, firstDayText: record.firstDayText,
+      secondTermStartText: record.secondTermStartText, lastDayText: record.lastDayText,
+      gradeOverrides: overrides)
+    return ExportedRecord(id: record.id, payload: .schoolYear(payload), attachmentData: [:])
+  }
+
+  private static func export(_ record: CoursePlanRecord) -> ExportedRecord {
+    let payload = CoursePlanPayload(
+      createdAt: record.createdAt, subjectText: record.subjectText, gradeLevel: record.gradeLevel,
+      startYear: record.startYear, notes: record.notes)
+    return ExportedRecord(id: record.id, payload: .coursePlan(payload), attachmentData: [:])
+  }
+
+  private static func export(_ record: PlanWeekRecord) -> ExportedRecord {
+    let payload = PlanWeekPayload(
+      createdAt: record.createdAt, coursePlanID: record.coursePlan?.id, mondayText: record.mondayText,
+      position: record.position, topic: record.topic, notes: record.notes, updatedAt: record.updatedAt)
+    return ExportedRecord(id: record.id, payload: .planWeek(payload), attachmentData: [:])
+  }
+
+  private static func export(_ record: AssessmentRecord) -> ExportedRecord {
+    let payload = AssessmentPayload(
+      createdAt: record.createdAt, coursePlanID: record.coursePlan?.id, mondayText: record.mondayText,
+      dayText: record.dayText, kindRaw: record.kindRaw, title: record.title, updatedAt: record.updatedAt)
+    return ExportedRecord(id: record.id, payload: .assessment(payload), attachmentData: [:])
   }
 
   // MARK: - Inhalt → Datensatz
@@ -285,6 +329,54 @@ enum RecordCodecError: Error, Equatable {
       record.backgroundImageData = image
       record.drawingData = drawing
       record.updatedAt = value.updatedAt
+
+    case .schoolYear(let value):
+      let record = try existing(SchoolYearRecord.self, #Predicate<SchoolYearRecord> { $0.id == id }, in: context)
+        ?? insert(SchoolYearRecord(), id: id, in: context)
+      record.createdAt = value.createdAt
+      record.firstDayText = value.firstDayText
+      record.secondTermStartText = value.secondTermStartText
+      record.lastDayText = value.lastDayText
+      if value.gradeOverrides.isEmpty {
+        record.gradeOverridesData = nil
+      } else {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        record.gradeOverridesData = try? encoder.encode(value.gradeOverrides)
+      }
+
+    case .coursePlan(let value):
+      let record = try existing(CoursePlanRecord.self, #Predicate<CoursePlanRecord> { $0.id == id }, in: context)
+        ?? insert(CoursePlanRecord(), id: id, in: context)
+      record.createdAt = value.createdAt
+      record.subjectText = value.subjectText
+      record.gradeLevel = value.gradeLevel
+      record.startYear = value.startYear
+      record.notes = value.notes
+
+    case .planWeek(let value):
+      let parent = try coursePlan(value.coursePlanID, in: context)
+      let record = try existing(PlanWeekRecord.self, #Predicate<PlanWeekRecord> { $0.id == id }, in: context)
+        ?? insert(PlanWeekRecord(), id: id, in: context)
+      record.createdAt = value.createdAt
+      record.coursePlan = parent
+      record.mondayText = value.mondayText
+      record.position = value.position
+      record.topic = value.topic
+      record.notes = value.notes
+      record.updatedAt = value.updatedAt
+
+    case .assessment(let value):
+      let parent = try coursePlan(value.coursePlanID, in: context)
+      let record = try existing(AssessmentRecord.self, #Predicate<AssessmentRecord> { $0.id == id }, in: context)
+        ?? insert(AssessmentRecord(), id: id, in: context)
+      record.createdAt = value.createdAt
+      record.coursePlan = parent
+      record.mondayText = value.mondayText
+      record.dayText = value.dayText
+      record.kindRaw = value.kindRaw
+      record.title = value.title
+      record.updatedAt = value.updatedAt
     }
   }
 
@@ -308,6 +400,14 @@ enum RecordCodecError: Error, Equatable {
       if let record = try existing(LessonInfoRecord.self, #Predicate<LessonInfoRecord> { $0.id == id }, in: context) { context.delete(record) }
     case .boardPage:
       if let record = try existing(BoardPageRecord.self, #Predicate<BoardPageRecord> { $0.id == id }, in: context) { context.delete(record) }
+    case .schoolYear:
+      if let record = try existing(SchoolYearRecord.self, #Predicate<SchoolYearRecord> { $0.id == id }, in: context) { context.delete(record) }
+    case .coursePlan:
+      if let record = try existing(CoursePlanRecord.self, #Predicate<CoursePlanRecord> { $0.id == id }, in: context) { context.delete(record) }
+    case .planWeek:
+      if let record = try existing(PlanWeekRecord.self, #Predicate<PlanWeekRecord> { $0.id == id }, in: context) { context.delete(record) }
+    case .assessment:
+      if let record = try existing(AssessmentRecord.self, #Predicate<AssessmentRecord> { $0.id == id }, in: context) { context.delete(record) }
     }
   }
 
@@ -344,6 +444,13 @@ enum RecordCodecError: Error, Equatable {
     return parent
   }
 
+  private static func coursePlan(_ id: UUID?, in context: ModelContext) throws -> CoursePlanRecord? {
+    guard let id else { return nil }
+    guard let parent = try existing(CoursePlanRecord.self, #Predicate<CoursePlanRecord> { $0.id == id }, in: context)
+    else { throw RecordCodecError.missingParent(id) }
+    return parent
+  }
+
   private static func bytes(of ref: AttachmentRef?, field: String, in files: [String: Data]) throws -> Data? {
     guard ref != nil else { return nil }
     guard let data = files[field] else { throw RecordCodecError.attachmentMissing(field) }
@@ -351,7 +458,7 @@ enum RecordCodecError: Error, Equatable {
   }
 }
 
-/// Gemeinsamer Zugriff auf die Kennung der acht Datensatz-Klassen (für `insert`).
+/// Gemeinsamer Zugriff auf die Kennung der zwölf Datensatz-Klassen (für `insert`).
 /// Swift-Hinweis: Ein Protokoll mit `var id` ist nötig, weil `@Model`-Klassen sonst keinen
 /// gemeinsamen Typ für die schreibbare Eigenschaft haben.
 private protocol HasRecordID: AnyObject {
@@ -366,3 +473,7 @@ extension MaterialLinkRecord: HasRecordID {}
 extension PenNoteRecord: HasRecordID {}
 extension LessonInfoRecord: HasRecordID {}
 extension BoardPageRecord: HasRecordID {}
+extension SchoolYearRecord: HasRecordID {}
+extension CoursePlanRecord: HasRecordID {}
+extension PlanWeekRecord: HasRecordID {}
+extension AssessmentRecord: HasRecordID {}

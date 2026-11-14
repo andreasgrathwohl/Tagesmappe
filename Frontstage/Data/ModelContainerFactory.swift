@@ -12,7 +12,8 @@ enum ModelContainerFactory {
     [
       TimetableRecord.self, TimetableEntryRecord.self, NonTeachingPeriodRecord.self,
       ScheduleChangeRecord.self, MaterialLinkRecord.self, PenNoteRecord.self,
-      LessonInfoRecord.self, BoardPageRecord.self,
+      LessonInfoRecord.self, BoardPageRecord.self, SchoolYearRecord.self, CoursePlanRecord.self,
+      PlanWeekRecord.self, AssessmentRecord.self,
     ]
   }
 
