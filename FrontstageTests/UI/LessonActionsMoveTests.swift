@@ -98,6 +98,17 @@ import Testing
     #expect(penNotes.moves == [PenNoteMove(reference: x.reference, from: tue8b, to: wed8b)])
   }
 
+  @Test("Eine nach dem Anlegen des View-Modells gesetzte Notiz-Naht wird live verwendet")
+  func penNotesSetAfterViewModelCreationIsUsed() throws {
+    let environment = Fixtures.environment(store: data, storage: storage)
+    let model = DayViewModel(environment: environment)
+    let late = FakePenNoteRelocation()
+    environment.penNotes = late  // wie Teilplan 06, erst nach dem Anlegen
+    let x = try assign(["X.pdf"], to: tue8b)[0]
+    _ = model.actions.moveToNextLesson(linkID: x.id)
+    #expect(late.moves == [PenNoteMove(reference: x.reference, from: tue8b, to: wed8b)])
+  }
+
   @Test("Weiterreichen meldet je Zuordnung einen Umzug, Reihenfolge bleibt")
   func passOnReportsEachLink() throws {
     let items = try assign(["A.pdf", "B.pdf"], to: tue8b)

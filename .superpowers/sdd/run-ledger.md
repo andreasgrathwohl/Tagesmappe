@@ -41,3 +41,9 @@ Rulings:
   Ruling: Vorschau verwerfen, wenn sourceFetchedAt neuer als ihr Stand ist (anderes Gerät hat neuer abgefragt).
   Ruling: Gerät ohne Zugangsdaten (meist Mac) fragt nicht ab und zeigt „Anmeldung auf diesem Gerät nötig, Stand kommt vom anderen Gerät“ statt Fehler.
 - Teilplan 05 Nachtrag (d3f6a01): vier Rulings umgesetzt, Kern 307 Tests grün. Teilplan 04 gestartet (Start d3f6a01) mit Rulings aus Bündel A und 05 als Vorgabe.
+- Teilplan 04: complete (d3f6a01..5baa66d; preflight 25 Korrekturen; 14 Aufgaben (mehrere mit Fix-Runde), 15 CI → Controller, 16 TestFlight, 17 Geräte, 18 Design-Runden übersprungen; Gesamtprüfung Ready with fixes (u. a. ungespeicherte Stundenangaben bei Wochenwechsel) → Fix-Welle → Ready to merge).
+  Ruling: Ziehen aus der Dateien-App am iPad (URL als Transferable kann eine Kopie liefern) bleibt; kommt auf die Geräte-Checkliste; Dateiauswahl bleibt der sichere Weg — Kosten falls falsch: Ziehen meldet „außerhalb der Freigaben“.
+  Ruling: Hinweis „Vorschau wartet“ in der Tagesansicht öffnet die Import-Vorschau direkt als Sheet.
+  Ruling: LessonActions liest penNotes live über AppEnvironment (06 darf penNotes später setzen).
+  Ruling: PDF/Bild ohne Anzeige (viewerAvailable == false) öffnet bis Teilplan 06 doppelt — akzeptiert.
+  Ruling für Teilplan 07: ClassroomServices.bind(store:) in .onChange(of: dataLocation.generation, initial: true) statt im body (kein Zustandswechsel während des View-Updates).

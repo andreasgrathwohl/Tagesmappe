@@ -18,15 +18,34 @@ enum AssignError: Error, Equatable {
 
   let store: any PreparationStore
   let storage: any MaterialStorage
-  let penNotes: any PenNoteFileRelocating
+  /// Liefert bei jedem Zugriff die aktuelle Notiz-Naht (live aus `AppEnvironment.penNotes`).
+  private let penNotesProvider: @MainActor () -> any PenNoteFileRelocating
+
+  /// Die Naht wird bei jeder Aktion neu gelesen: Teilplan 06 setzt `AppEnvironment.penNotes` erst
+  /// nach dem Anlegen der View-Modelle.
+  var penNotes: any PenNoteFileRelocating { penNotesProvider() }
 
   init(
     store: any PreparationStore, storage: any MaterialStorage,
     penNotes: any PenNoteFileRelocating = NoPenNoteFileRelocation()
   ) {
+    self.init(store: store, storage: storage, livePenNotes: { penNotes })
+  }
+
+  init(
+    store: any PreparationStore, storage: any MaterialStorage,
+    livePenNotes: @escaping @MainActor () -> any PenNoteFileRelocating
+  ) {
     self.store = store
     self.storage = storage
-    self.penNotes = penNotes
+    self.penNotesProvider = livePenNotes
+  }
+
+  /// Liest `penNotes` live aus der Umgebung.
+  init(environment: AppEnvironment) {
+    self.init(
+      store: environment.store, storage: environment.storage,
+      livePenNotes: { environment.penNotes })
   }
 
   /// Je URL ein Verweis, hinten angehängt; bricht bei der ersten ungültigen URL ab, ohne vorher

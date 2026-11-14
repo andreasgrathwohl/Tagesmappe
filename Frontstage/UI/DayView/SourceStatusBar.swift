@@ -87,6 +87,7 @@ struct SourceStatusBar: View {
   /// Ob Zugangsdaten im Schlüsselbund liegen; `nil`, solange noch nicht gelesen. Gelesen wird beim
   /// Erscheinen und nach Anmelden/Abmelden, nicht bei jedem Neuzeichnen (jeder Zugriff fragt den Schlüsselbund).
   @State private var hasCredentials: Bool?
+  @State private var isShowingPreview = false
 
   init() {}
 
@@ -111,6 +112,16 @@ struct SourceStatusBar: View {
         noticeLabel(model.notice)
       }
       .font(.footnote)
+      // Dieselbe Vorschau wie unter Einrichten › Stundenplan-Quelle (gleicher Koordinator, kein eigener Zustand).
+      .sheet(isPresented: $isShowingPreview) {
+        if let preview = coordinator.pendingPreview {
+          ImportPreviewView(preview: preview)
+        }
+      }
+      // Fällt die Vorschau weg, während das Sheet offen ist, schließen (sonst bliebe es leer).
+      .onChange(of: coordinator.pendingPreview == nil) { _, isGone in
+        if isGone { isShowingPreview = false }
+      }
       // `.task(id:)` läuft beim Erscheinen und erneut, sobald sich der Wert ändert.
       .task(id: coordinator.credentialsRevision) {
         hasCredentials = (try? credentials.load()) != nil
@@ -152,7 +163,12 @@ struct SourceStatusBar: View {
     case .suggestManualMaintenance:
       Label("sourceStatus.notice.manualMaintenance", systemImage: "hand.point.up.left")
     case .previewPending:
-      Label("sourceStatus.notice.previewPending", systemImage: "tray.and.arrow.down")
+      // Tippen öffnet die Vorschau direkt als Sheet.
+      Button {
+        isShowingPreview = true
+      } label: {
+        Label("sourceStatus.notice.previewPending", systemImage: "tray.and.arrow.down")
+      }
     case .notSignedIn:
       Label("sourceStatus.notice.notSignedIn", systemImage: "person.crop.circle.badge.xmark")
     case .signInOnThisDevice:

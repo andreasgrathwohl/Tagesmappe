@@ -26,8 +26,7 @@ struct PreparationDay: Identifiable, Hashable {
   init(environment: AppEnvironment) {
     self.environment = environment
     self.weekStart = environment.today().mondayOfWeek
-    self.actions = LessonActions(
-      store: environment.store, storage: environment.storage, penNotes: environment.penNotes)
+    self.actions = LessonActions(environment: environment)
     reload()
   }
 

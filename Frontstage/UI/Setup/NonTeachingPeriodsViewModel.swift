@@ -35,8 +35,7 @@ enum NonTeachingPeriodError: Error, Equatable {
 
   init(environment: AppEnvironment) {
     self.environment = environment
-    self.actions = LessonActions(
-      store: environment.store, storage: environment.storage, penNotes: environment.penNotes)
+    self.actions = LessonActions(environment: environment)
     reload()
   }
 
