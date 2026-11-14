@@ -288,6 +288,10 @@ Online“, später „WebUntis“ (FR-2.1).
 - Ein Import ersetzt den Stundenplan nicht blind: Er wird mit dem vorhandenen verglichen. Neue und
   geänderte Einträge werden der Lehrkraft vor der Übernahme gezeigt; von Hand geänderte Einträge gehen
   nie stillschweigend verloren (AK-3).
+- Die Vorschau liegt nur auf dem Gerät, das abgefragt hat. Verwirft die Lehrkraft sie (oder behält bei einem
+  Konflikt ihre Fassung), merkt sich das Gerät den Stundenplan-Teil des Stands als Prüfsumme; dieselbe
+  Vorschau erscheint nicht wieder, erst ein neuer Unterschied. Ist der gespiegelte Stand neuer als die
+  Vorschau (das andere Gerät hat später abgefragt), wird sie verworfen statt übernommen.
 - Abweichungen aus der Quelle (Vertretungen, Ausfall) werden als Abweichungen mit Herkunft „Quelle“
   gespeichert und beim nächsten Import ersetzt; von Hand angelegte Abweichungen bleiben unberührt.
 - Zeitpunkt gemäß ADR-0004: beim ersten Öffnen der App am Tag, soweit möglich als
@@ -303,7 +307,11 @@ Online“, später „WebUntis“ (FR-2.1).
   Alter des Stands und einen Hinweis; dreimal in Folge gescheitert → Hinweis, den Stundenplan von Hand
   zu pflegen.
 - Zugangsdaten liegen nur im Schlüsselbund des Geräts (NFR-4) und werden nicht gespiegelt; auf einem
-  zweiten Gerät meldet sich die Lehrkraft dort erneut an.
+  zweiten Gerät meldet sich die Lehrkraft dort erneut an. Ein Gerät ohne Zugangsdaten fragt nicht ab und
+  zählt keine Fehler; es zeigt den gespiegelten Stand mit dem ruhigen Hinweis, dass die Anmeldung auf
+  diesem Gerät nötig ist. Nach falschen Zugangsdaten oder einem Konto mit mehreren Schulen werden die
+  Zugangsdaten gelöscht (damit enden auch die automatischen Abfragen); nach Netz-, Server- oder
+  Formfehlern bleiben sie.
 
 ## Area: anzeige
 
@@ -479,3 +487,4 @@ gehören sie zur Unterrichtsstunde. Das Original wird nie verändert.
 - 2026-11-14: anzeige changed — Widersprüche zu ADR-0011/ADR-0012 bereinigt (beim Nachziehen der Teilpläne 04–07 gefunden): Darstellung schreibt Stiftnotizen neben das Dokument statt „schreibt nie in die Ablage (ADR-0006)“; Tafelseiten über den Datenort statt „Muster von ADR-0006“; Standbilder im Datenort statt „nur im iCloud-Bereich“; daten changed — Betrieb nennt den Wiederherstellungsweg bei OneDrive
 - 2026-11-13: Architecture Doc status ready — freigegeben von Andreas; offen bleiben Q-18 (am Gerät) und im PRD Q-22, beide blockieren den Bau nicht, weil für beide ein Rückfall beschrieben ist (Übergabe der Datei bzw. RISK-5)
 - 2026-11-13: anzeige changed — Klassenbildschirm im Verlauf der Stunde (FR-11.7), Kamera, Vorlage, Abdecken (FR-12.5 bis FR-12.7); daten changed — Stundenangaben mit Bereitlegen und Hausaufgabe, Tafelseite mit Bild als Hintergrund
+- 2026-11-14: stundenplan-quellen changed — Vorschau je Gerät gemerkt (Prüfsumme des Stundenplan-Teils) und bei neuerem gespiegeltem Stand verworfen; Gerät ohne Zugangsdaten fragt nicht ab und zeigt einen ruhigen Hinweis; Zugangsdaten nach falschen Zugangsdaten und mehreren Schulen gelöscht, nach Netz-/Server-/Formfehlern behalten (Abschlussreview Teilplan 05)

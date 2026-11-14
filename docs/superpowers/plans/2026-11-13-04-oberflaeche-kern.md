@@ -3,6 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 > Rahmen: `docs/superpowers/plans/2026-11-13-00-uebersicht.md` — gilt vollständig (insbesondere Abstimmung Punkte 14 und 15). **Aufgabe 18 (Design-Runden) läuft nie unbeaufsichtigt; Aufgabe 17 braucht einen Menschen mit Geräten.**
 > **Überarbeitet 2026-11-14:** Dienste mit `DataStore` entstehen in `ScopedAppContent` innerhalb von `DataScopedRoot` (Teilplan 08); `RelinkResult.saveFailed`, Ladezustand während `StorageService.open` wartet, Hinweis beim Abmelden von Microsoft bei Datenort OneDrive; Naht `PenNoteFileRelocating` für Stiftnotizen neben dem Dokument (ADR-0011, gefüllt von Teilplan 06).
+> **Rückfluss nach der Umsetzung (2026-11-14):** `ScopedAppContent` ist ein zustandsloser Rahmen je Bereich; die Dienste je `DataStore` entstehen in `ScopedServicesHolder.services(for:)`, die Szenen-Haken in `RootView.activate(_:)` – Einzelheiten unter „Datenort“ (Global Constraints) und im Interfaces-Block.
 
 **Goal:** Die drei Bildschirme des Kerns bauen – Tagesansicht, Vorbereiten, Einrichten – samt App-Gerüst und Navigation auf iPad und Mac, sodass eine Lehrkraft einen Stundenplan anlegt, Material zuordnet, Ausfall und Vertretung pflegt und im Unterricht den Tag sieht; danach der erste TestFlight-Bau und die Design-Runden 1–10.
 
@@ -20,15 +21,16 @@ Alle Zeilen aus „Global Constraints“ und „Gestaltung in den Aufgaben“ de
   - `dropDestination(for:isEnabled:action:)` mit `action: ([T], DropSession) -> Void` – **iOS/macOS 26.0**; die ältere Form `dropDestination(for:action:isTargeted:)` ist ab 27.3 als veraltet markiert → nur die neue Form nutzen. `DropSession.location: CGPoint` ab 26.0.
   - `fileImporter(isPresented:allowedContentTypes:allowsMultipleSelection:onCompletion:)` – ab iOS 14 / macOS 11, liefert `Result<[URL], any Error>`.
   - `TabViewStyle.sidebarAdaptable` – ab iOS 18 / macOS 15. `NavigationSplitView` ab iOS 16 / macOS 13. `ViewThatFits` ab iOS 16 / macOS 13.
-- **View-Modelle importieren kein SwiftUI** (nur `Foundation`, `Observation`, `FrontstageCore`), damit sie im Testziel ohne Ansicht prüfbar sind. Ausnahme: keine.
+- **View-Modelle importieren kein SwiftUI** (nur `Foundation`, `Observation`, `FrontstageCore`; für `Logger` zusätzlich `OSLog`, wie in `DataStore+Merge.swift`), damit sie im Testziel ohne Ansicht prüfbar sind. Ausnahme: keine.
 - **Heute ist ein Parameter:** Jedes View-Modell bekommt `today: @escaping @MainActor () -> CalendarDay`; nie `Date()` im View-Modell. Tests fixieren **Dienstag, 2026-11-17** (Woche 47, A-Woche, Bezugswoche A = Montag 2026-11-16).
-- **Neue Ordner:** `Frontstage/UI/Shared/` (gemeinsame Zeilen-Modelle und Aktionen der drei Bildschirme), `FrontstageTests/Support/`, `FrontstageTests/UI/`. Ergänzt die Ordnerliste der Übersicht, widerspricht ihr nicht.
+- **Neue Ordner:** `Frontstage/UI/Shared/` (gemeinsame Zeilen-Modelle und Aktionen der drei Bildschirme). Test-Hilfen kommen in den vorhandenen Ordner `FrontstageTests/TestSupport/` (dort liegt schon der Typalias `DataStore = Frontstage.DataStore` gegen die Namensgleichheit mit SwiftData), Tests in den vorhandenen Ordner `FrontstageTests/UI/`. Ergänzt die Ordnerliste der Übersicht, widerspricht ihr nicht.
 - **Oberflächentexte:** Jede Aufgabe trägt ihre Schlüssel in `Frontstage/Resources/Localizable.xcstrings` ein, Präfix je Bildschirm (`app.`, `dayView.`, `preparation.`, `setup.`, `lesson.`). Werte deutsch, unpersönlich, als Platzhalter.
 - **Material wird nie kopiert:** Kein View-Modell ruft mit einer Datei-URL etwas anderes auf als `MaterialStorage.reference(forPickedFile:)` bzw. `relink(_:toPickedFile:)`; Übernehmen und Schieben verwenden vorhandene `MaterialReference`-Werte weiter (FR-3.4).
 - **Für <Klasse> übernehmen (FR-3.2, Nutzerentscheidung 2026-11-13):** Die Lehrkraft wählt Klasse (alle Klassen im Stundenplan außer der eigenen) **und** Zielstunde aus einer Liste der kommenden Unterrichtsstunden dieser Klasse (höchstens 28 Tage, Ausfälle nicht wählbar). Keine automatische Zielwahl.
 - **Kostenlos (FR-13, Nutzerentscheidung 2026-11-13):** Eintragen und Anzeigen von Thema, Bereitlegen und Hausaufgabe in Tagesansicht und Vorbereiten gehören zum kostenlosen Kern; kein Bildschirm dieses Teilplans fragt `Unlock` ab.
 - **Offene Gestaltung:** Jede Aufgabe mit Oberfläche nimmt den SwiftUI-Systemstandard und nennt im Abschlussbericht je berührter offener Kategorie eine Zeile (Sammelstelle: Aufgabe 18).
 - **Datenort (Teilplan 08, Übersicht Abstimmung 15):** `StorageService`, `AppEnvironment` und alles andere, was einen `DataStore` hält, entstehen in `ScopedAppContent` – der Ansicht in der Closure von `DataScopedRoot` –, nie einmalig im `App`-Typ. Im `App`-Typ bleiben nur `DataLocationController`, `MicrosoftAccount`, `NetworkMonitor` und die Halter, die einen Wechsel überstehen müssen (Teilplan 05: `SourceCoordinatorHolder`). Hat Teilplan 08 die Closure-Ansicht unter anderem Namen angelegt, gilt dieser Name; dieser Plan nennt sie `ScopedAppContent`.
+  **Umgesetzte Form (Stand 2026-11-14, maßgeblich für 06 und 07):** `ScopedAppContent<Content>` ist ein generischer Rahmen um den datenabhängigen Inhalt eines Bereichs – er entsteht einmal je Tab und je `NavigationLink`-Ziel in Einrichten – und hält selbst keinen Zustand. Die Dienste je `DataStore` (`StorageService`, `AppEnvironment`, Koordinator aus 05) legt `ScopedServicesHolder.services(for:)` (`Frontstage/App/ScopedAppContent.swift`, gehalten von `RootView` in `@State`) genau einmal je Store an; ein neuer Store (Wechsel des Datenorts) ergibt einen neuen Satz. Szenen- und Netz-Haken (`.active`, `network.isOnline`, `dataLocation.generation`) sitzen in `RootView` (`activate(_:)`, `prepareForTeaching(_:)`), außerhalb des generation-gebundenen Teilbaums; Einrichten und das Koppeln liegen ebenfalls außerhalb (Entscheidung Bündel A). **Ort für weitere Dienste je Store** (06: `viewerAvailable`, `penNotes`; 07: `ClassroomServices.shared.bind(store:)`): `ScopedServicesHolder.services(for:)`, im Zweig „neuer Store“. **Ort für Haken beim Aktivwerden** (06: `penNotes.retryPending()`): `RootView.activate(_:)` – läuft bei `.active` und nach jedem Wechsel des Datenorts. Nicht in `ScopedAppContent`: ein `.task` liefe dort einmal je Tab und Ziel, und eine Szenenphase gibt es dort nicht.
 - **Stiftnotizen (ADR-0011):** Schieben, Weiterreichen und Material ohne Stunde zuordnen melden die bewegten Zuordnungen an `AppEnvironment.penNotes` (`PenNoteFileRelocating.linksMoved`); Neu verknüpfen fragt danach, ob Notizen mitgenommen werden. Die Vorgabe `NoPenNoteFileRelocation` tut nichts; Teilplan 06 setzt die echte Umsetzung. Übernehmen meldet nichts (FR-6.1).
 
 ## Review Focus
@@ -57,7 +59,7 @@ Kern: `LessonInfo`, `MaterialReference` (`folderGrantName`, `relativePath`, `dis
 
 `StorageService` mit `grants`, `availability`, `suggestedGrantName(for:)`, `addGrant(folderURL:name:)`, `removeGrant(id:)`, `reference(forPickedFile:)`, `relink(_:toPickedFile:)`, `refreshAvailability(for:)`, `open(_:anchor:)`, `openWithoutAutoSave(_:anchor:)`, `offerOpenWithoutAutoSave(now:)`, `didAssign(_:)`, `prepareForTeaching(today:timetable:nonTeachingPeriods:changes:)`; `FolderGrant`, `GrantNameSuggestion`, `MaterialAvailability`, `OpenOutcome`, `RelinkResult`, `HandOffAnchor`, `HandOffAnchorReader`, `MicrosoftAccount`, `NetworkMonitor`.
 
-Stand der Umsetzung von 03 (auf einem anderen Branch, als Tatsache übernommen): `RelinkResult` hat zusätzlich den Fall **`saveFailed`** (Verweis gefunden, Speichern im `DataStore` gescheitert); `open(_:anchor:)` wartet bis zu **120 s** auf ein Herunterladen, ein zweiter Tipp auf dasselbe Material liefert währenddessen sofort `.waitingForDownload`, und `availability` zeigt in der Zeit `.downloading(progress:)`; `MicrosoftAccount(signedInUsernameForTesting:)` gibt es für Tests; Ordnerfreigaben sind lesend und schreibend.
+Stand der Umsetzung von 03 (im Repo umgesetzt, Bündel A): `RelinkResult` hat zusätzlich den Fall **`saveFailed`** (Verweis gefunden, Speichern im `DataStore` gescheitert); `open(_:anchor:)` wartet bis zu **120 s** auf ein Herunterladen, ein zweiter Tipp auf dasselbe Material liefert währenddessen sofort `.waitingForDownload`, und `availability` zeigt in der Zeit `.downloading(progress:)`; `MicrosoftAccount(signedInUsernameForTesting:)` gibt es für Tests (ohne MSAL; gilt als konfiguriert); `HandOffAnchor()` ohne Ort gibt es für Tests; `HandOffAnchorReader(onResolve:)` liefert `(HandOffAnchor, AuthPresentationAnchor)`; `GrantNameSuggestion` (`name`, `matchesMirroredName`) liegt im Kern; Ordnerfreigaben sind lesend und schreibend.
 
 ### Consumes – Teilplan 05 (Stundenplan-Quelle)
 
@@ -65,7 +67,7 @@ Stand der Umsetzung von 03 (auf einem anderen Branch, als Tatsache übernommen):
 
 ### Consumes – Teilplan 08 (Datenort)
 
-`DataScopedRoot(controller:content:)` (Closure bekommt `DataStore` und `ModelContainer`), `DataLocationController` (`location`, `store`, `sceneDidBecomeActive()` …), `DataLocation` (`iCloud`, `oneDrive`, Kern). 08 ersetzt den Container-Aufbau aus 02 in `FrontstageApp`; dieser Plan baut darauf auf.
+`DataScopedRoot(controller:content:)` (Closure bekommt `DataStore` und `ModelContainer`), `DataLocationController` (`location`, `store`, `container`, `generation`, `sceneDidBecomeActive()` …; `@Observable`), `DataLocation` (`iCloud`, `oneDrive`, Kern), Ansicht `DataLocationSettingsView(controller:isOneDriveAvailable:accountUsername:)` (ein `Section` zum Einbetten in ein `Form`, vor „Ablage“; 08 hat `SetupView` nicht angelegt – 04 hängt sie in Aufgabe 11 ein). 08 ersetzt den Container-Aufbau aus 02 in `FrontstageApp`; dieser Plan baut darauf auf.
 
 ### Produces – Verbraucher-Protokolle (dieser Teilplan, Übersicht Abstimmung Punkt 4)
 
@@ -171,10 +173,18 @@ final class NoPenNoteFileRelocation: PenNoteFileRelocating { … }
     let dataLocation: @MainActor () -> DataLocation
 }
 enum MaterialOpenAction: Equatable { case viewer(MaterialLinkItem); case open(MaterialReference); case unavailable(MaterialReference) }
-/// Die Ansicht in der Closure von DataScopedRoot (08): hält StorageService, AppEnvironment und den Koordinator aus 05
-/// in @State; entsteht nach jedem Wechsel des Datenorts neu.
-struct ScopedAppContent: View { init(store: DataStore, container: ModelContainer, dataLocation: DataLocationController, account: MicrosoftAccount, network: NetworkMonitor, sourceCoordinators: SourceCoordinatorHolder) }
-struct RootView: View; struct DayView: View; struct PreparationView: View; struct LessonDetailView: View; struct SetupView: View
+/// Dienste je DataStore: StorageService, AppEnvironment, Koordinator aus 05. Genau ein Satz je Store (nach Identität);
+/// ein neuer Store (Wechsel des Datenorts) ergibt einen neuen Satz. Hier ergänzen 06 (viewerAvailable, penNotes)
+/// und 07 (ClassroomServices.shared.bind(store:)) – im Zweig „neuer Store“.
+@MainActor final class ScopedServices { let store: DataStore; let storage: StorageService; let environment: AppEnvironment; let coordinator: TimetableSourceCoordinator }
+@MainActor final class ScopedServicesHolder { init(account: MicrosoftAccount, network: NetworkMonitor, dataLocation: DataLocationController, sourceCoordinators: SourceCoordinatorHolder); func services(for store: DataStore) -> ScopedServices }
+/// Zustandsloser Rahmen um den datenabhängigen Inhalt eines Bereichs (einmal je Tab und je NavigationLink-Ziel):
+/// DataScopedRoot (08) + .modelContainer/.environment(store, storage, environment, coordinator).
+struct ScopedAppContent<Content: View>: View { init(controller: DataLocationController, services: ScopedServicesHolder, content: @escaping () -> Content) }
+/// Hält ScopedServicesHolder in @State; Szenen-Haken in activate(_:) (bei .active und nach jedem Datenort-Wechsel) –
+/// hier ergänzt 06 penNotes.retryPending(). Einrichten und Koppeln liegen außerhalb von DataScopedRoot.
+struct RootView: View { init(dataLocation: DataLocationController, account: MicrosoftAccount, network: NetworkMonitor, sourceCoordinators: SourceCoordinatorHolder) }
+struct DayView: View; struct PreparationView: View; struct LessonDetailView: View; struct SetupView: View
 ```
 
 ### Nicht mehr hier (abgeglichen)
@@ -190,10 +200,10 @@ Die erste Fassung erwartete `FrontstageStore`, `SwiftDataStore`, `FrontstageMode
 |---|---|---|
 | `Frontstage/UI/Preparation/PreparationStore.swift` | `MaterialLinkItem`, Protokoll `PreparationStore`, `extension DataStore: PreparationStore` | 1 |
 | `Frontstage/UI/Shared/MaterialStorage.swift` | Protokoll `MaterialStorage`, `extension StorageService: MaterialStorage` | 1 |
-| `FrontstageTests/Support/FakeStorage.swift`, `Fixtures.swift` | Attrappe `MaterialStorage`, Beispieldaten Woche 47 (Daten über `makeStore()` aus 02) | 2 |
+| `FrontstageTests/TestSupport/FakeStorage.swift`, `UIFixtures.swift` | Attrappe `MaterialStorage`, Beispieldaten Woche 47 (Daten über `makeStore()` aus 02) | 2 |
 | `Frontstage/UI/Shared/LessonActions.swift` | Zuordnen, Reihenfolge, Übernehmen, Schieben, Ausfall, Vertretung, Neuverknüpfen | 3–5 |
 | `Frontstage/UI/Shared/PenNoteFileRelocating.swift` | Naht zu 06: `PenNoteMove`, `PenNoteFileRelocating`, `NoPenNoteFileRelocation` | 3 |
-| `Frontstage/App/ScopedAppContent.swift`; `FrontstageApp.swift` (ändern) | Dienste je Datenort innerhalb `DataScopedRoot` | 7 |
+| `Frontstage/App/ScopedAppContent.swift`; `FrontstageApp.swift` (ändern) | `ScopedServicesHolder` (Dienste je Datenort), Rahmen `ScopedAppContent` innerhalb `DataScopedRoot` | 7 |
 | `Frontstage/UI/Shared/LessonRow.swift`, `DayStatement.swift`, `MaterialOpenAction.swift` | gemeinsame Zeilen-Modelle | 6 |
 | `Frontstage/App/AppEnvironment.swift` | Abhängigkeitsbündel | 6 |
 | `Frontstage/App/AppSection.swift`, `RootView.swift` | Gerüst, Navigation | 7 |
@@ -255,7 +265,7 @@ Design-Takt: keiner
 Design-Takt: keiner
 
 **Files:**
-- Create: `FrontstageTests/Support/FakeStorage.swift`, `FrontstageTests/Support/Fixtures.swift`
+- Create: `FrontstageTests/TestSupport/FakeStorage.swift`, `FrontstageTests/TestSupport/UIFixtures.swift` (nicht `Fixtures.swift`: `FrontstageTests/Data/Fixtures.swift` aus 02 gibt es schon, und zwei gleichnamige Swift-Dateien in einem Ziel brechen den Bau ab – „filename used twice“; die globalen `tue17`, `wed18`, `thu19`, `reference(_:)` und `makeStore()` von dort nicht doppelt anlegen)
 
 **Interfaces:**
 - Consumes: `MaterialStorage` (Task 1), `makeStore()` (02).
@@ -265,6 +275,7 @@ Design-Takt: keiner
     var grants: [FolderGrant]; var availability: [String: MaterialAvailability]; var rejectURLs: Set<URL>
     var relinkResultOverride: RelinkResult?          // z. B. .saveFailed
     var openOutcome: OpenOutcome = .handedOff; var openDelay: Duration?   // simuliert das Warten von open (bis 120 s in 03)
+    var mirroredNames: Set<String>                   // gespiegelte Freigabe-Namen für suggestedGrantName (Aufgabe 14)
     private(set) var pickedFileCalls: Int; private(set) var opened: [MaterialReference]; private(set) var assigned: [[MaterialReference]]
 }
 /// Zeichnet die Aufrufe der Naht auf; notesCountResult steuert das Angebot beim Neu verknüpfen.
@@ -272,7 +283,7 @@ Design-Takt: keiner
     private(set) var moves: [PenNoteMove]; var notesCountResult: Int; private(set) var movedNotes: [(MaterialReference, MaterialReference)]
 }
 enum Fixtures {
-    static let tue17 = CalendarDay(year: 2026, month: 11, day: 17)   // + wed18, thu19, tue24, nov3
+    static let tue17 = CalendarDay(year: 2026, month: 11, day: 17)   // + wed18, thu19, tue24, wed25, nov3
     static let bellSchedule: BellSchedule   // 1: 7:45–8:30, 2: 8:35–9:20, 3: 9:40–10:25, 4: 10:30–11:15, 5: 11:35–12:20, 6: 12:25–13:10
     /// Legt im DataStore einen Stundenplan an (setWeekVariants, setBellSchedule, addEntry je Eintrag); referenceWeekA 2026-11-16.
     static func seed(_ store: DataStore, _ entries: [TimetableEntry], variants: Int = 1, bell: BellSchedule = bellSchedule) throws
@@ -281,9 +292,11 @@ enum Fixtures {
     static func key(_ day: CalendarDay, _ cls: String, _ subject: String, _ ordinal: Int = 1) -> LessonKey
     static func environment(store: DataStore, storage: FakeStorage, today: CalendarDay = tue17, dataLocation: DataLocation = .iCloud) -> AppEnvironment   // erst in Aufgabe 6 ergänzt
 }
+/// Damit `.tue17` als implizites Glied (`Fixtures.key(.tue17, …)`, `date: .wed18`) übersetzt: Swift sucht es in `CalendarDay`.
+extension CalendarDay { static let tue17 = Fixtures.tue17 /* + wed18, thu19, tue24, wed25, nov3 */ }
 ```
 
-- [ ] **Step 1: Attrappe schreiben.** `FakeStorage.reference(forPickedFile:)` liefert `nil` für URLs in `rejectURLs` und für Nicht-`file:`-URLs, sonst `Fixtures.reference(url.lastPathComponent, MaterialFileKind(fileExtension: url.pathExtension))`; `relink` liefert `relinkResultOverride`, falls gesetzt, sonst `.outsideGrants` für `rejectURLs`, sonst `.relinked(…)`; `open` wartet `openDelay` (`Task.sleep`), merkt sich den Verweis und liefert `openOutcome`. `FakePenNoteRelocation` (gleiche Datei) zeichnet `linksMoved` und `moveNotes` auf. Daten laufen immer über den echten `DataStore` (kein `FakeStore` – sonst prüften die Tests nur die Attrappe).
+- [ ] **Step 1: Attrappe schreiben.** `FakeStorage.reference(forPickedFile:)` liefert `nil` für URLs in `rejectURLs` und für Nicht-`file:`-URLs, sonst `Fixtures.reference(url.lastPathComponent, MaterialFileKind(fileExtension: url.pathExtension))`; `relink` liefert `relinkResultOverride`, falls gesetzt, sonst `.outsideGrants` für `rejectURLs`, sonst `.relinked(…)`; `open` wartet `openDelay` (`Task.sleep`), merkt sich den Verweis und liefert `openOutcome`; ruft man `open` für denselben `locationKey` auf, während ein früherer Aufruf noch wartet, liefert es sofort `.waitingForDownload` (wie 03). `suggestedGrantName(for:)` liefert `FolderGrantNaming.suggestion(folderName: url.lastPathComponent, localGrantNames: Set(grants.map(\.name)), mirroredNames: mirroredNames)`. `FakePenNoteRelocation` (gleiche Datei) zeichnet `linksMoved` und `moveNotes` auf. Daten laufen immer über den echten `DataStore` (kein `FakeStore` – sonst prüften die Tests nur die Attrappe).
 - [ ] **Step 2: Diff durchsehen:** nur erfundene Materialnamen („Unit 4 – Präsentation“, „Arbeitsblatt Vokabeln“, „Lösung Vokabeln“), Klassen `7a 8a 8b 9c 6c`.
 - [ ] **Step 3: Commit** `test: storage fake and fixtures for UI view models`
 
@@ -338,7 +351,7 @@ enum AssignError: Error, Equatable { case outsideGrantedFolders, saveFailed }
     #expect(try store.materialLinkItems(for: key).isEmpty)
 }
 @Test("Neuverknüpfen außerhalb der Freigaben wird abgelehnt") func relinkOutsideGrantsThrows()   // .outsideGrants → AssignError.outsideGrantedFolders
-@Test("Neuverknüpfen: Speichern gescheitert wird gemeldet, Verweis bleibt") func relinkSaveFailedIsReported() {
+@Test("Neuverknüpfen: Speichern gescheitert wird gemeldet, Verweis bleibt") func relinkSaveFailedIsReported() throws {
     storage.relinkResultOverride = .saveFailed
     #expect(throws: AssignError.saveFailed) { try actions.relink(item, fileURL: newURL) }
     #expect(try store.materialLinkItems(for: key).map(\.reference) == [item.reference])
@@ -470,7 +483,7 @@ extension LessonActions {
 }
 ```
 
-- [ ] **Step 2: Implementieren** über `markCancelled`/`removeCancellation`/`addSubstituteLesson`/`removeSubstituteLesson` des Stores; vorher `scheduleChanges()` lesen: Ausfall mit beliebiger Herkunft schon vorhanden → `setCancelled(true)` liefert `.unchanged`; `removeCancellation` liefert `false` → `.blockedBySource`.
+- [ ] **Step 2: Implementieren** über `markCancelled`/`removeCancellation`/`addSubstituteLesson`/`removeSubstituteLesson` des Stores; vorher `scheduleChanges()` lesen: Ausfall mit beliebiger Herkunft schon vorhanden → `setCancelled(true)` liefert `.unchanged`; `setCancelled(false)` ohne jeden Ausfall → `.unchanged`; `removeCancellation` liefert `false`, obwohl ein Ausfall besteht (dann nur mit Herkunft `.source`, `DataStore` hebt nur `.manual` auf) → `.blockedBySource`.
 - [ ] **Step 3: Diff durchsehen.**
 - [ ] **Step 4: Commit** `feat(ui): cancellation and substitute lesson actions`
 
@@ -495,7 +508,8 @@ enum LessonStatus: Hashable { case regular, substitute, cancelled(Origin) }
 struct MaterialRow: Identifiable, Hashable { let item: MaterialLinkItem; let availability: MaterialAvailability?; var id: UUID { item.id } }
 /// info: Thema, Bereitlegen, Hausaufgabe – Anzeige kostenlos (FR-13, Nutzerentscheidung 2026-11-13).
 struct LessonRow: Identifiable, Hashable { let lesson: Lesson; let status: LessonStatus; let materials: [MaterialRow]; let info: LessonInfo; var id: String { lesson.key.storageText } }
-enum DayRow: Identifiable, Hashable { case noLesson(period: Int, time: ClosedRange<TimeOfDay>?); case lesson(LessonRow) }
+enum DayRow: Identifiable, Hashable { case noLesson(period: Int, time: ClosedRange<TimeOfDay>?); case lesson(LessonRow)
+    var id: String { get } }   // z. B. "free-<period>" bzw. lesson.key.storageText
 enum DayContent: Hashable { case nonTeachingDay(title: String); case noLessons; case rows([DayRow]) }
 /// Die vier Aussagen aus DESIGN.md – je eigenes Symbol und eigener Text, nie nur Farbe.
 enum DayStatement: CaseIterable { case noLesson, lessonWithoutMaterial, materialUnavailable, cancellation
@@ -561,7 +575,7 @@ Zeilenbau (Signatur legt ihn nicht fest):
 }
 @Test("Lücke, ohne Material, nicht verfügbar, Ausfall erscheinen als verschiedene Zustände") func fourStatementsInRows() {
     // Mockup-Dienstag: 3. Std frei, 4. Std 9c Ausfall (.source), 5. Std 6c Vertretung ohne Material, 6. Std 8a mit unavailable
-    #expect(vm.rows[2] == .noLesson(period: 3, time: …))
+    #expect(dayRows(vm)[2] == .noLesson(period: 3, time: …))   // dayRows/lessonRows/lessonRow: Test-Hilfen, die aus vm.content == .rows(…) lesen
     #expect(lessonRow(4).status == .cancelled(.source))
     #expect(lessonRow(5).status == .substitute && lessonRow(5).materials.isEmpty)
     #expect(lessonRow(6).materials.first?.availability == .unavailable(.fileMissing))
@@ -621,10 +635,11 @@ Design-Takt: Hauptstufe
 
 - [ ] **Step 2: Implementieren.** `RootView`: `TabView(selection:)` mit drei `Tab`s und `.tabViewStyle(.sidebarAdaptable)` (iPad: Leiste oder Seitenleiste nach Wahl der Lehrkraft, Mac: Seitenleiste).
   - `FrontstageApp` (Stand nach 08): Im `App`-Typ bleiben `DataLocationController`, `MicrosoftAccount`, `NetworkMonitor`, `SourceCoordinatorHolder` (05) und `.backgroundTask` (05). Inhalt des `WindowGroup`: `DataScopedRoot(controller: dataLocation) { store, container in ScopedAppContent(store: store, container: container, dataLocation: dataLocation, account: account, network: network, sourceCoordinators: sourceCoordinators) }`; `.onOpenURL { _ = MicrosoftAccount.handleRedirect($0) }` am `DataScopedRoot` (außen, übersteht einen Wechsel).
-  - `ScopedAppContent` hält in `@State`: `StorageService` aus den Bausteinen von 03 (`references:` = dieser `DataStore`, `account:`/`network:` = die App-weiten), `AppEnvironment(store: store, storage: storageService, today: { CalendarDay(Date(), calendar: .current) }, dataLocation: { dataLocation.location })`, den Koordinator über `sourceCoordinators.coordinator(for: store)` (05). `body`: `RootView()` mit `.modelContainer(container)`, `.environment(store)`, `.environment(storageService)`, `.environment(environment)`, `.environment(coordinator)`, `.environment(account)` (für Einrichten › Ablage, Aufgabe 14); bei Szenenphase `.active` und bei `NetworkMonitor.onBecameOnline` `storage.prepareForTeaching(today:timetable:nonTeachingPeriods:changes:)` mit den Werten aus dem `DataStore` (ohne Stundenplan: nichts) und die Koordinator-Aufrufe aus 05. Swift-Hinweis: `DataScopedRoot` hängt den Inhalt mit `.id(generation)` an – nach einem Wechsel des Datenorts legt SwiftUI `ScopedAppContent` samt allen `@State`-Diensten neu an, auf dem neuen `DataStore`.
+  - *Umgesetzt abweichend (2026-11-14):* Was dieser Punkt `ScopedAppContent` in `@State` zuschreibt, liegt in `ScopedServicesHolder.services(for:)`; die Szenen- und Netz-Haken liegen in `RootView` (siehe Global Constraints, „Umgesetzte Form“).
+  - `ScopedAppContent` hält in `@State`: `StorageService` aus den Bausteinen von 03 (`references:` = dieser `DataStore`, `account:`/`network:` = die App-weiten; konkret `let grants = FolderGrantStore()`, `let resolver = MaterialResolver(grants: grants)`, `Prefetcher(resolver: resolver, store: store, downloader: SystemFileDownloader())`, `OneDriveService(account: account, graph: GraphClient(tokens: account.tokenProvider), grants: grants, resolver: resolver)`, `handOff: SystemDocumentHandOff()` – Vorbild `FrontstageTests/Storage/StorageServiceTests.swift`), `AppEnvironment(store: store, storage: storageService, today: { CalendarDay(Date(), calendar: .current) }, dataLocation: { dataLocation.location })`, den Koordinator über `sourceCoordinators.coordinator(for: store)` (05). `body`: `RootView()` mit `.modelContainer(container)`, `.environment(store)`, `.environment(storageService)`, `.environment(environment)`, `.environment(coordinator)`, `.environment(account)` (für Einrichten › Ablage, Aufgabe 14), `.environment(dataLocation)` (für `DataLocationSettingsView` in Einrichten, Aufgabe 11); bei Szenenphase `.active` und beim Wechsel `network.isOnline` → `true` (`.onChange(of: network.isOnline)`; `NetworkMonitor` ist `@Observable`) `storage.prepareForTeaching(today:timetable:nonTeachingPeriods:changes:)` mit den Werten aus dem `DataStore` (ohne Stundenplan: nichts) und die Koordinator-Aufrufe aus 05. Nicht `network.onBecameOnline` setzen: die Closure ist einzeln, `FrontstageApp.init` hat dort schon `DataLocationController.networkDidBecomeAvailable()` eingehängt, und eine je Datenort neu entstehende Ansicht würde sie überschreiben oder Verkettungen anhäufen. Die Koordinator-Aufrufe aus 05 stehen heute in der Closure von `DataScopedRoot` (`.onChange(of: scenePhase, initial: true)`: `.active` → `coordinator.refresh(.appBecameActive)`, `.background` → `MorningRefresh.schedule()` unter `#if os(iOS)`) und ziehen unverändert nach `ScopedAppContent` um; der Platzhalter `Text("app.placeholder.title")` und sein Schlüssel in `Localizable.xcstrings` entfallen. Swift-Hinweis: `DataScopedRoot` hängt den Inhalt mit `.id(generation)` an – nach einem Wechsel des Datenorts legt SwiftUI `ScopedAppContent` samt allen `@State`-Diensten neu an, auf dem neuen `DataStore`.
   - Szenen-Zubehör für den Zweitbildschirm meldet Teilplan 06 am `DataScopedRoot` an – hier nur ein Kommentar an der Stelle.
 - [ ] **Step 3: Strings:** `app.section.dayView` „Heute“, `app.section.preparation` „Vorbereiten“, `app.section.setup` „Einrichten“, `app.dataUnavailable` „Die Daten konnten nicht geöffnet werden.“ (Platzhalter, Kategorie Wortlaut offen).
-- [ ] **Step 4: Diff durchsehen:** `@MainActor` an `AppEnvironment`; kein `StorageService`, `AppEnvironment` oder Koordinator mehr als `@State` im `App`-Typ; genau ein `DataStore` in Gebrauch (der aus der Closure). Ein `ModelContainer`-Fehler beim Start gehört dem `DataLocationController` (08); steht dort noch das `fatalError` aus Teilplan 02, Task 10, ersetzt diese Aufgabe es durch eine Fehleransicht (`ContentUnavailableView`, Text `app.dataUnavailable`).
+- [ ] **Step 4: Diff durchsehen:** `@MainActor` an `AppEnvironment`; kein `StorageService`, `AppEnvironment` oder Koordinator mehr als `@State` im `App`-Typ; genau ein `DataStore` in Gebrauch (der aus der Closure). Ein `ModelContainer`-Fehler beim Start gehört dem `DataLocationController` (08); dort steht das `fatalError` heute in `DataLocationController.init` (Teilplan 08, `container` und `store` sind nicht optional). Diese Aufgabe ersetzt es durch eine Fehleransicht (`ContentUnavailableView`, Text `app.dataUnavailable`) – siehe Abstimmungsbedarf, weil das die Schnittstelle von 08 berührt.
 - [ ] **Step 5: Commit** `feat(app): root navigation between day view, preparation and setup`
 
 ---
@@ -640,7 +655,7 @@ Design-Takt: voll
 - Consumes: `DayViewModel`, `DayViewLayout`, `DayStatement` (Aufgabe 6); `SourceStatusBar()` (Teilplan 05, Aufgabe 13); `HandOffAnchorReader`, `OpenOutcome` (03).
 - Produces: `struct DayView: View { init(model: DayViewModel) }` – Teilplan 06 legt die Smartboard-Leiste per `.safeAreaInset(edge: .bottom)` darunter; die Höhe kommt damit automatisch aus dem `GeometryReader`.
 
-- [ ] **Step 1: Bauen.** Kopf: Datum groß, Vor/Zurück/Heute in der Symbolleiste, rechts `SourceStatusBar()` aus Teilplan 05 (blendet sich bei Quelle „von Hand“ selbst aus; „Aktualisieren“ und Stand gehören dorthin). Je Unterrichtsstunde zusätzlich Thema, Bereitlegen und Hausaufgabe aus `LessonRow.info`, wenn nicht leer (kostenlos, FR-13). Öffnen: `HandOffAnchorReader` an jeder Materialzeile liefert den Anker; `.open` → `model.open(_:anchor:)`; solange die Zuordnung in `model.openingLinkIDs` steht oder `availability` `.downloading(progress:)` meldet, zeigt die Zeile einen Ladezustand (`ProgressView`, mit Fortschritt, wenn bekannt; Text `dayView.loading`) – `open` kann bis 120 s auf das Herunterladen warten (03); Ergebnis `.waitingForDownload` (zweiter Tipp) ändert daran nichts, `.failed` → Hinweis `dayView.openFailed`, `.unavailable` → „Neu verknüpfen“, `.showInViewer` behandelt Teilplan 06; „Neu verknüpfen“: `.fileImporter` → `actions.relink(_:fileURL:)`; `.saveFailed` → Hinweis `dayView.relinkSaveFailed` (nichts geändert), `.outsideGrantedFolders` → Hinweis mit „Ordner freigeben“; danach `await actions.notesToCarry(from: alter Verweis)` > 0 → `.confirmationDialog` `lesson.relink.carryNotes` („Notizen mitnehmen“ / „Hier lassen“) → `actions.carryNotes(from:to:)`, Fehler → Hinweis `lesson.relink.carryNotesFailed`; nach Rückkehr in die App `storage.offerOpenWithoutAutoSave(now:)` → Angebot „ohne AutoSpeichern öffnen“. Inhalt: `GeometryReader` → `DayViewLayout.rowHeight`; Wert vorhanden → `VStack` fester Zeilenhöhe, `nil` → `ScrollView`. Je Zeile: Stunde, Zeit, Klasse, Fach, Material als Knöpfe in Reihenfolge (`ViewThatFits`: alle Namen → gekürzte Namen → erster Name plus Anzahl). Jede der vier Aussagen zeigt `DayStatement.symbolName` **und** Text, nie nur Farbe. Ausgefallene Stunde: Kontextmenü „Ausfall aufheben“ (nur `.manual`), „Material weiterreichen“; Material: „In die nächste Stunde“, nicht verfügbar → „Neu verknüpfen“ über `.fileImporter`. Unter der Liste „Material ohne Stunde“ mit „Zuordnen …“ (Auswahl einer Unterrichtsstunde der nächsten 14 Tage). `.onChange(of: environment.store.revision) { model.reload() }`.
+- [ ] **Step 1: Bauen.** Kopf: Datum groß, Vor/Zurück/Heute in der Symbolleiste, rechts `SourceStatusBar()` aus Teilplan 05 (blendet sich bei Quelle „von Hand“ selbst aus; „Aktualisieren“ und Stand gehören dorthin). Je Unterrichtsstunde zusätzlich Thema, Bereitlegen und Hausaufgabe aus `LessonRow.info`, wenn nicht leer (kostenlos, FR-13). Öffnen: `HandOffAnchorReader` an jeder Materialzeile liefert den Anker (erstes Argument von `onResolve`); `.open` → `model.open(_:anchor:)`; solange die Zuordnung in `model.openingLinkIDs` steht oder `availability` `.downloading(progress:)` meldet, zeigt die Zeile einen Ladezustand (`ProgressView`, mit Fortschritt, wenn bekannt; Text `dayView.loading`) – `open` kann bis 120 s auf das Herunterladen warten (03); Ergebnis `.waitingForDownload` (zweiter Tipp) ändert daran nichts, `.failed` → Hinweis `dayView.openFailed`, `.unavailable` → „Neu verknüpfen“, `.showInViewer` behandelt Teilplan 06; „Neu verknüpfen“: `.fileImporter` → `actions.relink(_:fileURL:)`; `.saveFailed` → Hinweis `dayView.relinkSaveFailed` (nichts geändert), `.outsideGrantedFolders` → Hinweis mit „Ordner freigeben“; danach `await actions.notesToCarry(from: alter Verweis)` > 0 → `.confirmationDialog` `lesson.relink.carryNotes` („Notizen mitnehmen“ / „Hier lassen“) → `actions.carryNotes(from:to:)`, Fehler → Hinweis `lesson.relink.carryNotesFailed`; nach Rückkehr in die App `storage.offerOpenWithoutAutoSave(now:)` → Angebot „ohne AutoSpeichern öffnen“. Inhalt: `GeometryReader` → `DayViewLayout.rowHeight`; Wert vorhanden → `VStack` fester Zeilenhöhe, `nil` → `ScrollView`. Je Zeile: Stunde, Zeit, Klasse, Fach, Material als Knöpfe in Reihenfolge (`ViewThatFits`: alle Namen → gekürzte Namen → erster Name plus Anzahl). Jede der vier Aussagen zeigt `DayStatement.symbolName` **und** Text, nie nur Farbe. Ausgefallene Stunde: Kontextmenü „Ausfall aufheben“ (nur `.manual`), „Material weiterreichen“; Material: „In die nächste Stunde“, nicht verfügbar → „Neu verknüpfen“ über `.fileImporter`. Unter der Liste „Material ohne Stunde“ mit „Zuordnen …“ (Auswahl einer Unterrichtsstunde der nächsten 14 Tage). `.onChange(of: environment.store.revision) { model.reload() }`.
 - [ ] **Step 2: Strings** unter `dayView.*` (u. a. `dayView.noLesson`, `dayView.withoutMaterial`, `dayView.unavailable`, `dayView.cancelled`, `dayView.substitute`, `dayView.withoutLesson`, `dayView.openWithoutAutoSave`, `dayView.loading` „Wird geladen …“, `dayView.openFailed` „Material konnte nicht geöffnet werden.“, `dayView.relinkSaveFailed` „Die neue Verknüpfung konnte nicht gespeichert werden.“; Texte des Stands kommen aus Teilplan 05) und `lesson.relink.carryNotes` „Am alten Ort liegen Notizen zu %lld Stunden. Mitnehmen?“, `lesson.relink.carryNotes.yes` „Notizen mitnehmen“, `lesson.relink.carryNotes.no` „Hier lassen“, `lesson.relink.carryNotesFailed` „Die Notizen konnten nicht verschoben werden; sie liegen weiter am alten Ort.“
 - [ ] **Step 3: Diff durchsehen:** VoiceOver-Text je Zeile nennt Aussage in Worten (`accessibilityLabel`); Zielgröße der Knöpfe ≥ 44 pt.
 - [ ] **Step 4: Prüfung `apple-design`** (Design-Takt voll) auf den Diff; Befunde gegen offene Kategorien nur benennen, nicht entscheiden.
@@ -705,7 +720,7 @@ struct PreparationDay: Identifiable, Hashable { let date: CalendarDay; let conte
 Design-Takt: voll
 
 **Files:**
-- Create: `Frontstage/UI/Preparation/PreparationView.swift`, `LessonDetailView.swift`, `MaterialDropTarget.swift`, `SubstituteLessonSheet.swift`
+- Create: `Frontstage/UI/Preparation/PreparationView.swift`, `LessonDetailView.swift`, `MaterialDropTarget.swift`, `SubstituteLessonSheet.swift`, `CopyTargetPicker.swift`
 
 **Interfaces:**
 - Consumes: `PreparationViewModel`, `LessonInfoEditor`, `LessonActions`.
@@ -746,7 +761,7 @@ enum TimetableEditError: Error, Equatable { case emptyClass, emptySubject, inval
     func setWeekVariantCount(_ count: Int, confirmed: Bool) -> Int?
     var periodChoices: [Int] { get }               // Schlüssel des Zeitrasters, leer → 1…10
 }
-struct SetupView: View   // Liste: Stundenplan, Zeitraster, Unterrichtsfrei, Ablage, Stundenplan-Quelle (TimetableSourceSettingsView aus 05, Aufgabe 14)
+struct SetupView: View   // Form: Stundenplan, Zeitraster, Unterrichtsfrei, Datenort (DataLocationSettingsView aus 08 als Section, vor Ablage), Ablage, Stundenplan-Quelle (TimetableSourceSettingsView aus 05, Aufgabe 14)
 ```
 
 - [ ] **Step 1: Tests schreiben**
@@ -872,7 +887,7 @@ Design-Takt: Hauptstufe
 - Produces:
 ```swift
 /// Folge des Abmeldens von Microsoft (ADR-0012): bei Datenort OneDrive hält der Abgleich an.
-enum MicrosoftSignOutImpact: Equatable { case none, stopsDataFolderSync }
+enum MicrosoftSignOutImpact: Equatable { case noImpact, stopsDataFolderSync }
 @MainActor @Observable final class StorageSettingsViewModel {
     init(environment: AppEnvironment, account: MicrosoftAccount)
     private(set) var grants: [FolderGrant]                  // auf diesem Gerät (03)
@@ -888,7 +903,7 @@ enum MicrosoftSignOutImpact: Equatable { case none, stopsDataFolderSync }
     func signOut(confirmed: Bool) async -> Bool
 }
 ```
-`SetupView` zeigt unter „Stundenplan-Quelle“ die fertige `TimetableSourceSettingsView()` aus Teilplan 05 (Koordinator aus der Umgebung). Unter „Ablage“ zusätzlich Microsoft an/ab über `MicrosoftAccount` (nur wenn `isConfigured`, Teilplan 03) und je Freigabe den OneDrive-Pfad (Anzeige). Der Datenort selbst (Wahl, Stand des Abgleichs, Koppeln) ist Teilplan 08 (`DataLocationSettingsView` in `SetupView`).
+`SetupView` zeigt unter „Stundenplan-Quelle“ die fertige `TimetableSourceSettingsView()` aus Teilplan 05 (Koordinator aus der Umgebung) als Ziel eines `NavigationLink` – die Ansicht ist selbst ein `Form` mit `navigationTitle` und darf nicht in ein anderes `Form` geschachtelt werden. Unter „Ablage“ zusätzlich Microsoft an/ab über `MicrosoftAccount` (nur wenn `isConfigured`, Teilplan 03) und je Freigabe den OneDrive-Pfad (Anzeige). Der Datenort selbst (Wahl, Stand des Abgleichs, Koppeln) ist Teilplan 08; `SetupView` bettet `DataLocationSettingsView(controller: dataLocation, isOneDriveAvailable: account.isConfigured, accountUsername: { account.signedInUsername })` als Abschnitt vor „Ablage“ ein (Controller und Konto aus der Umgebung, Aufgabe 7).
 
 - [ ] **Step 1: Tests schreiben**
 
@@ -903,9 +918,9 @@ enum MicrosoftSignOutImpact: Equatable { case none, stopsDataFolderSync }
     #expect(await vm.signOut(confirmed: false) == false)
     #expect(vm.isSignedIn)
 }
-@Test("Abmelden bei Datenort iCloud ohne Rückfrage") func signOutWithICloudNeedsNoConfirmation()   // dataLocation .iCloud → signOutImpact() == .none
+@Test("Abmelden bei Datenort iCloud ohne Rückfrage") func signOutWithICloudNeedsNoConfirmation()   // dataLocation .iCloud → signOutImpact() == .noImpact
 ```
-Hinweis: Berührt `signOut()` mit dem Test-Initialisierer doch MSAL, prüft der zweite Test nur `signOutImpact()`; der Fall „bestätigt → abgemeldet“ steht dann in der Geräte-Checkliste von Teilplan 08 (Zeile 8).
+Hinweis: `signOut()` berührt mit dem Test-Initialisierer MSAL nicht (`application == nil`, nur der Schlüssel `MicrosoftAccountIdentifier` in `UserDefaults.standard` wird entfernt); der Fall „bestätigt → abgemeldet“ (`signOut(confirmed: true)` → `true`, danach `isSignedIn == false`) lässt sich deshalb im Test prüfen. Das echte Abmelden mit Datenort OneDrive steht zusätzlich in der Geräte-Checkliste von Teilplan 08 (Zeile 8).
 
 - [ ] **Step 2: Implementieren;** Ansicht: Liste, „Ordner freigeben“ → `.fileImporter(allowedContentTypes: [.folder], allowsMultipleSelection: false)`, Name aus `suggestion(for:)` vorbelegt, fehlende Freigaben mit Knopf „Hier freigeben“. „Bei Microsoft abmelden“: `signOutImpact() == .stopsDataFolderSync` → `.confirmationDialog` mit `setup.microsoft.signOut.warning` („Der Datenort ist OneDrive. Nach dem Abmelden gleicht Frontstage nicht mehr ab, bis wieder angemeldet wird. Änderungen bleiben auf diesem Gerät erhalten.“), Knöpfe `setup.microsoft.signOut.confirm` „Trotzdem abmelden“ und Abbrechen; sonst sofort abmelden. Wortlaut Platzhalter (offene Kategorie).
 - [ ] **Step 3: Diff durchsehen.**
@@ -917,11 +932,15 @@ Hinweis: Berührt `signOut()` mit dem Test-Initialisierer doch MSAL, prüft der 
 
 Design-Takt: keiner
 
+**Diese Aufgabe führt der Controller aus, nicht ein Implementierer** (Sparregel der Übersicht und `CLAUDE.md`: CI kostet macOS-Minuten, höchstens ein Lauf je Teilplan). Im Bündel B läuft der CI-Lauf gemeinsam mit Teilplan 05 (dessen Aufgabe 14) einmal am Bündelende.
+
+- [ ] **Step 0: Syntaxprüfung** – `.\scripts\swift-parse.ps1` lokal, Syntaxfehler vor dem Lauf beheben (Übersicht, Global Constraints).
 - [ ] **Step 1: Diff des ganzen Teilplans durchsehen** gegen die Global Constraints (ADR-0002-Regeln unberührt, kein `import SwiftUI` in View-Modellen, englische Bezeichner, deutsche Kommentare, Strings nur in `Localizable.xcstrings`).
 - [ ] **Step 2: Lauf anstoßen**
 
 ```bash
-gh workflow run ci.yml --ref feature/<branch-dieses-teilplans>
+git push -u origin feature/batch-b-schulmanager-oberflaeche
+gh workflow run ci.yml --ref feature/batch-b-schulmanager-oberflaeche
 gh run watch
 ```
 Erwartet: Job grün; `swift test` unverändert grün (dieser Teilplan ändert den Kern nicht); `xcodebuild test` mit allen `FrontstageTests/UI/*`-Tests grün (inkl. `PreparationStoreTests`), beide Ziele (iPadOS, macOS) bauen.
@@ -935,7 +954,7 @@ Design-Takt: keiner
 
 **Files:**
 - Create: `.github/workflows/testflight.yml`, `ci/ExportOptions-TestFlight.plist`
-- Modify: `project.yml` (`ITSAppUsesNonExemptEncryption: NO` in den Info.plist-Eigenschaften beider Ziele; `CURRENT_PROJECT_VERSION` aus Umgebung)
+- Modify: `project.yml` (`ITSAppUsesNonExemptEncryption: false` – Boolean, nicht der Text „NO“ – in den Info.plist-Eigenschaften beider Ziele; `CFBundleVersion: $(CURRENT_PROJECT_VERSION)` steht dort schon, `CURRENT_PROJECT_VERSION=$GITHUB_RUN_NUMBER` auf der Kommandozeile genügt)
 
 **Voraussetzungen (Mensch, einmalig):** Apple-Entwicklerkonto (RISK-4); App-Eintrag in App Store Connect; CloudKit-Container aus Teilplan 02 angelegt; App-Store-Connect-API-Schlüssel (Rolle „App Manager“). Secrets im Repo: `APPLE_TEAM_ID`, `BUNDLE_ID_PREFIX`, `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_P8_BASE64`, `MSAL_CLIENT_ID` (Teilplan 03; leer = OneDrive-Zusatz ausgeblendet). `CLOUDKIT_CONTAINER_ID` (Teilplan 02) wird aus `BUNDLE_ID_PREFIX` gebildet. Nur interne Tester, solange Q-31 offen ist.
 
@@ -954,7 +973,7 @@ xcodebuild -exportArchive -archivePath build/Frontstage-iOS.xcarchive -exportOpt
   Schlüsseldatei am Ende löschen (`if: always()`). Zweiter Job gleich für `Frontstage-macOS` mit `-destination 'generic/platform=macOS'`. Schema-Namen aus Teilplan 01 übernehmen, falls sie abweichen.
 - [ ] **Step 2: `ExportOptions-TestFlight.plist`:** `method` = `app-store-connect`, `destination` = `upload`, `signingStyle` = `automatic`, `teamID` als Platzhalter `$(APPLE_TEAM_ID)` – im Workflow vor dem Export per `plutil -replace teamID -string "$APPLE_TEAM_ID"` gesetzt. Quelle: `xcodebuild -help` (Abschnitt „Available keys for -exportOptionsPlist“) am Runner – Step 3 gibt ihn ins Log aus, um die Schlüssel zu belegen.
 - [ ] **Step 3: Diff durchsehen:** keine echte Team-ID, Bundle-ID oder Schlüssel im Repo; `xcodebuild -help | sed -n '/exportOptionsPlist/,/^$/p'` als erster Schritt im Workflow.
-- [ ] **Step 4: Lauf** `gh workflow run testflight.yml --ref <branch>`, `gh run watch`. Erwartet: beide Jobs grün; in App Store Connect › TestFlight erscheint Build `$GITHUB_RUN_NUMBER` für iPadOS und macOS.
+- [ ] **Step 4: Lauf – führt der Controller aus, nicht ein Implementierer** (kostet macOS-Minuten; erst nach den Voraussetzungen des Menschen). `workflow_dispatch` startet nur, wenn `testflight.yml` auf `main` liegt (Übersicht, Abstimmung 7): vorher ein kleiner PR nur mit dem Workflow nach `main`. Dann `gh workflow run testflight.yml --ref <branch>`, `gh run watch`. Erwartet: beide Jobs grün; in App Store Connect › TestFlight erscheint Build `$GITHUB_RUN_NUMBER` für iPadOS und macOS.
 - [ ] **Step 5: Commit** `ci: archive and upload to TestFlight`
 
 ---
@@ -1010,12 +1029,13 @@ Design-Takt: (Entscheid-Takt) – **nie unbeaufsichtigt**; ein Lauf über `phase
 ## Self-Review
 
 - **Spec-Abdeckung:** alle zugewiesenen FR/AK zugeordnet. Nicht hier: AK-3, AK-21, AK-41 (Teilplan 05, Import-Oberfläche nur als Platz in Aufgabe 14), AK-9, AK-11, AK-12, AK-17, AK-19 (Ablage, 03), AK-13, AK-22, AK-23 (Anzeige, 06), AK-24 bis AK-40 (06/07).
-- **Typen:** `PreparationStore`/`MaterialStorage` in 1; `LessonActions` wächst über 3–5 und wird in 6, 9, 10, 13 nur konsumiert; `DayContent`/`DayRow` in 6 definiert und in 9 wiederverwendet; `MaterialOpenAction`, `AppEnvironment.viewerAvailable` und `PenNoteFileRelocating` (`AppEnvironment.penNotes`) sind die Naht zu 06; `ScopedAppContent` ist die einzige Stelle, an der Dienste mit `DataStore` entstehen.
+- **Typen:** `PreparationStore`/`MaterialStorage` in 1; `LessonActions` wächst über 3–5 und wird in 6, 9, 10, 13 nur konsumiert; `DayContent`/`DayRow` in 6 definiert und in 9 wiederverwendet; `MaterialOpenAction`, `AppEnvironment.viewerAvailable` und `PenNoteFileRelocating` (`AppEnvironment.penNotes`) sind die Naht zu 06; `ScopedServicesHolder.services(for:)` ist die einzige Stelle, an der Dienste mit `DataStore` entstehen (`ScopedAppContent` ist nur der Rahmen darum).
 - **Proportion:** Funktionskörper nur für Zeilenbau, `rowHeight` und Abbildung auf Store-Methoden beschrieben, sonst Signaturen und Tests.
 
 ## Abstimmungsbedarf
 
-- Keiner offen (abgeglichen nach Übersicht, Abschnitt „Abstimmung“, Punkte 14 und 15): Kern aus 01, Daten über `PreparationStore` → `DataStore` (02), Ablage über `MaterialStorage` → `StorageService` (03, inkl. `RelinkResult.saveFailed` und Warten in `open`), Quelle als fertige Ansichten aus 05 (Koordinator über `SourceCoordinatorHolder`), Dienste je Datenort in `ScopedAppContent` innerhalb `DataScopedRoot` (08), Hinweis beim Abmelden von Microsoft bei Datenort OneDrive (Aufgabe 14, aus dem Abstimmungsbedarf von 08), Übernehmen mit Auswahl der Zielstunde (Nutzerentscheidung 2026-11-13).
-- **Teilplan 06** setzt `AppEnvironment.viewerAvailable` und `AppEnvironment.penNotes` (in `ScopedAppContent`), behandelt `MaterialOpenAction.viewer` und `OpenOutcome.showInViewer`, legt die Smartboard-Leiste per `.safeAreaInset` unter `DayView` und meldet das Szenen-Zubehör am `DataScopedRoot` an (06 nennt diese Dateien als `Modify`).
+- **Offen nach Preflight 2026-11-14** (Entwurfsebene, nicht still entschieden): (a) ~~Ruling aus Bündel A – Einrichten/Koppeln soll außerhalb des generation-gebundenen `DataScopedRoot`-Teilbaums liegen, damit ein Datenort-Wechsel den Kopplungsablauf nicht abreißt; dieser Plan legt `SetupView` in `RootView` innerhalb von `ScopedAppContent`.~~ → umgesetzt 2026-11-14: `SetupView` und das Koppeln liegen außerhalb, Datenabhängiges öffnet sich darin über `ScopedAppContent`; Dienste in `ScopedServicesHolder`. (b) Das `fatalError` in `DataLocationController.init` durch eine Fehleransicht zu ersetzen (Aufgabe 7) ändert die Schnittstelle von 08 (`container`/`store` nicht optional, genutzt in `FrontstageApp` und `runMorningRefresh`).
+- Sonst keiner offen (abgeglichen nach Übersicht, Abschnitt „Abstimmung“, Punkte 14 und 15): Kern aus 01, Daten über `PreparationStore` → `DataStore` (02), Ablage über `MaterialStorage` → `StorageService` (03, inkl. `RelinkResult.saveFailed` und Warten in `open`), Quelle als fertige Ansichten aus 05 (Koordinator über `SourceCoordinatorHolder`), Dienste je Datenort in `ScopedAppContent` innerhalb `DataScopedRoot` (08), Hinweis beim Abmelden von Microsoft bei Datenort OneDrive (Aufgabe 14, aus dem Abstimmungsbedarf von 08), Übernehmen mit Auswahl der Zielstunde (Nutzerentscheidung 2026-11-13).
+- **Teilplan 06** setzt `AppEnvironment.viewerAvailable` und `AppEnvironment.penNotes` (in `ScopedServicesHolder.services(for:)`; `retryPending()` in `RootView.activate(_:)`), behandelt `MaterialOpenAction.viewer` und `OpenOutcome.showInViewer`, legt die Smartboard-Leiste per `.safeAreaInset` unter `DayView` und meldet das Szenen-Zubehör an `RootView` an (außerhalb von `DataScopedRoot`; 06 nennt diese Dateien als `Modify`).
 - **Teilplan 07** ergänzt `LessonDetailView` (Tafelbilder) und `SetupView` (Kauf wiederherstellen) als `Modify`.
 - **Glossar:** kein neuer Fachbegriff; `Origin.source` in der Oberfläche als „laut Stundenplan-Quelle“ (Wortlaut offen).

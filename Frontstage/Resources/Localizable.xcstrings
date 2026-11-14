@@ -1,12 +1,332 @@
 {
   "sourceLanguage" : "de",
   "strings" : {
-    "app.placeholder.title" : {
+    "timetableSource.title" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Frontstage"
+            "value" : "Stundenplan-Quelle"
+          }
+        }
+      }
+    },
+    "timetableSource.source" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quelle"
+          }
+        }
+      }
+    },
+    "timetableSource.source.manual" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von Hand"
+          }
+        }
+      }
+    },
+    "timetableSource.source.schulmanager" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schulmanager Online"
+          }
+        }
+      }
+    },
+    "timetableSource.unofficialNotice" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inoffizielle Anbindung, ohne Gewähr: Schulmanager Online bietet diese Schnittstelle nicht offiziell an. Sie kann sich jederzeit ändern oder ausfallen."
+          }
+        }
+      }
+    },
+    "timetableSource.account.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmeldung"
+          }
+        }
+      }
+    },
+    "timetableSource.username" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benutzername"
+          }
+        }
+      }
+    },
+    "timetableSource.password" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passwort"
+          }
+        }
+      }
+    },
+    "timetableSource.signIn" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmelden"
+          }
+        }
+      }
+    },
+    "timetableSource.signedIn" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Angemeldet"
+          }
+        }
+      }
+    },
+    "timetableSource.signedOut" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht angemeldet"
+          }
+        }
+      }
+    },
+    "timetableSource.signOut" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abmelden"
+          }
+        }
+      }
+    },
+    "timetableSource.credentialsNotice" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zugangsdaten bleiben nur auf diesem Gerät im Schlüsselbund."
+          }
+        }
+      }
+    },
+    "timetableSource.importNow" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jetzt importieren"
+          }
+        }
+      }
+    },
+    "timetableSource.fetchedAt %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stand: %@"
+          }
+        }
+      }
+    },
+    "timetableSource.neverImported" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch nicht importiert"
+          }
+        }
+      }
+    },
+    "timetableSource.preview.available" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine Vorschau liegt zur Übernahme bereit."
+          }
+        }
+      }
+    },
+    "timetableSource.preview.show" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorschau ansehen"
+          }
+        }
+      }
+    },
+    "timetableSource.preview.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorschau"
+          }
+        }
+      }
+    },
+    "timetableSource.error.notConfigured" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Zugangsdaten hinterlegt."
+          }
+        }
+      }
+    },
+    "timetableSource.error.invalidCredentials" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benutzername oder Passwort wurden nicht akzeptiert."
+          }
+        }
+      }
+    },
+    "timetableSource.error.multipleSchools" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Konto gehört zu mehreren Schulen; das wird noch nicht unterstützt."
+          }
+        }
+      }
+    },
+    "timetableSource.error.offline" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Verbindung. Der letzte Stand bleibt erhalten."
+          }
+        }
+      }
+    },
+    "timetableSource.error.server %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Server antwortet mit Fehler %lld. Der letzte Stand bleibt erhalten."
+          }
+        }
+      }
+    },
+    "timetableSource.error.unexpected" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Antwort des Anbieters war unerwartet. Der letzte Stand bleibt erhalten."
+          }
+        }
+      }
+    },
+    "timetableSource.error.tooSoon" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zu kurz nach der letzten Abfrage. Bitte später erneut versuchen."
+          }
+        }
+      }
+    },
+    "timetableSource.error.busy" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es läuft gerade eine Abfrage. Bitte danach erneut versuchen."
+          }
+        }
+      }
+    },
+    "timetableSource.error.storage" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Einstellung konnte nicht gespeichert werden."
+          }
+        }
+      }
+    },
+    "timetableSource.error.keychain" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Zugangsdaten konnten nicht im Schlüsselbund gespeichert werden."
+          }
+        }
+      }
+    },
+    "app.section.dayView" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heute"
+          }
+        }
+      }
+    },
+    "app.section.preparation" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorbereiten"
+          }
+        }
+      }
+    },
+    "app.section.setup" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einrichten"
+          }
+        }
+      }
+    },
+    "app.dataUnavailable" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Daten konnten nicht geöffnet werden."
           }
         }
       }
@@ -447,6 +767,1936 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Stand des Abgleichs: %lld Einträge warten auf OneDrive"
+          }
+        }
+      }
+    },
+    "importPreview.fetchedAt %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stand der Quelle: %@"
+          }
+        }
+      }
+    },
+    "importPreview.noDifferences" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Import ändert am Stundenplan nichts."
+          }
+        }
+      }
+    },
+    "importPreview.added" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neu"
+          }
+        }
+      }
+    },
+    "importPreview.changed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geändert"
+          }
+        }
+      }
+    },
+    "importPreview.conflicts" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von Hand geändert"
+          }
+        }
+      }
+    },
+    "importPreview.conflicts.footer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Für diese Stunden weicht die Quelle von der eigenen Fassung ab. Ohne Auswahl bleibt die eigene Fassung erhalten."
+          }
+        }
+      }
+    },
+    "importPreview.removed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfällt"
+          }
+        }
+      }
+    },
+    "importPreview.bellScheduleChanged" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Zeitraster ändert sich."
+          }
+        }
+      }
+    },
+    "importPreview.keepMine" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Meine Fassung behalten"
+          }
+        }
+      }
+    },
+    "importPreview.takeSource" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fassung der Quelle übernehmen"
+          }
+        }
+      }
+    },
+    "importPreview.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "importPreview.apply" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Übernehmen"
+          }
+        }
+      }
+    },
+    "importPreview.error.apply" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Übernahme ist fehlgeschlagen. Der Stundenplan kann schon übernommen sein; Vertretungen und Ausfälle sind unverändert. Die Vorschau bleibt stehen."
+          }
+        }
+      }
+    },
+    "importPreview.period %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld. Std."
+          }
+        }
+      }
+    },
+    "importPreview.weekA" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A-Woche"
+          }
+        }
+      }
+    },
+    "importPreview.weekB" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "B-Woche"
+          }
+        }
+      }
+    },
+    "sourceStatus.refresh" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aktualisieren"
+          }
+        }
+      }
+    },
+    "sourceStatus.fetchedToday %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stand: heute, %@"
+          }
+        }
+      }
+    },
+    "sourceStatus.fetchedOther %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stand: %@"
+          }
+        }
+      }
+    },
+    "sourceStatus.neverFetched" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch kein Stand"
+          }
+        }
+      }
+    },
+    "sourceStatus.notice.stale" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Stand ist nicht von heute."
+          }
+        }
+      }
+    },
+    "sourceStatus.notice.manualMaintenance" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Abfrage schlägt wiederholt fehl. Der Stundenplan kann auch von Hand gepflegt werden."
+          }
+        }
+      }
+    },
+    "sourceStatus.notice.previewPending" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine Änderung am Stundenplan wartet auf Übernahme."
+          }
+        }
+      }
+    },
+    "sourceStatus.notice.notSignedIn" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht angemeldet. Anmelden unter Einrichten."
+          }
+        }
+      }
+    },
+    "sourceStatus.notice.signInOnThisDevice" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmeldung auf diesem Gerät nötig – der Stand kommt vom anderen Gerät"
+          }
+        }
+      }
+    },
+    "dayView.statement.noLesson" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Stunde"
+          }
+        }
+      }
+    },
+    "dayView.statement.lessonWithoutMaterial" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ohne Material"
+          }
+        }
+      }
+    },
+    "dayView.statement.materialUnavailable" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material nicht verfügbar"
+          }
+        }
+      }
+    },
+    "dayView.statement.cancellation" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfällt"
+          }
+        }
+      }
+    },
+    "dayView.previous" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorheriger Tag"
+          }
+        }
+      }
+    },
+    "dayView.next" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nächster Tag"
+          }
+        }
+      }
+    },
+    "dayView.today" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heute"
+          }
+        }
+      }
+    },
+    "dayView.noLesson" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Stunden an diesem Tag"
+          }
+        }
+      }
+    },
+    "dayView.substitute" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vertretung"
+          }
+        }
+      }
+    },
+    "dayView.withoutLesson" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material ohne Stunde"
+          }
+        }
+      }
+    },
+    "dayView.assign" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zuordnen …"
+          }
+        }
+      }
+    },
+    "dayView.assign.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stunde wählen"
+          }
+        }
+      }
+    },
+    "dayView.assign.empty" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In den nächsten 14 Tagen gibt es keine Stunde."
+          }
+        }
+      }
+    },
+    "dayView.assign.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "dayView.assign.lesson %@ %lld %@ %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ · %lld. Stunde · %@ %@"
+          }
+        }
+      }
+    },
+    "dayView.period %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld. Stunde"
+          }
+        }
+      }
+    },
+    "dayView.info.topic %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thema: %@"
+          }
+        }
+      }
+    },
+    "dayView.info.toPrepare %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bereitlegen: %@"
+          }
+        }
+      }
+    },
+    "dayView.info.homework %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hausaufgabe: %@"
+          }
+        }
+      }
+    },
+    "dayView.materialMore %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%lld"
+          }
+        }
+      }
+    },
+    "dayView.loading" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wird geladen …"
+          }
+        }
+      }
+    },
+    "dayView.openFailed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material konnte nicht geöffnet werden."
+          }
+        }
+      }
+    },
+    "dayView.relinkSaveFailed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die neue Verknüpfung konnte nicht gespeichert werden."
+          }
+        }
+      }
+    },
+    "dayView.outsideGrants" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Datei liegt in keinem freigegebenen Ordner."
+          }
+        }
+      }
+    },
+    "dayView.grantFolder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner freigeben"
+          }
+        }
+      }
+    },
+    "dayView.noNextLesson" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es gibt keine nächste Stunde."
+          }
+        }
+      }
+    },
+    "dayView.ok" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "dayView.openWithoutAutoSave" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ohne AutoSpeichern öffnen"
+          }
+        }
+      }
+    },
+    "dayView.openWithoutAutoSave.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material geöffnet. Lieber ohne AutoSpeichern öffnen?"
+          }
+        }
+      }
+    },
+    "dayView.relink" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neu verknüpfen"
+          }
+        }
+      }
+    },
+    "dayView.moveToNext" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In die nächste Stunde"
+          }
+        }
+      }
+    },
+    "dayView.passOn" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material weiterreichen"
+          }
+        }
+      }
+    },
+    "dayView.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ausfall markieren"
+          }
+        }
+      }
+    },
+    "dayView.uncancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ausfall aufheben"
+          }
+        }
+      }
+    },
+    "lesson.relink.carryNotes %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Am alten Ort liegen Notizen zu %lld Stunden. Mitnehmen?"
+          }
+        }
+      }
+    },
+    "lesson.relink.carryNotes.yes" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notizen mitnehmen"
+          }
+        }
+      }
+    },
+    "lesson.relink.carryNotes.no" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hier lassen"
+          }
+        }
+      }
+    },
+    "lesson.relink.carryNotesFailed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Notizen konnten nicht verschoben werden; sie liegen weiter am alten Ort."
+          }
+        }
+      }
+    },
+    "preparation.previousWeek" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorherige Woche"
+          }
+        }
+      }
+    },
+    "preparation.thisWeek" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Woche"
+          }
+        }
+      }
+    },
+    "preparation.nextWeek" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nächste Woche"
+          }
+        }
+      }
+    },
+    "preparation.addMaterial" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material hinzufügen"
+          }
+        }
+      }
+    },
+    "preparation.grantFolder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner freigeben"
+          }
+        }
+      }
+    },
+    "preparation.substitute" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vertretungsstunde"
+          }
+        }
+      }
+    },
+    "preparation.ok" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "preparation.outsideGrants" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Datei liegt in keinem freigegebenen Ordner. Gib zuerst den Ordner frei, in dem sie liegt."
+          }
+        }
+      }
+    },
+    "preparation.saveFailed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Speichern ist fehlgeschlagen."
+          }
+        }
+      }
+    },
+    "preparation.noNextLesson" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es gibt keine nächste Stunde dieser Klasse und dieses Fachs."
+          }
+        }
+      }
+    },
+    "preparation.blockedBySource" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser Ausfall stammt laut Stundenplan-Quelle und lässt sich hier nicht aufheben."
+          }
+        }
+      }
+    },
+    "preparation.copied %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Zuordnungen übernommen"
+          }
+        }
+      }
+    },
+    "preparation.selectLesson" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle eine Stunde"
+          }
+        }
+      }
+    },
+    "preparation.noLessons" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Unterricht"
+          }
+        }
+      }
+    },
+    "preparation.lessonMissing" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Stunde gibt es nicht mehr."
+          }
+        }
+      }
+    },
+    "preparation.materialCount %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Material"
+          }
+        }
+      }
+    },
+    "preparation.substitute.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vertretungsstunde anlegen"
+          }
+        }
+      }
+    },
+    "preparation.substitute.date" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datum"
+          }
+        }
+      }
+    },
+    "preparation.substitute.period" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stunde"
+          }
+        }
+      }
+    },
+    "preparation.substitute.class" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klasse"
+          }
+        }
+      }
+    },
+    "preparation.substitute.subject" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fach"
+          }
+        }
+      }
+    },
+    "preparation.substitute.add" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anlegen"
+          }
+        }
+      }
+    },
+    "preparation.substitute.notShown" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Vertretungsstunde ist gespeichert, erscheint aber nicht: An diesem Tag ist unterrichtsfrei oder es gibt noch keinen Stundenplan."
+          }
+        }
+      }
+    },
+    "dayView.grantMissing" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Ordner dieser Datei ist auf diesem Gerät nicht freigegeben. Gib ihn unter Einrichten frei."
+          }
+        }
+      }
+    },
+    "dayView.notDownloadedOffline" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Datei ist nicht auf diesem Gerät, und es gibt gerade kein Netz. Sie lässt sich öffnen, sobald das Gerät wieder online ist."
+          }
+        }
+      }
+    },
+    "preparation.substitute.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "lesson.info" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stundenangaben"
+          }
+        }
+      }
+    },
+    "lesson.topic" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thema"
+          }
+        }
+      }
+    },
+    "lesson.toPrepare" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bereitlegen"
+          }
+        }
+      }
+    },
+    "lesson.homework" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hausaufgabe"
+          }
+        }
+      }
+    },
+    "lesson.material" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material"
+          }
+        }
+      }
+    },
+    "lesson.noMaterial" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch kein Material"
+          }
+        }
+      }
+    },
+    "lesson.remove" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfernen"
+          }
+        }
+      }
+    },
+    "lesson.moreActions" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weitere Aktionen"
+          }
+        }
+      }
+    },
+    "lesson.copyTo" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Für andere Klasse übernehmen …"
+          }
+        }
+      }
+    },
+    "lesson.moveToNext" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In die nächste Stunde"
+          }
+        }
+      }
+    },
+    "lesson.passOn" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material weiterreichen"
+          }
+        }
+      }
+    },
+    "lesson.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ausfall"
+          }
+        }
+      }
+    },
+    "lesson.copy.class" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klasse wählen"
+          }
+        }
+      }
+    },
+    "lesson.copy.lesson" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stunde wählen"
+          }
+        }
+      }
+    },
+    "lesson.copy.noClasses" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine andere Klasse im Stundenplan."
+          }
+        }
+      }
+    },
+    "lesson.copy.empty" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Unterrichtsstunde in den nächsten 28 Tagen."
+          }
+        }
+      }
+    },
+    "lesson.copy.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "setup.microsoft.account" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konto"
+          }
+        }
+      }
+    },
+    "setup.microsoft.error.failed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Anmeldung bei Microsoft ist fehlgeschlagen."
+          }
+        }
+      }
+    },
+    "setup.microsoft.error.offline" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Verbindung. Anmelden geht nur online."
+          }
+        }
+      }
+    },
+    "setup.microsoft.signIn" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bei Microsoft anmelden"
+          }
+        }
+      }
+    },
+    "setup.microsoft.signOut" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bei Microsoft abmelden"
+          }
+        }
+      }
+    },
+    "setup.microsoft.signOut.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "setup.microsoft.signOut.confirm" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trotzdem abmelden"
+          }
+        }
+      }
+    },
+    "setup.microsoft.signOut.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bei Microsoft abmelden?"
+          }
+        }
+      }
+    },
+    "setup.microsoft.signOut.warning" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Datenort ist OneDrive. Nach dem Abmelden gleicht Frontstage nicht mehr ab, bis wieder angemeldet wird. Änderungen bleiben auf diesem Gerät erhalten."
+          }
+        }
+      }
+    },
+    "setup.microsoft.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Microsoft"
+          }
+        }
+      }
+    },
+    "setup.storage.addFolder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner freigeben"
+          }
+        }
+      }
+    },
+    "setup.storage.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "setup.storage.error.accessDenied" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Zugriff auf den Ordner wurde verweigert."
+          }
+        }
+      }
+    },
+    "setup.storage.error.failed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Ordner konnte nicht freigegeben werden."
+          }
+        }
+      }
+    },
+    "setup.storage.error.nameInUse" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine andere Freigabe trägt schon diesen Namen."
+          }
+        }
+      }
+    },
+    "setup.storage.footer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freigegebene Ordner gelten nur auf diesem Gerät. Frontstage liest daraus Material und verändert es nie."
+          }
+        }
+      }
+    },
+    "setup.storage.missing.footer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material in diesen Ordnern ist auf einem anderen Gerät zugeordnet. Gib hier den passenden Ordner frei."
+          }
+        }
+      }
+    },
+    "setup.storage.missing.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auf diesem Gerät noch nicht freigegeben"
+          }
+        }
+      }
+    },
+    "setup.storage.name" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name der Freigabe"
+          }
+        }
+      }
+    },
+    "setup.storage.name.mirrored" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser Name gehört schon zu Material von einem anderen Gerät."
+          }
+        }
+      }
+    },
+    "setup.storage.remove" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfernen"
+          }
+        }
+      }
+    },
+    "setup.storage.save" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freigeben"
+          }
+        }
+      }
+    },
+    "setup.storage.shareHere" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hier freigeben"
+          }
+        }
+      }
+    },
+    "setup.storage.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ablage"
+          }
+        }
+      }
+    },
+    "setup.timetable.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stundenplan"
+          }
+        }
+      }
+    },
+    "setup.timetable.add" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stunde hinzufügen"
+          }
+        }
+      }
+    },
+    "setup.timetable.weekVariants" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wochenrhythmus"
+          }
+        }
+      }
+    },
+    "setup.timetable.weekVariants.one" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jede Woche gleich"
+          }
+        }
+      }
+    },
+    "setup.timetable.weekVariants.two" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A-/B-Woche im Wechsel"
+          }
+        }
+      }
+    },
+    "setup.timetable.referenceWeek" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein Tag der A-Woche"
+          }
+        }
+      }
+    },
+    "setup.timetable.referenceWeek.current %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A-Woche: %@"
+          }
+        }
+      }
+    },
+    "setup.timetable.referenceWeek.footer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gewählt wird ein beliebiger Tag; maßgeblich ist die Woche, die ihn enthält. Die Folgewoche ist die B-Woche."
+          }
+        }
+      }
+    },
+    "setup.timetable.shown" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ansicht"
+          }
+        }
+      }
+    },
+    "setup.timetable.variant.a" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A-Woche"
+          }
+        }
+      }
+    },
+    "setup.timetable.variant.b" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "B-Woche"
+          }
+        }
+      }
+    },
+    "setup.timetable.variant.both" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beide Wochen"
+          }
+        }
+      }
+    },
+    "setup.timetable.grid.footer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tippen auf ein Feld legt eine Stunde an oder ändert sie."
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.titleNew" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neue Stunde"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.titleEdit" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stunde ändern"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.class" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klasse"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.subject" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fach"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.weekday" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wochentag"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.period" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stunde"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.appliesTo" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gilt für"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.save" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sichern"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.delete" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stunde löschen"
+          }
+        }
+      }
+    },
+    "setup.timetable.reduce.title %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Stunden der B-Woche löschen?"
+          }
+        }
+      }
+    },
+    "setup.timetable.reduce.message" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bei nur einer Woche entfällt die B-Woche. Die Stunden der A-Woche gelten dann in jeder Woche."
+          }
+        }
+      }
+    },
+    "setup.timetable.reduce.confirm" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "B-Woche löschen"
+          }
+        }
+      }
+    },
+    "setup.timetable.reduce.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "setup.timetable.error.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das hat nicht geklappt"
+          }
+        }
+      }
+    },
+    "setup.timetable.error.ok" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "setup.timetable.error.emptyClass" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitte eine Klasse eintragen."
+          }
+        }
+      }
+    },
+    "setup.timetable.error.emptySubject" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitte ein Fach eintragen."
+          }
+        }
+      }
+    },
+    "setup.timetable.error.invalidPeriod" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Stunde muss eine Zahl ab 1 sein."
+          }
+        }
+      }
+    },
+    "setup.timetable.error.duplicate" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Stunde gibt es schon."
+          }
+        }
+      }
+    },
+    "setup.timetable.error.saveFailed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speichern ist fehlgeschlagen."
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeitraster"
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.empty" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch keine Stunden. Füge die erste Stunde hinzu."
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.add" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stunde hinzufügen"
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.removeLast" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letzte Stunde entfernen"
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.period %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld. Stunde"
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.start" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beginn"
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.end" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ende"
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.error.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeit nicht übernommen"
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.error.endNotAfterStart" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Ende muss nach dem Beginn liegen."
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.error.overlaps %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Stunde überschneidet sich mit der %lld. Stunde."
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.error.saveFailed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Zeitraster konnte nicht gespeichert werden."
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.error.ok" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unterrichtsfrei"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.defaultTitle" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unterrichtsfrei"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.empty" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch keine unterrichtsfreien Zeiträume."
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.add" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeitraum hinzufügen"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.from" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.to" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bis"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.name" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bezeichnung (z. B. Herbstferien)"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.save" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speichern"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.remove" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeitraum entfernen"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.materialCount %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material ohne Stunde: %lld"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.assign" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zuordnen …"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.removeNote" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Material bleibt erhalten."
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.error.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das hat nicht geklappt"
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.error.fromAfterTo" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„Von“ darf nicht nach „Bis“ liegen."
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.error.saveFailed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speichern ist fehlgeschlagen."
+          }
+        }
+      }
+    },
+    "setup.nonTeaching.error.ok" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
           }
         }
       }
