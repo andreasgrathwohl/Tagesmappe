@@ -101,6 +101,17 @@ import Testing
     #expect(session.exportPages[0].drawingData != nil)
   }
 
+  @Test("Teilen-Eintrag liest die Seiten erst beim Export, nicht beim Anlegen")
+  func shareItemReadsPagesLazily() throws {
+    let (session, _) = try makeSession()
+    try session.open(tue8b)
+    // Wie in `BoardScreen`: der Eintrag entsteht vor dem Strich.
+    let item = BoardDrawingPDF(pages: { [session] in session.exportPages }, fileName: "Tafelbild.pdf")
+    session.drawingChanged(PKDrawing())
+    #expect(session.pages[0].drawingData == nil)
+    #expect(item.pages()[0].drawingData != nil)
+  }
+
   @Test("Seitenwechsel speichert die verlassene Seite")
   func pageChangeSavesLeftPage() throws {
     let (session, _) = try makeSession()
