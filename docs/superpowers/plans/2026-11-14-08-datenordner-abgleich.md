@@ -1275,10 +1275,8 @@ Nicht hier: Stiftnotizen neben dem Dokument (ADR-0011, Teilplan 06); iCloud-Spie
 
 ## Abstimmungsbedarf
 
-- **Teilpläne 03, 04, 05 (`FrontstageApp`):** `StorageService`, `AppEnvironment`, `TimetableSourceCoordinator` entstehen innerhalb von `DataScopedRoot`, nicht einmalig im `App`-Typ (Übersicht, Abstimmung 15). `MicrosoftAccount` bleibt im `App`-Typ.
+- *Erledigt 2026-11-14 (in die Teilpläne 04–07 eingearbeitet, Übersicht Abstimmung 15):* Dienste mit `DataStore` entstehen in `DataScopedRoot` (04 `ScopedAppContent`, 05 `SourceCoordinatorHolder`, 06 `PenNoteFileService`, 07 `ClassroomServices.bind(store:)`); Hinweis beim Abmelden von Microsoft bei Datenort OneDrive (04, Aufgabe 14); `NSCameraUsageDescription` geteilt mit der Tafel-Kamera (07, Task 13: iOS-Text nennt beide Zwecke, macOS nur Koppeln). Der Name der Closure-Ansicht in Task 12 ist `ScopedAppContent` (Teilplan 04).
 - **Teilplan 03 (`MicrosoftAccount`):** zwei neue Methoden (Task 9). `scopes = ["Files.Read"]` bleibt für FR-5.1; die Regel „Die App schreibt nie über Graph“ aus 03 gilt nur noch für Material – in den App-Ordner schreibt Teilplan 08.
-- **Teilplan 04 (Einrichten › Ablage, Microsoft an/ab):** Abmelden bei Datenort OneDrive hält den Abgleich an. Vorschlag: Beim Abmelden einen Hinweis zeigen („Datenort OneDrive gleicht dann nicht mehr ab“). Bitte in 04 aufnehmen oder als Design-Runde fahren.
-- **Teilplan 07:** `NSCameraUsageDescription` wird geteilt (Tafel-Kamera und Koppeln); wer zuerst baut, legt ihn an, der Text nennt beide Zwecke.
 - **Glossar:** „Stand des Abgleichs“ ist Oberflächentext; soll er eine Glossarzeile bekommen (Nähe zu „Stand“ = `sourceFetchedAt`)? Bitte entscheiden.
 - **Azure-App-Registrierung:** Für `Files.ReadWrite` muss die Registrierung (Client-ID aus CI-Secret `MSAL_CLIENT_ID`) diese delegierte Berechtigung führen; der Name der Registrierung bestimmt den Ordnernamen `Apps/<Name>` – „Frontstage“ wählen.
 
