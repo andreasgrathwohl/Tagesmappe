@@ -52,7 +52,7 @@ Eltern oder Verwaltung.
 
 ## Grundsätze
 
-- **Keine eigenen Server** – Daten bleiben bei der Lehrkraft, wahlweise in iCloud oder in ihrer Ablage.
+- **Keine eigenen Server** – Daten bleiben bei der Lehrkraft, wahlweise in iCloud oder in ihrem OneDrive; ein zweites Gerät koppelt per QR-Code.
 - **Notizen neben dem Dokument** – Stiftnotizen liegen als Notiz-Datei und lesbares PDF im Ordner des Materials.
 - **Ein Stand je Datei** – Zuordnen verweist, kopiert nie.
 - **Präsentieren bleibt in PowerPoint & Co.** – die App ersetzt sie nicht.

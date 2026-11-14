@@ -26,7 +26,7 @@ etwas hier von `docs/` oder `DESIGN.md` ab, gilt das Dokument; das Wiki wird im 
 | Ebene | Status |
 |---|---|
 | PRD | ready (2026-11-13) |
-| ADRs | ready (2026-11-13) – ADR-0001 bis ADR-0011 beschlossen; ADR-0002 und ADR-0006 abgelöst durch ADR-0010 und ADR-0011 |
+| ADRs | ready (2026-11-13) – ADR-0001 bis ADR-0012 beschlossen; ADR-0002 abgelöst durch ADR-0010, diese durch ADR-0012; ADR-0006 abgelöst durch ADR-0011 |
 | Architecture Doc | ready (2026-11-13) – alle fünf Bereiche ausgearbeitet; am Gerät zu prüfen: Q-18, Q-22 |
 | UI Spec (`DESIGN.md`) | erster Beschluss: App-Icon (UI-1); alle übrigen Kategorien offen |
 | Mockups | [mockup/](../mockup/LIESMICH.md) – Veranschaulichung von Tagesansicht, Vorbereiten und Einrichten, kein Gestaltungsbeschluss |
