@@ -1,0 +1,189 @@
+import FrontstageCore
+import SwiftUI
+import UniformTypeIdentifiers
+
+/// Einzelheiten einer Stunde (FR-3, FR-7, FR-8, FR-13): Material ordnen, übernehmen, weiterreichen,
+/// Ausfall, Stundenangaben. Teilplan 07 ergänzt hier „Tafelbilder dieser Stunde“.
+///
+/// Das Material steht in einem `List`; `onMove` ordnet am Mac durch Ziehen, am iPad im Bearbeiten-Modus.
+/// Systemstandard ohne eigene Palette oder Schrift; Gestaltung ist offen (DESIGN.md).
+struct LessonDetailView: View {
+  let key: LessonKey
+  let model: PreparationViewModel
+
+  @Environment(AppEnvironment.self) private var environment
+  @Environment(\.scenePhase) private var scenePhase
+
+  // Swift-Hinweis: `@State` an einer `@Observable`-Klasse hält die Instanz über Neuzeichnen hinweg;
+  // `$editor.topic` liefert dann eine Bindung auf ihr Feld.
+  @State private var editor: LessonInfoEditor
+  @State private var isImporting = false
+  @State private var showCopyPicker = false
+  @State private var notice: PreparationNotice?
+
+  init(key: LessonKey, model: PreparationViewModel) {
+    self.key = key
+    self.model = model
+    _editor = State(initialValue: LessonInfoEditor(key: key, store: model.actions.store))
+  }
+
+  private var actions: LessonActions { model.actions }
+
+  /// Die Stunde aus der Woche; `nil`, wenn es sie nicht mehr gibt (z. B. nach einem Stundenplan-Abruf).
+  private var lessonRow: LessonRow? {
+    for day in model.days where day.date == key.date {
+      if case .rows(let rows) = day.content {
+        for case .lesson(let lesson) in rows where lesson.lesson.key == key { return lesson }
+      }
+    }
+    return nil
+  }
+
+  /// Liest bei jedem Zeichnen neu; `store.revision` ist beobachtbar und löst das Neuzeichnen aus.
+  private var materials: [MaterialLinkItem] {
+    (try? actions.store.materialLinkItems(for: key)) ?? []
+  }
+
+  var body: some View {
+    Group {
+      if let row = lessonRow {
+        content(row)
+      } else {
+        ContentUnavailableView("preparation.lessonMissing", systemImage: "questionmark.folder")
+      }
+    }
+    .modifier(
+      MaterialDropTarget(key: key, actions: actions, onError: { notice = PreparationNotice($0) })
+    )
+    .preparationNotice($notice)
+    .fileImporter(
+      isPresented: $isImporting, allowedContentTypes: [.item], allowsMultipleSelection: true
+    ) { result in
+      guard case .success(let urls) = result else { return }
+      Task {
+        do throws(AssignError) {
+          try await actions.assign(fileURLs: urls, to: key)
+        } catch {
+          notice = PreparationNotice(error)
+        }
+      }
+    }
+    .sheet(isPresented: $showCopyPicker) {
+      CopyTargetPicker(source: key, actions: actions) { count in
+        notice = .copied(count)
+      }
+    }
+    // Speichern beim Verlassen der Stunde und beim Verlassen der App.
+    .onDisappear { editor.save() }
+    .onChange(of: scenePhase) { _, phase in
+      if phase != .active { editor.save() }
+    }
+  }
+
+  // MARK: Inhalt
+
+  private func content(_ row: LessonRow) -> some View {
+    let items = materials
+    return List {
+      infoSection
+      materialSection(items)
+      actionSection(row, hasMaterial: !items.isEmpty)
+    }
+    .navigationTitle(
+      Text(verbatim: "\(row.lesson.key.schoolClass.normalized) · \(row.lesson.key.subject.display)")
+    )
+    #if os(iOS)
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar { EditButton() }
+    #endif
+  }
+
+  private var infoSection: some View {
+    Section("lesson.info") {
+      TextField("lesson.topic", text: $editor.topic)
+        .onSubmit { editor.save() }
+      TextField("lesson.toPrepare", text: $editor.toPrepare)
+        .onSubmit { editor.save() }
+      TextField("lesson.homework", text: $editor.homework)
+        .onSubmit { editor.save() }
+    }
+  }
+
+  private func materialSection(_ items: [MaterialLinkItem]) -> some View {
+    Section("lesson.material") {
+      if items.isEmpty {
+        Text("lesson.noMaterial").foregroundStyle(.secondary)
+      }
+      ForEach(items) { item in
+        HStack {
+          Text(verbatim: item.reference.displayName)
+            .lineLimit(1)
+            .truncationMode(.middle)
+          if environment.storage.availability[item.reference.locationKey].isUnavailable {
+            Image(systemName: DayStatement.materialUnavailable.symbolName)
+              .accessibilityLabel(Text(LocalizedStringKey(DayStatement.materialUnavailable.labelKey)))
+          }
+          Spacer(minLength: 8)
+          Menu {
+            Button("lesson.moveToNext", systemImage: "arrow.right") { moveToNext(item) }
+            Button("lesson.remove", systemImage: "trash", role: .destructive) {
+              actions.remove(linkID: item.id)
+            }
+          } label: {
+            Image(systemName: "ellipsis.circle").frame(minWidth: 44, minHeight: 44)
+          }
+          .accessibilityLabel(Text("lesson.moreActions"))
+        }
+        .frame(minHeight: 44)
+      }
+      .onMove { offsets, destination in
+        actions.reorder(key, fromOffsets: offsets, toOffset: destination)
+      }
+      .onDelete { offsets in
+        for index in offsets where items.indices.contains(index) {
+          actions.remove(linkID: items[index].id)
+        }
+      }
+      Button("preparation.addMaterial", systemImage: "plus") { isImporting = true }
+        .frame(minHeight: 44)
+    }
+  }
+
+  private func actionSection(_ row: LessonRow, hasMaterial: Bool) -> some View {
+    Section {
+      Button("lesson.copyTo", systemImage: "doc.on.doc") { showCopyPicker = true }
+        .disabled(!hasMaterial)
+        .frame(minHeight: 44)
+      Button("lesson.passOn", systemImage: "arrow.right.circle") {
+        if actions.passOnAll(from: key) == nil { notice = .noNextLesson }
+        model.reload()
+      }
+      .disabled(!hasMaterial)
+      .frame(minHeight: 44)
+      Toggle("lesson.cancel", isOn: cancelBinding(row))
+        .frame(minHeight: 44)
+    }
+  }
+
+  // MARK: Aktionen
+
+  private func moveToNext(_ item: MaterialLinkItem) {
+    if actions.moveToNextLesson(linkID: item.id) == nil { notice = .noNextLesson }
+    model.reload()
+  }
+
+  /// Umschalter „Ausfall“. Ein Ausfall aus der Stundenplan-Quelle lässt sich nicht aufheben: Der
+  /// Schalter springt zurück (Neuzeichnen) und ein Hinweis sagt warum.
+  private func cancelBinding(_ row: LessonRow) -> Binding<Bool> {
+    Binding(
+      get: {
+        if case .cancelled = row.status { return true }
+        return false
+      },
+      set: { cancelled in
+        let result = actions.setCancelled(cancelled, key: key)
+        if result == .blockedBySource { notice = .blockedBySource }
+        model.reload()
+      })
+  }
+}

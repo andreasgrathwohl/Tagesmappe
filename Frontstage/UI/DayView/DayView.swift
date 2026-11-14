@@ -334,7 +334,7 @@ struct DayView: View {
 }
 
 /// Auswahl einer Unterrichtsstunde der nächsten 14 Tage für „Material ohne Stunde“ (FR-7).
-private struct AssignLessonSheet: View {
+struct AssignLessonSheet: View {
   let item: MaterialLinkItem
   let lessons: [Lesson]
   let onPick: (Lesson) -> Void

@@ -46,10 +46,7 @@ struct RootView: View {
         AppSection.preparation.titleKey, systemImage: AppSection.preparation.systemImage,
         value: AppSection.preparation
       ) {
-        scoped {
-          // Platzhalter bis Aufgabe 10 (Vorbereiten).
-          Text("app.section.preparation")
-        }
+        scoped { PreparationScreen() }
       }
       Tab(AppSection.setup.titleKey, systemImage: AppSection.setup.systemImage, value: AppSection.setup) {
         setup

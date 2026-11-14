@@ -1400,6 +1400,406 @@
           }
         }
       }
+    },
+    "preparation.previousWeek" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorherige Woche"
+          }
+        }
+      }
+    },
+    "preparation.thisWeek" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Woche"
+          }
+        }
+      }
+    },
+    "preparation.nextWeek" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nächste Woche"
+          }
+        }
+      }
+    },
+    "preparation.addMaterial" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material hinzufügen"
+          }
+        }
+      }
+    },
+    "preparation.grantFolder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner freigeben"
+          }
+        }
+      }
+    },
+    "preparation.substitute" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vertretungsstunde"
+          }
+        }
+      }
+    },
+    "preparation.ok" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "preparation.outsideGrants" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Datei liegt in keinem freigegebenen Ordner. Gib zuerst den Ordner frei, in dem sie liegt."
+          }
+        }
+      }
+    },
+    "preparation.saveFailed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Speichern ist fehlgeschlagen."
+          }
+        }
+      }
+    },
+    "preparation.noNextLesson" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Es gibt keine nächste Stunde dieser Klasse und dieses Fachs."
+          }
+        }
+      }
+    },
+    "preparation.blockedBySource" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser Ausfall stammt laut Stundenplan-Quelle und lässt sich hier nicht aufheben."
+          }
+        }
+      }
+    },
+    "preparation.copied %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Zuordnungen übernommen"
+          }
+        }
+      }
+    },
+    "preparation.selectLesson" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle eine Stunde"
+          }
+        }
+      }
+    },
+    "preparation.noLessons" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Unterricht"
+          }
+        }
+      }
+    },
+    "preparation.lessonMissing" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Stunde gibt es nicht mehr."
+          }
+        }
+      }
+    },
+    "preparation.materialCount %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Material"
+          }
+        }
+      }
+    },
+    "preparation.substitute.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vertretungsstunde anlegen"
+          }
+        }
+      }
+    },
+    "preparation.substitute.date" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datum"
+          }
+        }
+      }
+    },
+    "preparation.substitute.period" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stunde"
+          }
+        }
+      }
+    },
+    "preparation.substitute.class" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klasse"
+          }
+        }
+      }
+    },
+    "preparation.substitute.subject" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fach"
+          }
+        }
+      }
+    },
+    "preparation.substitute.add" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anlegen"
+          }
+        }
+      }
+    },
+    "preparation.substitute.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "lesson.info" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stundenangaben"
+          }
+        }
+      }
+    },
+    "lesson.topic" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thema"
+          }
+        }
+      }
+    },
+    "lesson.toPrepare" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bereitlegen"
+          }
+        }
+      }
+    },
+    "lesson.homework" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hausaufgabe"
+          }
+        }
+      }
+    },
+    "lesson.material" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material"
+          }
+        }
+      }
+    },
+    "lesson.noMaterial" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch kein Material"
+          }
+        }
+      }
+    },
+    "lesson.remove" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfernen"
+          }
+        }
+      }
+    },
+    "lesson.moreActions" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weitere Aktionen"
+          }
+        }
+      }
+    },
+    "lesson.copyTo" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Für andere Klasse übernehmen …"
+          }
+        }
+      }
+    },
+    "lesson.moveToNext" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In die nächste Stunde"
+          }
+        }
+      }
+    },
+    "lesson.passOn" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material weiterreichen"
+          }
+        }
+      }
+    },
+    "lesson.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ausfall"
+          }
+        }
+      }
+    },
+    "lesson.copy.class" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klasse wählen"
+          }
+        }
+      }
+    },
+    "lesson.copy.lesson" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stunde wählen"
+          }
+        }
+      }
+    },
+    "lesson.copy.noClasses" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine andere Klasse im Stundenplan."
+          }
+        }
+      }
+    },
+    "lesson.copy.empty" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Unterrichtsstunde in den nächsten 28 Tagen."
+          }
+        }
+      }
+    },
+    "lesson.copy.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
