@@ -3,7 +3,8 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 /// Einzelheiten einer Stunde (FR-3, FR-7, FR-8, FR-13): Material ordnen, übernehmen, weiterreichen,
-/// Ausfall, Stundenangaben. Teilplan 07 ergänzt hier „Tafelbilder dieser Stunde“.
+/// Ausfall, Stundenangaben. Teilplan 07 ergänzt „Tafel“: die Tafelbilder der Stunde ansehen und als PDF sichern
+/// (FR-12.1, FR-12.4; bezahlt, daher hinter `PaidGate(.board)` wie in der Tagesansicht).
 ///
 /// Das Material steht in einem `List`; `onMove` ordnet am Mac durch Ziehen, am iPad im Bearbeiten-Modus.
 /// Systemstandard ohne eigene Palette oder Schrift; Gestaltung ist offen (DESIGN.md).
@@ -22,6 +23,8 @@ struct LessonDetailView: View {
   @State private var isImporting = false
   @State private var showCopyPicker = false
   @State private var notice: PreparationNotice?
+  /// Stunde, deren Tafel gerade offen ist (Teilplan 07).
+  @State private var boardTarget: BoardTarget?
 
   init(key: LessonKey, model: PreparationViewModel) {
     self.key = key
@@ -50,6 +53,9 @@ struct LessonDetailView: View {
     Group {
       if let row = lessonRow {
         content(row)
+          // An der inneren Ansicht, nicht neben dem Sheet „Kopieren nach“: zwei Präsentationen am selben Knoten
+          // stören sich (wie in der Tagesansicht).
+          .boardPresentation($boardTarget)
       } else {
         ContentUnavailableView("preparation.lessonMissing", systemImage: "questionmark.folder")
       }
@@ -183,6 +189,9 @@ struct LessonDetailView: View {
       .disabled(!hasMaterial)
       .frame(minHeight: 44)
       Toggle("lesson.cancel", isOn: cancelBinding(row))
+        .frame(minHeight: 44)
+      // Tafelbilder der Stunde ansehen und als PDF sichern; der Export sitzt in `BoardScreen` (Aufgabe 10).
+      Button("board.title", systemImage: "pencil.and.scribble") { boardTarget = BoardTarget(key: key) }
         .frame(minHeight: 44)
     }
   }

@@ -24,6 +24,23 @@ import Testing
     #expect(s.workMode == nil)
   }
 
+  @Test("Arbeitsform bleibt, wenn sie vor dem ersten Melden der Stunde gewählt wurde (FR-11.3)")
+  func workModeChosenBeforeReportSurvives() {
+    let s = LessonSessionState(signal: nil)
+    s.lessonDidChange(to: a)
+    // Stundenwechsel, während Material am Zweitbildschirm steht: die neue Stunde wurde noch nicht gemeldet.
+    s.selectWorkMode(.pairs, for: b)
+    s.lessonDidChange(to: b)
+    #expect(s.workMode == .pairs)
+    #expect(s.lessonKey == b)
+  }
+
+  @Test("Zuletzt verwendete Timerdauer ist geteilt, Vorgabe 5 Minuten (FR-11.2)")
+  func timerMinutesDefault() {
+    let s = LessonSessionState(signal: nil)
+    #expect(s.timerMinutes == 5)
+  }
+
   @Test("Laufender Timer überdauert den Stundenwechsel (FR-11.2)")
   func timerSurvivesLessonChange() {
     let s = LessonSessionState(signal: nil)

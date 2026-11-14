@@ -113,7 +113,9 @@ public struct PhaseTimer: Hashable, Sendable {                                  
   public static func format(_ remaining: TimeInterval) -> String   // „m:ss“, aufgerundet auf volle Sekunden
 }
 
-public enum BoardHistory { public static func previousLessonKey(before key: LessonKey, among keysWithPages: [LessonKey]) -> LessonKey? }   // FR-12.3
+public enum BoardHistory { public static func previousLessonKey(before key: LessonKey, among keysWithPages: [LessonKey]) -> LessonKey?
+  public static func pageHasContent(background: BoardBackground, hasDrawing: Bool) -> Bool }   // FR-12.3; Inhalt = Striche oder Bild-Hintergrund
+extension ClassScreenPhase { public var runningLessonKey: LessonKey? }   // nur .inLesson/.finalMinutes; FR-11.3
 public struct BoardCover: Hashable, Sendable {                                                               // FR-12.7
   public enum Audience: Sendable { case tablet, secondScreen }
   public private(set) var revealedFraction: Double              // 0 = ganz verdeckt, 1 = ganz frei; Abdeckung von oben nach unten aufgezogen
@@ -129,8 +131,8 @@ public enum UnlockRules { public static func grantsUnlock(productID: String, isV
 ```swift
 // Purchase/
 @MainActor @Observable final class Unlock { static let productID = "frontstage.classroom"; private(set) var isUnlocked: Bool; init(listenForUpdates: Bool = true); func refresh() async; func handle(_ result: VerificationResult<Transaction>) async; func restore() async throws }
-enum PaidFeature: Sendable { case classScreen, timer, workMode, board }   // FR-13: nur diese vier
-struct PaidGate<Content: View>: View { init(_ feature: PaidFeature, @ViewBuilder content: () -> Content) }
+enum PaidFeature: Hashable { case classScreen, timer, workMode, board }   // FR-13: nur diese vier
+struct PaidGate<Content: View>: View { init(feature: PaidFeature, @ViewBuilder content: @escaping () -> Content) }   // memberweiser Init
 struct PurchaseOfferView: View
 /// Reine Regel: was ClassScreenView/BoardView am Zweitbildschirm zeigen (06-Dateien bleiben unberührt).
 enum SecondScreenRendering: Hashable { case classScreen, neutral, material, board, dark; static func resolve(_ content: SecondScreenContent, isUnlocked: Bool) -> SecondScreenRendering }
@@ -142,21 +144,24 @@ enum SecondScreenRendering: Hashable { case classScreen, neutral, material, boar
   private(set) var store: DataStore?; private(set) var board: BoardSession?
   func bind(store: DataStore) }   // gleicher Store → nichts; anderer → BoardSession neu, offene Tafel geschlossen
 // ClassScreen/
-@MainActor @Observable final class LessonSessionState { init(signal: TimerSignalPlayer?); var timer: PhaseTimer; var workMode: WorkMode?; private(set) var lessonKey: LessonKey?; func lessonDidChange(to key: LessonKey?); func startTimer(minutes: Int, now: Date); func pauseTimer(now: Date); func resumeTimer(now: Date); func stopTimer() }
+@MainActor @Observable final class LessonSessionState { init(signal: TimerSignalPlayer?); var timer: PhaseTimer; var timerMinutes: Int /* zuletzt verwendet, Vorgabe 5 */; var workMode: WorkMode?; private(set) var lessonKey: LessonKey?; func lessonDidChange(to key: LessonKey?); func selectWorkMode(_ mode: WorkMode?, for key: LessonKey?); func startTimer(minutes: Int, now: Date); func pauseTimer(now: Date); func resumeTimer(now: Date); func stopTimer() }
 struct ClassScreenContentView: View { init(display: ClassScreenDisplay, now: Date) }   // reine Darstellung
 struct ClassScreenView: View { init() }        // Einhängepunkt aus 06: holt Daten, ohne Kauf neutrale Fläche
 struct ClassScreenOverlay: View { init() }     // Einhängepunkt aus 06: Timer-Schicht (PhaseTimerOverlay)
-struct ClassroomControls: View { init() }      // Einhängepunkt aus 06: Timer, Arbeitsform in der SmartboardBar
+struct ClassroomControls: View { init() }      // Einhängepunkt aus 06: Timer, Arbeitsform in der SmartboardBar; meldet die laufende Stunde im Minutentakt
+@MainActor enum RunningLesson { static func key(in store: DataStore, at date: Date, calendar: Calendar = .current) -> LessonKey? }   // unabhängig vom Inhalt des Zweitbildschirms
 struct PhaseTimerOverlay: View
 @MainActor final class TimerSignalPlayer { func play() }
 // Board/
 @MainActor struct BoardStore { init(store: DataStore); … }             // Aufgabe 8, dünn über DataStore (02)
 struct BoardView: View { init() }                                      // Einhängepunkt aus 06: Tafel am Zweitbildschirm
 @MainActor @Observable final class BoardSession { … }                   // Aufgabe 9
+struct PaidBoardCover: View { init(lessonKey: LessonKey) }             // Tafel in PaidGate(.board); Tagesansicht und LessonDetailView
+struct BoardTarget: Identifiable { let key: LessonKey }; extension View { func boardPresentation(_ target: Binding<BoardTarget?>) -> some View }   // iOS Vollbild, macOS Sheet
 enum BoardGeometry { static let canvasSize = CGSize(width: 1600, height: 900); static let lineSpacing: CGFloat = 60; static let gridSpacing: CGFloat = 50 }
 struct BoardPageSnapshot: Equatable, Sendable { var background: BoardBackground; var backgroundImageData: Data?; var drawingData: Data? }
 enum BoardPageRenderer { static func draw(_ page: BoardPageSnapshot, in context: CGContext, size: CGSize) }
-enum BoardPDFExporter { static let pageSize = CGSize(width: 842, height: 473.625); static func makePDF(pages: [BoardPageSnapshot]) throws -> Data }
+enum BoardPDFExporter { static let pageSize = CGSize(width: 960, height: 540); static func makePDF(pages: [BoardPageSnapshot]) throws -> Data }   // 16:9 ohne gebrochene mediaBox (Annahme 1)
 enum TemplateRenderer { static let outputPixelSize = (width: 2400, height: 1350); static func renderPDFPage(at url: URL, pageIndex: Int, crop: CGRect?) throws -> Data; static func renderImage(at url: URL, crop: CGRect?) throws -> Data }
 @MainActor @Observable final class CameraFeed { private(set) var latestFrame: CGImage?; private(set) var availability: CameraAvailability; func start() async; func stop(); func stillJPEG() throws -> Data }   // nur iOS
 ```
@@ -900,7 +905,7 @@ Nicht in diesem Teilplan: FR-11.5 und FR-11.6 (AK-29, AK-35) – Teilplan 06; FR
 
 ## Annahmen, die ein Mensch bestätigen sollte
 
-1. Logische Tafelseite 16:9 (`1600 × 900`), PDF-Seite `842 × 473,6` pt (Breite A4 quer).
+1. Logische Tafelseite 16:9 (`1600 × 900`), PDF-Seite `960 × 540` pt (16:9 mit ganzzahliger mediaBox; ursprünglich geplant `842 × 473,6` pt = Breite A4 quer, beim Bau geändert, 2026-11-14 in den Plan übernommen).
 2. ~~Ohne Kauf sind auch Thema/Bereitlegen/Hausaufgabe und „Dunkel“ gesperrt~~ → Nutzerentscheidung 2026-11-13: beides kostenlos; zum Kauf gehören nur Klassenbildschirm am Zweitbildschirm, Timer, Arbeitsform und Tafel.
 3. Arbeitsform wird beim Wechsel der Unterrichtsstunde zurückgesetzt, ein laufender Timer nicht.
 4. Vorlagen nur aus PDF und Bild; Word/PowerPoint-Seiten erst als PDF (das Mockup zeigt „Arbeitsblatt Vokabeln – Word“).

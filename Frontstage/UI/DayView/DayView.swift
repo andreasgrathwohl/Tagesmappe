@@ -39,33 +39,6 @@ private struct ViewerTarget: Identifiable {
   let id: UUID
 }
 
-/// Ziel für die Tafel: die Stunde, deren Tafel geöffnet wird.
-private struct BoardTarget: Identifiable {
-  let key: LessonKey
-  var id: String { key.storageText }
-}
-
-/// Tafel hinter der Kaufschranke (FR-13). Ohne Kauf zeigt sie das Angebot samt „Fertig“, sonst gäbe es im
-/// Vollbild keinen Weg zurück; mit Kauf bringt `BoardScreen` sein eigenes „Fertig“ mit.
-private struct PaidBoardCover: View {
-  let lessonKey: LessonKey
-  @Environment(Unlock.self) private var unlock
-  @Environment(\.dismiss) private var dismiss
-
-  var body: some View {
-    PaidGate(feature: .board) {
-      BoardScreen(lessonKey: lessonKey)
-    }
-    .overlay(alignment: .topTrailing) {
-      if !unlock.isUnlocked {
-        Button("board.done") { dismiss() }
-          .frame(minWidth: 44, minHeight: 44)
-          .padding()
-      }
-    }
-  }
-}
-
 /// Angebot nach „Neu verknüpfen“: Stiftnotizen vom alten Ort mitnehmen (ADR-0011).
 private struct CarryOffer {
   let old: MaterialReference
@@ -129,13 +102,7 @@ struct DayView: View {
       }
       // Die Tafel hängt an der inneren Ansicht, nicht am `NavigationStack`: dort sitzt schon die Anzeige des
       // Betrachters, und zwei Präsentationen am selben Knoten stören sich.
-      #if os(iOS)
-        .fullScreenCover(item: $boardTarget) { target in PaidBoardCover(lessonKey: target.key) }
-      #else
-        .sheet(item: $boardTarget) { target in
-          PaidBoardCover(lessonKey: target.key).frame(minWidth: 900, minHeight: 620)
-        }
-      #endif
+      .boardPresentation($boardTarget)
       .navigationTitle(Text(dayTitle))
       .toolbar { toolbar }
       // Smartboard-Leiste unter den Zeilen (Teilplan 06); die Zeilenhöhe folgt dem verbleibenden Platz.

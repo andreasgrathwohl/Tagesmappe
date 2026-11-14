@@ -17,6 +17,8 @@ import StoreKit
 
   /// `@ObservationIgnored`: reiner Halter, soll keine Ansicht neu zeichnen.
   @ObservationIgnored private var updatesTask: Task<Void, Never>?
+  /// Zählt die gestarteten `refresh()`-Läufe; nur der zuletzt gestartete darf `isUnlocked` setzen.
+  @ObservationIgnored private var refreshGeneration = 0
 
   /// `listenForUpdates`: auf `Transaction.updates` hören (Erstattung, Kauf auf anderem Gerät, ausstehende
   /// Käufe). Tests schalten es aus, damit sie nur ihre eigene Sitzung sehen.
@@ -32,7 +34,12 @@ import StoreKit
   }
 
   /// Liest die aktuellen Berechtigungen neu: frei, sobald irgendeine Transaktion die Regeln erfüllt.
+  ///
+  /// Laufen zwei Abfragen überlappend (die erste aus `init`, eine zweite nach einem Kauf), gewinnt die zuletzt
+  /// gestartete; eine ältere, langsamere überschreibt ein frisches `true` sonst mit einem veralteten `false`.
   func refresh() async {
+    refreshGeneration += 1
+    let generation = refreshGeneration
     var granted = false
     for await result in Transaction.currentEntitlements {
       switch result {
@@ -42,6 +49,7 @@ import StoreKit
         if Self.grants(transaction, isVerified: false) { granted = true }
       }
     }
+    guard generation == refreshGeneration else { return }
     isUnlocked = granted
   }
 

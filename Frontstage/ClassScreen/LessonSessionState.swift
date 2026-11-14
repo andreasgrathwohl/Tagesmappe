@@ -9,6 +9,8 @@ import Observation
 /// Unterrichtsstunde, für die sie gewählt wurde.
 @MainActor @Observable final class LessonSessionState {
   var timer = PhaseTimer()
+  /// Zuletzt verwendete Dauer des Timers in Minuten (Vorgabe 5); flüchtig, gilt für alle Smartboard-Leisten.
+  var timerMinutes = 5
   var workMode: WorkMode?
   /// Die Unterrichtsstunde, für die `workMode` gilt; `nil`, solange keine läuft.
   private(set) var lessonKey: LessonKey?
@@ -27,6 +29,13 @@ import Observation
     guard key != lessonKey else { return }
     lessonKey = key
     workMode = nil
+  }
+
+  /// Wählt die Arbeitsform für die laufende Stunde `key`. Meldet die Stunde vorher, damit eine Wahl nicht an einer
+  /// veralteten Stunde hängt und beim nächsten Melden verworfen wird.
+  func selectWorkMode(_ mode: WorkMode?, for key: LessonKey?) {
+    lessonDidChange(to: key)
+    workMode = mode
   }
 
   func startTimer(minutes: Int, now: Date) {

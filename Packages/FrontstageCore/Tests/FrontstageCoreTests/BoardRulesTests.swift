@@ -32,6 +32,16 @@ struct BoardRulesTests {
     #expect(BoardHistory.previousLessonKey(before: key(18, "8b"), among: keys) == nil)
   }
 
+  @Test("AK-33: nur geöffnet, nicht beschrieben, zählt nicht als Tafelbild")
+  func pageContentNeedsDrawingOrImage() {
+    #expect(!BoardHistory.pageHasContent(background: .blank, hasDrawing: false))
+    #expect(!BoardHistory.pageHasContent(background: .grid, hasDrawing: false))
+    #expect(!BoardHistory.pageHasContent(background: .lined, hasDrawing: false))
+    #expect(BoardHistory.pageHasContent(background: .blank, hasDrawing: true))
+    // Vorlage oder Standbild der Kamera ist Inhalt, auch ohne Striche.
+    #expect(BoardHistory.pageHasContent(background: .image, hasDrawing: false))
+  }
+
   @Test("AK-39: Abdeckung von oben aufziehen, auf 0…1 begrenzt")
   func coverRevealsFromTop() {
     var cover = BoardCover()

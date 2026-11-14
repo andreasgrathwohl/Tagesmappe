@@ -214,14 +214,18 @@ struct BoardScreen: View {
           Label("board.sharePDF", systemImage: "square.and.arrow.up")
             .frame(minHeight: 44)
         }
-        // Abdecken: setzt eine ganz deckende Abdeckung, erneutes Tippen hebt sie auf (FR-12.7).
-        Button(
-          session.cover == nil ? LocalizedStringKey("board.cover") : LocalizedStringKey("board.uncover"),
-          systemImage: session.cover == nil ? "rectangle.fill.on.rectangle.fill" : "rectangle.dashed"
-        ) {
-          session.cover = session.cover == nil ? BoardCover() : nil
+        // Abdecken: setzt eine ganz deckende Abdeckung, erneutes Tippen hebt sie auf (FR-12.7). Angeboten nur, wo sich
+        // die Abdeckung auch schrittweise aufziehen lässt (eigene Tafel am iPad, `BoardCoverHandle`); eine bestehende
+        // Abdeckung lässt sich immer entfernen.
+        if canDraw(in: session) || session.cover != nil {
+          Button(
+            session.cover == nil ? LocalizedStringKey("board.cover") : LocalizedStringKey("board.uncover"),
+            systemImage: session.cover == nil ? "rectangle.fill.on.rectangle.fill" : "rectangle.dashed"
+          ) {
+            session.cover = session.cover == nil ? BoardCover() : nil
+          }
+          .frame(minHeight: 44)
         }
-        .frame(minHeight: 44)
         if case .own = session.mode {
           Button("board.previous", systemImage: "clock.arrow.circlepath") { showPrevious(session) }
             .frame(minHeight: 44)

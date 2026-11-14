@@ -23,9 +23,12 @@ import Observation
   }
 
   /// Bindet die Tafel an den aktuellen `DataStore`. Gleicher Store: nichts. Anderer Store (Wechsel des
-  /// Datenorts): neue `BoardSession`, und eine offene Tafel des alten Datenorts wird geschlossen.
+  /// Datenorts): neue `BoardSession`, und eine offene Tafel des alten Datenorts wird geschlossen – vorher gespeichert,
+  /// damit Striche aus der Speicherverzögerung (1 s) in den alten Datenort gelangen, dem sie gehören.
   func bind(store newStore: DataStore) {
     guard store !== newStore else { return }
+    // Scheitert das Speichern, ist der alte Datenort ohnehin nicht mehr erreichbar; die Tafel wird trotzdem ersetzt.
+    try? board?.close()
     SecondScreenState.shared.setBoardLesson(nil)
     board = BoardSession(store: BoardStore(store: newStore), secondScreen: .shared)
     store = newStore

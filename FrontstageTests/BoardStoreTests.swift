@@ -61,15 +61,22 @@ import Testing
     #expect(loaded.drawingData == Data([9]))
   }
 
-  @Test("AK-33: letztes Tafelbild über gespeicherte Seiten")
+  @Test("AK-33: letztes Tafelbild über gespeicherte Seiten mit Inhalt")
   func previousKeyFromStoredPages() throws {
     let store = BoardStore(store: try dataStore(tempURL()))
     let tue8a6 = LessonKey(date: tue17, schoolClass: SchoolClass("8a"), subject: Subject("Englisch"), ordinal: 6)
     let wed8b = LessonKey(date: wed18, schoolClass: SchoolClass("8b"), subject: Subject("Englisch"), ordinal: 1)
-    try store.addPage(for: tue8b, background: .blank)
-    try store.addPage(for: tue8a6, background: .blank)
+    let thu8b = LessonKey(date: thu19, schoolClass: SchoolClass("8b"), subject: Subject("Englisch"), ordinal: 1)
+    try store.saveDrawing(Data([1]), to: try store.addPage(for: tue8b, background: .blank))
+    try store.saveDrawing(Data([2]), to: try store.addPage(for: tue8a6, background: .blank))
     #expect(try store.previousBoardDrawingKey(before: wed8b) == tue8b)
     #expect(try store.previousBoardDrawingKey(before: tue8b) == nil)
+    // Mittwoch nur geöffnet (leere Seite ohne Striche): Donnerstag findet weiter Dienstag.
+    try store.addPage(for: wed8b, background: .grid)
+    #expect(try store.previousBoardDrawingKey(before: thu8b) == tue8b)
+    // Ein Bild als Hintergrund (Vorlage, Standbild) ist Inhalt, auch ohne Striche.
+    try store.addPage(for: wed8b, background: .image, backgroundImageData: Data([7]))
+    #expect(try store.previousBoardDrawingKey(before: thu8b) == wed8b)
   }
 
   @Test("Gleiche Position von zwei Geräten: Reihenfolge nach Anlagezeit")

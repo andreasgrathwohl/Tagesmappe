@@ -40,7 +40,7 @@ struct ClassScreenContentView: View {
     }
     .padding(48)
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-    .background(SystemBackground())
+    .background(SystemBackground.color)
   }
 
   /// Klasse und Fach; fehlt eines, entsteht keine leere Lücke.

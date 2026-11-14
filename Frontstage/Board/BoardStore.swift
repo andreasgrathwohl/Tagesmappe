@@ -36,8 +36,19 @@ import FrontstageCore
     try store.deleteBoardDrawing(for: key)
   }
 
-  /// FR-12.3: Schlüssel der letzten früheren Stunde derselben Klasse und desselben Fachs mit Tafelseiten.
+  /// FR-12.3: Schlüssel der letzten früheren Stunde derselben Klasse und desselben Fachs mit Tafelseiten **mit Inhalt**
+  /// (`BoardHistory.pageHasContent`). Eine nur geöffnete Tafel ohne Striche – `BoardSession.open` legt Seite 1 sofort
+  /// an – verdeckt sonst das echte letzte Tafelbild. Geprüft wird von der neuesten Kandidatin rückwärts, bis eine
+  /// Stunde Inhalt hat; meist ist das die erste.
   func previousBoardDrawingKey(before key: LessonKey) throws -> LessonKey? {
-    BoardHistory.previousLessonKey(before: key, among: Array(try store.lessonKeysWithBoardPages()))
+    var candidates = Array(try store.lessonKeysWithBoardPages())
+    while let candidate = BoardHistory.previousLessonKey(before: key, among: candidates) {
+      let hasContent = try pages(for: candidate).contains {
+        BoardHistory.pageHasContent(background: $0.background, hasDrawing: $0.drawingData != nil)
+      }
+      if hasContent { return candidate }
+      candidates.removeAll { $0 == candidate }
+    }
+    return nil
   }
 }

@@ -21,20 +21,24 @@ struct ClassScreenView: View {
   }
 }
 
-/// Merkt sich die Stunden des Tages, solange Tag, Minute und `revision` gleich bleiben (AK-25).
+/// Merkt sich die Stunden des Tages, solange Store, Tag, Minute und `revision` gleich bleiben (AK-25).
+/// Der Store gehört zum Schlüssel: Nach einem Wechsel des Datenorts kann `revision` zufällig gleich sein.
 ///
 /// Swift-Hinweis: Eine Klasse ohne `@Observable` darf im `body` Werte ablegen, ohne einen neuen
 /// Zeichendurchlauf auszulösen; bei einem `@State`-Wert wäre das verboten (Zustand ändern während des
 /// Zeichnens).
 @MainActor private final class LessonsCache {
   private var key: [Int]?
+  private var storeID: ObjectIdentifier?
   private var lessons: [Lesson] = []
 
   func lessons(store: DataStore, day: CalendarDay, minute: Int) -> [Lesson] {
     let current = [day.year, day.month, day.day, minute, store.revision]
-    if key != current {
+    let currentStore = ObjectIdentifier(store)
+    if key != current || storeID != currentStore {
       lessons = (try? store.lessons(on: day)) ?? []
       key = current
+      storeID = currentStore
     }
     return lessons
   }
@@ -59,8 +63,9 @@ private struct ClassScreenLiveView: View {
     let phase = ClassScreenCalculator.phase(now: time, lessons: lessons)
     let lesson = Self.lesson(in: phase)
     let info = lesson.flatMap { try? store.lessonInfo(for: $0.key) }
-    // Die Arbeitsform gilt nur für die Stunde, für die sie gewählt wurde.
-    let reportedKey = Self.isRunning(phase) ? lesson?.key : nil
+    // Die Arbeitsform gilt nur für die Stunde, für die sie gewählt wurde. Gemeldet wird die Stunde auch von
+    // `ClassroomControls` (Minutentakt), damit das nicht davon abhängt, was der Zweitbildschirm zeigt.
+    let reportedKey = phase.runningLessonKey
     let workMode = reportedKey != nil && session.lessonKey == reportedKey ? session.workMode : nil
     let display = ClassScreenDisplayBuilder.display(phase: phase, info: info, workMode: workMode)
     return ClassScreenContentView(display: display, now: date)
@@ -76,22 +81,25 @@ private struct ClassScreenLiveView: View {
     case .noMoreLessons: nil
     }
   }
-
-  private static func isRunning(_ phase: ClassScreenPhase) -> Bool {
-    switch phase {
-    case .inLesson, .finalMinutes: true
-    default: false
-    }
-  }
 }
 
 /// Neutrale Fläche in der Hintergrundfarbe des Systems (iOS und macOS).
+///
+/// Swift-Hinweis: Eine `Color` ist für VoiceOver unsichtbar; `.accessibilityElement()` macht sie zu einem Element,
+/// damit die Fläche als „Kein Inhalt“ angesagt wird statt gar nicht.
 struct SystemBackground: View {
   var body: some View {
+    Self.color
+      .accessibilityElement()
+      .accessibilityLabel(Text("secondScreen.neutral.accessibility"))
+  }
+
+  /// Nur die Farbe, ohne Ansage – als Hintergrund hinter echtem Inhalt.
+  static var color: Color {
     #if os(iOS)
-      Color(uiColor: .systemBackground)
+      return Color(uiColor: .systemBackground)
     #else
-      Color(nsColor: .windowBackgroundColor)
+      return Color(nsColor: .windowBackgroundColor)
     #endif
   }
 }

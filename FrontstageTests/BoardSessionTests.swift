@@ -22,7 +22,9 @@ import Testing
   func previousBoardDrawingIsReadOnly() throws {
     let (session, _) = try makeSession()
     try session.open(tue8b)
+    session.drawingChanged(PKDrawing())
     try session.open(tue8a)
+    session.drawingChanged(PKDrawing())
     try session.open(wed8b)
     try session.showPreviousBoardDrawing()
     #expect(session.mode == .previous(own: wed8b, shown: tue8b))
@@ -31,6 +33,19 @@ import Testing
     #expect(throws: BoardSessionError.readOnly) { try session.deleteBoardDrawing() }
     try session.returnToOwnBoard()
     #expect(session.mode == .own(wed8b))
+  }
+
+  @Test("AK-33: eine nur geöffnete Tafel verdeckt das echte letzte Tafelbild nicht")
+  func openedButEmptyBoardIsSkipped() throws {
+    let (session, _) = try makeSession()
+    let thu8b = LessonKey(date: thu19, schoolClass: SchoolClass("8b"), subject: Subject("Englisch"), ordinal: 1)
+    try session.open(tue8b)
+    session.drawingChanged(PKDrawing())
+    // Mittwoch nur angesehen, nichts gezeichnet: Seite 1 entsteht trotzdem.
+    try session.open(wed8b)
+    try session.open(thu8b)
+    try session.showPreviousBoardDrawing()
+    #expect(session.mode == .previous(own: thu8b, shown: tue8b))
   }
 
   @Test("AK-33: ohne frühere Stunde derselben Klasse und desselben Fachs ein Fehler")
