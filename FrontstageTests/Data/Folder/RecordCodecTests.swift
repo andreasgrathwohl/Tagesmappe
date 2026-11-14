@@ -22,7 +22,11 @@ import Testing
     timetable.validToText = "2027-07-31"
     timetable.sourceFetchedAt = later
     timetable.setBellSchedule(
-      BellSchedule(periods: [1: TimeOfDay(hour: 8, minute: 0)...TimeOfDay(hour: 8, minute: 45)]))
+      BellSchedule(periods: [
+        1: TimeOfDay(hour: 8, minute: 0)...TimeOfDay(hour: 8, minute: 45),
+        2: TimeOfDay(hour: 8, minute: 50)...TimeOfDay(hour: 9, minute: 35),
+        3: TimeOfDay(hour: 9, minute: 50)...TimeOfDay(hour: 10, minute: 35),
+      ]))
     context.insert(timetable)
 
     let entry = TimetableEntryRecord(
