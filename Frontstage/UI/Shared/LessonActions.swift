@@ -182,3 +182,66 @@ extension LessonActions {
     }
   }
 }
+
+// MARK: - Ausfall und Vertretungsstunde (FR-8, FR-9)
+
+/// Ergebnis von `LessonActions.setCancelled`.
+enum CancellationResult: Equatable {
+  /// Die Abweichung wurde angelegt bzw. aufgehoben.
+  case changed
+  /// Es war nichts zu tun (schon markiert bzw. kein Ausfall vorhanden) oder ein Fehler trat auf.
+  case unchanged
+  /// Der Ausfall stammt aus der Stundenplan-Quelle und lässt sich nicht von Hand aufheben.
+  case blockedBySource
+}
+
+extension LessonActions {
+  /// Markiert eine Stunde als ausgefallen bzw. hebt die Markierung auf. Ein Ausfall aus der Quelle
+  /// (`Origin.source`) bleibt unberührt; `DataStore.removeCancellation` hebt nur `.manual` auf.
+  func setCancelled(_ cancelled: Bool, key: LessonKey) -> CancellationResult {
+    do {
+      let existing = try store.scheduleChanges().compactMap { change -> Origin? in
+        if case .cancellation(let k, let origin) = change, k == key { return origin }
+        return nil
+      }
+      if cancelled {
+        if !existing.isEmpty { return .unchanged }
+        try store.markCancelled(key)
+        return .changed
+      }
+      if existing.isEmpty { return .unchanged }
+      if try store.removeCancellation(key) { return .changed }
+      return .blockedBySource
+    } catch {
+      Self.logger.error("Ausfall ändern gescheitert: \(String(describing: error), privacy: .public)")
+      return .unchanged
+    }
+  }
+
+  /// FR-9: legt eine Vertretungsstunde von Hand an (Herkunft `.manual`).
+  func addSubstituteLesson(
+    date: CalendarDay, period: Int, schoolClass: SchoolClass, subject: Subject
+  ) {
+    do {
+      try store.addSubstituteLesson(
+        date: date, period: period, schoolClass: schoolClass, subject: subject)
+    } catch {
+      Self.logger.error("Vertretung anlegen gescheitert: \(String(describing: error), privacy: .public)")
+    }
+  }
+
+  /// Entfernt eine von Hand angelegte Vertretungsstunde; `false` bei Herkunft `.source`, wenn keine
+  /// besteht oder bei einem Fehler.
+  @discardableResult
+  func removeSubstituteLesson(
+    date: CalendarDay, period: Int, schoolClass: SchoolClass, subject: Subject
+  ) -> Bool {
+    do {
+      return try store.removeSubstituteLesson(
+        date: date, period: period, schoolClass: schoolClass, subject: subject)
+    } catch {
+      Self.logger.error("Vertretung entfernen gescheitert: \(String(describing: error), privacy: .public)")
+      return false
+    }
+  }
+}
