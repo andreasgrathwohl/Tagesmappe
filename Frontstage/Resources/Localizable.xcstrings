@@ -2638,6 +2638,166 @@
         }
       }
     },
+    "setup.schoolYears.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schuljahre"
+          }
+        }
+      }
+    },
+    "setup.schoolYears.add" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schuljahr hinzufügen"
+          }
+        }
+      }
+    },
+    "setup.schoolYears.firstDay" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erster Schultag"
+          }
+        }
+      }
+    },
+    "setup.schoolYears.secondTerm" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beginn 2. Halbjahr"
+          }
+        }
+      }
+    },
+    "setup.schoolYears.lastDay" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letzter Schultag"
+          }
+        }
+      }
+    },
+    "setup.schoolYears.holidaysHint" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ferien und Feiertage kommen aus den unterrichtsfreien Zeiträumen."
+          }
+        }
+      }
+    },
+    "setup.schoolYears.grades" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jahrgang von Hand"
+          }
+        }
+      }
+    },
+    "setup.schoolYears.grade.none" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "keiner"
+          }
+        }
+      }
+    },
+    "setup.schoolYears.error.order" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der letzte Schultag liegt vor dem ersten."
+          }
+        }
+      }
+    },
+    "setup.schoolYears.error.secondTerm" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das 2. Halbjahr muss im Schuljahr beginnen."
+          }
+        }
+      }
+    },
+    "setup.schoolYears.error.overlap %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Überschneidet sich mit dem Schuljahr %@."
+          }
+        }
+      }
+    },
+    "setup.schoolYears.error.save" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Schuljahr konnte nicht gespeichert werden."
+          }
+        }
+      }
+    },
+    "setup.schoolYears.removeHint" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jahrespläne dieses Schuljahrs bleiben erhalten."
+          }
+        }
+      }
+    },
+    "setup.schoolYears.remove" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfernen"
+          }
+        }
+      }
+    },
+    "setup.schoolYears.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "setup.schoolYears.save" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speichern"
+          }
+        }
+      }
+    },
     "setup.nonTeaching.title" : {
       "localizations" : {
         "de" : {
@@ -3584,6 +3744,536 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keine Tafel verfügbar"
+          }
+        }
+      }
+    },
+    "app.section.coursePlan" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jahresplan"
+          }
+        }
+      }
+    },
+    "coursePlan.new" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neuer Jahresplan"
+          }
+        }
+      }
+    },
+    "coursePlan.noSchoolYear" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch kein Schuljahr eingerichtet."
+          }
+        }
+      }
+    },
+    "coursePlan.setupSchoolYear" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schuljahr einrichten"
+          }
+        }
+      }
+    },
+    "coursePlan.title %@ %lld %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · Jahrgang %2$lld · %3$@"
+          }
+        }
+      }
+    },
+    "coursePlan.row %@ %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · Jahrgang %2$lld"
+          }
+        }
+      }
+    },
+    "coursePlan.followedBy %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "gilt für %@"
+          }
+        }
+      }
+    },
+    "coursePlan.notes" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notiz zum Jahresplan"
+          }
+        }
+      }
+    },
+    "coursePlan.term.first" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Halbjahr"
+          }
+        }
+      }
+    },
+    "coursePlan.term.second" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2. Halbjahr"
+          }
+        }
+      }
+    },
+    "coursePlan.unassigned" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "nicht zugeordnet"
+          }
+        }
+      }
+    },
+    "coursePlan.assign" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zuweisen"
+          }
+        }
+      }
+    },
+    "coursePlan.week %lld %lld %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Woche %1$lld · KW %2$lld · %3$@"
+          }
+        }
+      }
+    },
+    "coursePlan.topic" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Thema"
+          }
+        }
+      }
+    },
+    "coursePlan.weekNotes" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notizen"
+          }
+        }
+      }
+    },
+    "coursePlan.assessments" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leistungsnachweise"
+          }
+        }
+      }
+    },
+    "coursePlan.assessment.add" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leistungsnachweis hinzufügen"
+          }
+        }
+      }
+    },
+    "coursePlan.assessment.remove" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfernen"
+          }
+        }
+      }
+    },
+    "coursePlan.assessment.kind" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Art"
+          }
+        }
+      }
+    },
+    "coursePlan.assessment.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Titel"
+          }
+        }
+      }
+    },
+    "coursePlan.assessment.day" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tag"
+          }
+        }
+      }
+    },
+    "assessment.kind.test" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Test"
+          }
+        }
+      }
+    },
+    "assessment.kind.classTest" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klassenarbeit"
+          }
+        }
+      }
+    },
+    "coursePlan.assessment.needsWeek" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leistungsnachweise lassen sich erst eintragen, wenn die Woche einer Unterrichtswoche zugeordnet ist."
+          }
+        }
+      }
+    },
+    "coursePlan.assessment.noDay" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ohne Tag"
+          }
+        }
+      }
+    },
+    "coursePlan.earlierYears" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frühere Jahre"
+          }
+        }
+      }
+    },
+    "coursePlan.copy" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorjahresplan übernehmen"
+          }
+        }
+      }
+    },
+    "coursePlan.copy.action" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Übernehmen"
+          }
+        }
+      }
+    },
+    "coursePlan.copy.confirm %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Themen, Leistungsnachweise und Notizen aus %@ übernehmen? Vorhandene Einträge bleiben."
+          }
+        }
+      }
+    },
+    "coursePlan.copy.done %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Übernommen. %lld Einträge stehen unter „nicht zugeordnet“."
+          }
+        }
+      }
+    },
+    "coursePlan.subject" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fach"
+          }
+        }
+      }
+    },
+    "coursePlan.grade" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jahrgang"
+          }
+        }
+      }
+    },
+    "coursePlan.schoolYear" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schuljahr"
+          }
+        }
+      }
+    },
+    "coursePlan.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "coursePlan.create" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anlegen"
+          }
+        }
+      }
+    },
+    "coursePlan.done" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fertig"
+          }
+        }
+      }
+    },
+    "coursePlan.select" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle einen Jahresplan"
+          }
+        }
+      }
+    },
+    "coursePlan.empty" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch kein Jahresplan"
+          }
+        }
+      }
+    },
+    "coursePlan.missing" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Jahresplan existiert nicht mehr."
+          }
+        }
+      }
+    },
+    "coursePlan.error.save" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speichern fehlgeschlagen."
+          }
+        }
+      }
+    },
+    "coursePlan.error.copy" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Übernehmen fehlgeschlagen."
+          }
+        }
+      }
+    },
+    "coursePlan.error.weekOccupied" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Woche ist schon belegt."
+          }
+        }
+      }
+    },
+    "coursePlan.compare.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frühere Jahre"
+          }
+        }
+      }
+    },
+    "coursePlan.compare.none" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine früheren Jahrespläne für dieses Fach und diesen Jahrgang."
+          }
+        }
+      }
+    },
+    "coursePlan.compare.week %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Woche %lld"
+          }
+        }
+      }
+    },
+    "coursePlan.compare.secondTerm" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2. Halbjahr"
+          }
+        }
+      }
+    },
+    "coursePlan.compare.done" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fertig"
+          }
+        }
+      }
+    },
+    "planHint.onDay %@ %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$@"
+          }
+        }
+      }
+    },
+    "planHint.thisWeek %@ %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "diese Woche: %1$@ %2$@"
+          }
+        }
+      }
+    },
+    "planHint.suggestion %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus dem Jahresplan: %@"
+          }
+        }
+      }
+    },
+    "planHint.useTopic" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Als Thema übernehmen"
+          }
+        }
+      }
+    },
+    "preparation.weekAssessments" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leistungsnachweise dieser Woche"
+          }
+        }
+      }
+    },
+    "preparation.weekAssessmentPlan %@ %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · Jahrgang %2$lld"
           }
         }
       }

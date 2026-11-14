@@ -1,7 +1,7 @@
 import FrontstageCore
 import SwiftUI
 
-/// Wurzel der Oberfläche: Tab- bzw. Seitenleiste mit den drei Bereichen.
+/// Wurzel der Oberfläche: Tab- bzw. Seitenleiste mit den vier Bereichen.
 ///
 /// Die Leiste selbst steht **außerhalb** von `DataScopedRoot`: Nur der datenabhängige Inhalt eines Bereichs
 /// hängt über `ScopedAppContent` am Datenort und wird beim Wechsel neu aufgebaut. Einrichten › Datenort und
@@ -47,6 +47,12 @@ struct RootView: View {
         value: AppSection.preparation
       ) {
         scoped { PreparationScreen() }
+      }
+      Tab(
+        AppSection.coursePlan.titleKey, systemImage: AppSection.coursePlan.systemImage,
+        value: AppSection.coursePlan
+      ) {
+        scoped { CoursePlanScreen() }
       }
       Tab(AppSection.setup.titleKey, systemImage: AppSection.setup.systemImage, value: AppSection.setup) {
         setup

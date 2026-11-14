@@ -1,9 +1,10 @@
 import SwiftUI
 
-/// Die drei Bereiche der App (Tab- bzw. Seitenleiste).
+/// Die vier Bereiche der App (Tab- bzw. Seitenleiste).
 enum AppSection: String, CaseIterable, Hashable {
   case dayView
   case preparation
+  case coursePlan
   case setup
 
   /// Startbereich: ohne Stundenplan gibt es nichts anzuzeigen – dann Einrichten; sonst am iPad die
@@ -18,6 +19,7 @@ enum AppSection: String, CaseIterable, Hashable {
     switch self {
     case .dayView: "app.section.dayView"
     case .preparation: "app.section.preparation"
+    case .coursePlan: "app.section.coursePlan"
     case .setup: "app.section.setup"
     }
   }
@@ -27,6 +29,7 @@ enum AppSection: String, CaseIterable, Hashable {
     switch self {
     case .dayView: "calendar.day.timeline.left"
     case .preparation: "tray.full"
+    case .coursePlan: "calendar"
     case .setup: "gearshape"
     }
   }

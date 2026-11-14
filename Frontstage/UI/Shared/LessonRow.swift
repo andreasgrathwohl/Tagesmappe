@@ -22,6 +22,8 @@ struct LessonRow: Identifiable, Hashable {
   let status: LessonStatus
   let materials: [MaterialRow]
   let info: LessonInfo
+  /// Thema und Leistungsnachweise aus dem Jahresplan (FR-15.5, FR-15.6); `nil` ohne Plan.
+  var planHint: LessonPlanHint? = nil
   var id: String { lesson.key.storageText }
 }
 

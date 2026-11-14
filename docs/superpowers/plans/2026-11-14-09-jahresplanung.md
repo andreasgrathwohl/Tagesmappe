@@ -17,7 +17,7 @@
 
 Alle Zeilen der Übersicht gelten (Abschnitt „Global Constraints“, Abstimmung Punkte 1–16). Zusätzlich für diesen Teilplan:
 
-- **Kern zuerst und lokal belegt:** Tasks 1–8 berühren nur `Packages/FrontstageCore` (nur `import Foundation`) und laufen TDD mit `.\scripts\swift-test.ps1 -Filter <Suite>` (RED und GREEN lokal belegen). Tasks 9–15 sind App-Code: auf Windows nicht baubar; „Test ausführen“ heißt dort Task 16 (ein CI-Lauf, startet der Controller). Vor Task 16 `.\scripts\swift-parse.ps1` und Diff-Durchsicht.
+- **Kern zuerst und lokal belegt:** Tasks 1–8 berühren nur `Packages/FrontstageCore` (nur `import Foundation`) und laufen TDD mit `.\scripts\swift-test.ps1 -Filter <Testtyp>` (RED und GREEN lokal belegen). `--filter` von Swift Testing vergleicht mit der Test-Kennung (`Modul.Typ/funktion()`), **nicht** mit dem Anzeigenamen aus `@Suite("…")` – `-Filter "CoursePlan SchoolYear"` liefe ohne Treffer („No matching test cases were run“, Exit-Code 0). Deshalb heißt jede Suite-Struktur wie ihre Datei (`SchoolYearTests`, `TeachingWeekTests`, …), und gefiltert wird nach diesem Namen. Tasks 9–15 sind App-Code: auf Windows nicht baubar; „Test ausführen“ heißt dort Task 16 (ein CI-Lauf, startet der Controller). Vor Task 16 `.\scripts\swift-parse.ps1` und Diff-Durchsicht.
 - **Begriffe:** Kern-Werttypen ohne Suffix (`SchoolYear`, `Term`, `TeachingWeek`, `GradeLevel`, `CoursePlanKey`, `PlanWeek`, `Assessment`, `AssessmentKind` mit `test`, `classTest`), SwiftData-Klassen mit Suffix `Record` (`SchoolYearRecord`, `CoursePlanRecord`, `PlanWeekRecord`, `AssessmentRecord`). Halbjahre `Term.first`/`.second`. Weitere Namen nur aus den Interfaces-Blöcken unten.
 - **iCloud-Regeln (ADR-0002/0012):** kein `@Attribute(.unique)`, kein `#Unique`; jede Eigenschaft optional oder mit Vorgabewert; Beziehungen optional. Eindeutigkeit sichert das Zusammenführen (Task 7, Task 9).
 - **Abgleich:** Die vier neuen Records bekommen Inhalt in `RecordPayload` (Task 8) und Übersetzung in `RecordCodec` (Task 9) im selben Teilplan; der Rundlauf-Test in `RecordCodecTests` wird auf zwölf Modelle erweitert (Regel aus Teilplan 08, „Produziert für spätere Teilpläne“).
@@ -69,7 +69,7 @@ Alle Zeilen der Übersicht gelten (Abschnitt „Global Constraints“, Abstimmun
 | `Frontstage/UI/CoursePlan/CoursePlanScreen.swift`, `CoursePlanView.swift`, `PlanWeekSheet.swift`, `NewCoursePlanSheet.swift`; `App/AppSection.swift`, `App/RootView.swift` (ändern) | Oberfläche Jahresplan, Navigation | 13 |
 | `Frontstage/UI/CoursePlan/CoursePlanComparisonModel.swift`, `CoursePlanComparisonView.swift` | Frühere Jahre nebeneinander | 14 |
 | `Frontstage/UI/Preparation/PreparationStore.swift`, `UI/Shared/LessonRow.swift`, `UI/DayView/DayViewModel.swift`, `UI/DayView/DayRowView.swift`, `UI/Preparation/PreparationView.swift`, `UI/Preparation/LessonDetailView.swift`, `UI/Preparation/PreparationViewModel.swift` (ändern), `UI/Shared/PlanHintLabel.swift` | Hinweise in Tagesansicht und Vorbereiten | 15 |
-| `FrontstageTests/Data/CoursePlanStoreTests.swift`, `FrontstageTests/UI/*CoursePlan*Tests.swift`, `FrontstageTests/UI/SchoolYearSettingsModelTests.swift`, `FrontstageTests/UI/PlanHintTests.swift`; `FrontstageTests/Data/Folder/RecordCodecTests.swift`, `FrontstageTests/Data/RecordSchemaTests.swift` (ändern) | App-Tests (Simulator) | 9–15 |
+| `FrontstageTests/Data/CoursePlanStoreTests.swift`, `FrontstageTests/Data/CoursePlanMergeTests.swift`, `FrontstageTests/TestSupport/FakeCoursePlanStore.swift`, `FrontstageTests/UI/*CoursePlan*Tests.swift`, `FrontstageTests/UI/SchoolYearSettingsModelTests.swift`, `FrontstageTests/UI/PlanHintTests.swift`; `FrontstageTests/Data/Folder/RecordCodecTests.swift`, `FrontstageTests/Data/RecordSchemaTests.swift` (ändern) | App-Tests (Simulator) | 9–15 |
 | `Frontstage/Resources/Localizable.xcstrings` (ändern) | Texte | 11–15 |
 
 ---
@@ -130,7 +130,7 @@ public struct GradeLevel: Hashable, Comparable, Codable, Sendable {
 
 ISO-Woche: Donnerstag derselben Woche bestimmen (`mondayOfWeek.adding(days: 3)`); dessen Jahr ist das ISO-Jahr, Woche = (Tag im Jahr des Donnerstags − 1) / 7 + 1 – über `dayNumber`, ohne `Calendar`.
 
-- [ ] **Step 1: Fixtures und failing Tests schreiben** (`@Suite("CoursePlan SchoolYear")`)
+- [ ] **Step 1: Fixtures und failing Tests schreiben** (`@Suite("CoursePlan SchoolYear") struct SchoolYearTests`)
 
 ```swift
 @Test("ISO-Woche: Jahreswechsel und KW 53")
@@ -176,7 +176,7 @@ func gradeOverrides() {
 }
 ```
 
-- [ ] **Step 2: Rot belegen** – `.\scripts\swift-test.ps1 -Filter "CoursePlan SchoolYear"` → Fehler „cannot find 'ISOWeek' in scope“.
+- [ ] **Step 2: Rot belegen** – `.\scripts\swift-test.ps1 -Filter SchoolYearTests` → Fehler „cannot find 'ISOWeek' in scope“.
 - [ ] **Step 3: Implementieren** (Dateien und Signaturen oben; `title` mit `String(format: "%d/%02d", startYear, (startYear + 1) % 100)`).
 - [ ] **Step 4: Grün belegen** – dieselbe Suite, danach das ganze Paket.
 - [ ] **Step 5: Commit** – `git commit -m "core: add ISO week, school year, term and grade level"`
@@ -212,7 +212,7 @@ public enum TeachingWeekCalculator {
 }
 ```
 
-- [ ] **Step 1: Failing Tests schreiben** (`@Suite("CoursePlan TeachingWeeks")`)
+- [ ] **Step 1: Failing Tests schreiben** (`@Suite("CoursePlan TeachingWeeks") struct TeachingWeekTests`)
 
 ```swift
 @Test("AK-46: 2026/27 hat 43 Unterrichtswochen, 17 + 26")
@@ -239,7 +239,7 @@ func termOfSplitWeekFollowsFirstTeachingDay()  // zweites Halbjahr ab Mi 3.2.202
 func weekendsAndOutsideDays()             // isTeachingDay: Sa 19.9.2026 false, Mo 2.11.2026 false, So 13.9.2026 false, Di 15.9.2026 true
 ```
 
-- [ ] **Step 2: Rot belegen** – `.\scripts\swift-test.ps1 -Filter "CoursePlan TeachingWeeks"`.
+- [ ] **Step 2: Rot belegen** – `.\scripts\swift-test.ps1 -Filter TeachingWeekTests`.
 - [ ] **Step 3: Implementieren** – Tage von `firstDay.mondayOfWeek` bis `lastDay` in 7er-Schritten; je Woche die Unterrichtstage sammeln, leere Wochen auslassen, fortlaufend nummerieren.
 - [ ] **Step 4: Grün belegen.**
 - [ ] **Step 5: Commit** – `git commit -m "core: compute teaching weeks of a school year"`
@@ -299,7 +299,7 @@ public enum PlanLayouter {
 
 Regeln für `layout`: Planwoche und Leistungsnachweis gehören zu der Woche, deren `monday` gleich ist. Mehrere Planwochen mit gleichem Montag (vor dem Zusammenführen): die zuletzt geänderte steht in der Woche, die übrigen unter „nicht zugeordnet“. „Nicht zugeordnet“ = `monday == nil` (nach `position`) und danach Montage ohne Unterrichtswoche (nach Datum). Leistungsnachweise je Woche: mit Tag aufsteigend, dann ohne Tag, dann nach Titel; ein Leistungsnachweis mit Tag, der kein Unterrichtstag der Woche mehr ist, bleibt in der Woche und behält den Tag (die Oberfläche markiert ihn nicht – offene Kategorie).
 
-- [ ] **Step 1: Failing Tests schreiben** (`@Suite("CoursePlan Layout")`)
+- [ ] **Step 1: Failing Tests schreiben** (`@Suite("CoursePlan Layout") struct PlanLayoutTests`)
 
 ```swift
 @Test("AK-47: Einträge in Woche 8, getrennt nach Halbjahren")
@@ -332,7 +332,7 @@ func assignDropsDayWhenNotTeaching()   // Mi → Woche 14 (nur Mo, Di) → day n
 @Test("Leere Texte werden nil; isEmpty") func planWeekNormalizes()   // topic "  " → nil, notes "" → nil → isEmpty
 ```
 
-- [ ] **Step 2: Rot belegen** – `.\scripts\swift-test.ps1 -Filter "CoursePlan Layout"`.
+- [ ] **Step 2: Rot belegen** – `.\scripts\swift-test.ps1 -Filter PlanLayoutTests`.
 - [ ] **Step 3: Implementieren.**
 - [ ] **Step 4: Grün belegen.**
 - [ ] **Step 5: Commit** – `git commit -m "core: lay out plan weeks and assessments by teaching week"`
@@ -370,7 +370,7 @@ public enum CoursePlanCopier {
 
 Regeln (Architecture Doc, „Jahresplanung“): Quellwoche Nummer n → Zielwoche Nummer n. Planwoche: Ziel hat in dieser Woche eine nicht leere Planwoche → neue Planwoche „nicht zugeordnet“; keine Zielwoche n → „nicht zugeordnet“; Quell-Planwochen ohne Unterrichtswoche (Montag nil oder verwaist) → „nicht zugeordnet“. Positionen ab `nextUnassignedPosition` fortlaufend, in Quellreihenfolge (Wochen aufsteigend, dann bisher nicht Zugeordnete nach Position). Leistungsnachweis: Zielwoche n vorhanden → `PlanLayouter.assign` (gleicher Wochentag oder ohne Tag), auch wenn die Woche belegt ist; sonst Montag und Tag nil. Ein Leistungsnachweis, den das Ziel schon gleich hat (Montag, Tag, Art, Titel getrimmt), entfällt. `updatedAt = now` für alles Neue.
 
-- [ ] **Step 1: Failing Tests schreiben** (`@Suite("CoursePlan Copy")`)
+- [ ] **Step 1: Failing Tests schreiben** (`@Suite("CoursePlan Copy") struct CoursePlanCopierTests`)
 
 ```swift
 @Test("AK-49: Woche 1 → Woche 1, KA 1 am selben Wochentag, Überzähliges nicht zugeordnet")
@@ -401,7 +401,7 @@ func copiesWeekByWeek() {
 @Test("Leistungsnachweis ohne Zielwoche wird ohne Woche und ohne Tag übernommen") func assessmentWithoutTargetWeekIsUnassigned()
 ```
 
-- [ ] **Step 2: Rot belegen** – `.\scripts\swift-test.ps1 -Filter "CoursePlan Copy"`.
+- [ ] **Step 2: Rot belegen** – `.\scripts\swift-test.ps1 -Filter CoursePlanCopierTests`.
 - [ ] **Step 3: Implementieren.**
 - [ ] **Step 4: Grün belegen.**
 - [ ] **Step 5: Commit** – `git commit -m "core: copy a previous year's course plan week by week"`
@@ -437,7 +437,7 @@ public struct ComparisonRow: Hashable, Sendable { public let number: Int; public
 public enum CoursePlanComparison { public static func rows(_ columns: [ComparisonColumn]) -> [ComparisonRow] }   // 1...max(weeks.count)
 ```
 
-- [ ] **Step 1: Failing Tests schreiben** (`@Suite("CoursePlan History")`)
+- [ ] **Step 1: Failing Tests schreiben** (`@Suite("CoursePlan History") struct CoursePlanHistoryTests`)
 
 ```swift
 @Test("AK-48: nur gleiches Fach und gleicher Jahrgang, neuestes zuerst")
@@ -453,7 +453,7 @@ func rowsAlignByWeekNumber()     // 2025/26 (45) und 2026/27 (43): rows.count ==
 @Test("Halbjahresgrenze je Spalte markiert") func marksSecondTermStart()   // 2026/27: nur rows[17].cells[i]?.startsSecondTerm == true
 ```
 
-- [ ] **Step 2: Rot belegen** – `.\scripts\swift-test.ps1 -Filter "CoursePlan History"`.
+- [ ] **Step 2: Rot belegen** – `.\scripts\swift-test.ps1 -Filter CoursePlanHistoryTests`.
 - [ ] **Step 3: Implementieren** – Zelle aus `PlanLayouter.layout` je Spalte.
 - [ ] **Step 4: Grün belegen.**
 - [ ] **Step 5: Commit** – `git commit -m "core: list earlier course plans and align them week by week"`
@@ -467,6 +467,7 @@ Design-Takt: keiner
 **Files:**
 - Create: `Packages/FrontstageCore/Sources/FrontstageCore/CoursePlan/LessonPlanHinter.swift`
 - Test: `Packages/FrontstageCore/Tests/FrontstageCoreTests/CoursePlan/LessonPlanHintTests.swift`
+- Modify (Test): `Packages/FrontstageCore/Tests/FrontstageCoreTests/CoursePlan/CoursePlanFixtures.swift` – `lesson(_:_:_:)` und `english8With(kaOn:)` ergänzen (freie Funktionen; `CoreFixtures.lesson` aus 07 ist ein statisches Mitglied und kollidiert nicht)
 
 **Interfaces:**
 - Consumes: `SchoolYear`, `GradeLevel.resolve` (1), `CoursePlanKey`, `PlanWeek`, `Assessment` (3), `Lesson`, `LessonKey` (01)
@@ -495,7 +496,7 @@ public enum LessonPlanHinter {
 
 Rechnung: Schuljahr mit `contains(lesson.key.date)` → `GradeLevel.resolve(lesson.key.schoolClass, overrides: year.gradeOverrides)` → Plan mit `key == CoursePlanKey(subject: lesson.key.subject, gradeLevel:, startYear: year.startYear)` (Gleichheit von `Subject` über `normalized`) → Planwoche mit `monday == lesson.key.date.mondayOfWeek` (bei mehreren die zuletzt geänderte) → Leistungsnachweise dieses Montags: `day == date` → `.onDay`, `day == nil` → `.thisWeek`, anderer Tag → nicht dabei. Gibt es zwei Pläne gleichen Schlüssels (vor dem Zusammenführen), gilt der mit der kleineren id.
 
-- [ ] **Step 1: Failing Tests schreiben** (`@Suite("CoursePlan Hint")`)
+- [ ] **Step 1: Failing Tests schreiben** (`@Suite("CoursePlan Hint") struct LessonPlanHintTests`)
 
 ```swift
 @Test("AK-50/AK-51: 8a Englisch am Di 10.11.2026")
@@ -516,7 +517,7 @@ func hintForLesson() {
 @Test("Leistungsnachweise der Woche für Vorbereiten") func weekAssessments()   // assessments(inWeekOf: 9.11.2026) → KA 1, dann Vokabeltest
 ```
 
-- [ ] **Step 2: Rot belegen** – `.\scripts\swift-test.ps1 -Filter "CoursePlan Hint"`.
+- [ ] **Step 2: Rot belegen** – `.\scripts\swift-test.ps1 -Filter LessonPlanHintTests`.
 - [ ] **Step 3: Implementieren.**
 - [ ] **Step 4: Grün belegen.**
 - [ ] **Step 5: Commit** – `git commit -m "core: derive course plan hints for lessons"`
@@ -556,7 +557,7 @@ public enum CoursePlanMerger { public static func plan(for snapshot: CoursePlanM
 
 Regeln: „ältester bleibt“ = kleinstes `createdAt`, bei Gleichstand kleinere id (wie `SyncMerger`). (1) Schuljahre gleichen `startYear`: ältestes bleibt, übrige in `deletions`. (2) Jahrespläne gleichen Schlüssels: ältester bleibt; Kinder der übrigen → `parentChanges`; übrige in `deletions`. (3) Planwochen mit gleichem (wirksamer Plan, Montag ≠ nil): älteste bleibt, übrige in `deletions`; ist eine übrige später geändert (`updatedAt`) als die behaltene, `weekContentSources[behalten] = jüngste`. Planwochen ohne Montag werden nie zusammengeführt. (4) Leistungsnachweise mit gleichem (wirksamer Plan, Montag, Tag, Art, Titel getrimmt): ältester bleibt.
 
-- [ ] **Step 1: Failing Tests schreiben** (`@Suite("CoursePlan Merge")`)
+- [ ] **Step 1: Failing Tests schreiben** (`@Suite("CoursePlan Merge") struct CoursePlanMergerTests`)
 
 ```swift
 @Test("Doppelter Jahresplan: ältester bleibt, Kinder wandern") func duplicatePlansKeepOldestAndMoveChildren()
@@ -572,7 +573,7 @@ Regeln: „ältester bleibt“ = kleinstes `createdAt`, bei Gleichstand kleinere
 @Test("Nichts doppelt → leerer Plan") func nothingToMerge()
 ```
 
-- [ ] **Step 2: Rot belegen** – `.\scripts\swift-test.ps1 -Filter "CoursePlan Merge"`.
+- [ ] **Step 2: Rot belegen** – `.\scripts\swift-test.ps1 -Filter CoursePlanMergerTests`.
 - [ ] **Step 3: Implementieren.**
 - [ ] **Step 4: Grün belegen.**
 - [ ] **Step 5: Commit** – `git commit -m "core: merge duplicate school years and course plans after sync"`
@@ -585,7 +586,7 @@ Design-Takt: keiner
 
 **Files:**
 - Modify: `Packages/FrontstageCore/Sources/FrontstageCore/DataFolder/SyncModel.swift` – vier Fälle **hinten** anhängen
-- Modify: `Packages/FrontstageCore/Sources/FrontstageCore/DataFolder/RecordPayload.swift` – vier Fälle in `RecordPayload`, `model`, `attachments`, `parentID`, `encode(to:)`, `init(from:)`
+- Modify: `Packages/FrontstageCore/Sources/FrontstageCore/DataFolder/RecordPayload.swift` – vier Fälle in `RecordPayload`, `model`, `attachments`, `parentID`, `encode(to:)`, `init(model:from:)`
 - Create: `Packages/FrontstageCore/Sources/FrontstageCore/DataFolder/CoursePlanPayloads.swift`
 - Modify (Test): `Packages/FrontstageCore/Tests/FrontstageCoreTests/DataFolder/RecordFormatTests.swift`
 
@@ -617,7 +618,7 @@ public struct AssessmentPayload: Codable, Hashable, Sendable {
 // parentID: planWeek/assessment → coursePlanID; attachments: keine
 ```
 
-- [ ] **Step 1: Failing Tests ergänzen** (in `@Suite("DataFolder Format")`)
+- [ ] **Step 1: Failing Tests ergänzen** (in `@Suite("DataFolder Format") struct RecordFormatTests`)
 
 ```swift
 @Test("FR-15: Jahresplan-Modelle hin und zurück")
@@ -634,9 +635,9 @@ func coursePlanApplyOrder() {
 @Test("parentID der Planwoche und des Leistungsnachweises") func coursePlanParentIDs()
 ```
 
-- [ ] **Step 2: Rot belegen** – `.\scripts\swift-test.ps1 -Filter "DataFolder Format"`.
+- [ ] **Step 2: Rot belegen** – `.\scripts\swift-test.ps1 -Filter RecordFormatTests`.
 - [ ] **Step 3: Implementieren.** Vorhandene Tests der Suite bleiben unverändert grün (die acht alten Fälle behalten Reihenfolge und Namen).
-- [ ] **Step 4: Grün belegen**, danach das ganze Paket (auch `DataFolder Layout`: neue Ordnernamen werden über `SyncModel(rawValue:)` erkannt).
+- [ ] **Step 4: Grün belegen**, danach das ganze Paket (auch `RemoteLayoutTests` = Suite „DataFolder Layout“: neue Ordnernamen werden über `SyncModel(rawValue:)` erkannt).
 - [ ] **Step 5: Commit** – `git commit -m "core: add data folder payloads for school years and course plans"`
 
 ---
@@ -660,21 +661,27 @@ Design-Takt: keiner
   var id: UUID = UUID(); var createdAt: Date = Date.now
   var firstDayText: String = ""; var secondTermStartText: String = ""; var lastDayText: String = ""
   var gradeOverridesData: Data?                       // JSON [String: Int]
+  init() {}
 }
 @Model final class CoursePlanRecord {
   var id: UUID = UUID(); var createdAt: Date = Date.now
   var subjectText: String = ""; var gradeLevel: Int = 0; var startYear: Int = 0; var notes: String?
   @Relationship(deleteRule: .cascade, inverse: \PlanWeekRecord.coursePlan) var planWeeks: [PlanWeekRecord]? = []
   @Relationship(deleteRule: .cascade, inverse: \AssessmentRecord.coursePlan) var assessments: [AssessmentRecord]? = []
+  init() {}
 }
 @Model final class PlanWeekRecord {
   var id: UUID = UUID(); var createdAt: Date = Date.now; var coursePlan: CoursePlanRecord?
   var mondayText: String?; var position: Int = 0; var topic: String?; var notes: String?; var updatedAt: Date = Date.now
+  init() {}
 }
 @Model final class AssessmentRecord {
   var id: UUID = UUID(); var createdAt: Date = Date.now; var coursePlan: CoursePlanRecord?
   var mondayText: String?; var dayText: String?; var kindRaw: String = "test"; var title: String = ""; var updatedAt: Date = Date.now
+  init() {}
 }
+// Jeder Record mit ausdrücklichem `init()` wie die acht vorhandenen: `@Model` verlangt einen eigenen Initialisierer,
+// und `RecordCodec.upsert` legt neue Datensätze mit `insert(SchoolYearRecord(), id: id, in: context)` usw. an.
 // CoursePlanRecordConversion.swift
 extension SchoolYearRecord { func makeSchoolYear() -> SchoolYear?; func apply(_ year: SchoolYear) }
 extension CoursePlanRecord { var key: CoursePlanKey? { get } }          // nil bei Jahrgang außerhalb 1...13
@@ -687,7 +694,9 @@ extension AssessmentRecord { func makeAssessment() -> Assessment?; func apply(_ 
 - [ ] **Step 1: Failing Tests schreiben**
 
 ```swift
-// RecordCodecTests: Rundlauf auf zwölf Modelle erweitert
+// RecordCodecTests: Rundlauf auf zwölf Modelle erweitert – `populate(_:)` legt zusätzlich je einen SchoolYearRecord,
+// CoursePlanRecord, PlanWeekRecord und AssessmentRecord an (alle Felder gesetzt, Kinder am Jahresplan);
+// im vorhandenen Test `liveIDsCoverAllModels` wird `exported.count == 8` zu `== 12`
 @Test("FR-14/FR-15: Jedes der zwölf Modelle hin und zurück ergibt dieselbe Prüfsumme") func roundTripKeepsHashForEveryModel() throws
 @Test("Planwoche und Leistungsnachweis kommen über die Kennung des Jahresplans zurück") func coursePlanChildrenRestoredByParentID() throws
 @Test("Löschen eines Jahresplans nimmt Planwochen und Leistungsnachweise mit") func deletingCoursePlanCascades() throws
@@ -795,6 +804,7 @@ Design-Takt: Hauptstufe (vor dem Editieren `apple-design` laden; nur Systemstand
 - Create: `Frontstage/UI/Setup/SchoolYearSettingsModel.swift`, `Frontstage/UI/Setup/SchoolYearSettingsView.swift`
 - Modify: `Frontstage/UI/Setup/SetupView.swift` – im ersten `Section` nach „unterrichtsfreie Zeiträume“: `NavigationLink("setup.schoolYears.title") { scoped { SchoolYearSettingsScreen() } }`
 - Modify: `Frontstage/Resources/Localizable.xcstrings`
+- Create (Test): `FrontstageTests/TestSupport/FakeCoursePlanStore.swift`
 - Test: `FrontstageTests/UI/SchoolYearSettingsModelTests.swift`
 
 **Interfaces:**
@@ -812,6 +822,9 @@ Design-Takt: Hauptstufe (vor dem Editieren `apple-design` laden; nur Systemstand
   func classesNeedingGrade(startYear: Int) -> [(schoolClass: SchoolClass, grade: GradeLevel?)]
   func setGrade(_ grade: GradeLevel?, for schoolClass: SchoolClass, startYear: Int)
 }
+/// In `SchoolYearSettingsView.swift`: Ziel des `NavigationLink` in `SetupView`; holt `DataStore` und `AppEnvironment`
+/// aus der Umgebung und legt das Modell mit `@State` an (Muster wie `NonTeachingPeriodsScreen`/`PreparationScreen`).
+struct SchoolYearSettingsScreen: View
 ```
 
 Ansicht: `List` der Schuljahre (Titel, Zeitraum als sekundärer Text); Bearbeiten in einem Sheet mit `Form`: drei `DatePicker(.date)` (erster Schultag, Beginn 2. Halbjahr, letzter Schultag), Hinweis „Ferien und Feiertage kommen aus den unterrichtsfreien Zeiträumen“, Abschnitt „Jahrgang von Hand“ mit `Picker` je Klasse ohne Ziffern (keiner, 1–13). `DatePicker` arbeitet mit `Date`; Umrechnung nur über `CalendarDay(_:calendar:)` und `Calendar.current.date(from:)`.
@@ -927,7 +940,7 @@ Design-Takt: voll (vor dem Editieren `apple-design` laden; nach der Aufgabe Prü
 - Test: `FrontstageTests/UI/AppSectionTests.swift` (ergänzen)
 
 **Interfaces:**
-- Consumes: `CoursePlanListModel`, `CoursePlanEditorModel`, `PlanWeekEditor` (12); `DataStore` aus der Umgebung (`ScopedAppContent` setzt `.environment(store)`), `AppEnvironment.today`; `\.showSetup` (04)
+- Consumes: `CoursePlanListModel`, `CoursePlanEditorModel`, `PlanWeekEditor` (12); `DataStore` aus der Umgebung (`ScopedAppContent` setzt `.environment(store)`), `AppEnvironment.today` (eine Closure: `environment.today()`); `\.showSetup` (04)
 - Produces: `CoursePlanScreen` (Wurzel des Bereichs, holt `DataStore` und `AppEnvironment` aus der Umgebung und legt die Modelle mit `@State` an – Muster wie `PreparationScreen`), `CoursePlanView(model:)`, `PlanWeekSheet(editor:)`, `NewCoursePlanSheet(options:onCreate:)`
 
 Aufbau (Systemstandard): `NavigationSplitView` – Seitenleiste: Liste der Jahrespläne je Schuljahr („Englisch · Jahrgang 8“), Knopf „Neuer Jahresplan“; ohne Schuljahr `ContentUnavailableView` mit Knopf „Schuljahr einrichten“ (`showSetup`). Inhalt: `List` mit Kopf (Titel „Englisch · Jahrgang 8 · 2026/27“, „gilt für 8a, 8b“), `Section` „Notiz zum Jahresplan“ (`TextField(axis: .vertical)`), `Section` „1. Halbjahr“ und „2. Halbjahr“ mit je einer Zeile pro Unterrichtswoche („Woche 8 · KW 46 · 9.–13.11.“, Thema, Leistungsnachweise als Text „Klassenarbeit: KA 1 (Di)“), `Section` „nicht zugeordnet“ (nur wenn nicht leer) mit Menü „Zuweisen“ (leere Wochen). Tipp auf eine Woche öffnet `PlanWeekSheet` (`Form`: Thema, Notizen, Leistungsnachweise mit `Picker` Art, `TextField` Titel, `Picker` Tag „ohne Tag“ + Unterrichtstage). Werkzeugleiste: „Frühere Jahre“ (öffnet Task 14), Menü „Vorjahresplan übernehmen“ mit den früheren Plänen und `confirmationDialog`; danach Hinweis mit `noticeKey`. Am Mac dieselben Ansichten (kein `#if os`, außer `.navigationBarTitleDisplayMode` wie in `LessonDetailView`).

@@ -6,9 +6,10 @@ Material öffnet sich (z. B. in PowerPoint) und wird über die Klassenraum-Techn
 bleibt in der eigenen Ablage (iCloud Drive, OneDrive, Google Drive, …) und ist immer der aktuelle
 Stand.
 
-> **Stand:** Spezifikation. Die Anforderungen sind freigegeben (`docs/PRD.md`, `status: ready`);
-> sechs Architekturentscheidungen sind beschlossen (`docs/adr/`), die Architektur ist für alle Bereiche
-> beschrieben. Es gibt noch keinen Code; unter `mockup/` liegen HTML-Mockups zur Veranschaulichung.
+> **Stand:** Umsetzung. Anforderungen und Architektur sind freigegeben (`docs/PRD.md`, `docs/ARCHITECTURE.md`);
+> dreizehn Architekturentscheidungen stehen in `docs/adr/`. Die Teilpläne 01–09 sind umgesetzt (`docs/superpowers/plans/`):
+> SwiftUI-App für iPad und Mac unter `Frontstage/`, Kernlogik im Paket `Packages/FrontstageCore`. Offen sind Prüfungen auf
+> echten Geräten, die Gestaltungsrunden und der Test der Schulmanager-Schnittstelle (Q-16). Unter `mockup/` liegen HTML-Mockups.
 > Der Name „Frontstage“ ist intern festgelegt, die Registerprüfung steht aus (Q-31). Das Repository
 > heißt weiter `Tagesmappe`.
 

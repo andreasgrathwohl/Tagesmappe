@@ -1,7 +1,7 @@
 # Frontstage — Projektregeln
 
-Tagesbegleiter für Lehrkräfte (iPad und Mac). Überblick: `README.md`. Es gibt noch keinen Code; der
-Stand jeder Ebene steht im Frontmatter des jeweiligen Dokuments.
+Tagesbegleiter für Lehrkräfte (iPad und Mac). Überblick: `README.md`. Der Code liegt unter `Frontstage/` und
+`Packages/FrontstageCore`; der Stand jeder Ebene steht im Frontmatter des jeweiligen Dokuments.
 
 ## Bauen und Testen
 

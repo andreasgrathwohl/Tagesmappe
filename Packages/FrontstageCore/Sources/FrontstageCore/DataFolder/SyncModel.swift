@@ -8,6 +8,10 @@ public enum SyncModel: String, Codable, Sendable, CaseIterable {
   case penNote = "PenNote"
   case lessonInfo = "LessonInfo"
   case boardPage = "BoardPage"
+  case schoolYear = "SchoolYear"
+  case coursePlan = "CoursePlan"
+  case planWeek = "PlanWeek"
+  case assessment = "Assessment"
 
   /// Eltern vor Kindern (= Reihenfolge von `allCases`).
   public static var applyOrder: [SyncModel] { allCases }

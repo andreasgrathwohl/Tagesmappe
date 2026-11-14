@@ -118,7 +118,8 @@ import OSLog
             .lesson(
               LessonRow(
                 lesson: lesson, status: status(of: lesson), materials: materials,
-                info: try store.lessonInfo(for: lesson.key))))
+                info: try store.lessonInfo(for: lesson.key),
+                planHint: try store.lessonPlanHint(for: lesson))))
         }
       }
       return (.rows(rows), orphans)

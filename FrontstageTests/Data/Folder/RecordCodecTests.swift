@@ -11,7 +11,7 @@ import Testing
 
   private func makeContext() throws -> ModelContext { try makeStore().modelContext }
 
-  /// Füllt einen Store mit je einem Datensatz aller acht Modelle (alle Felder gesetzt).
+  /// Füllt einen Store mit je einem Datensatz aller zwölf Modelle (alle Felder gesetzt).
   @discardableResult
   private func populate(_ context: ModelContext) -> (timetable: TimetableRecord, link: MaterialLinkRecord) {
     let timetable = TimetableRecord(
@@ -78,6 +78,43 @@ import Testing
     page.updatedAt = later
     context.insert(page)
 
+    let year = SchoolYearRecord()
+    year.createdAt = date
+    year.apply(
+      SchoolYear(
+        firstDay: CalendarDay(year: 2026, month: 8, day: 31),
+        secondTermStart: CalendarDay(year: 2027, month: 2, day: 1),
+        lastDay: CalendarDay(year: 2027, month: 7, day: 2), gradeOverrides: ["ef": 11]))
+    context.insert(year)
+
+    let plan = CoursePlanRecord()
+    plan.createdAt = date
+    plan.subjectText = "Englisch"
+    plan.gradeLevel = 8
+    plan.startYear = 2026
+    plan.notes = "Lehrwerk Band 4"
+    context.insert(plan)
+
+    let week = PlanWeekRecord()
+    week.createdAt = date
+    week.coursePlan = plan
+    week.mondayText = "2026-11-16"
+    week.position = 12
+    week.topic = "Past Tense"
+    week.notes = "Kopien"
+    week.updatedAt = later
+    context.insert(week)
+
+    let assessment = AssessmentRecord()
+    assessment.createdAt = date
+    assessment.coursePlan = plan
+    assessment.mondayText = "2026-11-16"
+    assessment.dayText = "2026-11-18"
+    assessment.kindRaw = "classTest"
+    assessment.title = "Klassenarbeit 2"
+    assessment.updatedAt = later
+    context.insert(assessment)
+
     return (timetable, link)
   }
 
@@ -95,7 +132,7 @@ import Testing
     Dictionary(uniqueKeysWithValues: try records.map { ($0.id, try RecordCodec.state(of: $0).payloadHash) })
   }
 
-  @Test("FR-14: Jedes der acht Modelle hin und zurück ergibt dieselbe Prüfsumme")
+  @Test("FR-14/FR-15: Jedes der zwölf Modelle hin und zurück ergibt dieselbe Prüfsumme")
   func roundTripKeepsHashForEveryModel() throws {
     let source = try makeContext()
     populate(source)
@@ -127,6 +164,41 @@ import Testing
     #expect(entries.first?.timetable?.id == timetable.id)
     let notes = try target.fetch(FetchDescriptor<PenNoteRecord>())
     #expect(notes.first?.materialLink?.id == link.id)
+  }
+
+  @Test("Planwoche und Leistungsnachweis kommen über die Kennung des Jahresplans zurück")
+  func coursePlanChildrenRestoredByParentID() throws {
+    let source = try makeContext()
+    populate(source)
+    let plan = try #require(try source.fetch(FetchDescriptor<CoursePlanRecord>()).first)
+    let target = try makeContext()
+    try copy(try RecordCodec.exportAll(from: source), into: target)
+    try target.save()
+
+    let weeks = try target.fetch(FetchDescriptor<PlanWeekRecord>())
+    #expect(weeks.count == 1)
+    #expect(weeks.first?.coursePlan?.id == plan.id)
+    #expect(weeks.first?.topic == "Past Tense")
+    let assessments = try target.fetch(FetchDescriptor<AssessmentRecord>())
+    #expect(assessments.count == 1)
+    #expect(assessments.first?.coursePlan?.id == plan.id)
+    #expect(assessments.first?.kindRaw == "classTest")
+    let year = try #require(try target.fetch(FetchDescriptor<SchoolYearRecord>()).first)
+    #expect(year.makeSchoolYear()?.gradeOverrides == ["ef": 11])
+  }
+
+  @Test("Löschen eines Jahresplans nimmt Planwochen und Leistungsnachweise mit")
+  func deletingCoursePlanCascades() throws {
+    let context = try makeContext()
+    populate(context)
+    try context.save()
+    let plan = try #require(try context.fetch(FetchDescriptor<CoursePlanRecord>()).first)
+    try RecordCodec.delete(id: plan.id, model: .coursePlan, from: context)
+    try context.save()
+
+    #expect(try context.fetchCount(FetchDescriptor<CoursePlanRecord>()) == 0)
+    #expect(try context.fetchCount(FetchDescriptor<PlanWeekRecord>()) == 0)
+    #expect(try context.fetchCount(FetchDescriptor<AssessmentRecord>()) == 0)
   }
 
   @Test("Kind ohne Eltern wirft missingParent")
@@ -199,7 +271,7 @@ import Testing
     try context.save()
     let exported = try RecordCodec.exportAll(from: context)
     #expect(try RecordCodec.liveIDs(in: context) == Set(exported.map(\.id)))
-    #expect(exported.count == 8)
+    #expect(exported.count == 12)
   }
 
   @Test("export(_:) liefert nur die genannten Datensätze")

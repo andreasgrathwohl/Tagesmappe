@@ -19,6 +19,8 @@ struct PreparationDay: Identifiable, Hashable {
   /// Immer ein Montag.
   private(set) var weekStart: CalendarDay
   private(set) var days: [PreparationDay] = []
+  /// Leistungsnachweise der Woche aus den Jahresplänen (FR-15.6).
+  private(set) var weekAssessments: [PlannedAssessment] = []
   /// Die gerade zum Bearbeiten gewählte Stunde (Stundenangaben, Zuordnungen).
   var selection: LessonKey?
   let actions: LessonActions
@@ -64,6 +66,7 @@ struct PreparationDay: Identifiable, Hashable {
         PreparationDay(date: date, content: built.content, materialsWithoutLesson: built.orphans))
     }
     days = result
+    weekAssessments = (try? environment.store.plannedAssessments(inWeekOf: weekStart)) ?? []
   }
 
   /// Unterrichtsstunden der nächsten `days` Tage ab heute (ohne Ausfälle) – Ziele für „Material ohne
