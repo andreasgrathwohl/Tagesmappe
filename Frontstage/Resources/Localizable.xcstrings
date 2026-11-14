@@ -2638,6 +2638,166 @@
         }
       }
     },
+    "setup.schoolYears.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schuljahre"
+          }
+        }
+      }
+    },
+    "setup.schoolYears.add" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schuljahr hinzufügen"
+          }
+        }
+      }
+    },
+    "setup.schoolYears.firstDay" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erster Schultag"
+          }
+        }
+      }
+    },
+    "setup.schoolYears.secondTerm" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beginn 2. Halbjahr"
+          }
+        }
+      }
+    },
+    "setup.schoolYears.lastDay" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letzter Schultag"
+          }
+        }
+      }
+    },
+    "setup.schoolYears.holidaysHint" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ferien und Feiertage kommen aus den unterrichtsfreien Zeiträumen."
+          }
+        }
+      }
+    },
+    "setup.schoolYears.grades" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jahrgang von Hand"
+          }
+        }
+      }
+    },
+    "setup.schoolYears.grade.none" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "keiner"
+          }
+        }
+      }
+    },
+    "setup.schoolYears.error.order" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der letzte Schultag liegt vor dem ersten."
+          }
+        }
+      }
+    },
+    "setup.schoolYears.error.secondTerm" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das 2. Halbjahr muss im Schuljahr beginnen."
+          }
+        }
+      }
+    },
+    "setup.schoolYears.error.overlap %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Überschneidet sich mit dem Schuljahr %@."
+          }
+        }
+      }
+    },
+    "setup.schoolYears.error.save" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Schuljahr konnte nicht gespeichert werden."
+          }
+        }
+      }
+    },
+    "setup.schoolYears.removeHint" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jahrespläne dieses Schuljahrs bleiben erhalten."
+          }
+        }
+      }
+    },
+    "setup.schoolYears.remove" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfernen"
+          }
+        }
+      }
+    },
+    "setup.schoolYears.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "setup.schoolYears.save" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speichern"
+          }
+        }
+      }
+    },
     "setup.nonTeaching.title" : {
       "localizations" : {
         "de" : {

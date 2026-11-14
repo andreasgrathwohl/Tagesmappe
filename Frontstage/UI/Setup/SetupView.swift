@@ -29,6 +29,9 @@ struct SetupView: View {
           NavigationLink("setup.nonTeaching.title") {
             scoped { NonTeachingPeriodsScreen() }
           }
+          NavigationLink("setup.schoolYears.title") {
+            scoped { SchoolYearSettingsScreen() }
+          }
         }
         DataLocationSettingsView(
           controller: dataLocation, isOneDriveAvailable: account.isConfigured,
