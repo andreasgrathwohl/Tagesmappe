@@ -71,6 +71,33 @@
         }
       }
     },
+    "timer.title" : {
+      "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Timer" } } }
+    },
+    "timer.start" : {
+      "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Starten" } } }
+    },
+    "timer.pause" : {
+      "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Anhalten" } } }
+    },
+    "timer.resume" : {
+      "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Weiter" } } }
+    },
+    "timer.stop" : {
+      "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Beenden" } } }
+    },
+    "timer.minutes %lld" : {
+      "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "%lld Minuten" } } }
+    },
+    "workMode.title" : {
+      "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Arbeitsform" } } }
+    },
+    "workMode.none" : {
+      "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Keine" } } }
+    },
+    "controls.locked" : {
+      "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Timer und Arbeitsform freischalten" } } }
+    },
     "timer.expired" : {
       "localizations" : {
         "de" : {
