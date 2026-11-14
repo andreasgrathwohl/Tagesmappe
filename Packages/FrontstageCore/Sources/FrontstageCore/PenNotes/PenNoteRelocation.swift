@@ -65,7 +65,7 @@ public enum PenNoteRelocation {
     for (source, target) in forms where seen.insert(source).inserted {
       let sourcePath = nfc("\(folder)/\(source)")
       let targetPath = nfc("\(folder)/\(target)")
-      guard present.contains(sourcePath) else { continue }
+      guard present.contains(sourcePath), sourcePath != targetPath else { continue }
       if present.contains(targetPath) {
         transfers.append(PenNoteTransfer(kind: .mergeNotes, from: sourcePath, to: targetPath))
         merged = true
@@ -77,7 +77,7 @@ public enum PenNoteRelocation {
 
     let pdfFrom = nfc(PenNoteFileLayout.notesPDFName(documentFileName: documentFileName, key: from))
     let pdfTo = nfc(PenNoteFileLayout.notesPDFName(documentFileName: documentFileName, key: to))
-    if present.contains(pdfFrom) {
+    if present.contains(pdfFrom), pdfFrom != pdfTo {
       if merged || present.contains(pdfTo) {
         transfers.append(PenNoteTransfer(kind: .dropDerived, from: pdfFrom, to: pdfTo))
       } else {
@@ -110,17 +110,28 @@ public enum PenNoteRelocation {
       return (path, name, key)
     }
     for (path, name, key) in lessonFiles {
-      let target = nfc("\(newFolder)/\(name)")
-      let merging = atNew.contains(target)
-      transfers.append(PenNoteTransfer(kind: merging ? .mergeNotes : .move, from: path, to: target))
-      if merging, !regenerate.contains(key.storageText) { regenerate.append(key.storageText) }
+      // Standardname bleibt; ein Ausweichname (`…_1.png.json`) bekommt die Endung des neuen Dokuments,
+      // sonst würde die Notiz für das neue Dokument nie gefunden.
+      let isStandard = name == PenNoteFileLayout.lessonFileName(for: key)
+      let targetName = isStandard
+        ? name : PenNoteFileLayout.alternateLessonFileName(for: key, documentFileName: newDocumentFileName)
+      let target = nfc("\(newFolder)/\(targetName)")
+      // Gleicher Notiz-Ordner und gleicher Name: nichts zu übertragen (sonst Selbst-Merge mit Datenverlust).
+      let unchanged = path == target
+      let merging = !unchanged && atNew.contains(target)
+      if !unchanged {
+        transfers.append(PenNoteTransfer(kind: merging ? .mergeNotes : .move, from: path, to: target))
+        if merging, !regenerate.contains(key.storageText) { regenerate.append(key.storageText) }
+      }
 
       // Das zur Stunde gehörende Notiz-PDF folgt dem Schicksal der Stunden-Datei.
       let oldPDF = nfc(PenNoteFileLayout.notesPDFName(documentFileName: oldDocumentFileName, key: key))
       let newPDF = nfc(PenNoteFileLayout.notesPDFName(documentFileName: newDocumentFileName, key: key))
       if oldNames.contains(oldPDF), handledPDFs.insert(oldPDF).inserted {
         let drop = merging || atNew.contains(newPDF)
-        transfers.append(PenNoteTransfer(kind: drop ? .dropDerived : .move, from: oldPDF, to: newPDF))
+        if oldPDF != newPDF {
+          transfers.append(PenNoteTransfer(kind: drop ? .dropDerived : .move, from: oldPDF, to: newPDF))
+        }
       }
     }
 
@@ -129,6 +140,7 @@ public enum PenNoteRelocation {
     for name in oldNames.sorted() where !handledPDFs.contains(name) {
       guard let rest = PenNoteFileLayout.notesPDFSuffix(name, documentFileName: oldDocumentFileName) else { continue }
       let target = nfc(stem + pdfInfix + rest)
+      guard target != name else { continue }
       transfers.append(PenNoteTransfer(kind: atNew.contains(target) ? .dropDerived : .move, from: name, to: target))
     }
 

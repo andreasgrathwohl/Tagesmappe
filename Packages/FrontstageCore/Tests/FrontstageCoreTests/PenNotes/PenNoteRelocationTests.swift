@@ -54,4 +54,28 @@ struct PenNoteRelocationTests {
     #expect(plan.transfers.map(\.kind) == [.mergeNotes])
     #expect(plan.regeneratePDFFor == [tue.storageText])
   }
+  @Test("Neu verknüpfen auf gleichen Stamm (pdf zu png): keine Übertragung von Datei auf sich selbst")
+  func relinkSameStemDoesNotSelfMerge() {
+    let plan = PenNoteRelocation.planRelink(oldDocumentFileName: "Arbeitsblatt.pdf",
+      existingAtOld: ["Arbeitsblatt.frontstage-notizen/2026-11-17_8b_englisch_1.json", "Arbeitsblatt – Notizen 8b 2026-11-17.pdf"],
+      newDocumentFileName: "Arbeitsblatt.png",
+      existingAtNew: ["Arbeitsblatt.frontstage-notizen/2026-11-17_8b_englisch_1.json", "Arbeitsblatt – Notizen 8b 2026-11-17.pdf"])
+    #expect(plan.transfers.allSatisfy { $0.from != $0.to })
+    #expect(plan.transfers.isEmpty)
+  }
+  @Test("Schieben auf dieselbe Stunde: keine Selbst-Übertragung")
+  func moveToSameLessonIsEmpty() {
+    let plan = PenNoteRelocation.planMove(documentFileName: doc, from: tue, to: tue,
+      existing: ["\(folder)/2026-11-17_8b_englisch_1.json", "Arbeitsblatt Vokabeln – Notizen 8b 2026-11-17.pdf"])
+    #expect(plan.transfers.isEmpty)
+  }
+  @Test("Neu verknüpfen: Ausweichname bekommt die Endung des neuen Dokuments")
+  func relinkAlternateNameFollowsNewExtension() {
+    let plan = PenNoteRelocation.planRelink(oldDocumentFileName: "Tafelbild.png",
+      existingAtOld: ["Tafelbild.frontstage-notizen/2026-11-17_8b_englisch_1.png.json"],
+      newDocumentFileName: "Tafel.jpg", existingAtNew: [])
+    #expect(plan.transfers == [PenNoteTransfer(kind: .move,
+      from: "Tafelbild.frontstage-notizen/2026-11-17_8b_englisch_1.png.json",
+      to: "Tafel.frontstage-notizen/2026-11-17_8b_englisch_1.jpg.json")])
+  }
 }
