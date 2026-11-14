@@ -45,7 +45,7 @@ struct TimetableEntrySheet: View {
     _subjectName = State(initialValue: editing?.subject.display ?? "")
     _weekday = State(initialValue: editing?.weekday ?? weekday)
     _period = State(initialValue: editing?.period ?? period)
-    _variant = State(initialValue: editing?.weekVariant ?? (model.weekVariantCount == 2 ? model.shownVariant : nil))
+    _variant = State(initialValue: model.initialVariant(editing: editing))
   }
 
   var body: some View {
@@ -115,7 +115,7 @@ struct TimetableEntrySheet: View {
     let entry = TimetableEntry(
       weekVariant: model.weekVariantCount == 2 ? variant : nil, weekday: weekday, period: period,
       schoolClass: SchoolClass(className), subject: Subject(subjectName))
-    do {
+    do throws(TimetableEditError) {
       try model.save(entry, replacing: editing)
       dismiss()
     } catch {

@@ -161,4 +161,12 @@ enum TimetableEditError: Error, Equatable {
     }
     reload()
   }
+
+  /// Vorbelegung „gilt für“ im Eintragsblatt. Nur ein neuer Eintrag bekommt die gezeigte Variante;
+  /// ein bestehender behält seine eigene – auch „beide Wochen“ (nil), sonst würde Speichern ihn still zu A-only.
+  func initialVariant(editing: TimetableEntry?) -> WeekVariant? {
+    if let editing { return editing.weekVariant }
+    return weekVariantCount == 2 ? shownVariant : nil
+  }
 }
+

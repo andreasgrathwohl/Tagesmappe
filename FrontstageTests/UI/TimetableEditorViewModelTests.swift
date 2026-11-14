@@ -144,4 +144,17 @@ import Testing
     #expect(vm.periodChoices == [1, 2, 3, 4, 5, 6])
     #expect(vm.gridPeriods == [1, 2, 3, 4, 5, 6, 8])
   }
+
+  @Test("Bestehender Eintrag für beide Wochen behält beim Bearbeiten „beide“ (A-Ansicht, zwei Varianten)")
+  func editingBothWeeksEntryKeepsNilVariant() throws {
+    let vm = makeModel()
+    #expect(vm.setWeekVariantCount(2, confirmed: false) == nil)
+    vm.shownVariant = .a
+    let both = Fixtures.entry(.monday, 1, "7a", "Deutsch")
+    #expect(vm.initialVariant(editing: both) == nil)
+    #expect(vm.initialVariant(editing: Fixtures.entry(.monday, 1, "7a", "Deutsch", .b)) == .b)
+    // Neuer Eintrag: gezeigte Variante als Vorgabe.
+    #expect(vm.initialVariant(editing: nil) == .a)
+  }
 }
+
