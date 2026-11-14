@@ -28,6 +28,8 @@ private enum BoardNotice: Identifiable {
 /// und schließt sie beim Verlassen. Ohne Kauf blendet der Aufrufer das Kaufangebot davor (`PaidGate(.board)`).
 struct BoardScreen: View {
   let lessonKey: LessonKey
+  /// Ob die Tafel auf dem Zweitbildschirm erscheint; „Vorbereiten“ übergibt `false`.
+  var mirror: Bool = true
 
   @Environment(BoardSession.self) private var session: BoardSession?
   @Environment(\.dismiss) private var dismiss
@@ -382,7 +384,7 @@ struct BoardScreen: View {
 
   private func open() {
     guard let session else { return }
-    do { try session.open(lessonKey) } catch { notice = .saveFailed }
+    do { try session.open(lessonKey, mirror: mirror) } catch { notice = .saveFailed }
   }
 
   /// „Tafelbild 8b Englisch 2026-11-17.pdf“ – für die gezeigte Stunde (bei „Letztes Tafelbild“ die frühere).

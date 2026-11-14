@@ -30,6 +30,8 @@ enum BoardSessionError: Error, Equatable {
   }
 
   private(set) var mode: Mode = .closed
+  /// Ob die geöffnete Tafel auf dem Zweitbildschirm gezeigt wird (nur die Tagesansicht spiegelt).
+  @ObservationIgnored private var isMirrored = false
   private(set) var pages: [BoardPageSnapshot] = []
   private(set) var pageIndex = 0
   /// Spiegel der Zeichnung der gezeigten Seite für den Zweitbildschirm (Seitenkoordinaten).
@@ -74,8 +76,10 @@ enum BoardSessionError: Error, Equatable {
 
   // MARK: Öffnen und Schließen
 
-  /// Öffnet die Tafel der Stunde; legt Seite 1 (leer) an, wenn es keine Seite gibt. Der Zweitbildschirm zeigt die Tafel.
-  func open(_ key: LessonKey) throws {
+  /// Öffnet die Tafel der Stunde; legt Seite 1 (leer) an, wenn es keine Seite gibt. Mit `mirror` (Vorgabe, Tagesansicht)
+  /// zeigt der Zweitbildschirm die Tafel; „Vorbereiten“ öffnet mit `mirror: false`, damit das Ansehen oder Sichern einer
+  /// vergangenen oder künftigen Stunde nie ersetzt, was die Klasse sieht (FR-6.2, Q-19).
+  func open(_ key: LessonKey, mirror: Bool = true) throws {
     try flush()
     var loaded = try store.pages(for: key)
     if loaded.isEmpty { loaded = [try store.addPage(for: key, background: .blank)] }
@@ -85,8 +89,11 @@ enum BoardSessionError: Error, Equatable {
     cover = nil
     reloadSnapshots()
     show(pageAt: 0)
-    secondScreen.setBoardLesson(key)
-    secondScreen.select(.board)
+    isMirrored = mirror
+    if mirror {
+      secondScreen.setBoardLesson(key)
+      secondScreen.select(.board)
+    }
   }
 
   /// Speichert sofort und schließt. Scheitert das Speichern, bleibt die Tafel offen (die Zeichnung geht nicht verloren).
@@ -102,7 +109,8 @@ enum BoardSessionError: Error, Equatable {
     liveDrawing = PKDrawing()
     cover = nil
     isCameraLive = false
-    secondScreen.setBoardLesson(nil)
+    if isMirrored { secondScreen.setBoardLesson(nil) }
+    isMirrored = false
   }
 
   // MARK: Seiten

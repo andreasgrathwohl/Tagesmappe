@@ -191,7 +191,7 @@ struct LessonDetailView: View {
       Toggle("lesson.cancel", isOn: cancelBinding(row))
         .frame(minHeight: 44)
       // Tafelbilder der Stunde ansehen und als PDF sichern; der Export sitzt in `BoardScreen` (Aufgabe 10).
-      Button("board.title", systemImage: "pencil.and.scribble") { boardTarget = BoardTarget(key: key) }
+      Button("board.title", systemImage: "pencil.and.scribble") { boardTarget = BoardTarget(key: key, mirror: false) }
         .frame(minHeight: 44)
     }
   }

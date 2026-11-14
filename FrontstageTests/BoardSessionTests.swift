@@ -18,6 +18,16 @@ import Testing
     #expect(session.mode == .closed)
   }
 
+  @Test("FR-6.2: Öffnen aus Vorbereiten ersetzt den Zweitbildschirm nicht")
+  func openWithoutMirrorLeavesSecondScreen() throws {
+    let (session, screen) = try makeSession()
+    try session.open(tue8b, mirror: false)
+    #expect(screen.content == .classScreen)
+    #expect(session.mode == .own(tue8b))
+    try session.close()
+    #expect(screen.content == .classScreen)
+  }
+
   @Test("AK-33: letztes Tafelbild zeigt Di 8b, nur ansehen")
   func previousBoardDrawingIsReadOnly() throws {
     let (session, _) = try makeSession()

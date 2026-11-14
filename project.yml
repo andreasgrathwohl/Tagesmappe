@@ -83,7 +83,7 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         FrontstageCloudKitContainer: $(CLOUDKIT_CONTAINER_ID)
         MSALClientID: $(MSAL_CLIENT_ID)
-        NSCameraUsageDescription: "Die Kamera nimmt Bilder für die Tafel auf und liest den Code zum Koppeln von Geräten."
+        NSCameraUsageDescription: "Die Kamera liest den QR-Code zum Koppeln eines zweiten Geräts."
         CFBundleURLTypes:
           - CFBundleURLSchemes: [msauth.$(PRODUCT_BUNDLE_IDENTIFIER)]
     scheme: {}
