@@ -90,6 +90,19 @@ import Testing
     #expect(try store.links(for: di8b).count == 1)
   }
 
+  @Test("Dieselbe Datei nach zurückgeschriebener OneDrive-Kennung erneut zuordnen ergibt eine Zuordnung")
+  func assignSameLocationAfterOneDriveIDKeepsOne() throws {
+    let (store, di8b) = try fixtureBStore()
+    var withID = reference("Vokabeln Unit 4.pptx")
+    withID.oneDriveItemID = "01ABC"
+    withID.oneDriveDriveID = "b!x"
+    let first = try store.assign(withID, to: di8b)
+    // Aus der Dateiauswahl kommt derselbe Ort ohne Kennung.
+    let second = try store.assign(reference("Vokabeln Unit 4.pptx"), to: di8b)
+    #expect(first.id == second.id)
+    #expect(try store.links(for: di8b).count == 1)
+  }
+
   @Test("AK-7: Für 8b übernehmen in die gewählte Mi 3. Stunde – dieselben 2 Materialien")
   func copyLinksToChosenLesson() throws {
     let (store, di8a, mi8b) = try fixtureAStore()

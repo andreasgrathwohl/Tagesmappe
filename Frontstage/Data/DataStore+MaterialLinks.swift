@@ -65,13 +65,16 @@ extension DataStore {
   // MARK: - Zuordnen und Anordnen
 
   /// index nil → ans Ende; sonst an diese Stelle, alle Positionen der Stunde werden 0…n-1 neu vergeben.
-  /// Ist dieselbe Datei (fileIdentity) schon zugeordnet, wird die vorhandene Zuordnung unverändert zurückgegeben.
+  /// Ist dieselbe Datei (fileIdentity) oder derselbe Ort (locationKey) schon zugeordnet, wird die vorhandene
+  /// Zuordnung unverändert zurückgegeben. Der Ort zählt mit, weil Teilplan 03 gefundene OneDrive-Kennungen
+  /// zurückschreibt und `fileIdentity` dann von `path:` auf `onedrive:` wechselt; ein Verweis frisch aus der
+  /// Dateiauswahl hat keine Kennung.
   @discardableResult
   func assign(_ reference: MaterialReference, to key: LessonKey, at index: Int? = nil) throws
     -> MaterialLinkRecord
   {
     var existing = try links(for: key)
-    if let same = existing.first(where: { $0.reference.fileIdentity == reference.fileIdentity }) {
+    if let same = existing.first(where: { Self.isSameFile($0.reference, reference) }) {
       return same
     }
     let record = MaterialLinkRecord()
@@ -86,6 +89,11 @@ extension DataStore {
     }
     try saveAndBump()
     return record
+  }
+
+  /// Dieselbe Datei: gleiche fachliche Kennung oder gleicher Ort in derselben Freigabe.
+  private static func isSameFile(_ a: MaterialReference, _ b: MaterialReference) -> Bool {
+    a.fileIdentity == b.fileIdentity || a.locationKey == b.locationKey
   }
 
   /// Semantik wie SwiftUI `onMove`: toOffset zählt vor dem Entfernen. Danach Positionen 0…n-1.
@@ -127,11 +135,15 @@ extension DataStore {
     let sourceLinks = try links(for: source)
     let targetLinks = try links(for: target)
     var identities = Set(targetLinks.map { $0.reference.fileIdentity })
+    var locations = Set(targetLinks.map { $0.reference.locationKey })
     var position = (targetLinks.map(\.position).max() ?? -1) + 1
     var created = 0
     for link in sourceLinks {
       let reference = link.reference
-      guard identities.insert(reference.fileIdentity).inserted else { continue }
+      // Dieselbe Datei wie bei `assign`: gleiche Kennung oder gleicher Ort.
+      guard !identities.contains(reference.fileIdentity), !locations.contains(reference.locationKey) else { continue }
+      identities.insert(reference.fileIdentity)
+      locations.insert(reference.locationKey)
       let copy = MaterialLinkRecord()
       modelContext.insert(copy)
       copy.setLessonKey(target)

@@ -29,9 +29,10 @@ public struct MaterialReference: Hashable, Codable, Sendable {
     return "path:\(folderGrantName)/\(relativePath)"
   }
 
-  /// Ort ohne OneDrive-Kennung: Schlüssel für Zustände und für „Neu verknüpfen“.
+  /// Ort ohne OneDrive-Kennung: Schlüssel für Zustände und für „Neu verknüpfen“. Der Freigabe-Name wird
+  /// wie in `FolderGrantStore` verglichen (NFC, ohne Groß-/Kleinschreibung), der Pfad ohne Groß-/Kleinschreibung.
   public var locationKey: String {
-    folderGrantName + "\u{1F}" + relativePath.lowercased()
+    folderGrantName.precomposedStringWithCanonicalMapping.lowercased() + "\u{1F}" + relativePath.lowercased()
   }
 
   /// Endung des Pfads, klein geschrieben (ohne Punkt); leer, wenn es keine gibt.

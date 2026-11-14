@@ -35,6 +35,13 @@ struct DataValuesTests {
     #expect(a.fileExtension == "pptx")
   }
 
+  @Test("locationKey vergleicht den Freigabe-Namen wie FolderGrantStore: ohne Groß-/Kleinschreibung, NFC")
+  func locationKeyNormalizesGrantName() {
+    let a = MaterialReference(folderGrantName: "Übungen", relativePath: "8b/a.pdf", displayName: "a", fileKind: .pdf)
+    var b = a; b.folderGrantName = "u\u{0308}bungen"
+    #expect(a.locationKey == b.locationKey)
+  }
+
   @Test("Tafelhintergründe in fester Reihenfolge")
   func boardBackgroundRawValues() {
     #expect(BoardBackground.allCases.map(\.rawValue) == ["blank", "lined", "grid", "image"])
