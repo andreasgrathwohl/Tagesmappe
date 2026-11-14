@@ -80,6 +80,40 @@ struct SourceStatusBarModelTests {
     #expect(result.notice == .notSignedIn)
   }
 
+  @Test("Ohne Zugangsdaten, aber mit gespiegeltem Stand: ruhiger Hinweis, Stand bleibt sichtbar (Nachtrag 4)")
+  func signInOnThisDeviceWithMirroredStand() {
+    let result = model(fetchedAt: date(17, 7, 30), hasCredentials: false, now: date(17, 9, 0))
+    #expect(result.notice == .signInOnThisDevice)
+    #expect(result.fetchedAt == date(17, 7, 30))
+    #expect(!result.canRefresh)
+  }
+
+  @Test("Mehrere Schulen bleibt nach dem Löschen der Zugangsdaten als Meldung stehen (Nachtrag 1)")
+  func multipleSchoolsStaysVisibleWithoutCredentials() {
+    var status = SourceStatus()
+    status.consecutiveFailures = 1
+    status.lastError = .multipleSchoolsUnsupported
+    let result = model(
+      fetchedAt: date(16, 7, 30), status: status, hasCredentials: false, now: date(17, 7, 31))
+    #expect(result.notice == .failed(.multipleSchoolsUnsupported))
+    #expect(!result.canRefresh)
+  }
+
+  @Test("Nach falschen Zugangsdaten heißt es „nicht angemeldet“, auch mit älterem Stand")
+  func invalidCredentialsWithStandIsNotSignedIn() {
+    var status = SourceStatus()
+    status.consecutiveFailures = 1
+    status.lastError = .invalidCredentials
+    let result = model(
+      fetchedAt: date(16, 7, 30), status: status, hasCredentials: false, now: date(17, 7, 31))
+    #expect(result.notice == .notSignedIn)
+  }
+
+  @Test("Mit Zugangsdaten lässt sich aktualisieren")
+  func canRefreshWithCredentials() {
+    #expect(model(fetchedAt: nil, now: date(17, 7, 31)).canRefresh)
+  }
+
   @Test("Quelle von Hand blendet die Leiste aus")
   func manualSourceHidesBar() {
     let result = model(kind: .manual, fetchedAt: nil, hasCredentials: false, now: date(17, 7, 31))

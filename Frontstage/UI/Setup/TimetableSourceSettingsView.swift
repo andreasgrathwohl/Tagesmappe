@@ -59,6 +59,9 @@ struct TimetableSourceSettingsView: View {
     .onChange(of: coordinator.pendingPreview == nil) { _, isGone in
       if isGone { isShowingPreview = false }
     }
+    // Der Koordinator löscht Zugangsdaten nach falschen Zugangsdaten oder mehreren Schulen auch bei einer
+    // Abfrage im Hintergrund; dann den Schlüsselbund neu lesen.
+    .onChange(of: coordinator.credentialsRevision) { reload() }
   }
 
   // MARK: - Abschnitte
@@ -98,6 +101,9 @@ struct TimetableSourceSettingsView: View {
       if isWorking { ProgressView() }
       if let errorMessageKey {
         errorLabel(key: errorMessageKey, serverStatus: errorServerStatus)
+      } else if !hasCredentials, let error = coordinator.status.lastError, error.discardsCredentials {
+        // Abmeldung durch den Koordinator (etwa mehrere Schulen bei der Abfrage am Morgen): Grund zeigen.
+        errorLabel(key: error.settingsMessageKey, serverStatus: nil)
       }
     } header: {
       Text("timetableSource.account.title")
@@ -170,7 +176,8 @@ struct TimetableSourceSettingsView: View {
     hasCredentials = (try? credentials.load()) != nil
   }
 
-  /// Speichern erst nach erfolgreichem Probe-Import: speichern → abfragen → bei falschen Zugangsdaten wieder löschen.
+  /// Speichern erst nach erfolgreichem Probe-Import: speichern → abfragen → bei falschen Zugangsdaten oder
+  /// mehreren Schulen löscht der Koordinator sie wieder (Nachtrag 1); Netz- und Serverfehler behalten sie.
   private func signIn() async {
     errorMessageKey = nil
     // Läuft schon eine Abfrage (etwa beim Aktivieren), würde `refresh` sofort zurückkehren: nichts speichern.
@@ -199,9 +206,9 @@ struct TimetableSourceSettingsView: View {
       }
       return setError("timetableSource.error.tooSoon")
     }
-    if coordinator.status.lastError == .invalidCredentials {
-      try? credentials.delete()
-      return setError(TimetableSourceError.invalidCredentials.settingsMessageKey)
+    if let error = coordinator.status.lastError, error.discardsCredentials {
+      // Gelöscht hat der Koordinator schon; hier nur die Meldung.
+      return setError(error.settingsMessageKey)
     }
     password = ""
     username = ""
@@ -244,6 +251,7 @@ struct TimetableSourceSettingsView: View {
   let store = DataStore(modelContext: container.mainContext)
   let coordinator = TimetableSourceCoordinator(
     repository: store, makeSource: { _ in ManualTimetableSource() },
+    credentials: KeychainCredentialStore(service: "preview.timetableSource"),
     statusStore: SourceStatusStore(defaults: UserDefaults(suiteName: "preview.timetableSource")!),
     pendingStore: PendingImportStore(
       directory: FileManager.default.temporaryDirectory.appendingPathComponent("preview-pending")))

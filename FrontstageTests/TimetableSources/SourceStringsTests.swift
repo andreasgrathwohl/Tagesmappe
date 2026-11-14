@@ -31,4 +31,10 @@ struct SourceStringsTests {
     #expect(TimetableSourceError.server(status: 500).settingsMessageKey == "timetableSource.error.server")
     #expect(text("timetableSource.error.server %lld") != "timetableSource.error.server %lld")
   }
+
+  @Test("Hinweis „Anmeldung auf diesem Gerät nötig“ ist übersetzt (Nachtrag 4)")
+  func signInOnThisDeviceHasAText() {
+    let key = "sourceStatus.notice.signInOnThisDevice"
+    #expect(text(key).contains("anderen Gerät"))
+  }
 }

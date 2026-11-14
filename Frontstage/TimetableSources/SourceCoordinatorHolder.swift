@@ -43,6 +43,7 @@ import FrontstageCore
         case .schulmanager: SchulmanagerTimetableSource(credentials: credentials)
         }
       },
+      credentials: credentials,
       statusStore: SourceStatusStore(),
       pendingStore: PendingImportStore(directory: PendingImportStore.defaultDirectory()))
   }

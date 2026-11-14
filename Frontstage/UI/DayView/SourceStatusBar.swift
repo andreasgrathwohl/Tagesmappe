@@ -11,8 +11,11 @@ enum SourceStatusNotice: Equatable {
   case suggestManualMaintenance
   /// Eine Vorschau wartet auf Übernahme.
   case previewPending
-  /// Quelle gewählt, aber keine Zugangsdaten im Schlüsselbund.
+  /// Quelle gewählt, aber keine Zugangsdaten im Schlüsselbund und noch kein Stand.
   case notSignedIn
+  /// Keine Zugangsdaten auf diesem Gerät, aber ein gespiegelter Stand vom anderen Gerät (typisch der Mac,
+  /// NFR-4). Ruhiger Hinweis statt Fehler; dieses Gerät fragt nicht ab (Nachtrag 4).
+  case signInOnThisDevice
 }
 
 /// Reines Wertmodell der Statusleiste: berechnet alles aus Stand, Zustand und Uhrzeit (DESIGN.md: keine danebengepflegten Zahlen).
@@ -25,9 +28,16 @@ struct SourceStatusBarModel: Equatable {
   let notice: SourceStatusNotice
   /// Ob `fetchedAt` am selben Kalendertag wie „jetzt“ liegt (steuert die Darstellung der Uhrzeit).
   let isFetchedToday: Bool
+  /// Aktualisieren nur mit Zugangsdaten auf diesem Gerät; ohne fragt der Koordinator ohnehin nicht ab.
+  let canRefresh: Bool
 
-  /// Vorrang: notSignedIn > suggestManualMaintenance > failed > previewPending > stale > none.
+  /// Vorrang: ohne Zugangsdaten (mehrere Schulen > nicht angemeldet bzw. Anmeldung auf diesem Gerät) >
+  /// suggestManualMaintenance > failed > previewPending > stale > none.
   /// `stale` rechnet aus `fetchedAt` (gespiegelter Stand), nicht aus `status.lastSuccessAt`.
+  ///
+  /// Ohne Zugangsdaten: Hat der Koordinator sie wegen mehrerer Schulen gelöscht, bleibt diese Meldung stehen
+  /// (Nachtrag 1). Nach falschen Zugangsdaten oder ohne jeden Stand heißt es „nicht angemeldet“; liegt ein
+  /// gespiegelter Stand vor, kommt er vom anderen Gerät (Nachtrag 4).
   init(
     kind: TimetableSourceKind, fetchedAt: Date?, status: SourceStatus, hasPendingPreview: Bool,
     hasCredentials: Bool, now: Date, calendar: Calendar
@@ -36,9 +46,16 @@ struct SourceStatusBarModel: Equatable {
     self.fetchedAt = fetchedAt
     let today = fetchedAt.map { calendar.isDate($0, inSameDayAs: now) } ?? false
     isFetchedToday = today
+    canRefresh = kind != .schulmanager || hasCredentials
 
     if kind == .schulmanager && !hasCredentials {
-      notice = .notSignedIn
+      if status.lastError == .multipleSchoolsUnsupported {
+        notice = .failed(.multipleSchoolsUnsupported)
+      } else if status.lastError == .invalidCredentials || fetchedAt == nil {
+        notice = .notSignedIn
+      } else {
+        notice = .signInOnThisDevice
+      }
     } else if status.consecutiveFailures >= Self.manualMaintenanceThreshold {
       notice = .suggestManualMaintenance
     } else if let error = status.lastError {
@@ -89,7 +106,7 @@ struct SourceStatusBar: View {
           Button("sourceStatus.refresh") {
             Task { await coordinator.refresh(.userRequest) }
           }
-          .disabled(coordinator.isFetching || model.notice == .notSignedIn)
+          .disabled(coordinator.isFetching || !model.canRefresh)
         }
         noticeLabel(model.notice)
       }
@@ -138,6 +155,9 @@ struct SourceStatusBar: View {
       Label("sourceStatus.notice.previewPending", systemImage: "tray.and.arrow.down")
     case .notSignedIn:
       Label("sourceStatus.notice.notSignedIn", systemImage: "person.crop.circle.badge.xmark")
+    case .signInOnThisDevice:
+      // Ruhig, kein Warnsymbol: Der Stand ist da, er kommt nur vom anderen Gerät.
+      Label("sourceStatus.notice.signInOnThisDevice", systemImage: "arrow.triangle.2.circlepath")
     }
   }
 

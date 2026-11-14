@@ -15,6 +15,7 @@ struct SourceCoordinatorHolderTests {
       return TimetableSourceCoordinator(
         repository: store,
         makeSource: { _ in ManualTimetableSource() },
+        credentials: InMemoryCredentialStore(),
         statusStore: SourceStatusStore(defaults: UserDefaults(suiteName: suite)!),
         pendingStore: PendingImportStore(directory: directory))
     }

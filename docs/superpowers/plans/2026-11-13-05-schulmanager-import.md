@@ -988,6 +988,32 @@ Ein Mensch mit iPad, Mac und **eigenem Schulmanager-Lehrerkonto**; Ergebnis abha
 
 ---
 
+## Nachtrag 2026-11-14: Entscheidungen nach dem Abschlussreview
+
+Das Abschlussreview ließ vier Gestaltungsfragen offen; entschieden und umgesetzt so (reine Regeln im Kern,
+`FrontstageCore/TimetableSources/SourceDeviceRules.swift`, mit Tests):
+
+1. **Zugangsdaten nach Fehlern.** Bei `.multipleSchoolsUnsupported` (Probe-Import oder spätere Abfrage) löscht der
+   Koordinator die Zugangsdaten im Schlüsselbund; damit enden die automatischen Abfragen, die vorhandene Meldung
+   „mehrere Schulen“ bleibt stehen (Einrichten und Statusleiste). `.invalidCredentials` löscht wie bisher – jetzt
+   ebenfalls im Koordinator statt in der Ansicht. `.offline`, `.server`, `.unexpectedResponse` behalten die
+   Zugangsdaten (`TimetableSourceError.discardsCredentials`).
+2. **Verworfene Vorschau merken.** Beim Verwerfen und bei der Übernahme mit „Meine Fassung behalten“ (mindestens
+   ein Konflikt ohne Quell-Fassung) merkt sich das Gerät die Prüfsumme des Stundenplan-Teils (Einträge + Zeitraster,
+   `TimetablePartChecksum`) neben der Vorschau-Datei (`PendingImportStore`). Liefert eine Abfrage dieselbe
+   Prüfsumme, entsteht keine Vorschau, und die Statusleiste meldet keine wartende; eine andere Prüfsumme hebt den
+   Merker auf (`PendingPreviewRules.offer`). Wechsel der Quelle löscht den Merker.
+3. **Überholte Vorschau.** Ist `repository.sourceFetchedAt()` neuer als `fetchedAt` der Vorschau (Abfrage auf dem
+   anderen Gerät), wird sie beim Laden des Koordinators und vor dem Übernehmen verworfen; übernommen wird dann
+   nichts (`PendingPreviewRules.isSuperseded`).
+4. **Gerät ohne Zugangsdaten** (typisch der Mac, NFR-4) bei Quelle Schulmanager: keine Abfrage, kein Fehlzähler
+   (`SourceRefreshGate`); die Statusleiste zeigt den gespiegelten Stand und den Hinweis
+   `sourceStatus.notice.signInOnThisDevice` („Anmeldung auf diesem Gerät nötig – der Stand kommt vom anderen
+   Gerät“). Ohne jeden Stand oder nach falschen Zugangsdaten bleibt „nicht angemeldet“.
+
+Folge für die Schnittstelle: `TimetableSourceCoordinator.init` verlangt `credentials: any CredentialStore`
+(derselbe Eintrag wie die Quelle); neu ist `refreshGate()`. Rückfluss: ARCHITECTURE.md, Area stundenplan-quellen.
+
 ## Produziert für spätere Teilpläne (Zusammenfassung)
 
 - **Kern:** `TimetableSourceKind` (`manual`, `schulmanager`), `TimetableSource`, `SourceSnapshot`, `SourceChange`,

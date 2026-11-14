@@ -39,6 +39,7 @@ struct ImportPreview: Equatable {
   private(set) var credentialsRevision = 0
 
   private let makeSource: (TimetableSourceKind) -> any TimetableSource
+  private let credentials: any CredentialStore
   private let statusStore: SourceStatusStore
   private let pendingStore: PendingImportStore
   private let calendar: Calendar
@@ -47,31 +48,47 @@ struct ImportPreview: Equatable {
   /// Fragt die Quelle für heute und die folgenden 27 Tage (vier Wochen) ab.
   private static let fetchSpanDays = 27
 
+  /// `credentials`: derselbe Schlüsselbund-Eintrag, den auch die Quelle liest. Der Koordinator prüft damit,
+  /// ob dieses Gerät überhaupt abfragen darf, und löscht ihn nach Fehlern, die sich nicht von selbst geben.
   init(
     repository: any TimetableRepository,
     makeSource: @escaping (TimetableSourceKind) -> any TimetableSource,
+    credentials: any CredentialStore,
     statusStore: SourceStatusStore, pendingStore: PendingImportStore,
     calendar: Calendar = .current, now: @escaping () -> Date = Date.init
   ) {
     self.repository = repository
     self.makeSource = makeSource
+    self.credentials = credentials
     self.statusStore = statusStore
     self.pendingStore = pendingStore
     self.calendar = calendar
     self.now = now
     status = statusStore.load()
-    // Eine gemerkte Vorschau gilt nur noch, wenn sie gegen den heutigen Stand noch etwas zu zeigen hat.
+    // Eine gemerkte Vorschau gilt nur noch, wenn das andere Gerät nicht schon neuer abgefragt hat und sie
+    // gegen den heutigen Stand noch etwas zu zeigen hat.
     if let stored = pendingStore.load() {
-      pendingPreview = try? Self.makePreview(from: stored, repository: repository)
+      if Self.isSuperseded(stored, repository: repository) {
+        try? pendingStore.save(nil)
+      } else {
+        pendingPreview = try? Self.makePreview(from: stored, repository: repository)
+      }
     }
   }
 
   // MARK: - Abfrage
 
+  /// Ob dieses Gerät die Quelle abfragen darf; Ansichten zeigen daraus den Hinweis „Anmeldung auf diesem
+  /// Gerät nötig“. Ein unlesbarer Schlüsselbund-Eintrag zählt wie keiner.
+  func refreshGate() -> SourceRefreshGate {
+    let kind = (try? repository.timetableSourceKind()) ?? .manual
+    return SourceRefreshGate.evaluate(kind: kind, hasCredentials: hasStoredCredentials())
+  }
+
   func refresh(_ trigger: RefreshTrigger) async {
     guard !isFetching else { return }
 
-    // 0. Von Hand: nichts abfragen, nichts zählen, nichts schreiben.
+    // 0. Von Hand oder ohne Zugangsdaten auf diesem Gerät: nichts abfragen, nichts zählen, nichts schreiben.
     let kind: TimetableSourceKind
     let existing: Timetable?
     do {
@@ -80,7 +97,8 @@ struct ImportPreview: Equatable {
     } catch {
       return recordFailure(.unexpectedResponse("Datenspeicher nicht lesbar"))
     }
-    guard kind != .manual else { return }
+    guard SourceRefreshGate.evaluate(kind: kind, hasCredentials: hasStoredCredentials()) == .ready
+    else { return }
     guard MorningRefreshPolicy.shouldFetch(trigger, status: status, now: now(), calendar: calendar)
     else { return }
 
@@ -114,8 +132,15 @@ struct ImportPreview: Equatable {
       //    Fehler beim Speichern keine Vorschau zu einem nicht gespeicherten Stand hinterlässt.
       try storeChanges(of: snapshot, stampFetchedAt: true)
 
-      // 3. Stundenplan-Teil: nur eine Vorschau vorbereiten, nichts übernehmen.
-      let preview = try Self.makePreview(from: snapshot, repository: repository)
+      // 3. Stundenplan-Teil: nur eine Vorschau vorbereiten, nichts übernehmen. Eine verworfene Vorschau
+      //    desselben Stundenplan-Teils kommt nicht wieder (Nachtrag 2).
+      let candidate = try Self.makePreview(from: snapshot, repository: repository)
+      let offer = PendingPreviewRules.offer(
+        hasDifferences: candidate != nil, checksum: TimetablePartChecksum.of(snapshot),
+        remembered: pendingStore.loadDismissedChecksum())
+      let preview = offer.showsPreview ? candidate : nil
+      // Scheitert nur das Merken, erscheint die Vorschau eben noch einmal: kein Grund für einen Fehler.
+      try? pendingStore.saveDismissedChecksum(offer.rememberedChecksum)
       try pendingStore.save(preview == nil ? nil : snapshot)
       pendingPreview = preview
     } catch {
@@ -131,10 +156,16 @@ struct ImportPreview: Equatable {
   ///
   /// Zwei Speichervorgänge (Stundenplan, dann Abweichungen): Scheitert der zweite, ist der Stundenplan schon
   /// übernommen und die Vorschau bleibt stehen; der Fehlertext der Oberfläche sagt das so.
+  ///
+  /// Ist der gespiegelte Stand neuer als die Vorschau (Abfrage auf dem anderen Gerät, Nachtrag 3), wird
+  /// nichts übernommen und die Vorschau verworfen – sonst käme ein älterer Stundenplan über einen neueren.
   func applyPendingPreview(acceptedFromSource: Set<TimetableEntry>) throws {
     guard let preview = pendingPreview,
       case .derived(let derived) = preview.snapshot.timetable
     else { return }
+    if Self.isSuperseded(preview.snapshot, repository: repository) {
+      return clearPreview()
+    }
     // Gegen den heutigen Stand neu abgleichen: Zwischenzeitliche Handarbeit bleibt geschützt.
     let existing = try repository.timetable()?.entries ?? []
     let manuallyEdited = try repository.manuallyEditedEntries()
@@ -147,17 +178,23 @@ struct ImportPreview: Equatable {
       entries: applied.entries, manuallyEdited: applied.manuallyEdited,
       weekVariantCount: derived.weekVariantCount, referenceWeekA: derived.referenceWeekA,
       bellSchedule: Self.deliveredBellSchedule(of: preview.snapshot))
-    // Die Vorschau liegt nur auf diesem Gerät und kann tagelang stehen. Ist der gespiegelte Stand neuer
-    // (Abfrage auf dem anderen Gerät), gelten dessen Abweichungen: unverändert lassen statt mit dem alten
-    // Stand zu überschreiben (veraltete Ausfälle kämen zurück, neue Vertretungen verschwänden).
-    let storedFetchedAt = try repository.sourceFetchedAt()
-    if storedFetchedAt.map({ preview.snapshot.fetchedAt >= $0 }) ?? true {
-      try storeChanges(of: preview.snapshot, stampFetchedAt: false)
-    }
+    // Der Stand ist nicht neuer als die Vorschau (oben geprüft): Abweichungen gegen den neuen Plan zuordnen.
+    try storeChanges(of: preview.snapshot, stampFetchedAt: false)
+    // Bei „Meine Fassung behalten“ würde dieselbe Quelle den Konflikt bei jeder Abfrage neu zeigen (Nachtrag 2).
+    try? pendingStore.saveDismissedChecksum(
+      PendingPreviewRules.rememberedAfterApply(
+        checksum: TimetablePartChecksum.of(preview.snapshot),
+        conflictSources: diff.manualConflicts.map { $0.source },
+        acceptedFromSource: acceptedFromSource))
     clearPreview()
   }
 
+  /// Verwirft die Vorschau und merkt sich ihren Stundenplan-Teil: Dieselbe Vorschau kommt nach der nächsten
+  /// Abfrage nicht wieder, erst ein neuer Unterschied (Nachtrag 2).
   func discardPendingPreview() {
+    if let preview = pendingPreview {
+      try? pendingStore.saveDismissedChecksum(TimetablePartChecksum.of(preview.snapshot))
+    }
     clearPreview()
   }
 
@@ -175,6 +212,8 @@ struct ImportPreview: Equatable {
     guard try repository.timetableSourceKind() != kind else { return }
     try repository.setTimetableSourceKind(kind)
     clearPreview()
+    // Wer die Quelle neu wählt, beginnt neu: Auch eine früher verworfene Vorschau darf wieder erscheinen.
+    try? pendingStore.saveDismissedChecksum(nil)
     updateStatus(status.resettingForSourceSwitch())
     if kind == .manual {
       let today = CalendarDay(now(), calendar: calendar)
@@ -235,8 +274,26 @@ struct ImportPreview: Equatable {
     try? pendingStore.save(nil)
   }
 
+  /// Nach falschen Zugangsdaten oder mehreren Schulen werden die Zugangsdaten gelöscht (Nachtrag 1); ohne
+  /// sie fragt dieses Gerät nicht mehr ab, bis sich die Lehrkraft neu anmeldet. Der Fehler bleibt im Status
+  /// stehen, damit die Oberfläche die Meldung dazu zeigt.
   private func recordFailure(_ error: TimetableSourceError) {
     updateStatus(status.recordingFailure(error, at: now()))
+    if error.discardsCredentials {
+      try? credentials.delete()
+      noteCredentialsChanged()
+    }
+  }
+
+  private func hasStoredCredentials() -> Bool {
+    (try? credentials.load()) != nil
+  }
+
+  private static func isSuperseded(_ snapshot: SourceSnapshot, repository: any TimetableRepository)
+    -> Bool
+  {
+    PendingPreviewRules.isSuperseded(
+      previewFetchedAt: snapshot.fetchedAt, storedFetchedAt: try? repository.sourceFetchedAt())
   }
 
   private func updateStatus(_ new: SourceStatus) {
