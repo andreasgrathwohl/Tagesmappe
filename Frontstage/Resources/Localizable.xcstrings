@@ -2140,6 +2140,126 @@
           }
         }
       }
+    },
+    "setup.bellSchedule.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeitraster"
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.empty" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch keine Stunden. Füge die erste Stunde hinzu."
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.add" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stunde hinzufügen"
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.removeLast" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letzte Stunde entfernen"
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.period %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld. Stunde"
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.start" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beginn"
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.end" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ende"
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.error.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeit nicht übernommen"
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.error.endNotAfterStart" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Ende muss nach dem Beginn liegen."
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.error.overlaps %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Stunde überschneidet sich mit der %lld. Stunde."
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.error.saveFailed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Zeitraster konnte nicht gespeichert werden."
+          }
+        }
+      }
+    },
+    "setup.bellSchedule.error.ok" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

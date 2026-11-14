@@ -8,7 +8,7 @@ import SwiftUI
 /// dass ein Wechsel des Datenorts das Sheet mitten im Koppeln nicht abreißt. Alles, was an Daten hängt,
 /// öffnet sich als Ziel mit eigenem `ScopedAppContent` und wird beim Wechsel neu aufgebaut.
 ///
-/// Aufgaben 12–14 hängen hier Zeitraster, Unterrichtsfrei, Ablage und Stundenplan-Quelle ein; der
+/// Aufgaben 13–14 hängen hier Unterrichtsfrei, Ablage und Stundenplan-Quelle ein; der
 /// Datenort steht laut Plan vor „Ablage“.
 struct SetupView: View {
   let dataLocation: DataLocationController
@@ -22,8 +22,11 @@ struct SetupView: View {
           NavigationLink("setup.timetable.title") {
             scoped { TimetableEditorScreen() }
           }
+          NavigationLink("setup.bellSchedule.title") {
+            scoped { BellScheduleEditorScreen() }
+          }
         }
-        // Zeitraster und Unterrichtsfrei: Aufgabe 12.
+        // Unterrichtsfrei: Aufgabe 13.
         DataLocationSettingsView(
           controller: dataLocation, isOneDriveAvailable: account.isConfigured,
           accountUsername: { account.signedInUsername })
