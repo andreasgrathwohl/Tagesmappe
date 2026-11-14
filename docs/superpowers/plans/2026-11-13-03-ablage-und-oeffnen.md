@@ -22,8 +22,8 @@ MSAL 2.x (Swift Package, binär), Microsoft Graph v1.0 über `URLSession`, Swift
 
 **Spec:** `docs/adr/0003-material-ueber-dateien-app-onedrive-als-zusatz.md`, `docs/ARCHITECTURE.md`
 (Area ablage, Area daten: Materialverweis und Ordnerfreigabe), `docs/PRD.md` (FR-3.4, FR-5, FR-5.1,
-NFR-1, NFR-2, NFR-3, AK-9, AK-11, AK-12, AK-17, AK-18, AK-19, Q-18), ADR-0002 (Ordnerfreigabe nicht
-gespiegelt), ADR-0006 (App schreibt nie in die Ablage), ADR-0009.
+NFR-1, NFR-2, NFR-3, AK-9, AK-11, AK-12, AK-17, AK-18, AK-19, Q-18), ADR-0010 (löst ADR-0002 ab;
+Datenordner in der Ablage), ADR-0011 (löst ADR-0006 ab; Notizen neben dem Dokument), ADR-0009.
 
 **Quellen für Schnittstellen (gelesen 2026-11-13):**
 - Apple, „Providing access to directories“ (`developer.apple.com/documentation/uikit/providing-access-to-directories`):
@@ -53,11 +53,16 @@ gespiegelt), ADR-0006 (App schreibt nie in die Ablage), ADR-0009.
 Es gelten alle Zeilen aus `2026-11-13-00-uebersicht.md`, Abschnitt „Global Constraints“. Zusätzlich für
 diesen Teilplan:
 
-- **Die App schreibt nie in die Ablage** (ADR-0003, ADR-0006). Bookmarks am Mac nur mit
-  `[.withSecurityScope, .securityScopeAllowOnlyReadAccess]`; Entitlement `files.user-selected.read-only`.
-  Kein `FileManager`-Schreibaufruf auf eine URL unter einer Ordnerfreigabe.
+- **Die App verändert nie eine Material-Datei** (FR-3.4, ADR-0003). Sie schreibt in die Ablage nur, was die
+  Übersicht (Global Constraints) erlaubt: Datenordner (ADR-0010, Teilplan 08), Notiz-Datei und Notiz-PDF neben
+  dem Dokument (ADR-0011, Teilplan 06). Deshalb sind Freigaben **lesend und schreibend**: Bookmarks am Mac
+  `[.withSecurityScope]`, Entitlement `files.user-selected.read-write` – ein nur lesendes Bookmark ließe sich
+  später nicht hochstufen, jede Lehrkraft müsste alle Ordner neu freigeben. Die Regel setzt der Code durch:
+  Dieser Teilplan bietet für Material nur lesende Wege (`ScopedFile`, `withFileURL` mit `.withoutChanges`)
+  und keinen `FileManager`-Schreibaufruf auf eine URL unter einer Ordnerfreigabe.
+  *(Geändert 2026-11-14 nach dem Abschluss-Review; vorher nur lesend nach ADR-0006, das ADR-0011 ablöst.)*
 - **Ordnerfreigaben verlassen das Gerät nie:** Sie liegen in einer Datei in Application Support mit
-  `isExcludedFromBackup = true`, nicht in SwiftData (ADR-0002, Area daten). Gespiegelt wird nur der
+  `isExcludedFromBackup = true`, nicht in SwiftData (ADR-0003, ADR-0010, Area daten). Gespiegelt wird nur der
   **Name** der Freigabe im Materialverweis.
 - **Pfade im Materialverweis:** relativ zur Freigabe, Trenner `/`, Unicode **NFC**
   (`precomposedStringWithCanonicalMapping`), nie mit führendem `/`.
@@ -536,14 +541,14 @@ let cid = UUID(uuidString: "00000000-0000-0000-0000-00000000000B")!
 
 **Files:**
 - Create: `Frontstage/Storage/FolderGrant.swift`, `Frontstage/Storage/FolderGrantStore.swift`
-- Modify: `project.yml` – Ziel `Frontstage-macOS`, Block `entitlements.properties` (Datei `Config/Frontstage-macOS.entitlements`, vorhandene CloudKit-Schlüssel bleiben): `com.apple.security.app-sandbox: true`, `com.apple.security.files.user-selected.read-only: true`, `com.apple.security.files.bookmarks.app-scope: true`, `com.apple.security.network.client: true`
+- Modify: `project.yml` – Ziel `Frontstage-macOS`, Block `entitlements.properties` (Datei `Config/Frontstage-macOS.entitlements`, vorhandene CloudKit-Schlüssel bleiben): `com.apple.security.app-sandbox: true`, `com.apple.security.files.user-selected.read-write: true` (geändert 2026-11-14, siehe Global Constraints), `com.apple.security.files.bookmarks.app-scope: true`, `com.apple.security.network.client: true`
 - Test: `FrontstageTests/Storage/FolderGrantStoreTests.swift`
 
 **Interfaces:**
 - Consumes: `FolderGrantNaming`, `GrantLocation`, `StoragePath` (Task 1)
 - Produces:
 ```swift
-/// Ordnerfreigabe – nur auf diesem Gerät, nie gespiegelt (ADR-0002, ADR-0003).
+/// Ordnerfreigabe – nur auf diesem Gerät, nie gespiegelt (ADR-0003, ADR-0010).
 struct FolderGrant: Identifiable, Codable, Hashable, Sendable {
     var id: UUID
     var name: String                 // gespiegelter Name, über den Materialverweise die Freigabe finden
@@ -582,8 +587,8 @@ enum FolderGrantError: Error, Equatable { case nameInUse, accessDenied, bookmark
 ```
 
 - [ ] **Step 2: Diff durchsehen.**
-- [ ] **Step 3: Implementieren.** Bookmark erzeugen innerhalb `startAccessingSecurityScopedResource()`/`stop…` (Apple-Doku oben). iOS: `bookmarkData(options: .minimalBookmark, …)`, Auflösen `URL(resolvingBookmarkData:options: [], relativeTo: nil, bookmarkDataIsStale:)`. macOS: Erzeugen `[.withSecurityScope, .securityScopeAllowOnlyReadAccess]`, Auflösen `[.withSecurityScope]`. Plattformcode mit `#if os(iOS)`/`#if os(macOS)`. Speichern als JSON (`JSONEncoder`, atomar), danach `isExcludedFromBackup = true` setzen. Keine Aufrufe außer auf die eigene Datei in Application Support.
-- [ ] **Step 4: Diff durchsehen** – Entitlements nur im macOS-Ziel; kein `read-write`.
+- [ ] **Step 3: Implementieren.** Bookmark erzeugen innerhalb `startAccessingSecurityScopedResource()`/`stop…` (Apple-Doku oben). iOS: `bookmarkData(options: .minimalBookmark, …)`, Auflösen `URL(resolvingBookmarkData:options: [], relativeTo: nil, bookmarkDataIsStale:)`. macOS: Erzeugen `[.withSecurityScope]` (lesend und schreibend, siehe Global Constraints; vorher `.securityScopeAllowOnlyReadAccess`), Auflösen `[.withSecurityScope]`. Plattformcode mit `#if os(iOS)`/`#if os(macOS)`. Speichern als JSON (`JSONEncoder`, atomar), danach `isExcludedFromBackup = true` setzen. Keine Aufrufe außer auf die eigene Datei in Application Support.
+- [ ] **Step 4: Diff durchsehen** – Entitlements nur im macOS-Ziel; `read-write` statt `read-only` (geändert 2026-11-14).
 - [ ] **Step 5: Commit** – `feat(storage): device-local folder grants with security-scoped bookmarks`
 
 ---
@@ -837,7 +842,7 @@ Dafür bekommt `SystemDocumentHandOff` einen internen Initialisierer `init(openU
 - Consumes: alles aus Task 1–10
 - Produces (für Teilplan 04, 06, 07):
 ```swift
-enum RelinkResult: Equatable { case relinked(MaterialReference), outsideGrants }
+enum RelinkResult: Equatable { case relinked(MaterialReference), outsideGrants, saveFailed }  // saveFailed: ergänzt 2026-11-14
 enum StorageReadError: Error, Equatable { case unresolvable, unavailable(UnavailableReason), readFailed }
 enum OpenOutcome {
     case handedOff                       // an die zuständige App übergeben
@@ -942,6 +947,8 @@ Kein Code. Ergebnisse hier eintragen; ein Fehlschlag wird als Befund an die zust
 | Zweites Gerät (Area daten, Betrieb) | Zuordnungen am iPad angelegt, Mac mit derselben Apple-ID | am Mac den Ordner freigeben und dem Namen „Unterricht“ zuordnen | alle Verweise lösen am Mac auf | ☐ |
 | Freigabe entzogen | iPad: Einstellungen > Datenschutz > Dateien und Ordner, Zugriff entziehen | Tagesansicht öffnen | Material „nicht verfügbar“, „Neu verknüpfen“ angeboten, kein Absturz | ☐ |
 | Mac (FR-5) | „Vokabeln Unit 4.pptx“ aus iCloud Drive am Mac | antippen | öffnet in PowerPoint am Ort, bearbeitbar | ☐ |
+| AK-12 Pfad mit Leerzeichen/Umlaut | privates OneDrive, Datei in „Klasse 8b/Übungen“ | antippen | PowerPoint öffnet das Dokument (kein „Dokument nicht gefunden“) | ☐ |
+| Mac lokal signiert | Mac-Build lokal signieren, ohne Provisioning-Profil | App starten | `keychain-access-groups` verlangt am Mac ein Profil: ohne Profil startet die App nicht – mit Profil signieren; unsigniert in CI ohne Belang | ☐ |
 
 ---
 

@@ -38,21 +38,23 @@ struct HandOffAnchor {
 }
 
 /// Setzt eine Fortsetzung genau einmal fort: Wer zuerst kommt (Antwort oder Frist), gewinnt.
+/// Genutzt für die Office-Übergabe (hier) und die Vorbereitungsfrist in `StorageService.fetchItem`.
 ///
 /// Swift-Hinweis: `withTaskGroup` würde auf alle Kind-Aufgaben warten, auch auf ein nicht abbrechbares
-/// `UIApplication.open`. Eine Fortsetzung kehrt dagegen sofort zurück; der Merker verhindert ein
-/// zweites `resume`, das in Swift ein Absturz wäre.
-@MainActor private final class FirstOutcome {
-  private var continuation: CheckedContinuation<Bool?, Never>?
+/// `UIApplication.open` oder MSAL `acquireTokenSilent`. Eine Fortsetzung kehrt dagegen sofort zurück; der
+/// Merker verhindert ein zweites `resume`, das in Swift ein Absturz wäre. Die verlierende Aufgabe wird nur
+/// abgebrochen und läuft, falls nicht abbrechbar, im Hintergrund zu Ende; ihr Ergebnis wird verworfen.
+@MainActor final class FirstOutcome<Value: Sendable> {
+  private var continuation: CheckedContinuation<Value, Never>?
   private var tasks: [Task<Void, Never>] = []
 
-  init(_ continuation: CheckedContinuation<Bool?, Never>) { self.continuation = continuation }
+  init(_ continuation: CheckedContinuation<Value, Never>) { self.continuation = continuation }
 
   func adopt(_ task: Task<Void, Never>) {
     if continuation == nil { task.cancel() } else { tasks.append(task) }
   }
 
-  func finish(_ value: Bool?) {
+  func finish(_ value: Value) {
     guard let continuation else { return }
     self.continuation = nil
     continuation.resume(returning: value)

@@ -8,12 +8,25 @@ import Testing
 @MainActor private final class RecordingReferenceStore: MaterialReferenceStore {
   var mirroredGrantNames: Set<String> = []
   var replaced: [(locationKey: String, reference: MaterialReference)] = []
+  /// Wenn gesetzt, scheitert das Ersetzen wie ein Speicherfehler.
+  var failsToReplace = false
 
   func linkedReferences(for keys: [LessonKey]) throws -> [(key: LessonKey, reference: MaterialReference)] { [] }
   func folderGrantNames() throws -> Set<String> { mirroredGrantNames }
   func replaceReferences(atLocation locationKey: String, with reference: MaterialReference) throws -> Int {
+    if failsToReplace { throw CocoaError(.fileWriteUnknown) }
     replaced.append((locationKey, reference))
     return 1
+  }
+}
+
+/// Wie MSAL `acquireTokenSilent` hinter einer Fortsetzung: ignoriert den Abbruch und antwortet erst nach 2 s.
+private struct UncancellableSlowTokens: AccessTokenProviding {
+  func accessToken() async throws -> String {
+    await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+      DispatchQueue.global().asyncAfter(deadline: .now() + 2) { continuation.resume() }
+    }
+    return "test-token"
   }
 }
 
@@ -66,13 +79,14 @@ private struct NoopDownloader: FileDownloading {
 
   private func makeService(
     username: String? = nil, isOnline: Bool = true, preparationLimit: Duration = .seconds(5),
+    tokens: any AccessTokenProviding = FakeTokens(),
     handler: @escaping StubURLProtocol.Handler = { _ in (404, "{}") }
   ) -> StorageService {
     let server = StubURLProtocol.Server(handler: handler)
     let account = MicrosoftAccount(signedInUsernameForTesting: username)
     let resolver = MaterialResolver(grants: grants)
     let oneDrive = OneDriveService(
-      account: account, graph: GraphClient(tokens: FakeTokens(), session: server.session),
+      account: account, graph: GraphClient(tokens: tokens, session: server.session),
       grants: grants, resolver: resolver)
     return StorageService(
       grants: grants, references: store, resolver: resolver,
@@ -150,6 +164,25 @@ private struct NoopDownloader: FileDownloading {
     #expect(spy.handOffCount == 1)
   }
 
+  @Test("Nicht abbrechbare Token-Abfrage: Frist der Vorbereitung bleibt hart (AK-12-Rückfall)")
+  func uncancellableTokenRespectsPreparationLimit() async throws {
+    try markGrantAsOneDriveFolder()
+    let service = makeService(
+      username: "max@example.com", preparationLimit: .milliseconds(100), tokens: UncancellableSlowTokens()
+    ) { _ in (200, Self.itemJSON) }
+    let clock = ContinuousClock()
+    let start = clock.now
+    let outcome = await service.open(presentation, anchor: HandOffAnchor())
+    let elapsed = start.duration(to: clock.now)
+    guard case .handedOff = outcome else {
+      Issue.record("erwartet .handedOff, erhalten \(outcome)")
+      return
+    }
+    // Ohne harte Frist wartete `open` die 2 s der Token-Abfrage ab.
+    #expect(elapsed < .seconds(1.5))
+    #expect(spy.officeURIs.isEmpty)
+  }
+
   @Test("Cloud-Übergabe angenommen: Rückkehr binnen 60 s bietet Öffnen ohne AutoSpeichern an")
   func acceptedCloudOffersFallbackOnReturn() async throws {
     try markGrantAsOneDriveFolder()
@@ -198,24 +231,37 @@ private struct NoopDownloader: FileDownloading {
     #expect(store.replaced.isEmpty)
   }
 
+  @Test("Neu verknüpfen mit Speicherfehler: saveFailed statt outsideGrants")
+  func relinkSaveFailure() async throws {
+    let service = makeService()
+    store.failsToReplace = true
+    let picked = folder.appending(path: "8b/Arbeitsblatt Vokabeln neu.pdf", directoryHint: .notDirectory)
+
+    let result = service.relink(reference("Arbeitsblatt Vokabeln.pdf", kind: .pdf), toPickedFile: picked)
+
+    #expect(result == .saveFailed)
+  }
+
   @Test("withFileURL liest die Datei und schließt den Zugriff danach (Vorlage, Teilplan 07)")
   func withFileURLReadsAndCloses() async throws {
     let service = makeService()
-    let openBefore = ScopedFile.openCount
+    // Nur Zugriffe auf den eigenen temporären Ordner zählen: Andere Suiten laufen parallel und halten
+    // während ihrer `await`-Pausen eigene Zugriffe offen.
+    let scope = root.lastPathComponent
 
     let size = try await service.withFileURL(for: reference("Arbeitsblatt Vokabeln.pdf", kind: .pdf)) {
       try Data(contentsOf: $0).count
     }
 
     #expect(size > 0)
-    #expect(ScopedFile.openCount == openBefore)
+    #expect(ScopedFile.openCount(scopePathContaining: scope) == 0)
 
     let unknown = MaterialReference(
       folderGrantName: "Unbekannt", relativePath: "x.pdf", displayName: "x", fileKind: .pdf)
     await #expect(throws: StorageReadError.unresolvable) {
       _ = try await service.withFileURL(for: unknown) { _ in 1 }
     }
-    #expect(ScopedFile.openCount == openBefore)
+    #expect(ScopedFile.openCount(scopePathContaining: scope) == 0)
   }
 
   @Test("Gefundene OneDrive-Kennung wird zurückgeschrieben")

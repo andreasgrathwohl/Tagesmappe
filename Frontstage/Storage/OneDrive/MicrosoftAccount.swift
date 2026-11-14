@@ -29,7 +29,8 @@ enum MicrosoftAccountError: Error, Equatable {
   private static let accountKey = "MicrosoftAccountIdentifier"
 
   private(set) var signedInUsername: String?
-  /// Wird nach erfolgreicher Anmeldung gerufen (StorageService stößt die Ordnererkennung an).
+  /// Wird nach erfolgreicher Anmeldung in einer eigenen Aufgabe gerufen (StorageService stößt die
+  /// Ordnererkennung an); `signIn` wartet nicht darauf.
   @ObservationIgnored var onSignedIn: (@MainActor () async -> Void)?
 
   @ObservationIgnored private let isStub: Bool
@@ -120,7 +121,9 @@ enum MicrosoftAccountError: Error, Equatable {
     }
     UserDefaults.standard.set(outcome.identifier, forKey: Self.accountKey)
     signedInUsername = outcome.username ?? outcome.identifier
-    await onSignedIn?()
+    // Die Ordnererkennung (je Freigabe mehrere Graph-Anfragen) läuft im Hintergrund weiter;
+    // die Anmeldung kehrt sofort zurück.
+    Task { [weak self] in await self?.onSignedIn?() }
   }
 
   /// Entfernt das Konto aus dem MSAL-Cache und vergisst die Kennung.

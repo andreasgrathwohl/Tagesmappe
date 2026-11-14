@@ -9,8 +9,10 @@ import FrontstageCore
   /// Die lokalen Namen kommen direkt aus dem Ordnerinhalt der Freigabe; der Auflöser bleibt
   /// für spätere Aufrufer (Task 11) in der Abhängigkeitsliste.
   private let resolver: MaterialResolver
-  /// Sitzungsspeicher: Ort des Verweises (`locationKey`) → Element.
+  /// Sitzungsspeicher: Ort des Verweises (`locationKey`) → Element. Gilt nur für das Konto `cacheOwner`;
+  /// beim Abmelden oder Kontowechsel wird er geleert, nach einem gescheiterten Öffnen je Ort (`forgetItem`).
   private var cache: [String: OneDriveItem] = [:]
+  private var cacheOwner: String?
 
   init(account: MicrosoftAccount, graph: GraphClient, grants: FolderGrantStore, resolver: MaterialResolver) {
     self.account = account
@@ -45,8 +47,12 @@ import FrontstageCore
   /// Element zum Verweis: über gespeicherte Kennung, sonst über `oneDrivePath` der Freigabe + `relativePath`.
   /// Neue Kennungen liest der Aufrufer aus dem Ergebnis und schreibt sie zurück (Task 11).
   func item(for reference: MaterialReference) async throws -> OneDriveItem? {
-    if let cached = cache[reference.locationKey] { return cached }
+    if cacheOwner != account.signedInUsername {
+      cache = [:]
+      cacheOwner = account.signedInUsername
+    }
     guard account.isSignedIn else { return nil }
+    if let cached = cache[reference.locationKey] { return cached }
 
     if let itemID = reference.oneDriveItemID, !itemID.isEmpty,
       let driveID = reference.oneDriveDriveID, !driveID.isEmpty,
@@ -60,6 +66,11 @@ import FrontstageCore
     guard let found = try await graph.item(atRootPath: base + "/" + reference.relativePath) else { return nil }
     cache[reference.locationKey] = found
     return found
+  }
+
+  /// Vergisst das gespeicherte Element des Ortes, z. B. nachdem das Öffnen damit gescheitert ist.
+  func forgetItem(for reference: MaterialReference) {
+    cache[reference.locationKey] = nil
   }
 
   /// Namen im Ordner (nur eine Ebene), im Zugriffsfenster der Freigabe.

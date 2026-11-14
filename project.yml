@@ -66,9 +66,11 @@ targets:
         com.apple.developer.icloud-container-identifiers: [$(CLOUDKIT_CONTAINER_ID)]
         com.apple.developer.aps-environment: development
         com.apple.security.app-sandbox: true
-        com.apple.security.files.user-selected.read-only: true
+        com.apple.security.files.user-selected.read-write: true  # Notizen neben dem Dokument (ADR-0011), Datenordner (ADR-0010)
         com.apple.security.files.bookmarks.app-scope: true
         com.apple.security.network.client: true
+        # Am Mac verlangt dieses Entitlement ein Provisioning-Profil: unsigniert in CI egal, ein lokal
+        # signierter Build ohne Profil startet nicht (Geräte-Checkliste Teilplan 03).
         keychain-access-groups: [$(AppIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)]
     info:
       path: Config/Frontstage-macOS-Info.plist

@@ -76,11 +76,12 @@ import Testing
   @Test("ScopedFile.close beendet den Zugriff nur einmal")
   func scopedFileClosesOnce() throws {
     try makeFile("8b/Arbeitsblatt Vokabeln.pdf")
-    let before = ScopedFile.openCount
+    // Nur Zugriffe auf den eigenen temporären Ordner zählen: Andere Suiten laufen parallel.
+    let scope = root.lastPathComponent
     let file = try #require(resolver.open(reference("8b/Arbeitsblatt Vokabeln.pdf")))
-    #expect(ScopedFile.openCount == before + 1)
+    #expect(ScopedFile.openCount(scopePathContaining: scope) == 1)
     file.close()
     file.close()
-    #expect(ScopedFile.openCount == before)
+    #expect(ScopedFile.openCount(scopePathContaining: scope) == 0)
   }
 }

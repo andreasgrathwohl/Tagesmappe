@@ -1,6 +1,6 @@
 import Foundation
 
-/// Ordnerfreigabe – nur auf diesem Gerät, nie gespiegelt (ADR-0002, ADR-0003).
+/// Ordnerfreigabe – nur auf diesem Gerät, nie gespiegelt (ADR-0003, ADR-0010).
 struct FolderGrant: Identifiable, Codable, Hashable, Sendable {
   var id: UUID
   /// Gespiegelter Name, über den Materialverweise die Freigabe auf jedem Gerät wiederfinden.

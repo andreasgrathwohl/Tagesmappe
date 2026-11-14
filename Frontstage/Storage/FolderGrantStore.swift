@@ -23,8 +23,13 @@ import FrontstageCore
 
   // MARK: Bookmark-Optionen je Plattform
 
+  // Lesen und Schreiben: Neben dem Dokument entstehen Notiz-Datei und Notiz-PDF (ADR-0011, Teilplan 06),
+  // im Datenordner der Ablage die App-Daten (ADR-0010, Teilplan 08). Ein nur lesendes Bookmark ließe sich
+  // später nicht hochstufen – jede Lehrkraft müsste alle Ordner neu freigeben. Dass die App nie eine
+  // Material-Datei verändert (FR-3.4), sichert der Code: Die Ablage bietet für Material nur lesende Wege
+  // (`ScopedFile`, `StorageService.withFileURL` mit `.withoutChanges`), keinen Schreibaufruf.
   #if os(macOS)
-    private static let creationOptions: URL.BookmarkCreationOptions = [.withSecurityScope, .securityScopeAllowOnlyReadAccess]
+    private static let creationOptions: URL.BookmarkCreationOptions = [.withSecurityScope]
     private static let resolutionOptions: URL.BookmarkResolutionOptions = [.withSecurityScope]
   #else
     private static let creationOptions: URL.BookmarkCreationOptions = [.minimalBookmark]

@@ -7,6 +7,8 @@ enum RelinkResult: Equatable {
   case relinked(MaterialReference)
   /// Die gewählte Datei liegt in keinem freigegebenen Ordner dieses Geräts.
   case outsideGrants
+  /// Die Zuordnungen ließen sich nicht speichern; der alte Ort bleibt bestehen.
+  case saveFailed
 }
 
 enum StorageReadError: Error, Equatable {
@@ -138,9 +140,9 @@ enum OpenOutcome {
   /// Ersetzt den Ort an allen Zuordnungen mit dem alten Ort (ADR-0003); Zuordnungen und Stiftnotizen bleiben.
   func relink(_ old: MaterialReference, toPickedFile url: URL) -> RelinkResult {
     guard let new = resolver.reference(forPickedFile: url) else { return .outsideGrants }
-    // Das Protokoll kennt keinen Fehlerfall im Ergebnis; bei einem Speicherfehler bleibt der alte Ort bestehen.
+    // Bei einem Speicherfehler bleibt der alte Ort bestehen.
     guard (try? references.replaceReferences(atLocation: old.locationKey, with: new)) != nil else {
-      return .outsideGrants
+      return .saveFailed
     }
     availability[old.locationKey] = nil
     refreshAvailability(for: [new])
@@ -319,6 +321,8 @@ enum OpenOutcome {
       lastCloudHandOver = (reference, clock.now)
       return .openedAsCloudDocument
     case .keepWaiting, .fallBackToHandOff:
+      // Die Adresse kann veraltet sein (Datei in OneDrive verschoben oder umbenannt): beim nächsten Mal neu suchen.
+      oneDrive.forgetItem(for: reference)
       return await fallBackToFile(reference, context: context, anchor: anchor)
     }
   }
@@ -365,20 +369,23 @@ enum OpenOutcome {
     return grantStore.grant(named: reference.folderGrantName)?.oneDrivePath != nil
   }
 
-  /// Element zum Verweis mit Frist `preparationLimit`; `nil` = nicht gefunden, Fehler oder Frist.
-  /// Der Wettlauf läuft in einer Aufgabengruppe: Die Abfrage über `URLSession` ist abbrechbar.
+  /// Element zum Verweis mit harter Frist `preparationLimit`; `nil` = nicht gefunden, Fehler oder Frist.
+  ///
+  /// Swift-Hinweis: kein `withTaskGroup` – die Gruppe wartet nach `cancelAll()` auf alle Kind-Aufgaben, und
+  /// die Token-Abfrage (MSAL `acquireTokenSilent` hinter einer Fortsetzung) ist nicht abbrechbar. `FirstOutcome`
+  /// kehrt beim ersten Ergebnis zurück; eine verspätete Abfrage läuft im Hintergrund aus und wird verworfen.
   private func fetchItem(for reference: MaterialReference) async -> OneDriveItem? {
     let service = oneDrive
     let limit = preparationLimit
-    return await withTaskGroup(of: OneDriveItem?.self) { group in
-      group.addTask { try? await service.item(for: reference) }
-      group.addTask {
-        try? await Task.sleep(for: limit)
-        return nil
-      }
-      let first = await group.next() ?? nil
-      group.cancelAll()
-      return first
+    return await withCheckedContinuation { (continuation: CheckedContinuation<OneDriveItem?, Never>) in
+      let outcome = FirstOutcome(continuation)
+      outcome.adopt(Task { @MainActor in outcome.finish(try? await service.item(for: reference)) })
+      outcome.adopt(
+        Task { @MainActor in
+          // Abbruch (Ergebnis kam zuerst) darf keine Frist melden.
+          guard (try? await Task.sleep(for: limit)) != nil else { return }
+          outcome.finish(nil)
+        })
     }
   }
 
