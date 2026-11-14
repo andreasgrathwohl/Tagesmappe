@@ -3030,6 +3030,66 @@
           }
         }
       }
+    },
+    "purchase.offer.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klassenbildschirm und Tafel freischalten"
+          }
+        }
+      }
+    },
+    "purchase.offer.note" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einmalkauf, kein Abo – gilt auf allen Geräten mit derselben Apple-ID."
+          }
+        }
+      }
+    },
+    "purchase.restore" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Käufe wiederherstellen"
+          }
+        }
+      }
+    },
+    "purchase.restore.failed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wiederherstellen ist fehlgeschlagen."
+          }
+        }
+      }
+    },
+    "secondScreen.neutral.accessibility" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Inhalt"
+          }
+        }
+      }
+    },
+    "setup.purchase.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kauf"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

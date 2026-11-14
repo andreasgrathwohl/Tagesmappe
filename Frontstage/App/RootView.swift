@@ -83,6 +83,12 @@ struct RootView: View {
     .onChange(of: dataLocation.generation) { _, _ in
       activate(currentServices())
     }
+    // Klassenbildschirm und Tafel (Teilplan 07) an den aktuellen Datenort binden. Bewusst hier und nicht im
+    // `body` von `ScopedAppContent`: ein Zustandswechsel darf nicht während des View-Updates geschehen.
+    // `initial: true` bindet auch beim ersten Erscheinen; `bind(store:)` tut bei gleichem Store nichts.
+    .onChange(of: dataLocation.generation, initial: true) { _, _ in
+      ClassroomServices.shared.bind(store: dataLocation.store)
+    }
     // Das Szenen-Zubehör für den Zweitbildschirm hängt in `FrontstageApp` an dieser Ansicht (Teilplan 06).
   }
 

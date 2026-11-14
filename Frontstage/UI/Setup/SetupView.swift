@@ -14,6 +14,7 @@ struct SetupView: View {
   let dataLocation: DataLocationController
   let account: MicrosoftAccount
   let services: ScopedServicesHolder
+  @State private var restoreFailed = false
 
   var body: some View {
     NavigationStack {
@@ -39,6 +40,26 @@ struct SetupView: View {
           NavigationLink("timetableSource.title") {
             scoped { TimetableSourceSettingsView() }
           }
+        }
+        Section {
+          Button("purchase.restore") {
+            Task {
+              do {
+                try await ClassroomServices.shared.unlock.restore()
+                restoreFailed = false
+              } catch {
+                restoreFailed = true
+              }
+            }
+          }
+          if restoreFailed {
+            Text("purchase.restore.failed")
+              .foregroundStyle(.red)
+          }
+        } header: {
+          Text("setup.purchase.title")
+        } footer: {
+          Text("purchase.offer.note")
         }
       }
       .navigationTitle(Text("app.section.setup"))

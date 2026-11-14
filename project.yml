@@ -22,7 +22,7 @@ targets:
   Frontstage-iOS:
     type: application
     platform: iOS
-    sources: [Frontstage]
+    sources: [{ path: Frontstage, excludes: [Resources/Frontstage.storekit] }]
     dependencies: [{ package: FrontstageCore }, { package: MSAL }]
     settings:
       base:
@@ -52,11 +52,11 @@ targets:
         CFBundleURLTypes:
           - CFBundleURLSchemes: [msauth.$(PRODUCT_BUNDLE_IDENTIFIER)]
         LSApplicationQueriesSchemes: [msauthv2, msauthv3, ms-powerpoint, ms-word, ms-excel]
-    scheme: { testTargets: [FrontstageTests] }
+    scheme: { testTargets: [FrontstageTests], storeKitConfiguration: Frontstage/Resources/Frontstage.storekit }
   Frontstage-macOS:
     type: application
     platform: macOS
-    sources: [Frontstage]
+    sources: [{ path: Frontstage, excludes: [Resources/Frontstage.storekit] }]
     dependencies: [{ package: FrontstageCore }, { package: MSAL }]
     settings:
       base:
@@ -90,8 +90,8 @@ targets:
   FrontstageTests:
     type: bundle.unit-test
     platform: iOS
-    sources: [FrontstageTests]
-    dependencies: [{ target: Frontstage-iOS }]
+    sources: [FrontstageTests, { path: Frontstage/Resources/Frontstage.storekit, buildPhase: resources }]
+    dependencies: [{ target: Frontstage-iOS }, { sdk: StoreKitTest.framework }]
     settings:
       base:
         PRODUCT_NAME: FrontstageTests

@@ -72,7 +72,8 @@ import SwiftUI
         await PenNotePDFRegenerator.regenerate(
           reference: reference, key: key, reader: reader, files: penNoteFiles)
       })
-    // Weitere Dienste je Store ergänzen hier: Teilplan 07 (`ClassroomServices.shared.bind(store:)`). Haken beim Aktivwerden gehören in `RootView.activate(_:)`.
+    // Weitere Dienste je Store ergänzen hier. Teilplan 07 bindet seine Dienste nicht hier (läuft im `body`),
+    // sondern in `RootView` (`ClassroomServices.shared.bind(store:)`). Haken beim Aktivwerden gehören in `RootView.activate(_:)`.
     let services = ScopedServices(
       store: store, storage: storage, environment: environment,
       coordinator: sourceCoordinators.coordinator(for: store))
