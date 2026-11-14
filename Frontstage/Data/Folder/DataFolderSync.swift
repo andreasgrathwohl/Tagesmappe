@@ -51,6 +51,8 @@ private struct SavedIdentifiers: Sendable {
 
   /// Der laufende Durchgang samt seiner Wiederholungen; `nil`, wenn keiner läuft.
   @ObservationIgnored private var currentRun: Task<Void, Never>?
+  /// Ein Durchgang läuft (für Tests: das Ende eines Durchgangs im Hintergrund abwarten).
+  var isRunning: Bool { currentRun != nil }
   @ObservationIgnored private var rerunRequested = false
   /// Ein Aufruf während des laufenden Durchgangs wollte den Fortschritt sichtbar haben (`runCycle()`).
   @ObservationIgnored private var rerunVisible = false
@@ -173,7 +175,7 @@ private struct SavedIdentifiers: Sendable {
   /// Durchgangs merkt sich „noch einmal“ und wartet, bis der laufende Durchgang samt dieser Wiederholung
   /// fertig ist – danach sind ausstehende Änderungen geschrieben (soweit das Netz es zuließ).
   /// Der Status zeigt dabei „wird abgeglichen“; Durchgänge im Hintergrund (Abfrage, Speichern) behalten
-  /// die bisherige Aussage, damit „Stand des Abgleichs“ nicht jede Minute flackert.
+  /// die bisherige Aussage – auch einen Fehlerstand –, damit „Stand des Abgleichs“ nicht jede Minute flackert.
   func runCycle() async {
     await runSerialized(writeOnly: false, quiet: false)
   }
@@ -189,6 +191,10 @@ private struct SavedIdentifiers: Sendable {
       await currentRun.value
       return
     }
+    // Hier zurücksetzen, nicht erst in der Schleife: Die neue Aufgabe beginnt erst, wenn dieser Aufruf
+    // wartet. Wer bis dahin „noch einmal“ meldet, bekommt einen eigenen Durchgang nach dem ersten.
+    rerunRequested = false
+    rerunVisible = false
     let run = Task { await self.runLoop(writeOnly: writeOnly, quiet: quiet) }
     currentRun = run
     await run.value
@@ -201,9 +207,14 @@ private struct SavedIdentifiers: Sendable {
     var writeOnly = writeOnly
     var quiet = quiet
     var directRerunUsed = false
+    var firstPass = true
     while !isStopped {
-      rerunRequested = false
-      rerunVisible = false
+      // Ein Wunsch, der vor dem ersten Durchgang kam, gilt erst nach ihm als bedient.
+      if !firstPass {
+        rerunRequested = false
+        rerunVisible = false
+      }
+      firstPass = false
       let conflict = await execute(writeOnly: writeOnly, quiet: quiet)
       if isStopped { return }
       // Nach einem 412 höchstens einmal direkt hintereinander noch einmal (Schritt 8).
@@ -236,10 +247,11 @@ private struct SavedIdentifiers: Sendable {
 
   /// Ein Durchgang; `true`, wenn ein Schreiben an `preconditionFailed` scheiterte.
   /// `writeOnly`: nur die Schritte 7–10 (nach einem Speichern, beim Wechsel in den Hintergrund).
-  /// `quiet`: „wird abgeglichen“ nur zeigen, wenn bisher kein ruhiger Stand angezeigt wird.
+  /// `quiet`: „wird abgeglichen“ nur zeigen, wenn bisher noch gar keine Aussage steht (nie abgeglichen).
+  /// Ein Fehlerstand bleibt bei Hintergrund-Durchgängen stehen, bis ein Durchgang gelingt (kein Flackern).
   private func execute(writeOnly: Bool, quiet: Bool) async -> Bool {
     cycleCount += 1
-    if !quiet || status.phase != .idle || status.lastSuccess == nil {
+    if !quiet || (status.phase == .idle && status.lastSuccess == nil) {
       status.phase = .syncing
     }
     let cycleNow = now()

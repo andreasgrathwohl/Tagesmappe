@@ -338,7 +338,11 @@ private actor HookedRemote: RemoteDataFolder {
     #expect(await waitUntil { await gated.waitingCount >= 1 })
     #expect(mac.sync.status.phase == .idle)
     await gated.openGate()
-    #expect(await waitUntil { mac.sync.cycleCount == 2 && mac.sync.status.phase == .idle })
+    // `cycleCount` steigt schon zu Beginn eines Durchgangs, und der Status bleibt dabei ruhig: Erst
+    // `!isRunning` zeigt das Ende. Sonst fängt das wieder geschlossene Tor den Hintergrund-Durchgang noch
+    // einmal, und `runCycle()` hängt sich nur als Wiederholung an ihn an.
+    #expect(await waitUntil { mac.sync.cycleCount == 2 && !mac.sync.isRunning })
+    #expect(mac.sync.status.phase == .idle)
 
     await gated.closeGate()
     let visible = Task { await mac.sync.runCycle() }
@@ -346,6 +350,23 @@ private actor HookedRemote: RemoteDataFolder {
     #expect(mac.sync.status.phase == .syncing)
     await gated.openGate()
     await visible.value
+    #expect(mac.sync.status.phase == .idle)
+  }
+
+  @Test("Abfrage im Hintergrund lässt einen Fehlerstand stehen, bis ein Durchgang gelingt")
+  func backgroundCycleKeepsErrorState() async throws {
+    let gated = GatedRemoteDataFolder(remote)
+    let mac = try makeDevice("mac", remote: gated, clock: clock)
+    await remote.failNextCalls(with: .offline)
+    await mac.sync.runCycle()
+    #expect(mac.sync.status.phase == .offline)
+
+    await gated.closeGate()
+    mac.sync.networkDidBecomeAvailable()
+    #expect(await waitUntil { await gated.waitingCount >= 1 })
+    #expect(mac.sync.status.phase == .offline)
+    await gated.openGate()
+    #expect(await waitUntil { mac.sync.cycleCount == 2 && !mac.sync.isRunning })
     #expect(mac.sync.status.phase == .idle)
   }
 
