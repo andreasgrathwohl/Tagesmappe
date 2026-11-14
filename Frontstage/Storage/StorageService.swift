@@ -207,6 +207,44 @@ enum OpenOutcome {
     }
   }
 
+  /// Zugang zum Ordner des Dokuments (Teilplan 06, Stiftnotizen neben dem Dokument): löst nur die Ordner auf,
+  /// öffnet den Zugriff auf die Freigabe, ruft `body` mit der (möglicherweise noch nicht vorhandenen)
+  /// Dokument-URL außerhalb des Hauptthreads und beendet den Zugriff danach in jedem Fall. Keine
+  /// Entscheidung über Wege – nur Zugang; Koordinieren und Schreiben macht `body`.
+  ///
+  /// Swift-Hinweis: Der Zugriff bleibt über das `await` hinweg offen, weil `defer` erst beim Verlassen der
+  /// Funktion läuft. Fehler aus `body` werden unverändert weitergereicht.
+  func withDocumentLocation<T: Sendable>(
+    for reference: MaterialReference, _ body: @escaping @Sendable (URL) throws -> T
+  ) async throws -> T {
+    guard let resolved = resolver.resolveFolder(of: reference) else { throw StorageReadError.unresolvable }
+    let accessing = resolved.grantURL.startAccessingSecurityScopedResource()
+    defer { if accessing { resolved.grantURL.stopAccessingSecurityScopedResource() } }
+    let url = resolved.fileURL
+    return try await Task.detached { try body(url) }.value
+  }
+
+  /// Wie `withDocumentLocation`, für zwei Orte zugleich (Neu verknüpfen: alter und neuer Ort liegen in
+  /// verschiedenen Freigaben). Beide Zugriffe bleiben bis zum Ende von `body` offen.
+  ///
+  /// Swift-Hinweis: Ein `body` ist synchron und läuft abseits des Hauptakteurs; ein verschachtelter
+  /// `withDocumentLocation`-Aufruf darin wäre asynchron und deshalb nicht möglich. Darum öffnet diese Methode
+  /// beide Zugriffe selbst, bevor sie `body` startet.
+  func withDocumentLocations<T: Sendable>(
+    for first: MaterialReference, and second: MaterialReference,
+    _ body: @escaping @Sendable (URL, URL) throws -> T
+  ) async throws -> T {
+    guard let a = resolver.resolveFolder(of: first), let b = resolver.resolveFolder(of: second) else {
+      throw StorageReadError.unresolvable
+    }
+    let accessingA = a.grantURL.startAccessingSecurityScopedResource()
+    defer { if accessingA { a.grantURL.stopAccessingSecurityScopedResource() } }
+    let accessingB = b.grantURL.startAccessingSecurityScopedResource()
+    defer { if accessingB { b.grantURL.stopAccessingSecurityScopedResource() } }
+    let urls = (a.fileURL, b.fileURL)
+    return try await Task.detached { try body(urls.0, urls.1) }.value
+  }
+
   nonisolated private static func coordinatedRead<T: Sendable>(
     of url: URL, _ body: @Sendable (URL) throws -> T
   ) throws -> T {

@@ -1,6 +1,113 @@
 {
   "sourceLanguage" : "de",
   "strings" : {
+    "classScreen.upcoming" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gleich:"
+          }
+        }
+      }
+    },
+    "classScreen.until %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "bis %@"
+          }
+        }
+      }
+    },
+    "classScreen.toPrepare %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bereitlegen: %@"
+          }
+        }
+      }
+    },
+    "classScreen.homework %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hausaufgabe: %@"
+          }
+        }
+      }
+    },
+    "workMode.individual" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einzelarbeit"
+          }
+        }
+      }
+    },
+    "workMode.pairs" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Partnerarbeit"
+          }
+        }
+      }
+    },
+    "workMode.groups" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gruppenarbeit"
+          }
+        }
+      }
+    },
+    "timer.title" : {
+      "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Timer" } } }
+    },
+    "timer.start" : {
+      "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Starten" } } }
+    },
+    "timer.pause" : {
+      "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Anhalten" } } }
+    },
+    "timer.resume" : {
+      "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Weiter" } } }
+    },
+    "timer.stop" : {
+      "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Beenden" } } }
+    },
+    "timer.minutes %lld" : {
+      "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "%lld Minuten" } } }
+    },
+    "workMode.title" : {
+      "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Arbeitsform" } } }
+    },
+    "workMode.none" : {
+      "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Keine" } } }
+    },
+    "controls.locked" : {
+      "localizations" : { "de" : { "stringUnit" : { "state" : "translated", "value" : "Timer und Arbeitsform freischalten" } } }
+    },
+    "timer.expired" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeit ist um"
+          }
+        }
+      }
+    },
     "timetableSource.title" : {
       "localizations" : {
         "de" : {
@@ -2697,6 +2804,786 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "OK"
+          }
+        }
+      }
+    },
+    "viewer.unavailable" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material nicht verfügbar"
+          }
+        }
+      }
+    },
+    "viewer.pageOfPages %lld %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seite %1$lld von %2$lld"
+          }
+        }
+      }
+    },
+    "viewer.pages %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seiten: %@"
+          }
+        }
+      }
+    },
+    "viewer.outdatedNotes.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notizen zu einer früheren Fassung"
+          }
+        }
+      }
+    },
+    "viewer.outdatedNotes.body" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Datei wurde in der Ablage geändert. Die Notizen dieser Stunde bleiben erhalten, liegen aber womöglich nicht mehr an der richtigen Stelle."
+          }
+        }
+      }
+    },
+    "viewer.outdatedNotes.hide" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ausblenden"
+          }
+        }
+      }
+    },
+    "viewer.missingPages" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notizen zu Seiten, die es nicht mehr gibt"
+          }
+        }
+      }
+    },
+    "viewer.missingPages.show" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notizen ansehen"
+          }
+        }
+      }
+    },
+    "viewer.missingPages.page %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seite %lld"
+          }
+        }
+      }
+    },
+    "viewer.done" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fertig"
+          }
+        }
+      }
+    },
+    "viewer.previousPage" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorige Seite"
+          }
+        }
+      }
+    },
+    "viewer.nextPage" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nächste Seite"
+          }
+        }
+      }
+    },
+    "viewer.notesInAppData" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Ordner dieses Materials ist nicht beschreibbar. Die Notizen dieser Stunde liegen deshalb in Frontstage statt neben dem Dokument."
+          }
+        }
+      }
+    },
+    "viewer.notesNotDownloaded" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Notizen dieser Stunde sind noch nicht geladen. Schreiben ist möglich, sobald sie da sind."
+          }
+        }
+      }
+    },
+    "viewer.notesUnreadable" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Notiz-Datei dieser Stunde ist nicht lesbar. Sie bleibt unverändert; Schreiben ist ausgeschaltet."
+          }
+        }
+      }
+    },
+    "viewer.notesNewerFormat" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Notizen stammen aus einer neueren Frontstage-Version. Zum Weiterschreiben die App aktualisieren."
+          }
+        }
+      }
+    },
+    "secondScreen.mode.classScreen" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klassenbildschirm"
+          }
+        }
+      }
+    },
+    "secondScreen.mode.material" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material"
+          }
+        }
+      }
+    },
+    "secondScreen.mode.board" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tafel"
+          }
+        }
+      }
+    },
+    "secondScreen.mode.dark" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dunkel"
+          }
+        }
+      }
+    },
+    "secondScreen.picker" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anzeige auf dem Bildschirm"
+          }
+        }
+      }
+    },
+    "secondScreen.connected" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirm verbunden"
+          }
+        }
+      }
+    },
+    "secondScreen.disconnected" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Bildschirm verbunden"
+          }
+        }
+      }
+    },
+    "secondScreen.howTo" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "So verbinden"
+          }
+        }
+      }
+    },
+    "secondScreen.howTo.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit dem Bildschirm verbinden"
+          }
+        }
+      }
+    },
+    "secondScreen.howTo.autoDetect" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frontstage erkennt die Verbindung von selbst und zeigt dann den Klassenbildschirm."
+          }
+        }
+      }
+    },
+    "secondScreen.howTo.airplay" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per AirPlay"
+          }
+        }
+      }
+    },
+    "secondScreen.howTo.step1" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von der rechten oberen Ecke nach unten wischen: Das Kontrollzentrum öffnet sich."
+          }
+        }
+      }
+    },
+    "secondScreen.howTo.step2" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„Bildschirmsynchronisierung“ antippen."
+          }
+        }
+      }
+    },
+    "secondScreen.howTo.step3" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Apple TV des Raums wählen."
+          }
+        }
+      }
+    },
+    "secondScreen.howTo.cable" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per Kabel"
+          }
+        }
+      }
+    },
+    "secondScreen.howTo.cableText" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adapter (USB-C auf HDMI) anstecken – fertig. Das geht ohne Handgriff und auch, wenn das Schulnetz ausfällt."
+          }
+        }
+      }
+    },
+    "secondScreen.preview.accessibility %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorschaubild des Zweitbildschirms: %@"
+          }
+        }
+      }
+    },
+    "purchase.offer.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klassenbildschirm und Tafel freischalten"
+          }
+        }
+      }
+    },
+    "purchase.offer.note" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einmalkauf, kein Abo – gilt auf allen Geräten mit derselben Apple-ID."
+          }
+        }
+      }
+    },
+    "purchase.restore" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Käufe wiederherstellen"
+          }
+        }
+      }
+    },
+    "purchase.restore.failed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wiederherstellen ist fehlgeschlagen."
+          }
+        }
+      }
+    },
+    "secondScreen.neutral.accessibility" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Inhalt"
+          }
+        }
+      }
+    },
+    "setup.purchase.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kauf"
+          }
+        }
+      }
+    },
+    "board.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tafel"
+          }
+        }
+      }
+    },
+    "board.page %lld %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seite %lld von %lld"
+          }
+        }
+      }
+    },
+    "board.template" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorlage"
+          }
+        }
+      }
+    },
+    "board.template.lessonMaterial" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material dieser Unterrichtsstunde"
+          }
+        }
+      }
+    },
+    "board.template.fromStorage" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus der Ablage wählen …"
+          }
+        }
+      }
+    },
+    "board.template.onlyPdfImage" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nur PDF und Bild"
+          }
+        }
+      }
+    },
+    "board.template.wholePage" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ganze Seite"
+          }
+        }
+      }
+    },
+    "board.template.apply" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Übernehmen"
+          }
+        }
+      }
+    },
+    "board.template.failed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Datei konnte nicht gelesen oder übernommen werden."
+          }
+        }
+      }
+    },
+    "board.template.crop.hint" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ziehen, um einen Ausschnitt zu wählen"
+          }
+        }
+      }
+    },
+    "board.template.page %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seite %lld"
+          }
+        }
+      }
+    },
+    "board.addPage" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seite hinzufügen"
+          }
+        }
+      }
+    },
+    "board.background.blank" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leer"
+          }
+        }
+      }
+    },
+    "board.background.lined" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Liniert"
+          }
+        }
+      }
+    },
+    "board.background.grid" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kariert"
+          }
+        }
+      }
+    },
+    "board.previous" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Letztes Tafelbild"
+          }
+        }
+      }
+    },
+    "board.previous.none" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein früheres Tafelbild dieser Klasse in diesem Fach"
+          }
+        }
+      }
+    },
+    "board.backToOwn" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zurück zur Tafel dieser Stunde"
+          }
+        }
+      }
+    },
+    "board.delete" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tafelbild löschen"
+          }
+        }
+      }
+    },
+    "board.delete.confirm" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle Seiten dieser Unterrichtsstunde löschen?"
+          }
+        }
+      }
+    },
+    "board.done" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fertig"
+          }
+        }
+      }
+    },
+    "board.sharePDF" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Als PDF sichern"
+          }
+        }
+      }
+    },
+    "board.pdf.fileName %@ %@ %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tafelbild %@ %@ %@"
+          }
+        }
+      }
+    },
+    "board.camera" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kamera"
+          }
+        }
+      }
+    },
+    "board.camera.freeze" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standbild"
+          }
+        }
+      }
+    },
+    "board.camera.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "board.camera.denied" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kamera nicht freigegeben"
+          }
+        }
+      }
+    },
+    "board.camera.multitasking" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kamera ist in geteilter Ansicht nicht verfügbar"
+          }
+        }
+      }
+    },
+    "board.camera.none" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Kamera"
+          }
+        }
+      }
+    },
+    "board.camera.openSettings" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In den Einstellungen freigeben"
+          }
+        }
+      }
+    },
+    "board.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "board.background" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hintergrund der Seite"
+          }
+        }
+      }
+    },
+    "board.previousPage" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorherige Seite"
+          }
+        }
+      }
+    },
+    "board.nextPage" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nächste Seite"
+          }
+        }
+      }
+    },
+    "board.save.failed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Tafel konnte nicht gespeichert werden."
+          }
+        }
+      }
+    },
+    "board.cover" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abdecken"
+          }
+        }
+      }
+    },
+    "board.uncover" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abdeckung entfernen"
+          }
+        }
+      }
+    },
+    "board.cover.handle" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abdeckung verschieben"
+          }
+        }
+      }
+    },
+    "board.unavailable" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Tafel verfügbar"
           }
         }
       }

@@ -83,7 +83,13 @@ struct RootView: View {
     .onChange(of: dataLocation.generation) { _, _ in
       activate(currentServices())
     }
-    // Szenen-Zubehör für den Zweitbildschirm meldet Teilplan 06 an dieser Stelle an.
+    // Klassenbildschirm und Tafel (Teilplan 07) an den aktuellen Datenort binden. Bewusst hier und nicht im
+    // `body` von `ScopedAppContent`: ein Zustandswechsel darf nicht während des View-Updates geschehen.
+    // `initial: true` bindet auch beim ersten Erscheinen; `bind(store:)` tut bei gleichem Store nichts.
+    .onChange(of: dataLocation.generation, initial: true) { _, _ in
+      ClassroomServices.shared.bind(store: dataLocation.store)
+    }
+    // Das Szenen-Zubehör für den Zweitbildschirm hängt in `FrontstageApp` an dieser Ansicht (Teilplan 06).
   }
 
   /// Datenabhängiger Inhalt eines Bereichs.
@@ -104,6 +110,8 @@ struct RootView: View {
   /// Abruf beim Aktivwerden und Material bereithalten; gemeinsam für Szenenwechsel und neuen Datenort.
   private func activate(_ current: ScopedServices) {
     Task { await current.coordinator.refresh(.appBecameActive) }
+    // Ausstehende Umbenennungen von Notiz-Dateien nachholen (Aktivwerden und neuer Datenort, ADR-0011).
+    Task { await current.environment.penNotes.retryPending() }
     prepareForTeaching(current)
   }
 

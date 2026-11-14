@@ -10,6 +10,8 @@ struct DayRowActions {
   var assign: (MaterialLinkItem) -> Void
   var setCancelled: (LessonKey, Bool) -> Void
   var passOn: (LessonKey) -> Void
+  /// Öffnet die Tafel der Stunde (Teilplan 07, FR-12).
+  var openBoard: (LessonKey) -> Void
 }
 
 /// Eine Zeile der Tagesansicht: Unterrichtsstunde oder Lücke. Systemstandard ohne eigene Palette oder
@@ -82,6 +84,13 @@ private struct LessonRowView: View {
         .contextMenu { lessonMenu }
       Spacer(minLength: 8)
       materials
+      if !isCancelled {
+        Button("board.title", systemImage: "pencil.and.scribble") {
+          actions.openBoard(lesson.lesson.key)
+        }
+        .buttonStyle(.bordered)
+        .frame(minHeight: 44)
+      }
     }
     .padding(.vertical, 4)
   }

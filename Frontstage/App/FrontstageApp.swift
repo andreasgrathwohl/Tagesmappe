@@ -17,6 +17,10 @@ struct FrontstageApp: App {
   @State private var sourceCoordinators = SourceCoordinatorHolder()
   // Swift-Hinweis: `@Environment(\.scenePhase)` liefert den Lebenszyklus der Szene (aktiv, inaktiv, Hintergrund).
   @Environment(\.scenePhase) private var scenePhase
+  #if os(iOS)
+    // Swift-Hinweis: verbindet einen UIKit-App-Delegate mit dem SwiftUI-Lebenszyklus (Szene des Zweitbildschirms).
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+  #endif
 
   private static let logger = Logger(
     subsystem: Bundle.main.bundleIdentifier ?? "com.example.frontstage", category: "App")
@@ -73,6 +77,11 @@ struct FrontstageApp: App {
           dataLocation: dataLocation, account: account, network: network,
           sourceCoordinators: sourceCoordinators
         )
+        // Außen, nicht in `ScopedAppContent`: Zubehör und Umgebung überstehen einen Wechsel des Datenorts.
+        .secondScreenEnvironment()
+        #if os(iOS)
+          .registersSecondScreenAccessory()
+        #endif
         // Ohne die Rückkehr-Adresse kehrt die MSAL-Anmeldung am iPad nicht in die App zurück.
         .onOpenURL { _ = MicrosoftAccount.handleRedirect($0) }
       } else {

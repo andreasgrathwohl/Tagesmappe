@@ -227,12 +227,14 @@ extension DataStore {
       .max { ($0.updatedAt, $0.createdAt) < ($1.updatedAt, $1.createdAt) }
   }
 
-  /// Überschreibt den jüngsten Datensatz der Seite oder legt einen an; updatedAt = jetzt.
+  /// Überschreibt den jüngsten Datensatz der Seite oder legt einen an; updatedAt = `updatedAt` (Vorgabe: jetzt).
   /// pageWidth/pageHeight werden nur gesetzt, wenn der Datensatz neu ist oder bisher keine Größe (0) trug –
   /// so bleibt die Seitengröße erhalten, zu der die Notiz geschrieben wurde (06, PenNoteFit). Löscht nie einen Datensatz.
+  /// - Parameter updatedAt: Zeitpunkt der Änderung; beim Ersatz nach gescheitertem Schließen der Zeitpunkt der
+  ///   Zeichnung, damit der Abgleich mit der Notiz-Datei je Seite den wirklich neueren Stand wählt (Nachtrag 06).
   func savePenNote(
     for link: MaterialLinkRecord, pageIndex: Int, drawingData: Data, pageWidth: Double,
-    pageHeight: Double
+    pageHeight: Double, updatedAt: Date = Date.now
   ) throws {
     let note: PenNoteRecord
     if let existing = try penNote(for: link, pageIndex: pageIndex) {
@@ -246,7 +248,26 @@ extension DataStore {
       note.pageWidth = pageWidth
       note.pageHeight = pageHeight
     }
-    note.updatedAt = Date.now
+    note.updatedAt = updatedAt
+    try saveAndBump()
+  }
+
+  /// Löscht alle `PenNoteRecord`s der Zuordnung und speichert. Nur für den Umzug der Ersatz-Notizen in die
+  /// Notiz-Datei (ADR-0011) und für den Abgleich (08, Löschmarken); sonst löscht keine Stelle Stiftnotizen.
+  func removePenNotes(for link: MaterialLinkRecord) throws {
+    let notes = try penNotes(for: link)
+    guard !notes.isEmpty else { return }
+    for note in notes { modelContext.delete(note) }
+    try saveAndBump()
+  }
+
+  /// Löscht die `PenNoteRecord`s dieser Seiten der Zuordnung (alle Datensätze je Seite, auch doppelte) und
+  /// speichert. Nur für Ersatz-Seiten, die gleich alt oder neuer in der Notiz-Datei stehen (Nachtrag 06).
+  func removePenNotes(for link: MaterialLinkRecord, pageIndices: Set<Int>) throws {
+    guard !pageIndices.isEmpty else { return }
+    let notes = try penNotes(for: link).filter { pageIndices.contains($0.pageIndex) }
+    guard !notes.isEmpty else { return }
+    for note in notes { modelContext.delete(note) }
     try saveAndBump()
   }
 

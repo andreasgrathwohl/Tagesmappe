@@ -39,13 +39,28 @@ jobs:
           echo "Gewählt: $PICK"
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
       - name: App tests (iPad simulator)
-        run: xcodebuild test -project Frontstage.xcodeproj -scheme Frontstage-iOS -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" -resultBundlePath TestResults.xcresult CODE_SIGNING_ALLOWED=NO MSAL_CLIENT_ID="${{ secrets.MSAL_CLIENT_ID }}"
+        # Eigenes Limit unter dem Job-Limit: Hängt ein Test, bleiben Zeit für Diagnose und Upload des xcresult.
+        timeout-minutes: 8
+        run: xcodebuild test -project Frontstage.xcodeproj -scheme Frontstage-iOS -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" -resultBundlePath TestResults.xcresult -test-timeouts-enabled YES -default-test-execution-time-allowance 60 -maximum-test-execution-time-allowance 120 CODE_SIGNING_ALLOWED=NO MSAL_CLIENT_ID="${{ secrets.MSAL_CLIENT_ID }}"
+      - name: Collect crash diagnostics
+        if: failure() && steps.sim.outputs.udid != ''
+        run: |
+          mkdir -p Diagnostics
+          # Absturzberichte des Simulators landen im Diagnoseordner des Hosts (.ips, JSON)
+          find ~/Library/Logs/DiagnosticReports -name '*.ips' -mmin -30 -exec cp {} Diagnostics/ \; 2>/dev/null || true
+          xcrun simctl spawn "${{ steps.sim.outputs.udid }}" log show --last 5m --style compact \
+            --predicate 'process == "Frontstage"' > Diagnostics/frontstage-sim.log 2>&1 || true
+          # Hängt der Test-Host noch, zeigt eine Stichprobe seiner Threads, wo er steht
+          for PID in $(pgrep -x Frontstage); do sample "$PID" 5 -file "Diagnostics/frontstage-$PID.sample.txt" || true; done
+          ls -la Diagnostics
       - name: Upload test results
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: TestResults
-          path: TestResults.xcresult
+          path: |
+            TestResults.xcresult
+            Diagnostics
       - name: Fail if macOS build failed
         if: steps.mac.outcome == 'failure'
         run: |

@@ -36,6 +36,16 @@ struct ClassScreenTests {
     #expect(ClassScreenCalculator.phase(now: t(9, 30), lessons: all) == .noMoreLessons)
   }
 
+  @Test("Nur eine laufende Stunde ist die aktuelle, nicht die nächste (FR-11.3)")
+  func runningLessonKeyOnlyWhileRunning() {
+    let all = lessons(cancelGerman: true)
+    let l8b = lesson("8b", in: all)
+    #expect(ClassScreenCalculator.phase(now: t(8, 31), lessons: all).runningLessonKey == nil)
+    #expect(ClassScreenCalculator.phase(now: t(8, 40), lessons: all).runningLessonKey == l8b.key)
+    #expect(ClassScreenCalculator.phase(now: t(9, 16), lessons: all).runningLessonKey == l8b.key)
+    #expect(ClassScreenCalculator.phase(now: t(9, 30), lessons: all).runningLessonKey == nil)
+  }
+
   @Test("Laufende Stunde liefert das Ende zur Anzeige (AK-42)")
   func inLessonShowsEndTime() {
     let all = lessons(cancelGerman: true)

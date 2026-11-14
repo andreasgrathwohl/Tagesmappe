@@ -34,6 +34,11 @@ private enum DayNotice: Equatable {
   }
 }
 
+/// Ziel für `.fullScreenCover(item:)`: `UUID` selbst ist nicht `Identifiable`.
+private struct ViewerTarget: Identifiable {
+  let id: UUID
+}
+
 /// Angebot nach „Neu verknüpfen“: Stiftnotizen vom alten Ort mitnehmen (ADR-0011).
 private struct CarryOffer {
   let old: MaterialReference
@@ -77,6 +82,10 @@ struct DayView: View {
   @State private var carryOffer: CarryOffer?
   @State private var autoSaveOffer: MaterialReference?
   @State private var assignTarget: MaterialLinkItem?
+  /// Zuordnung, die gerade im Betrachter offen ist (Teilplan 06).
+  @State private var viewerTarget: ViewerTarget?
+  /// Stunde, deren Tafel gerade offen ist (Teilplan 07).
+  @State private var boardTarget: BoardTarget?
   /// Anker der zuletzt geöffneten Zeile – für „ohne AutoSpeichern öffnen“ nach der Rückkehr.
   @State private var lastAnchor = HandOffAnchor()
 
@@ -91,8 +100,15 @@ struct DayView: View {
           content(availableHeight: proxy.size.height)
         }
       }
+      // Die Tafel hängt an der inneren Ansicht, nicht am `NavigationStack`: dort sitzt schon die Anzeige des
+      // Betrachters, und zwei Präsentationen am selben Knoten stören sich.
+      .boardPresentation($boardTarget)
       .navigationTitle(Text(dayTitle))
       .toolbar { toolbar }
+      // Smartboard-Leiste unter den Zeilen (Teilplan 06); die Zeilenhöhe folgt dem verbleibenden Platz.
+      #if os(iOS)
+        .safeAreaInset(edge: .bottom, spacing: 0) { SmartboardBar() }
+      #endif
     }
     // Neuer Stand von diesem oder dem anderen Gerät → neu lesen.
     .onChange(of: environment.store.revision) { model.reload() }
@@ -134,6 +150,13 @@ struct DayView: View {
       }
       Button("dayView.ok", role: .cancel) {}
     }
+    #if os(iOS)
+      .fullScreenCover(item: $viewerTarget) { target in ViewerView(linkID: target.id) }
+    #else
+      .sheet(item: $viewerTarget) { target in
+        ViewerView(linkID: target.id).frame(minWidth: 720, minHeight: 560)
+      }
+    #endif
     .sheet(item: $assignTarget) { item in
       AssignLessonSheet(item: item, lessons: model.assignableLessons()) { lesson in
         model.actions.move(linkID: item.id, to: lesson.key)
@@ -249,7 +272,8 @@ struct DayView: View {
       passOn: { key in
         if model.actions.passOnAll(from: key) == nil { notice = .noNextLesson }
         model.reload()
-      })
+      },
+      openBoard: { key in boardTarget = BoardTarget(key: key) })
   }
 
   private func beginRelink(_ row: MaterialRow) {
@@ -266,8 +290,9 @@ struct DayView: View {
         beginRelink(row)
       }
     case .viewer(let item):
-      // Der eigene Betrachter kommt mit Teilplan 06; bis dahin verhält sich der Zweig wie `.open`.
-      start(item.reference, row: row, anchor: anchor)
+      // Eigener Betrachter (Teilplan 06): liest die Datei selbst, ohne Übergabe an eine andere App.
+      lastAnchor = anchor
+      viewerTarget = ViewerTarget(id: item.id)
     case .open(let reference):
       start(reference, row: row, anchor: anchor)
     }
@@ -291,9 +316,12 @@ struct DayView: View {
     case .unavailable(let reason):
       offer(for: reason, row: currentRow(for: reference))
     case .showInViewer(let file):
-      // Teilplan 06 zeigt die Datei im Betrachter. Solange er fehlt: Zugriff freigeben und übergeben.
+      // Der Betrachter liest die Datei selbst: Zugriff freigeben, dann anzeigen.
       file.close()
-      if !environment.viewerAvailable {
+      if environment.viewerAvailable, let row = currentRow(for: reference) {
+        viewerTarget = ViewerTarget(id: row.id)
+      } else {
+        // Ohne Betrachter oder ohne Zuordnung zum Verweis: an die zuständige App übergeben.
         Task { handle(await environment.storage.openWithoutAutoSave(reference, anchor: lastAnchor), reference) }
       }
     }

@@ -22,7 +22,7 @@ targets:
   Frontstage-iOS:
     type: application
     platform: iOS
-    sources: [Frontstage]
+    sources: [{ path: Frontstage, excludes: [Resources/Frontstage.storekit] }]
     dependencies: [{ package: FrontstageCore }, { package: MSAL }]
     settings:
       base:
@@ -48,15 +48,15 @@ targets:
         UIBackgroundModes: [remote-notification, fetch]
         BGTaskSchedulerPermittedIdentifiers: [frontstage.timetable-source.morning-refresh]
         MSALClientID: $(MSAL_CLIENT_ID)
-        NSCameraUsageDescription: "Die Kamera nimmt Bilder für die Tafel auf und liest den Code zum Koppeln von Geräten."
+        NSCameraUsageDescription: "Die Kamera zeigt Heft, Buchseite oder Versuch an der Tafel und liest den QR-Code zum Koppeln eines zweiten Geräts."
         CFBundleURLTypes:
           - CFBundleURLSchemes: [msauth.$(PRODUCT_BUNDLE_IDENTIFIER)]
         LSApplicationQueriesSchemes: [msauthv2, msauthv3, ms-powerpoint, ms-word, ms-excel]
-    scheme: { testTargets: [FrontstageTests] }
+    scheme: { testTargets: [FrontstageTests], storeKitConfiguration: Frontstage/Resources/Frontstage.storekit }
   Frontstage-macOS:
     type: application
     platform: macOS
-    sources: [Frontstage]
+    sources: [{ path: Frontstage, excludes: [Resources/Frontstage.storekit] }]
     dependencies: [{ package: FrontstageCore }, { package: MSAL }]
     settings:
       base:
@@ -83,15 +83,15 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         FrontstageCloudKitContainer: $(CLOUDKIT_CONTAINER_ID)
         MSALClientID: $(MSAL_CLIENT_ID)
-        NSCameraUsageDescription: "Die Kamera nimmt Bilder für die Tafel auf und liest den Code zum Koppeln von Geräten."
+        NSCameraUsageDescription: "Die Kamera liest den QR-Code zum Koppeln eines zweiten Geräts."
         CFBundleURLTypes:
           - CFBundleURLSchemes: [msauth.$(PRODUCT_BUNDLE_IDENTIFIER)]
     scheme: {}
   FrontstageTests:
     type: bundle.unit-test
     platform: iOS
-    sources: [FrontstageTests]
-    dependencies: [{ target: Frontstage-iOS }]
+    sources: [FrontstageTests, { path: Frontstage/Resources/Frontstage.storekit, buildPhase: resources }]
+    dependencies: [{ target: Frontstage-iOS }, { sdk: StoreKitTest.framework }]
     settings:
       base:
         PRODUCT_NAME: FrontstageTests
