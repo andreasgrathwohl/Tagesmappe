@@ -3218,6 +3218,96 @@
         }
       }
     },
+    "board.template" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorlage"
+          }
+        }
+      }
+    },
+    "board.template.lessonMaterial" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material dieser Unterrichtsstunde"
+          }
+        }
+      }
+    },
+    "board.template.fromStorage" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus der Ablage wählen …"
+          }
+        }
+      }
+    },
+    "board.template.onlyPdfImage" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nur PDF und Bild"
+          }
+        }
+      }
+    },
+    "board.template.wholePage" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ganze Seite"
+          }
+        }
+      }
+    },
+    "board.template.apply" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Übernehmen"
+          }
+        }
+      }
+    },
+    "board.template.failed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Datei konnte nicht gelesen oder übernommen werden."
+          }
+        }
+      }
+    },
+    "board.template.crop.hint" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ziehen, um einen Ausschnitt zu wählen"
+          }
+        }
+      }
+    },
+    "board.template.page %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seite %lld"
+          }
+        }
+      }
+    },
     "board.addPage" : {
       "localizations" : {
         "de" : {

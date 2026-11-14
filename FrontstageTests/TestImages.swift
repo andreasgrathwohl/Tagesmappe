@@ -101,3 +101,41 @@ extension TestImages {
 private extension UInt8 {
   var asDouble: Double { Double(self) }
 }
+
+// MARK: Vorlage (Aufgabe 12)
+
+extension TestImages {
+  /// Schreibt ein einseitiges PDF (A4 hoch, 595 × 842) in eine neue temporäre Datei und füllt ein schwarzes
+  /// Rechteck; `rect` ist normiert (0…1, Ursprung oben links), `.zero` ergibt eine leere Seite.
+  static func writePDF(blackRectAt rect: CGRect) throws -> URL {
+    let url = FileManager.default.temporaryDirectory.appendingPathComponent("template-\(UUID().uuidString).pdf")
+    var box = CGRect(x: 0, y: 0, width: 595, height: 842)
+    guard let context = CGContext(url as CFURL, mediaBox: &box, nil) else { throw CocoaError(.fileWriteUnknown) }
+    context.beginPDFPage(nil)
+    if rect != .zero {
+      context.setFillColor(gray: 0, alpha: 1)
+      // PDF hat den Ursprung unten links, `rect` oben links.
+      context.fill(
+        CGRect(
+          x: rect.minX * 595, y: (1 - rect.maxY) * 842, width: rect.width * 595, height: rect.height * 842))
+    }
+    context.endPDFPage()
+    context.closePDF()
+    return url
+  }
+
+  /// Dekodiert JPEG-Daten.
+  static func decode(_ jpeg: Data) -> CGImage? {
+    guard let source = CGImageSourceCreateWithData(jpeg as CFData, nil) else { return nil }
+    return CGImageSourceCreateImageAtIndex(source, 0, nil)
+  }
+
+  /// Grauwert (0…255) des Pixels bei den relativen Koordinaten `x`, `y` (0 oben links).
+  static func gray(_ image: CGImage, atX x: Double, y: Double) -> UInt8 {
+    let pixels = grayPixels(image)
+    guard !pixels.isEmpty else { return 255 }
+    let column = min(max(Int(Double(image.width) * x), 0), image.width - 1)
+    let row = min(max(Int(Double(image.height) * y), 0), image.height - 1)
+    return pixels[row * image.width + column]
+  }
+}

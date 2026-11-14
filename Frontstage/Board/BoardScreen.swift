@@ -33,6 +33,7 @@ struct BoardScreen: View {
   @State private var notice: BoardNotice?
   @State private var confirmDelete = false
   @State private var didClose = false
+  @State private var isPickingTemplate = false
 
   var body: some View {
     NavigationStack {
@@ -63,6 +64,10 @@ struct BoardScreen: View {
         didClose = true
         try? session?.close()
       }
+    }
+    // Vorlage aus Material oder Ablage (FR-12.6): legt eine neue Seite mit dem gerenderten Bild als Hintergrund an.
+    .sheet(isPresented: $isPickingTemplate) {
+      if let session { TemplatePicker(lessonKey: lessonKey, session: session) }
     }
     .alert(
       Text(notice?.messageKey ?? ""), isPresented: isPresent($notice), presenting: notice
@@ -168,6 +173,8 @@ struct BoardScreen: View {
           if case .own = session.mode {
             addPageMenu(session)
             backgroundMenu(session)
+            Button("board.template", systemImage: "doc.on.doc") { isPickingTemplate = true }
+              .frame(minHeight: 44)
           }
         #endif
         // Teilen-Dialog: liest die Seiten und erzeugt das PDF erst, wenn ein Ziel gewählt wird (FR-12.4).
