@@ -99,6 +99,11 @@ struct MaterialPresentation: Equatable {
     state.displayConnected()
   }
 
+  /// Nur das Bildformat aktualisieren (Drehung, Auflösung). Hebt „Dunkel“ nicht auf und ändert `isConnected` nicht.
+  func updateAspectRatio(_ aspectRatio: Double) {
+    if aspectRatio.isFinite, aspectRatio > 0 { screenAspectRatio = aspectRatio }
+  }
+
   /// Der Bildschirm wurde getrennt; Zustand und Zeichnungen bleiben für das Wiederverbinden erhalten.
   func displayDisconnected() {
     isConnected = false

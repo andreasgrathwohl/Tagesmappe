@@ -53,6 +53,18 @@ import Testing
     #expect(abs(m.screenAspectRatio - 4.0 / 3.0) < 0.001)
   }
 
+  @Test("Bildformat-Update hebt Dunkel nicht auf (FR-11.4)")
+  func ratioUpdateKeepsDark() {
+    let m = SecondScreenState()
+    m.toggleDark()
+    #expect(m.state.mode == .dark)
+    m.updateAspectRatio(4.0 / 3.0)
+    #expect(m.state.mode == .dark)
+    #expect(abs(m.screenAspectRatio - 4.0 / 3.0) < 0.001)
+    m.updateAspectRatio(.nan)
+    #expect(abs(m.screenAspectRatio - 4.0 / 3.0) < 0.001)
+  }
+
   @Test("Tafel wählbar nur mit Unterrichtsstunde")
   func boardRequiresLesson() {
     let m = SecondScreenState()

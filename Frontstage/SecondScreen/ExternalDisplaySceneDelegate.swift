@@ -21,7 +21,8 @@
         rootView: SecondScreenRootView(state: .shared).secondScreenEnvironment())
       window.makeKeyAndVisible()
       self.window = window
-      reportAspectRatio(of: windowScene)
+      guard let ratio = aspectRatio(of: windowScene) else { return }
+      SecondScreenState.shared.displayConnected(aspectRatio: ratio)
     }
 
     @MainActor func sceneDidDisconnect(_ scene: UIScene) {
@@ -34,13 +35,15 @@
       interfaceOrientation previousInterfaceOrientation: UIInterfaceOrientation,
       traitCollection previousTraitCollection: UITraitCollection
     ) {
-      reportAspectRatio(of: windowScene)
+      // Nur das Bildformat nachziehen: „Dunkel“ (FR-11.4) darf durch ein Update nicht aufgehoben werden.
+      guard let ratio = aspectRatio(of: windowScene) else { return }
+      SecondScreenState.shared.updateAspectRatio(ratio)
     }
 
-    @MainActor private func reportAspectRatio(of windowScene: UIWindowScene) {
+    @MainActor private func aspectRatio(of windowScene: UIWindowScene) -> Double? {
       let bounds = windowScene.screen.bounds
-      guard bounds.height > 0 else { return }
-      SecondScreenState.shared.displayConnected(aspectRatio: bounds.width / bounds.height)
+      guard bounds.height > 0 else { return nil }
+      return bounds.width / bounds.height
     }
   }
 #endif
