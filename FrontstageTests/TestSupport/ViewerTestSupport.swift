@@ -350,3 +350,54 @@ actor InMemoryPenNoteFiles: PenNoteFileAccessing {
       combine: combine)
   }
 }
+
+/// Fehler für Ersatz-Leser.
+enum StubError: Error, Equatable { case unresolvable }
+
+/// Liest feste Daten oder wirft; ersetzt `ScopedFileReader`.
+struct StubReader: MaterialFileReading {
+  let data: Data
+  let error: (any Error)?
+
+  func readData(for reference: MaterialReference) async throws -> Data {
+    if let error { throw error }
+    return data
+  }
+}
+
+/// Baut ein `ViewerModel` samt Store, Notiz-Dateien im Speicher und frischem Zweitbildschirm-Zustand.
+@MainActor enum TestViewer {
+  /// - Parameters:
+  ///   - notePages: Seiten mit einer Notiz in A4-Größe.
+  ///   - notes: Seiten mit einer Notiz in der angegebenen Größe (für „Größe geändert“, „Seite fehlt“).
+  ///   - existingPDF: Neben dem Dokument liegt schon ein Notiz-PDF dieser Stunde.
+  ///   - notWritable: Der Ordner des Dokuments ist nicht beschreibbar.
+  static func make(
+    kind: MaterialFileKind, data: Data = Data(), readError: (any Error)? = nil, notePages: [Int] = [],
+    notes: [Int: PageSize] = [:], existingPDF: Bool = false, notWritable: Bool = false,
+    saveDelay: Duration = .milliseconds(500)
+  ) async throws -> (ViewerModel, InMemoryPenNoteFiles, SecondScreenState) {
+    let (store, link) = try TestStore.contextWithLink(kind: kind)
+    let files = InMemoryPenNoteFiles(notWritable: notWritable)
+    guard let key = LessonKey(storageText: link.lessonKeyText) else { throw StubError.unresolvable }
+    var sizes = notes
+    for page in notePages where sizes[page] == nil { sizes[page] = .a4 }
+    if !sizes.isEmpty || existingPDF {
+      let stamp = Date(timeIntervalSince1970: 1_800_000_000)
+      let file = PenNoteFile(
+        lessonKey: key, document: link.displayName, device: "test", updatedAt: stamp,
+        pages: sizes.keys.sorted().map { index in
+          PenNotePage(
+            index: index, width: sizes[index]!.width, height: sizes[index]!.height,
+            drawing: TestDrawings.word.dataRepresentation(), updatedAt: stamp)
+        })
+      try await files.put(file, for: link.reference, withPDF: existingPDF)
+    }
+    let screen = SecondScreenState()
+    let penNotes = PenNoteStore(link: link, files: files, fallback: store, saveDelay: saveDelay)
+    let model = ViewerModel(
+      link: link, notes: penNotes, fileReader: StubReader(data: data, error: readError), files: files,
+      secondScreen: screen)
+    return (model, files, screen)
+  }
+}

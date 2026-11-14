@@ -167,6 +167,9 @@ struct StoredPenNote {
     }
   }
 
+  /// Stand der Notizen im Speicher, auch noch nicht geschriebene (für das Notiz-PDF beim Schließen).
+  func currentNotes() -> [Int: StoredPenNote] { current }
+
   /// Schreibt alle ausstehenden Seiten sofort (Schließen, Szenenwechsel, Hintergrund).
   func flush() async {
     saveTask?.cancel()
