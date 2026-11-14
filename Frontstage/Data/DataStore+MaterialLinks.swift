@@ -250,6 +250,15 @@ extension DataStore {
     try saveAndBump()
   }
 
+  /// Löscht alle `PenNoteRecord`s der Zuordnung und speichert. Nur für den Umzug der Ersatz-Notizen in die
+  /// Notiz-Datei (ADR-0011) und für den Abgleich (08, Löschmarken); sonst löscht keine Stelle Stiftnotizen.
+  func removePenNotes(for link: MaterialLinkRecord) throws {
+    let notes = try penNotes(for: link)
+    guard !notes.isEmpty else { return }
+    for note in notes { modelContext.delete(note) }
+    try saveAndBump()
+  }
+
   // MARK: - Hilfen
 
   private func allLinks() throws -> [MaterialLinkRecord] {
