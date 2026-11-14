@@ -69,6 +69,7 @@ private struct StatementLabel: View {
 }
 
 private struct LessonRowView: View {
+  @Environment(AppEnvironment.self) private var environment
   let lesson: LessonRow
   let openingIDs: Set<UUID>
   let actions: DayRowActions
@@ -122,9 +123,14 @@ private struct LessonRowView: View {
     if lesson.materials.isEmpty {
       StatementLabel(statement: .lessonWithoutMaterial)
         .font(.subheadline).foregroundStyle(.secondary)
-    } else if lesson.materials.contains(where: { $0.availability.isUnavailable }) {
+    } else if lesson.materials.contains(where: { liveAvailability($0).isUnavailable }) {
       StatementLabel(statement: .materialUnavailable).font(.subheadline)
     }
+  }
+
+  /// Zustand zur Renderzeit aus der Ablage (beobachtet); die Zeile selbst trägt nur den Stand des letzten Lesens.
+  private func liveAvailability(_ row: MaterialRow) -> MaterialAvailability? {
+    environment.storage.availability[row.item.reference.locationKey] ?? row.availability
   }
 
   /// Thema, Bereitlegen und Hausaufgabe, wenn nicht leer (FR-13).
@@ -198,7 +204,8 @@ private struct LessonRowView: View {
 struct MaterialButton: View {
   enum Style { case full, short }
 
-  let row: MaterialRow
+  /// Die übergebene Zeile ist nur der Stand des letzten Lesens; der Zustand kommt live aus der Ablage.
+  let passedRow: MaterialRow
   let isOpening: Bool
   let style: Style
   /// `true`: Teil einer Stunde (Menüpunkt „In die nächste Stunde“); `false`: Material ohne Stunde.
@@ -207,6 +214,23 @@ struct MaterialButton: View {
 
   /// Ort des „Öffnen in …“-Menüs: der Knopf selbst (liefert `HandOffAnchorReader`).
   @State private var anchor = HandOffAnchor()
+  @Environment(AppEnvironment.self) private var environment
+
+  init(row: MaterialRow, isOpening: Bool, style: Style, inLesson: Bool, actions: DayRowActions) {
+    self.passedRow = row
+    self.isOpening = isOpening
+    self.style = style
+    self.inLesson = inLesson
+    self.actions = actions
+  }
+
+  /// Zeile mit dem Zustand zur Renderzeit: Laden, Fortschritt und Rückkehr der Datei folgen `availability`.
+  private var row: MaterialRow {
+    MaterialRow(
+      item: passedRow.item,
+      availability: environment.storage.availability[passedRow.item.reference.locationKey]
+        ?? passedRow.availability)
+  }
 
   var body: some View {
     Button {

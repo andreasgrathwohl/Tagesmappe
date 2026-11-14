@@ -25,4 +25,12 @@ import Testing
   func noRowsKeepMaximum() {
     #expect(DayViewLayout.rowHeight(availableHeight: 600, rowCount: 0) == 96)
   }
+
+  @Test("Material ohne Stunde: Platz wächst mit der Anzahl und ist gedeckelt")
+  func orphanReserveGrowsAndIsCapped() {
+    #expect(DayViewLayout.orphanReserve(count: 0) == 0)
+    #expect(DayViewLayout.orphanReserve(count: 1) == 122)
+    #expect(DayViewLayout.orphanReserve(count: 2) > DayViewLayout.orphanReserve(count: 1))
+    #expect(DayViewLayout.orphanReserve(count: 10) == 190)
+  }
 }

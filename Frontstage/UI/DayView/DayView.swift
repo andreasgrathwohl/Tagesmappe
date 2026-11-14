@@ -74,8 +74,6 @@ struct DayView: View {
   /// Anker der zuletzt geöffneten Zeile – für „ohne AutoSpeichern öffnen“ nach der Rückkehr.
   @State private var lastAnchor = HandOffAnchor()
 
-  /// Platz, den „Material ohne Stunde“ unter der Liste braucht, damit die Zeilenhöhe darauf Rücksicht nimmt.
-  private let orphanReserve: CGFloat = 140
 
   var body: some View {
     NavigationStack {
@@ -176,7 +174,7 @@ struct DayView: View {
         .padding(.horizontal)
       }
     case .rows(let rows):
-      let reserve = model.materialsWithoutLesson.isEmpty ? 0 : orphanReserve
+      let reserve = DayViewLayout.orphanReserve(count: model.materialsWithoutLesson.count)
       // Höhe fest, solange selbst die Mindesthöhe passt; sonst `nil` → Scrollen.
       if let rowHeight = DayViewLayout.rowHeight(
         availableHeight: availableHeight - reserve, rowCount: rows.count)
@@ -186,7 +184,9 @@ struct DayView: View {
             DayRowView(row: row, openingIDs: model.openingLinkIDs, actions: rowActions)
               .frame(height: rowHeight)
           }
-          orphanSection
+          // Eigener Scrollbereich mit Höchsthöhe: auch viele Einträge bleiben erreichbar (FR-7).
+          ScrollView { orphanSection }
+            .frame(maxHeight: reserve)
           Spacer(minLength: 0)
         }
         .padding(.horizontal)

@@ -13,4 +13,11 @@ enum DayViewLayout {
     let height = min(maxRowHeight, (availableHeight - spacing * (count - 1)) / count)
     return height >= minRowHeight ? height : nil
   }
+
+  /// Höhe für „Material ohne Stunde“ unter den festen Zeilen: Trenner und Überschrift (~70 pt) plus
+  /// je Eintrag ~52 pt, gedeckelt; darüber scrollt der Bereich in sich.
+  static func orphanReserve(count: Int) -> CGFloat {
+    guard count > 0 else { return 0 }
+    return min(190, 70 + 52 * CGFloat(count))
+  }
 }
