@@ -1800,6 +1800,346 @@
           }
         }
       }
+    },
+    "setup.timetable.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stundenplan"
+          }
+        }
+      }
+    },
+    "setup.timetable.add" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stunde hinzufügen"
+          }
+        }
+      }
+    },
+    "setup.timetable.weekVariants" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wochenrhythmus"
+          }
+        }
+      }
+    },
+    "setup.timetable.weekVariants.one" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jede Woche gleich"
+          }
+        }
+      }
+    },
+    "setup.timetable.weekVariants.two" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A-/B-Woche im Wechsel"
+          }
+        }
+      }
+    },
+    "setup.timetable.referenceWeek" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein Tag der A-Woche"
+          }
+        }
+      }
+    },
+    "setup.timetable.referenceWeek.current %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A-Woche: %@"
+          }
+        }
+      }
+    },
+    "setup.timetable.referenceWeek.footer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gewählt wird ein beliebiger Tag; maßgeblich ist die Woche, die ihn enthält. Die Folgewoche ist die B-Woche."
+          }
+        }
+      }
+    },
+    "setup.timetable.shown" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ansicht"
+          }
+        }
+      }
+    },
+    "setup.timetable.variant.a" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A-Woche"
+          }
+        }
+      }
+    },
+    "setup.timetable.variant.b" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "B-Woche"
+          }
+        }
+      }
+    },
+    "setup.timetable.variant.both" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beide Wochen"
+          }
+        }
+      }
+    },
+    "setup.timetable.grid.footer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tippen auf ein Feld legt eine Stunde an oder ändert sie."
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.titleNew" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Neue Stunde"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.titleEdit" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stunde ändern"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.class" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klasse"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.subject" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fach"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.weekday" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wochentag"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.period" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stunde"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.appliesTo" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gilt für"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.save" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sichern"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.delete" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stunde löschen"
+          }
+        }
+      }
+    },
+    "setup.timetable.reduce.title %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld Stunden der B-Woche löschen?"
+          }
+        }
+      }
+    },
+    "setup.timetable.reduce.message" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bei nur einer Woche entfällt die B-Woche. Die Stunden der A-Woche gelten dann in jeder Woche."
+          }
+        }
+      }
+    },
+    "setup.timetable.reduce.confirm" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "B-Woche löschen"
+          }
+        }
+      }
+    },
+    "setup.timetable.reduce.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "setup.timetable.error.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das hat nicht geklappt"
+          }
+        }
+      }
+    },
+    "setup.timetable.error.ok" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "setup.timetable.error.emptyClass" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitte eine Klasse eintragen."
+          }
+        }
+      }
+    },
+    "setup.timetable.error.emptySubject" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bitte ein Fach eintragen."
+          }
+        }
+      }
+    },
+    "setup.timetable.error.invalidPeriod" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Stunde muss eine Zahl ab 1 sein."
+          }
+        }
+      }
+    },
+    "setup.timetable.error.duplicate" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Stunde gibt es schon."
+          }
+        }
+      }
+    },
+    "setup.timetable.error.saveFailed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speichern ist fehlgeschlagen."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

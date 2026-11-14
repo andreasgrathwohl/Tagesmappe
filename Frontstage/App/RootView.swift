@@ -91,17 +91,10 @@ struct RootView: View {
     ScopedAppContent(controller: dataLocation, services: services, content: content)
   }
 
-  /// Einrichten. Der Datenort-Abschnitt steht außerhalb des datengebundenen Teilbaums; die übrigen
-  /// Abschnitte (Aufgaben 11–14) kommen darunter in einem `scoped { … }`.
+  /// Einrichten: der Rahmen samt Datenort und Kopplung steht außerhalb des datengebundenen Teilbaums,
+  /// Datenabhängiges öffnet sich darin über `ScopedAppContent` (siehe `SetupView`).
   private var setup: some View {
-    NavigationStack {
-      Form {
-        DataLocationSettingsView(
-          controller: dataLocation, isOneDriveAvailable: account.isConfigured,
-          accountUsername: { account.signedInUsername })
-      }
-      .navigationTitle(Text("app.section.setup"))
-    }
+    SetupView(dataLocation: dataLocation, account: account, services: services)
   }
 
   private func currentServices() -> ScopedServices {
