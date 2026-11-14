@@ -11,28 +11,26 @@ enum MicrosoftSignOutImpact: Equatable {
 /// Logik von „Einrichten › Ablage“ (FR-3): Ordnerfreigaben dieses Geräts, Freigaben, die nur auf
 /// anderen Geräten bestehen, und das Microsoft-Konto.
 ///
-/// Swift-Hinweis: Die Freigaben liegen in `StorageService`, das hier nur über das Protokoll
-/// `MaterialStorage` erscheint und nicht beobachtbar ist. Deshalb hält das Modell eine eigene Kopie
-/// (`grants`) und liest sie nach jeder Änderung neu.
+/// Swift-Hinweis: Die Freigaben liegen in `StorageService` (`@Observable`). `grants` liest sie als
+/// berechnete Eigenschaft durch, damit SwiftUI Änderungen (etwa den nachträglich erkannten
+/// OneDrive-Pfad) ohne eigene Kopie mitbekommt.
 @MainActor @Observable final class StorageSettingsViewModel {
   private let environment: AppEnvironment
   private let account: MicrosoftAccount
 
   /// Freigaben auf diesem Gerät.
-  private(set) var grants: [FolderGrant]
+  var grants: [FolderGrant] { environment.storage.grants }
   /// Gespiegelte Namen aus Zuordnungen; wird mit `reload()` aktualisiert.
   private var mirroredNames: Set<String>
 
   init(environment: AppEnvironment, account: MicrosoftAccount) {
     self.environment = environment
     self.account = account
-    self.grants = environment.storage.grants
     self.mirroredNames = (try? environment.store.folderGrantNames()) ?? []
   }
 
-  /// Liest Freigaben und gespiegelte Namen neu (auch nach Änderungen vom anderen Gerät).
+  /// Liest die gespiegelten Namen neu (auch nach Änderungen vom anderen Gerät).
   func reload() {
-    grants = environment.storage.grants
     mirroredNames = (try? environment.store.folderGrantNames()) ?? []
   }
 
