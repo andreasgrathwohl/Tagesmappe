@@ -98,4 +98,36 @@ import Testing
     model.remove(startYear: 2025)
     #expect(model.years.isEmpty)
   }
+
+  @Test("Ersten Schultag ins nächste Kalenderjahr verschieben: keine Überschneidung mit sich selbst")
+  func movingFirstDayChangesStartYear() throws {
+    try store.saveSchoolYear(year(2026))
+    let model = makeModel()
+    model.edit(startYear: 2026)
+    model.draft?.firstDay = CalendarDay(year: 2027, month: 1, day: 4)
+    model.saveDraft()
+    #expect(model.issueKey == nil)
+    #expect(model.draft == nil)
+    #expect(try store.schoolYears().map(\.startYear) == [2027])
+  }
+
+  @Test("Neues Startjahr trifft ein anderes Schuljahr → Meldung, nichts überschrieben")
+  func movingOntoOtherYearIsRejected() throws {
+    try store.saveSchoolYear(year(2026))
+    var next = year(2027)
+    next.gradeOverrides["ef"] = 11
+    try store.saveSchoolYear(next)
+    let model = makeModel()
+    model.edit(startYear: 2026)
+    model.draft?.firstDay = CalendarDay(year: 2027, month: 8, day: 3)
+    model.draft?.secondTermStart = CalendarDay(year: 2028, month: 2, day: 2)
+    model.draft?.lastDay = CalendarDay(year: 2028, month: 7, day: 30)
+    model.saveDraft()
+    #expect(model.issueKey == "setup.schoolYears.error.overlap %@")
+    #expect(model.issueOverlapTitle == "2027/28")
+    #expect(model.draft != nil)
+    let stored = try store.schoolYears()
+    #expect(stored.map(\.startYear) == [2026, 2027])
+    #expect(stored.last?.gradeOverrides["ef"] == 11)
+  }
 }

@@ -60,13 +60,27 @@ import Observation
   }
 
   /// Speichert den Entwurf. Bei einer Ablehnung bleibt er offen und `issueKey` nennt den Grund.
+  ///
+  /// Geprüft wird gegen die übrigen Schuljahre ohne den eigenen alten Stand. Ändert sich das Startjahr
+  /// (erster Schultag in ein anderes Kalenderjahr verschoben) und gibt es schon ein anderes Schuljahr
+  /// mit dem neuen Startjahr, wird abgelehnt – sonst ersetzte der Store es still samt Hand-Jahrgängen.
   func saveDraft() {
     guard let draft else { return }
+    let current = (try? store.schoolYears()) ?? years
+    let others = current.filter { $0.startYear != editingStartYear }
+    if let issue = draft.issue(among: others) {
+      apply(issue)
+      return
+    }
+    if others.contains(where: { $0.startYear == draft.startYear }) {
+      apply(.overlaps(startYear: draft.startYear))
+      return
+    }
     do {
-      try store.saveSchoolYear(draft)
-      // Hat der Nutzer den ersten Schultag in ein anderes Jahr verschoben, bleibt kein Duplikat zurück.
       if let old = editingStartYear, old != draft.startYear {
-        try store.removeSchoolYear(startYear: old)
+        try move(from: old, to: draft, previous: current.first { $0.startYear == old })
+      } else {
+        try store.saveSchoolYear(draft)
       }
       self.draft = nil
       editingStartYear = nil
@@ -117,6 +131,18 @@ import Observation
   }
 
   // MARK: - Hilfen
+
+  /// Neues Startjahr: erst den alten Stand entfernen, damit die Prüfung des Stores ihn nicht als
+  /// Überschneidung mit sich selbst meldet; scheitert das Speichern, kommt der alte Stand zurück.
+  private func move(from old: Int, to year: SchoolYear, previous: SchoolYear?) throws {
+    try store.removeSchoolYear(startYear: old)
+    do {
+      try store.saveSchoolYear(year)
+    } catch {
+      if let previous { try? store.saveSchoolYear(previous) }
+      throw error
+    }
+  }
 
   private func overrides(startYear: Int) -> [String: Int] {
     if let draft, draft.startYear == startYear { return draft.gradeOverrides }

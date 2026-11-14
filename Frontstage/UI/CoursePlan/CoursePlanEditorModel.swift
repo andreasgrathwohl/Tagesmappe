@@ -18,6 +18,9 @@ import Observation
   private(set) var followingClasses: [SchoolClass] = []
   /// Jahresnotiz; die Ansicht schreibt hinein, `saveNotes()` speichert.
   var notes: String = ""
+  /// Zuletzt gelesener gespeicherter Stand der Jahresnotiz. Weicht `notes` davon ab, tippt die
+  /// Lehrkraft gerade: `reload()` überschreibt den Entwurf dann nicht.
+  private var savedNotes: String = ""
   /// Frühere Jahre desselben Fachs und Jahrgangs, neuestes zuerst.
   private(set) var earlierPlans: [CoursePlanSummary] = []
   /// Schlüssel einer Meldung (`Localizable.xcstrings`), z. B. `coursePlan.copy.done %lld`.
@@ -42,7 +45,11 @@ import Observation
       return
     }
     key = content.key
-    notes = content.notes ?? ""
+    let stored = content.notes ?? ""
+    // Ungespeicherte Eingabe nicht verwerfen (ein Neuladen kommt z. B. vom Ordnerabgleich, während das
+    // Feld den Fokus hat). Ohne eigene Änderung gilt der gespeicherte Stand, auch vom anderen Gerät.
+    if notes == savedNotes { notes = stored }
+    savedNotes = stored
     let weeks = (try? store.teachingWeeks(startYear: content.key.startYear)) ?? []
     layout = PlanLayouter.layout(
       weeks: weeks, planWeeks: content.planWeeks, assessments: content.assessments)
@@ -54,11 +61,20 @@ import Observation
     }
   }
 
-  /// Speichert die Jahresnotiz; leer (nach Trimmen) löscht sie.
+  /// Speichert die Jahresnotiz; leer (nach Trimmen) löscht sie. Ohne Änderung wird nichts
+  /// geschrieben (kein unnötiges Neuladen aller Ansichten, kein Speichern).
   func saveNotes() {
     let trimmed = notes.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard trimmed != savedNotes else {
+      // Nur Leerraum geändert: Feld auf den gespeicherten Stand zurücksetzen.
+      notes = savedNotes
+      return
+    }
     do {
       try store.setPlanNote(trimmed.isEmpty ? nil : trimmed, planID: planID)
+      // Gespeichert: Feld und gespeicherter Stand stimmen überein, `reload()` übernimmt künftig wieder.
+      notes = trimmed
+      savedNotes = trimmed
     } catch {
       noticeKey = "coursePlan.error.save"
       noticeArgument = nil

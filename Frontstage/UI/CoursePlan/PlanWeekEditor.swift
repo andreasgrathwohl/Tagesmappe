@@ -20,6 +20,9 @@ import Observation
   /// Montag der Woche, auch bei einer nicht zugeordneten Planwoche mit Montag ohne Unterrichtswoche.
   private let monday: CalendarDay?
   private var planWeek: PlanWeek?
+  /// Kennungen der Leistungsnachweise dieses Sheets. Bei einer Planwoche ohne Montag lassen sie sich
+  /// nicht über den Montag finden, daher merkt sich der Editor die eigenen.
+  private var assessmentIDs: Set<UUID>
   private let now: @MainActor () -> Date
   private let onChange: @MainActor () -> Void
 
@@ -36,6 +39,7 @@ import Observation
     self.topic = planWeek?.topic ?? ""
     self.notes = planWeek?.notes ?? ""
     self.assessments = assessments
+    self.assessmentIDs = Set(assessments.map(\.id))
     self.now = now
     self.onChange = onChange
   }
@@ -44,11 +48,17 @@ import Observation
   var selectableDays: [CalendarDay] { week?.teachingDays ?? [] }
 
   /// Thema und Notizen speichern; sind beide leer, löscht der Store die Planwoche.
+  ///
+  /// Unverändert (nach Trimmen) wird nichts geschrieben: Ein Speichern ohne Änderung bekäme einen neuen
+  /// Zeitstempel und gewänne im Abgleich (letzter Schreiber gewinnt) gegen eine echte Änderung vom
+  /// anderen Gerät – oder schriebe ein inzwischen veraltetes Thema zurück.
   func save() {
     errorKey = nil
     let saved = PlanWeek(
       id: planWeek?.id ?? UUID(), monday: monday, position: planWeek?.position ?? week?.number ?? 0,
       topic: topic, notes: notes, updatedAt: now())
+    // `PlanWeek` normalisiert Thema und Notizen; ohne Planwoche sind beide `nil`.
+    guard saved.topic != planWeek?.topic || saved.notes != planWeek?.notes else { return }
     do {
       try store.savePlanWeek(saved, planID: planID)
       // Nach dem Löschen einer leeren Woche beginnt ein späteres Speichern wieder mit neuer id.
@@ -60,8 +70,17 @@ import Observation
   }
 
   /// Legt einen Leistungsnachweis an. Ein Tag, der kein Unterrichtstag der Woche ist, entfällt.
+  ///
+  /// Gibt es in diesem Sheet schon einen gleichen Leistungsnachweis ohne Titel (gleiche Art, gleicher Tag),
+  /// entsteht kein zweiter: Beide hätten denselben fachlichen Schlüssel, und das Zusammenführen
+  /// (`CoursePlanMerger`) löschte einen davon wieder – ein Platzhalter verschwände unerwartet.
   func addAssessment(kind: AssessmentKind, title: String, day: CalendarDay?) {
     let validDay = day.flatMap { selectableDays.contains($0) ? $0 : nil }
+    if Self.isBlank(title),
+      assessments.contains(where: { $0.kind == kind && $0.day == validDay && Self.isBlank($0.title) })
+    {
+      return
+    }
     let assessment = Assessment(
       id: UUID(), monday: monday, day: validDay, kind: kind, title: title, updatedAt: now())
     persist(assessment)
@@ -89,6 +108,7 @@ import Observation
     errorKey = nil
     do {
       try store.saveAssessment(assessment, planID: planID)
+      assessmentIDs.insert(assessment.id)
       refreshAssessments()
       onChange()
     } catch {
@@ -97,9 +117,15 @@ import Observation
   }
 
   /// Liest die Leistungsnachweise dieser Woche aus dem Store; Reihenfolge wie im Layout.
+  /// Ohne Montag gelten die in diesem Sheet bekannten Kennungen.
   private func refreshAssessments() {
-    guard let monday, let content = try? store.coursePlan(id: planID) else { return }
-    assessments = content.assessments.filter { $0.monday == monday }.sorted { lhs, rhs in
+    guard let content = try? store.coursePlan(id: planID) else { return }
+    let ids = assessmentIDs
+    let mine = content.assessments.filter { assessment in
+      if let monday { return assessment.monday == monday }
+      return ids.contains(assessment.id)
+    }
+    assessments = mine.sorted { lhs, rhs in
       switch (lhs.day, rhs.day) {
       case let (l?, r?) where l != r: return l < r
       case (_?, nil): return true
@@ -109,5 +135,9 @@ import Observation
       if lhs.title != rhs.title { return lhs.title < rhs.title }
       return lhs.id.uuidString < rhs.id.uuidString
     }
+  }
+
+  private static func isBlank(_ text: String) -> Bool {
+    text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
   }
 }

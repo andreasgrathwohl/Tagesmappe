@@ -4,9 +4,10 @@ import SwiftUI
 /// Legt das Modell von „Einrichten › Schuljahre“ an; es entsteht je Datenort neu (`ScopedAppContent`).
 struct SchoolYearSettingsScreen: View {
   @Environment(DataStore.self) private var dataStore
+  @Environment(AppEnvironment.self) private var environment
 
   var body: some View {
-    SchoolYearSettingsHost(dataStore: dataStore)
+    SchoolYearSettingsHost(dataStore: dataStore, today: environment.today())
   }
 }
 
@@ -14,11 +15,9 @@ private struct SchoolYearSettingsHost: View {
   @State private var model: SchoolYearSettingsModel
   private let dataStore: DataStore
 
-  init(dataStore: DataStore) {
+  init(dataStore: DataStore, today: CalendarDay) {
     self.dataStore = dataStore
-    _model = State(
-      initialValue: SchoolYearSettingsModel(
-        store: dataStore, today: CalendarDay(.now, calendar: .current)))
+    _model = State(initialValue: SchoolYearSettingsModel(store: dataStore, today: today))
   }
 
   var body: some View {

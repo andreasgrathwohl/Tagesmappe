@@ -60,14 +60,107 @@ import Testing
     #expect(weekEntry(model, number: 8)?.assessments.first?.day == nil)
   }
 
-  @Test("AK-47: Jahresnotiz bleibt nach reload")
+  @Test("AK-47: Jahresnotiz bleibt gespeichert")
   func savesPlanNote() throws {
     let model = try makeModel()
     model.notes = "Lehrwerk Band 3, Kapitel 1 bis 6"
     model.saveNotes()
-    model.notes = ""
+    let planID = try #require(try store.coursePlanSummaries().first?.id)
+    let reopened = CoursePlanEditorModel(planID: planID, store: store)
+    #expect(reopened.notes == "Lehrwerk Band 3, Kapitel 1 bis 6")
+  }
+
+  @Test("Neuladen während der Eingabe verwirft die ungespeicherte Jahresnotiz nicht")
+  func reloadKeepsUnsavedNote() throws {
+    let model = try makeModel()
+    let planID = try #require(try store.coursePlanSummaries().first?.id)
+    model.notes = "Entwurf"
+    // Änderung vom anderen Gerät, während das Feld den Fokus hat.
+    try store.setPlanNote("Fremder Stand", planID: planID)
     model.reload()
-    #expect(model.notes == "Lehrwerk Band 3, Kapitel 1 bis 6")
+    #expect(model.notes == "Entwurf")
+    model.saveNotes()
+    #expect(try store.coursePlan(id: planID)?.notes == "Entwurf")
+    // Nach dem Speichern übernimmt das Neuladen wieder den Stand vom anderen Gerät.
+    try store.setPlanNote("Später", planID: planID)
+    model.reload()
+    #expect(model.notes == "Später")
+  }
+
+  @Test("Ohne eigene Eingabe übernimmt das Neuladen die Jahresnotiz vom anderen Gerät")
+  func reloadTakesRemoteNote() throws {
+    let model = try makeModel()
+    let planID = try #require(try store.coursePlanSummaries().first?.id)
+    try store.setPlanNote("Vom iPad", planID: planID)
+    model.reload()
+    #expect(model.notes == "Vom iPad")
+    try store.setPlanNote("Wieder geändert", planID: planID)
+    model.reload()
+    #expect(model.notes == "Wieder geändert")
+  }
+
+  @Test("Unveränderte Jahresnotiz wird nicht erneut gespeichert")
+  func unchangedNoteIsNotSaved() throws {
+    let model = try makeModel()
+    model.notes = "Lehrwerk Band 3"
+    model.saveNotes()
+    let revision = store.revision
+    model.saveNotes()
+    model.notes = "Lehrwerk Band 3  "
+    model.saveNotes()
+    #expect(store.revision == revision)
+    #expect(model.notes == "Lehrwerk Band 3")
+  }
+
+  @Test("Sheet ohne Änderung schließen schreibt die Planwoche nicht neu")
+  func unchangedWeekIsNotSaved() throws {
+    let model = try makeModel()
+    let week = try #require(weekEntry(model, number: 5)?.week)
+    let first = model.editor(for: week)
+    first.topic = "Unit 3"
+    first.save()
+    let stored = try #require(weekEntry(model, number: 5)?.planWeek)
+    let revision = store.revision
+
+    let reopened = model.editor(for: week)
+    reopened.topic = " Unit 3 "
+    reopened.save()
+    #expect(store.revision == revision)
+    #expect(weekEntry(model, number: 5)?.planWeek == stored)
+  }
+
+  @Test("Leere Woche ohne Eingabe schließen legt nichts an")
+  func emptyWeekWithoutInputIsNotSaved() throws {
+    let model = try makeModel()
+    let week = try #require(weekEntry(model, number: 6)?.week)
+    let revision = store.revision
+    model.editor(for: week).save()
+    #expect(store.revision == revision)
+  }
+
+  @Test("Leistungsnachweis in einer Planwoche ohne Montag erscheint in der Liste des Sheets")
+  func unassignedWeekWithoutMondayListsNewAssessment() throws {
+    let model = try makeModel()
+    let planID = try #require(try store.coursePlanSummaries().first?.id)
+    let loose = PlanWeek(
+      id: UUID(), monday: nil, position: 0, topic: "Projekt", notes: nil, updatedAt: fixedNow)
+    try store.savePlanWeek(loose, planID: planID)
+    model.reload()
+    let editor = model.editor(forUnassigned: loose)
+    editor.addAssessment(kind: .test, title: "Vokabeltest", day: nil)
+    #expect(editor.assessments.map(\.title) == ["Vokabeltest"])
+  }
+
+  @Test("Zweimal Hinzufügen ohne Titel legt nur einen Platzhalter an")
+  func blankPlaceholderIsNotDuplicated() throws {
+    let model = try makeModel()
+    let week = try #require(weekEntry(model, number: 8)?.week)
+    let editor = model.editor(for: week)
+    editor.addAssessment(kind: .test, title: "", day: nil)
+    editor.addAssessment(kind: .test, title: "", day: nil)
+    #expect(editor.assessments.count == 1)
+    editor.addAssessment(kind: .classTest, title: "", day: nil)
+    #expect(editor.assessments.count == 2)
   }
 
   @Test("AK-49: Übernehmen meldet die Zahl der nicht zugeordneten Einträge")
