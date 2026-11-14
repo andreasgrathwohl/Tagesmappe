@@ -51,6 +51,10 @@ struct MaterialLinkItem: Identifiable, Hashable, Sendable {
   func lessonInfo(for key: LessonKey) throws -> LessonInfo
   func setLessonInfo(_ info: LessonInfo, for key: LessonKey) throws
 
+  // Jahresplan (FR-15.5, FR-15.6); `DataStore` erfüllt beide über `DataStore+CoursePlans`.
+  func lessonPlanHint(for lesson: Lesson) throws -> LessonPlanHint?
+  func plannedAssessments(inWeekOf monday: CalendarDay) throws -> [PlannedAssessment]
+
   // Zuordnungen als Werte und über ihre id
   func materialLinkItems(for key: LessonKey) throws -> [MaterialLinkItem]
   func materialLinkItems(from: CalendarDay, through: CalendarDay) throws -> [MaterialLinkItem]
@@ -60,6 +64,15 @@ struct MaterialLinkItem: Identifiable, Hashable, Sendable {
   func moveLinkToNextLesson(id: UUID) throws -> LessonKey?
   func moveLink(id: UUID, to key: LessonKey) throws
   func removeLink(id: UUID) throws
+}
+
+/// Vorgaben für Test-Attrappen ohne Jahresplan: kein Hinweis, keine Leistungsnachweise.
+///
+/// Swift-Hinweis: Diese Vorgaben greifen auch über `any PreparationStore` nur, weil beide Methoden als
+/// **Anforderung** im Protokoll stehen. `DataStore` liefert eigene Methoden gleicher Signatur und gewinnt.
+extension PreparationStore {
+  func lessonPlanHint(for lesson: Lesson) throws -> LessonPlanHint? { nil }
+  func plannedAssessments(inWeekOf monday: CalendarDay) throws -> [PlannedAssessment] { [] }
 }
 
 extension MaterialLinkItem {

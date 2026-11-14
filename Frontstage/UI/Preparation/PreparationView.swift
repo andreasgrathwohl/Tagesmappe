@@ -150,6 +150,15 @@ struct PreparationView: View {
 
   private var week: some View {
     List(selection: $model.selection) {
+      if !model.weekAssessments.isEmpty {
+        Section {
+          ForEach(model.weekAssessments, id: \.assessment.id) { planned in
+            weekAssessmentRow(planned)
+          }
+        } header: {
+          Text("preparation.weekAssessments")
+        }
+      }
       ForEach(model.days) { day in
         Section {
           dayContent(day)
@@ -166,6 +175,21 @@ struct PreparationView: View {
         }
       }
     }
+  }
+
+  /// Ein Leistungsnachweis der Woche mit Klasse-unabhängiger Angabe: Art, Titel, Fach und Jahrgang, ggf. Tag.
+  private func weekAssessmentRow(_ planned: PlannedAssessment) -> some View {
+    VStack(alignment: .leading, spacing: 2) {
+      Text(verbatim: "\(PlanHintLabel.kindName(planned.assessment.kind)): \(planned.assessment.title)")
+      Text("preparation.weekAssessmentPlan \(planned.key.subject.display) \(planned.key.gradeLevel.value)")
+        .font(.subheadline).foregroundStyle(.secondary)
+      if let day = planned.assessment.day {
+        Text(verbatim: PreparationFormat.shortDate(day))
+          .font(.subheadline).foregroundStyle(.secondary)
+      }
+    }
+    .frame(minHeight: 44, alignment: .leading)
+    .accessibilityElement(children: .combine)
   }
 
   @ViewBuilder private func dayContent(_ day: PreparationDay) -> some View {
@@ -208,6 +232,9 @@ private struct LessonWeekRow: View {
           .strikethrough(isCancelled)
         if let topic = lesson.info.topic {
           Text(verbatim: topic).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
+        }
+        if let hint = lesson.planHint {
+          PlanHintLabel(markers: hint.markers)
         }
         if isCancelled {
           // Symbol und Text, nie nur Farbe.

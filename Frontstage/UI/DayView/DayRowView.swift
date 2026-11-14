@@ -106,6 +106,10 @@ private struct LessonRowView: View {
           .strikethrough(isCancelled)
         statusLabel
         info
+        // Nur Leistungsnachweise; das geplante Thema zählt im Unterricht nicht, dort gilt das eingetragene.
+        if let hint = lesson.planHint {
+          PlanHintLabel(markers: hint.markers)
+        }
       }
     }
   }

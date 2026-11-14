@@ -134,6 +134,19 @@ struct LessonDetailView: View {
         .onSubmit { editor.save() }
       TextField("lesson.homework", text: $editor.homework)
         .onSubmit { editor.save() }
+      // Vorschlag aus dem Jahresplan (FR-15.5): wird nie automatisch übernommen.
+      if let planned = lessonRow?.planHint?.plannedTopic, planned != editor.topic {
+        HStack {
+          Text("planHint.suggestion \(planned)")
+            .foregroundStyle(.secondary)
+          Spacer(minLength: 8)
+          Button("planHint.useTopic") {
+            editor.topic = planned
+            editor.save()
+          }
+          .frame(minHeight: 44)
+        }
+      }
     }
   }
 

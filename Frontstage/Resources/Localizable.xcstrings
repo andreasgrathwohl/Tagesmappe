@@ -4207,6 +4207,66 @@
           }
         }
       }
+    },
+    "planHint.onDay %@ %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$@"
+          }
+        }
+      }
+    },
+    "planHint.thisWeek %@ %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "diese Woche: %1$@ %2$@"
+          }
+        }
+      }
+    },
+    "planHint.suggestion %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aus dem Jahresplan: %@"
+          }
+        }
+      }
+    },
+    "planHint.useTopic" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Als Thema übernehmen"
+          }
+        }
+      }
+    },
+    "preparation.weekAssessments" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Leistungsnachweise dieser Woche"
+          }
+        }
+      }
+    },
+    "preparation.weekAssessmentPlan %@ %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · Jahrgang %2$lld"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
