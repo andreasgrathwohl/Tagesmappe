@@ -141,7 +141,9 @@
     func pdfView(_ view: PDFView, willEndDisplayingOverlayView overlayView: UIView, for page: PDFPage) {
       // Die verlassene Seite wird sofort geschrieben; ihre Zeichenfläche wird nicht mehr gebraucht.
       if let document = view.document {
-        canvases[document.index(for: page)] = nil
+        // Nur entfernen, wenn es noch die verlassene Zeichenfläche ist (PDFKit kann die neue zuerst anlegen).
+        let index = document.index(for: page)
+        if canvases[index] === overlayView { canvases[index] = nil }
       }
       Task { await model.flushNow() }
     }

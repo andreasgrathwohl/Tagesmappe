@@ -2706,7 +2706,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Material nicht verfügbar"
+            "value" : "Material nicht verfÃ¼gbar"
           }
         }
       }
@@ -2736,7 +2736,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Notizen zu einer früheren Fassung"
+            "value" : "Notizen zu einer frÃ¼heren Fassung"
           }
         }
       }
@@ -2746,7 +2746,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Datei wurde in der Ablage geändert. Die Notizen dieser Stunde bleiben erhalten, liegen aber womöglich nicht mehr an der richtigen Stelle."
+            "value" : "Die Datei wurde in der Ablage geÃ¤ndert. Die Notizen dieser Stunde bleiben erhalten, liegen aber womÃ¶glich nicht mehr an der richtigen Stelle."
           }
         }
       }
@@ -2816,7 +2816,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nächste Seite"
+            "value" : "NÃ¤chste Seite"
           }
         }
       }
@@ -2836,7 +2836,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Notizen dieser Stunde sind noch nicht geladen. Schreiben ist möglich, sobald sie da sind."
+            "value" : "Die Notizen dieser Stunde sind noch nicht geladen. Schreiben ist mÃ¶glich, sobald sie da sind."
           }
         }
       }
@@ -2846,7 +2846,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Die Notiz-Datei dieser Stunde ist nicht lesbar. Sie bleibt unverändert; Schreiben ist ausgeschaltet."
+            "value" : "Die Notiz-Datei dieser Stunde ist nicht lesbar. Sie bleibt unverÃ¤ndert; Schreiben ist ausgeschaltet."
           }
         }
       }
