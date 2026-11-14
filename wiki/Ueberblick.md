@@ -37,6 +37,14 @@ Mac oder iPad (Vorbereiten)                iPad (Unterricht)
 3. Tagesansicht im Unterricht öffnen
 4. Material öffnen, präsentieren, darin schreiben und zeichnen
 5. Änderungen landen sofort in der Ablage
+6. Vorplanen – je Fach und Jahrgang das Schuljahr in Wochen planen; Wochenthema und Klassenarbeiten
+   erscheinen beim Vorbereiten und im Unterricht
+
+## Jahresplanung
+
+Ein Jahresplan gilt für ein Fach, einen Jahrgang und ein Schuljahr (z. B. Englisch, Jahrgang 8, 2026/27);
+alle Klassen des Jahrgangs folgen ihm. Je Unterrichtswoche stehen darin Thema, Tests und Klassenarbeiten
+und Notizen. Frühere Jahre lassen sich nebeneinander ansehen und als Vorlage übernehmen.
 
 ## Am Smartboard
 

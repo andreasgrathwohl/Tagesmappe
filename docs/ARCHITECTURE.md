@@ -25,10 +25,11 @@ flowchart TB
             Tag["Tagesansicht"]
             Vorb["Vorbereiten"]
             Einr["Einrichten"]
+            Jahr["Jahresplan"]
             Anz["Anzeige: PDF und Bild mit Stift, Tafel<br/>Zweitbildschirm mit Klassenbildschirm<br/>Area anzeige"]
         end
-        Kern["Kern-Paket (ohne Oberfläche, mit Tests)<br/>Unterrichtsstunden berechnen · Schlüssel der Unterrichtsstunde ·<br/>Import-Abgleich · Zusammenführen nach dem Abgleich"]
-        Daten[("App-Daten (SwiftData)<br/>Stundenplan, Abweichungen, Zuordnungen,<br/>Materialverweise, Stiftnotizen,<br/>Stundenangaben, Tafelseiten<br/>Area daten")]
+        Kern["Kern-Paket (ohne Oberfläche, mit Tests)<br/>Unterrichtsstunden berechnen · Schlüssel der Unterrichtsstunde ·<br/>Import-Abgleich · Zusammenführen nach dem Abgleich ·<br/>Unterrichtswochen · Vorjahresplan übernehmen"]
+        Daten[("App-Daten (SwiftData)<br/>Stundenplan, Abweichungen, Zuordnungen,<br/>Materialverweise, Stiftnotizen,<br/>Stundenangaben, Tafelseiten,<br/>Schuljahre, Jahrespläne<br/>Area daten")]
         Lokal[("Nur auf diesem Gerät<br/>Ordnerfreigaben · Schlüsselbund")]
         Abl["Baustein Ablage<br/>auflösen · öffnen · bereithalten<br/>Area ablage"]
         OD["Baustein OneDrive-Zusatz<br/>nur nach Anmeldung"]
@@ -129,6 +130,10 @@ Vorgabewert, alle Beziehungen sind optional, und kein Modell nutzt Eindeutigkeit
 | Stundenangaben | Schlüssel der Unterrichtsstunde, Thema, Bereitlegen, Hausaufgabe | FR-11.1; höchstens ein Datensatz je Unterrichtsstunde |
 | Tafelseite | Schlüssel der Unterrichtsstunde, Position, Hintergrund (leer, liniert, kariert oder ein Bild: Standbild der Kamera bzw. Vorlage, FR-12.5, FR-12.6), Zeichnungsdaten | FR-12.1, FR-12.2; die Tafelseiten einer Unterrichtsstunde bilden ihr Tafelbild; s. Area anzeige |
 | Ordnerfreigabe | dauerhafter Systemverweis auf einen freigegebenen Ordner | **nur lokal je Gerät**, nicht gespiegelt (s. Area ablage) |
+| Schuljahr | Kalenderjahr des Beginns (`startYear`), erster Schultag, erster Tag des zweiten Halbjahrs, letzter Schultag, Jahrgänge von Hand (Klasse → Jahrgang, nur für Klassen ohne Ziffern) | FR-15.1, gemäß ADR-0013; fachlicher Schlüssel `startYear`; keine Überschneidung zweier Schuljahre |
+| Jahresplan | Fach (Schreibweise wie eingegeben), Jahrgang, `startYear` des Schuljahrs, Notiz zum Plan | FR-15, gemäß ADR-0013; fachlicher Schlüssel Fach (normalisiert) + Jahrgang + `startYear`; kein Verweis auf den Datensatz des Schuljahrs |
+| Planwoche | Jahresplan (Beziehung, Löschen mit dem Plan), Montag der Kalenderwoche (leer = „nicht zugeordnet“), Position unter „nicht zugeordnet“, Thema, Notizen, Änderungszeit | FR-15.2; eine leere Planwoche (kein Thema, keine Notiz) wird nicht gespeichert bzw. gelöscht |
+| Leistungsnachweis | Jahresplan (Beziehung, Löschen mit dem Plan), Montag der Kalenderwoche (leer = „nicht zugeordnet“), Tag (optional, in dieser Woche), Art (`test`, `classTest`), Titel, Änderungszeit | FR-15.2, FR-15.6 |
 
 **Unterrichtsstunden werden nicht gespeichert, sondern berechnet:** aus Stundenplan, Wochenvariante des
 Datums, unterrichtsfreien Zeiträumen und Abweichungen. Gespeichert wird nur, was die Lehrkraft dazu
@@ -142,6 +147,48 @@ Fach werden vor dem Vergleich normalisiert (Groß-/Kleinschreibung, Leerzeichen,
 **Material ohne Stunde:** Passt zu einer Zuordnung keine berechnete Unterrichtsstunde mehr (Tag wurde
 unterrichtsfrei, Klasse fällt an dem Tag weg), bleibt die Zuordnung erhalten und erscheint am
 betreffenden Datum als „ohne Stunde“, bis die Lehrkraft sie verschiebt (FR-7, ADR-0005).
+
+### Jahresplanung
+
+Gemäß ADR-0013 (Jahresplan je Fach, Jahrgang und Schuljahr). Alle Regeln sind reine Logik im Kern-Paket
+(`CoursePlan/`), mit Tests; die App speichert nur, was die Lehrkraft einträgt.
+
+- **Unterrichtswochen werden berechnet, nicht gespeichert:** aus erstem und letztem Schultag des Schuljahrs
+  und den unterrichtsfreien Zeiträumen (FR-7). Unterrichtstag = Montag bis Freitag im Schuljahr, nicht
+  unterrichtsfrei; Unterrichtswoche = ISO-Kalenderwoche mit mindestens einem Unterrichtstag (Woche beginnt
+  am Montag, Woche 1 des Kalenderjahrs enthält dessen ersten Donnerstag). Nummeriert ab 1 in zeitlicher
+  Reihenfolge; Halbjahr = Halbjahr des ersten Unterrichtstags der Woche (vor dem Beginn des zweiten
+  Halbjahrs → erstes). Der Stundenplan zählt nicht mit: Eine Woche ohne Stunde dieses Fachs ist trotzdem
+  eine Unterrichtswoche.
+- **Jahrgang einer Klasse:** erste Ziffernfolge in `SchoolClass.normalized` („8b“ → 8, „q11“ → 11, gültig
+  1–13); sonst der von Hand gesetzte Jahrgang aus dem Schuljahr; sonst keiner (die Klasse hängt an keinem
+  Jahresplan).
+- **Zuordnung Planwoche ↔ Woche** über den Montag. Einträge, deren Montag leer ist oder keine Unterrichtswoche
+  des Schuljahrs mehr trifft, zeigt der Jahresplan unter „nicht zugeordnet“ (leerer Montag nach Position,
+  dann verwaiste nach Datum). Zuweisen setzt den Montag; ein Leistungsnachweis mit Tag behält dabei seinen
+  Wochentag, wenn der in der Zielwoche ein Unterrichtstag ist, sonst verliert er den Tag.
+- **Vorjahresplan übernehmen** (FR-15.4): Woche n des Quellplans → Woche n des Zielschuljahrs. Ziel hat
+  bereits Thema oder Notiz in dieser Woche → die Planwoche der Quelle wird „nicht zugeordnet“ (nichts wird
+  überschrieben). Quellwoche ohne Zielwoche (n größer als die Zahl der Zielwochen) und „nicht zugeordnete“
+  Quelleinträge → „nicht zugeordnet“, in Wochenreihenfolge. Leistungsnachweise: gleicher Wochentag in der
+  Zielwoche, wenn Unterrichtstag, sonst ohne Tag; ein gleicher Leistungsnachweis (Woche, Tag, Art, Titel)
+  wird nicht doppelt angelegt. Die Notiz zum Plan wird angehängt, wenn sie im Ziel fehlt. Es entstehen neue
+  Datensätze mit neuen Kennungen; der Quellplan bleibt unverändert.
+- **Frühere Jahre** (FR-15.3): Jahrespläne mit gleichem Fach (normalisiert) und Jahrgang und kleinerem
+  `startYear`, neuestes zuerst. Der Vergleich stellt sie Zeile für Zeile nach Wochennummer ab Beginn des
+  Schuljahrs nebeneinander (dieselbe Zählung wie beim Übernehmen); kürzere Jahre haben leere Zellen; die
+  Halbjahresgrenze steht je Spalte. Nur lesen.
+- **Hinweis zur Unterrichtsstunde** (FR-15.5, FR-15.6): Für den Schlüssel einer Unterrichtsstunde (Datum,
+  Klasse, Fach) wird berechnet: Schuljahr, das das Datum enthält → Jahrgang der Klasse → Jahresplan mit
+  diesem Fach und Jahrgang → Planwoche und Leistungsnachweise der Kalenderwoche des Datums. Ergebnis:
+  geplantes Thema (oder keines) und Leistungsnachweise – mit Tag nur an diesem Tag, ohne Tag als „diese
+  Woche“. Ausfälle bekommen keinen Hinweis. Tagesansicht und Vorbereiten zeigen den Hinweis an der
+  Unterrichtsstunde; Vorbereiten bietet das Thema als Thema der Stunde an (`LessonInfo.topic`, FR-11.1) und
+  schreibt es nur auf Tipp. Gespeichert wird nichts davon.
+- **Abgleich:** vier neue Modelle in beiden Datenorten (gemäß ADR-0012): `SyncModel` und `RecordPayload` im
+  Kern, `RecordCodec` in der App, Reihenfolge Schuljahr → Jahresplan → Planwoche → Leistungsnachweis
+  (Eltern vor Kindern). Dateien im Datenordner: `SchoolYear/`, `CoursePlan/`, `PlanWeek/`, `Assessment/`.
+  Ein Gerät mit älterer App-Version kennt die Ordner nicht und lässt sie unberührt (RISK-10).
 
 ### Datenort
 
@@ -212,6 +259,10 @@ Stand. Je Datenart:
 
 | Tafelseite (zwei Geräte, dieselbe Seite) | zuletzt abgeglichener Stand der Seite gilt | wie Stiftnotiz – selten |
 | Stundenangaben (Thema, Hinweis) | doppelte Datensätze derselben Unterrichtsstunde werden zusammengeführt; je Feld gilt der zuletzt abgeglichene Stand | überschriebener Text verloren – hinnehmbar, sichtbar und sofort korrigierbar |
+| Schuljahr (zwei Geräte legen dasselbe an) | doppelte mit gleichem `startYear` werden zusammengeführt, der älteste bleibt | Daten des jüngeren verloren – sichtbar, sofort korrigierbar |
+| Jahresplan (zwei Geräte legen denselben an) | doppelte mit gleichem Schlüssel werden zusammengeführt; Planwochen und Leistungsnachweise des aufgegebenen hängt die App vorher an den behaltenen | geht nicht verloren |
+| Planwoche (zwei Geräte, dieselbe Woche) | doppelte Planwochen eines Plans mit gleichem Montag werden zusammengeführt; der Inhalt der zuletzt geänderten gilt | Thema oder Notiz des anderen Geräts verloren – hinnehmbar, sichtbar |
+| Leistungsnachweis | gleiche (Plan, Montag, Tag, Art, Titel) werden zusammengeführt | geht nicht verloren |
 
 Zusammenführen heißt: Nach jedem Abgleich sucht die App Datensätze mit gleichem fachlichem Schlüssel
 und behält den ältesten. Werden dabei zwei Zuordnungen zu einer, werden die Stiftnotizen der
@@ -488,3 +539,4 @@ gehören sie zur Unterrichtsstunde. Das Original wird nie verändert.
 - 2026-11-13: Architecture Doc status ready — freigegeben von Andreas; offen bleiben Q-18 (am Gerät) und im PRD Q-22, beide blockieren den Bau nicht, weil für beide ein Rückfall beschrieben ist (Übergabe der Datei bzw. RISK-5)
 - 2026-11-13: anzeige changed — Klassenbildschirm im Verlauf der Stunde (FR-11.7), Kamera, Vorlage, Abdecken (FR-12.5 bis FR-12.7); daten changed — Stundenangaben mit Bereitlegen und Hausaufgabe, Tafelseite mit Bild als Hintergrund
 - 2026-11-14: stundenplan-quellen changed — Vorschau je Gerät gemerkt (Prüfsumme des Stundenplan-Teils) und bei neuerem gespiegeltem Stand verworfen; Gerät ohne Zugangsdaten fragt nicht ab und zeigt einen ruhigen Hinweis; Zugangsdaten nach falschen Zugangsdaten und mehreren Schulen gelöscht, nach Netz-/Server-/Formfehlern behalten (Abschlussreview Teilplan 05)
+- 2026-11-14: daten changed — Jahresplanung (FR-15, ADR-0013): Modelle Schuljahr, Jahresplan, Planwoche, Leistungsnachweis; Abschnitt Jahresplanung (Unterrichtswochen berechnet, Jahrgang aus dem Klassennamen, Zuordnung über den Montag, Vorjahresplan übernehmen, frühere Jahre, Hinweis zur Unterrichtsstunde, Abgleich); Nebenläufigkeit ergänzt; Bausteinbild um Jahresplan ergänzt

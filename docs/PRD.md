@@ -33,6 +33,7 @@ iPad in der Präsentation schreibt und zeichnet.
 |---|---|---|
 | Lehrkraft beim Vorbereiten | Material schnell den kommenden Stunden zuordnen | FR-1, FR-2, FR-3 |
 | Lehrkraft im Unterricht | den heutigen Tag auf einen Blick, Material mit einem Tipp öffnen und zeigen, an die Tafel schreiben | FR-4, FR-5, FR-6, FR-11, FR-12 |
+| Lehrkraft beim Vorplanen des Schuljahrs | je Fach und Jahrgang festlegen, in welcher Woche welches Thema und welcher Leistungsnachweis dran ist; sehen, was frühere Jahre gemacht wurde | FR-15 |
 
 Nicht Zielgruppe: Schülerinnen und Schüler, Eltern, Schulverwaltung.
 
@@ -79,6 +80,13 @@ Person (Q-13).
 | Datenort | wo die App-Daten zwischen den Geräten einer Lehrkraft abgeglichen werden: iCloud oder OneDrive (direkt, nach Microsoft-Anmeldung) | Ablage (dort liegt das Material) | `DataLocation` (`iCloud`, `oneDrive`) |
 | Datenordner | der Ordner der App in OneDrive (`Apps/Frontstage`), in dem die App-Daten liegen, wenn OneDrive der Datenort ist; die App schreibt dort hinein | Ordnerfreigabe für Material | `DataFolder` |
 | Koppeln | ein zweites Gerät übernimmt per QR-Code den Datenort (und bei OneDrive den Datenordner) des ersten | Ordnerfreigabe (gibt einen Ordner für Material frei) | `pairing` |
+| Schuljahr | Zeitraum vom ersten bis zum letzten Schultag eines Jahres, mit dem Tag, an dem das zweite Halbjahr beginnt; benannt nach seinen Kalenderjahren, z. B. „2026/27“ | Kalenderjahr | `SchoolYear` (Kennung: `startYear`, z. B. 2026) |
+| Halbjahr | erste oder zweite Hälfte eines Schuljahrs; jede Unterrichtswoche gehört zu genau einem | Woche | `Term` (`first`, `second`) |
+| Unterrichtswoche | eine Kalenderwoche (ISO-Woche) im Schuljahr mit mindestens einem Unterrichtstag; gezählt ab Beginn des Schuljahrs (Woche 1, 2, …) | Wochenvariante (A-/B-Woche) | `TeachingWeek` |
+| Jahrgang | Klassenstufe, z. B. 8 für die Klassen 8a und 8b; aus dem Klassennamen abgeleitet oder von Hand gesetzt | Klasse | `GradeLevel` |
+| Jahresplan | Vorplanung eines Schuljahrs für ein Fach und einen Jahrgang (z. B. Englisch, Jahrgang 8, 2026/27): je Unterrichtswoche Thema, Leistungsnachweise und Notizen; alle Klassen dieses Jahrgangs folgen ihm | Stundenplan (wann welche Klasse Unterricht hat) | `CoursePlan` |
+| Planwoche | der Eintrag eines Jahresplans für eine Unterrichtswoche: Thema und Notizen; ohne Woche „nicht zugeordnet“ | Unterrichtsstunde | `PlanWeek` |
+| Leistungsnachweis | im Jahresplan vorgemerkte Prüfung: Test oder Klassenarbeit, mit Titel, in einer Unterrichtswoche, wahlweise an einem Tag | Ausfall | `Assessment` (`kind`: `test`, `classTest`) |
 
 ## Constraints
 
@@ -98,6 +106,8 @@ Herkunft: Andreas, 2026-11-13 — die Zielgruppe ist breiter als Lehrkräfte mit
 3. Im Unterricht: Tagesansicht öffnen, Unterrichtsstunde wählen
 4. Material öffnen und präsentieren, darin schreiben und zeichnen
 5. Änderungen am Material landen sofort in der Ablage
+6. Vorplanen (vor Schuljahresbeginn und nebenher): je Fach und Jahrgang das Schuljahr in Wochen planen;
+   das Wochenthema und die Leistungsnachweise erscheinen in 2 und 3
 
 ## Anforderungen
 
@@ -394,6 +404,67 @@ Server. Hat ein Gerät keine Kamera, zeigt es den QR-Code, und das andere scannt
 immer möglich. Vom Nutzer: „ohne Server und QR-Code zum Koppeln“. Verworfen: eigener Server mit
 Konto – widerspricht NFR-2.
 
+### FR-15 — Jahresplanung je Fach und Jahrgang [MVP]
+
+Die Lehrkraft plant ein Schuljahr oder Halbjahr vor: in welcher Unterrichtswoche welches Thema behandelt
+wird und wann Tests und Klassenarbeiten geschrieben werden, mit Notizen. Ein Jahresplan gilt für ein Fach,
+einen Jahrgang und ein Schuljahr (z. B. Englisch, Jahrgang 8, 2026/27) und wird so gespeichert; alle
+Klassen dieses Jahrgangs (8a, 8b) folgen ihm, Abweichungen einzelner Klassen stehen als Notiz darin
+(ADR-0013). Den Jahrgang einer Klasse leitet das Produkt aus den Ziffern ihres Namens ab („8b“ → 8,
+„Q11“ → 11); hat der Name keine Ziffern („EF“), setzt ihn die Lehrkraft von Hand. Jahrespläne werden wie
+alle App-Daten über den Datenort abgeglichen (FR-14). Vom Nutzer (2026-11-14): „dass der Lehrer das
+Schuljahr/Halbjahr für eine Klasse vorplanen kann. Vorplanen heißt, in welcher Woche welches Thema
+behandelt wird, wo Tests und Klassenarbeiten geschrieben werden. Das kann der Lehrer pro Fach und
+Jahrgang abspeichern. Notizen machen usw.“ Verworfen: ein Jahresplan je Klasse – feiner, aber doppelte
+Arbeit für Parallelklassen und kein Vergleich über die Jahre, weil Klassennamen jedes Jahr wechseln.
+
+### FR-15.1 — Schuljahr und Halbjahre [MVP]
+
+Die Lehrkraft legt in Einrichten je Schuljahr den ersten Schultag, den ersten Tag des zweiten Halbjahrs und
+den letzten Schultag fest. Ferien und Feiertage kommen aus den unterrichtsfreien Tagen (FR-7). Der
+Jahresplan zeigt nur Unterrichtswochen – Kalenderwochen mit mindestens einem Unterrichtstag (Montag bis
+Freitag, nicht unterrichtsfrei) –, gezählt ab Beginn des Schuljahrs und je dem ersten oder zweiten
+Halbjahr zugeordnet; eine Woche gehört zum Halbjahr ihres ersten Unterrichtstags.
+
+### FR-15.2 — Planwochen mit Thema, Leistungsnachweisen und Notizen [MVP]
+
+Je Unterrichtswoche trägt die Lehrkraft ein Thema, beliebig viele Leistungsnachweise (Art Test oder
+Klassenarbeit, Titel, wahlweise ein Tag dieser Woche) und freie Notizen ein; dazu eine Notiz zum ganzen
+Jahresplan. Die Wochen erscheinen nach Halbjahren getrennt. Ändern sich die Daten des Schuljahrs oder die
+unterrichtsfreien Tage so, dass eine Woche mit Einträgen keine Unterrichtswoche mehr ist, gehen die
+Einträge nicht verloren, sondern stehen am Ende unter „nicht zugeordnet“ und lassen sich einer Woche
+zuweisen.
+
+### FR-15.3 — Rückblick auf frühere Schuljahre [MVP]
+
+Zu einem Jahresplan zeigt das Produkt die Jahrespläne früherer Schuljahre für dasselbe Fach und denselben
+Jahrgang – auf einen Blick als Liste und nebeneinander, Woche für Woche ab Beginn des Schuljahrs, nur zum
+Lesen. Vom Nutzer: „schnellen Überblick darüber haben, was er für das Fach und die Klassenstufe in den
+letzten Jahren gemacht hat“.
+
+### FR-15.4 — Vorjahresplan übernehmen [MVP]
+
+„Vorjahresplan übernehmen“ kopiert Themen, Leistungsnachweise und Notizen eines früheren Jahresplans in
+den Jahresplan des neuen Schuljahrs: Woche 1 in Woche 1, Woche 2 in Woche 2 usw., gezählt ab Beginn des
+Schuljahrs. Ein Leistungsnachweis mit Tag landet am selben Wochentag der Zielwoche; ist der dort
+unterrichtsfrei, bleibt er ohne Tag in der Woche. Was keine Zielwoche findet (das neue Schuljahr hat
+weniger Unterrichtswochen) oder auf eine Woche mit eigenem Thema bzw. eigenen Notizen träfe, steht am Ende
+unter „nicht zugeordnet“. Vorhandene Einträge werden nie überschrieben; der frühere Jahresplan bleibt
+unverändert.
+
+### FR-15.5 — Wochenthema in Vorbereiten als Stundenthema vorschlagen [MVP]
+
+Vorbereiten zeigt zu einer Unterrichtsstunde das Thema der Planwoche aus dem Jahresplan ihres Fachs und
+des Jahrgangs ihrer Klasse und bietet es mit einem Tipp als Thema der Stunde an (FR-11.1). Übernommen
+wird nur auf Tipp; ein schon eingetragenes Thema bleibt, bis die Lehrkraft es ersetzt.
+
+### FR-15.6 — Leistungsnachweise in Tagesansicht und Vorbereiten [MVP]
+
+Ein Leistungsnachweis erscheint als Hinweis an den Unterrichtsstunden der Klassen seines Jahrgangs im
+Fach des Jahresplans – mit Tag an diesem Tag, ohne Tag an jeder dieser Unterrichtsstunden der Woche
+(„diese Woche“). Vorbereiten zeigt die Leistungsnachweise zusätzlich bei der Woche. Ausfälle tragen keinen
+Hinweis.
+
 ### NFR-1 — Material sofort und aktuell verfügbar [MVP]
 
 Im Unterricht öffnet das Material ohne spürbares Warten und ist der aktuelle Stand aus der Ablage
@@ -416,7 +487,7 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 ## Lieferstufen
 
 - **MVP:** FR-1, FR-1.1, FR-2, FR-2.2, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-7, FR-8,
-  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, FR-13.1, NFR-1 bis NFR-4, FR-1.2, FR-14, FR-14.1 (geprüfte Zahl: 43). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
+  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, FR-13.1, NFR-1 bis NFR-4, FR-1.2, FR-14, FR-14.1, FR-15, FR-15.1 bis FR-15.6 (geprüfte Zahl: 50). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
 - **Later:** FR-2.1, FR-7.1, FR-10, FR-13.2.
 
 ## Out of Scope
@@ -516,6 +587,18 @@ sein will (Q-24). Umgang: Der Umsetzungsplan baut den Kern zuerst (Stundenplan, 
 Öffnen) und Klassenbildschirm und Tafel danach, sodass ein Test mit Lehrkräften nicht auf sie warten
 muss.
 
+### RISK-10 — Jahrespläne wachsen über die Jahre und belasten den Abgleich
+
+Jahrespläne werden nie gelöscht, damit der Rückblick (FR-15.3) funktioniert. Bei vier Fach-Jahrgang-
+Kombinationen mit je rund 40 Unterrichtswochen kommen jährlich etwa 160 Planwochen und einige Dutzend
+Leistungsnachweise dazu, nach zehn Jahren rund 2 000 Datensätze. Beim Datenort OneDrive ist jeder davon
+eine eigene Datei; ein neu gekoppeltes Gerät lädt sie alle beim ersten Abgleich (RISK-9), und das
+Zusammenführen nach dem Abgleich lädt bisher alle Datensätze vollständig. Dazu kommt, dass ein zweites
+Gerät mit einer älteren App-Version die neuen Datensatzarten nicht kennt und sie nicht anzeigt. Umgang:
+nur leere Planwochen gar nicht speichern; Zusammenführen der Jahrespläne getrennt vom übrigen Bestand;
+beim ersten Abgleich den Fortschritt zeigen; vor dem Start beide Geräte auf dieselbe App-Version bringen.
+Ab etwa 5 000 Datensätzen messen, wie lange ein erster Abgleich dauert.
+
 ## Open Questions
 
 - ~~Q-1~~: Wie heißt das Produkt? „Tagesmappe“ ist Arbeitstitel. → answered 2026-11-13: „Pult“ – das Lehrerpult, an dem alles für die Stunde bereitliegt und von dem aus gesteuert wird, was die Klasse sieht. „Tagesmappe“ bleibt Name des Repositorys. Markenrecherche (DPMA, App Store) steht aus (Q-29). → changed 2026-11-13: „Frontstage“ – was vorne vor der Klasse passiert. „Pult“ verworfen, weil „PULT“ als Software-Marke in Gebrauch ist (RISK-8); dazwischen geprüft und verworfen: Stundenlicht, Klassenlicht, Katheder, Doppelstunde, Stundenbühne, Stundenregie, Klassenregie, Klassenblick, Tafelrand, Taktgeber, Lessonstage, Lectern, Teachdeck (Classcue und Classcast vergeben).
@@ -543,6 +626,8 @@ muss.
 - ~~Q-26~~: Ist der Timer (FR-11.2) nur auf dem Klassenbildschirm zu sehen, oder läuft er sichtbar weiter, während Material oder Tafel gezeigt wird? Gibt er am Ende ein Signal? → answered 2026-11-13: ja zu beidem – läuft sichtbar weiter und gibt am Ende ein Signal (FR-11.2 ergänzt).
 - ~~Q-27~~: Heißt der Ruhezustand des Zweitbildschirms „Klassenbildschirm“? („Tafel“ ist bestätigt; dieser Name ist Arbeitsbegriff.) → answered 2026-11-13: ja, „Klassenbildschirm“ (Glossar angepasst).
 - ~~Q-28~~: Andreas am 2026-11-13: „In der App muss man die AirPlay-Verbindung starten können.“ Befund aus Apples Doku und Entwicklerforen (gelesen 2026-11-13): Eine App kann die Bildschirmverbindung zu einem Apple TV nicht selbst starten; das geht nur über das Kontrollzentrum des Systems („Bildschirmsynchronisierung“). Die AirPlay-Auswahl, die Apps einbauen dürfen (`AVRoutePickerView`), leitet nur Ton und Video weiter und liefert keinen Zweitbildschirm. Was soll stattdessen gelten – (a) die App erkennt die Verbindung sofort und führt bei fehlender Verbindung mit einer kurzen Anleitung dorthin (zwei Handgriffe im Kontrollzentrum), (b) zusätzlich Kabelverbindung empfehlen, die ohne Handgriff steht, (c) technisch untersuchen, ob sich der Zweitbildschirm-Inhalt als Videostrom über die einbaubare AirPlay-Auswahl senden lässt (unbelegt, mit Verzögerung beim Schreiben zu rechnen)? Bis zur Antwort entsteht keine Anforderung. → answered 2026-11-13: (a) und (b) – erkennen, hinführen und Kabel empfehlen (FR-11.6); (c) wird nicht verfolgt.
+- Q-35: Gehört die Jahresplanung (FR-15 bis FR-15.6) zum kostenlosen Kern oder zum Einmalkauf (FR-13)? Bis zur Antwort ist sie kostenlos und hinter keiner Freischaltung gebaut; eine spätere Freischaltung braucht nur eine Abfrage an der Stelle „Freischaltung“.
+- Q-36: Reichen Notizen für Klassen, die vom Jahresplan abweichen (z. B. 8b eine Woche hinter 8a), oder soll eine Klasse ihren Stand im Jahresplan versetzen können, sodass ihr in Vorbereiten das Thema einer anderen Planwoche vorgeschlagen wird? Bis zur Antwort: nur Notizen (ADR-0013), vorgeschlagen wird immer das Thema der Kalenderwoche.
 
 ## Abnahmekriterien
 
@@ -590,6 +675,13 @@ muss.
 - AK-18 (NFR-2): Aufbau: Netzwerkmitschnitt während Einrichten, Vorbereiten und Unterricht. Ergebnis: keine Verbindung zu Servern des Produkts; nur Ablage-Anbieter, Apple, Microsoft (bei FR-5.1) und Schulmanager (bei FR-2).
 - AK-19 (NFR-3): Aufbau: je ein Material aus iCloud Drive, OneDrive und Google Drive. Handlung: zuordnen und öffnen. Ergebnis: alle drei öffnen.
 - AK-20 (NFR-4): Aufbau: Schulmanager-Import eingerichtet. Handlung: Gerätespeicher und Ablage nach dem Passwort durchsuchen. Ergebnis: nur im sicheren Speicher des Geräts (Schlüsselbund) gefunden.
+- AK-45 (FR-15): Aufbau: Stundenplan mit „Di 2. Stunde 8a Englisch“ und „Do 3. Stunde 8b Englisch“; Schuljahr 2026/27 eingerichtet. Handlung: Jahresplan „Englisch, Jahrgang 8, 2026/27“ anlegen und in Woche 1 das Thema „Unit 1 – Back to school“ eintragen; App beenden und neu öffnen; am zweiten Gerät öffnen. Ergebnis: Es gibt genau einen Jahresplan für Englisch 8 – er gilt für 8a und 8b; das Thema steht nach dem Neustart und nach dem Abgleich auf dem zweiten Gerät in Woche 1. Eine Klasse „EF“ im Stundenplan erscheint in Einrichten ohne Jahrgang und lässt sich auf 11 setzen.
+- AK-46 (FR-15.1): Aufbau: unterrichtsfreie Zeiträume Herbstferien 2.–6.11.2026 und Weihnachtsferien 23.12.2026–9.1.2027. Handlung: Schuljahr 2026/27 mit erstem Schultag Mo 14.9.2026, Beginn des zweiten Halbjahrs Mo 1.2.2027 und letztem Schultag Mi 28.7.2027 anlegen; Jahresplan öffnen. Ergebnis: 43 Unterrichtswochen, 17 im ersten und 26 im zweiten Halbjahr; Woche 1 ist die KW 38 (14.9.2026); KW 45, KW 53 und KW 1 fehlen; KW 52 (Unterricht am 21. und 22.12.) ist Woche 14; Woche 18 ist die erste des zweiten Halbjahrs (KW 5, 1.2.2027).
+- AK-47 (FR-15.2): Aufbau: Jahresplan Englisch 8, 2026/27 wie AK-46. Handlung: in Woche 8 (KW 46) Thema „Unit 2 – Past tense“, Klassenarbeit „KA 1“ am Di 10.11.2026, Test „Vokabeltest Unit 2“ ohne Tag und die Notiz „8b: Hörverstehen nachholen“ eintragen; Jahresnotiz „Lektüre im 2. Halbjahr“; danach den Herbstferien den 9.–13.11.2026 hinzufügen. Ergebnis: Alle Einträge stehen erst in Woche 8; nach der Ferienänderung ist KW 46 keine Unterrichtswoche mehr, Thema, Notiz und beide Leistungsnachweise stehen unter „nicht zugeordnet“ und lassen sich der neuen Woche 8 zuweisen; die Jahresnotiz bleibt.
+- AK-48 (FR-15.3): Aufbau: Jahrespläne Englisch 8 für 2024/25 und 2025/26 und Englisch 7 für 2025/26, je mit Themen. Handlung: Jahresplan Englisch 8, 2026/27 öffnen und „Frühere Jahre“ wählen; dann beide früheren nebeneinander zeigen. Ergebnis: Die Liste zeigt 2025/26 und 2024/25 (neuestes zuerst), nicht Englisch 7; nebeneinander stehen die Themen Woche für Woche auf gleicher Zeile; dort lässt sich nichts bearbeiten.
+- AK-49 (FR-15.4): Aufbau: Jahresplan Englisch 8, 2025/26 (erster Schultag Mo 15.9.2025, zweites Halbjahr ab 2.2.2026, letzter Schultag Mi 29.7.2026, Herbstferien 27.–31.10.2025; 45 Unterrichtswochen) mit Thema in jeder Woche, Klassenarbeit „KA 1“ am Di 11.11.2025 (Woche 8); Jahresplan 2026/27 wie AK-46, in Woche 2 schon das Thema „Projekt Schulfest“. Handlung: im Jahresplan 2026/27 „Vorjahresplan übernehmen“ mit 2025/26. Ergebnis: Woche 1 hat das Thema der Vorjahreswoche 1; „KA 1“ steht am Di 10.11.2026 in Woche 8; Woche 2 behält „Projekt Schulfest“; unter „nicht zugeordnet“ stehen das Thema der Vorjahreswoche 2 und die Einträge der Vorjahreswochen 44 und 45; der Jahresplan 2025/26 ist unverändert.
+- AK-50 (FR-15.5): Aufbau: Jahresplan Englisch 8, 2026/27 mit Thema „Unit 2 – Past tense“ in Woche 8 (KW 46); Unterrichtsstunden Di 10.11.2026 8a Englisch (ohne Thema) und Di 10.11.2026 7a Englisch. Handlung: Vorbereiten öffnen, die Stunde der 8a wählen, den Vorschlag antippen; dann die Stunde der 7a wählen. Ergebnis: Bei 8a erscheint „Unit 2 – Past tense“ als Vorschlag und steht nach dem Tipp als Thema der Stunde (auch auf dem Klassenbildschirm); ohne Tipp bleibt das Thema leer; bei 7a erscheint kein Vorschlag.
+- AK-51 (FR-15.6): Aufbau: wie AK-47 (Klassenarbeit „KA 1“ am Di 10.11.2026, Test „Vokabeltest Unit 2“ ohne Tag in KW 46); Stunden Di 10.11. 8a Englisch, Do 12.11. 8b Englisch, Di 10.11. 8a Mathe. Handlung: Tagesansicht Di 10.11. und Do 12.11. öffnen; Vorbereiten für die Woche ab 9.11. öffnen. Ergebnis: Di 8a Englisch zeigt „Klassenarbeit: KA 1“ und „diese Woche: Test Vokabeltest Unit 2“; Do 8b Englisch zeigt nur den Test-Hinweis; 8a Mathe zeigt nichts; Vorbereiten zeigt beide Leistungsnachweise bei der Woche.
 
 ## Changes
 
@@ -627,6 +719,8 @@ muss.
 - 2026-11-14: FR-14.1 new — Geräte per QR-Code koppeln; AK-44, Glossar Koppeln (`pairing`); Lieferstufen (43)
 - 2026-11-14: Verworfen (FR-14.1): eigener Server mit Website und Konto zum Koppeln oder Abgleichen – von Andreas abgelehnt, NFR-2 bleibt
 - 2026-11-14: FR-6.1 changed — Stiftnotizen neben dem Dokument als Notiz-Datei und lesbares PDF (ADR-0011 löst ADR-0006 ab); FR-3.4 präzisiert (abgeleitete Dateien); AK-13 ergänzt; Glossar Notiz-Datei, Notiz-PDF
+- 2026-11-14: FR-15, FR-15.1 bis FR-15.6 new — Jahresplanung je Fach, Jahrgang und Schuljahr (Wunsch von Andreas, ADR-0013); Glossar um Schuljahr, Halbjahr, Unterrichtswoche, Jahrgang, Jahresplan, Planwoche, Leistungsnachweis ergänzt; Nutzerschaft, Ablauf (Schritt 6), AK-45 bis AK-51, RISK-10, Q-35, Q-36, Lieferstufen (50) und Abdeckung angepasst
+- 2026-11-14: Verworfen (FR-15): ein Jahresplan je Klasse – feiner, aber doppelte Arbeit für Parallelklassen und kein Vergleich über die Jahre, weil Klassennamen jährlich wechseln
 
 ## Anhang A — Abdeckung
 
@@ -638,6 +732,9 @@ muss.
 | 2 Vorbereiten (Thema und Hinweis) | FR-11.1 |
 | 4 Öffnen und präsentieren | FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7 |
 | 5 Änderungen in der Ablage | FR-5.1, NFR-1 |
+| 6 Vorplanen | FR-15, FR-15.1 bis FR-15.4 |
+| 2 Vorbereiten (Wochenthema, Leistungsnachweise) | FR-15.5, FR-15.6 |
+| 3 Tagesansicht (Leistungsnachweise) | FR-15.6 |
 
 FR-10 gehört zu keiner Ablaufphase (Ausgabe nach außen, neben dem Ablauf). FR-13 bis FR-13.2 ebenfalls
 nicht (Geschäftsmodell, quer zu allen Phasen).
@@ -680,6 +777,13 @@ nicht (Geschäftsmodell, quer zu allen Phasen).
 | FR-13.1 | AK-41 |
 | FR-14 | AK-43 |
 | FR-14.1 | AK-44 |
+| FR-15 | AK-45 |
+| FR-15.1 | AK-46 |
+| FR-15.2 | AK-47 |
+| FR-15.3 | AK-48 |
+| FR-15.4 | AK-49 |
+| FR-15.5 | AK-50 |
+| FR-15.6 | AK-51 |
 | FR-7 | AK-14 |
 | FR-8 | AK-15 |
 | FR-9 | AK-16 |
