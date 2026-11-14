@@ -104,6 +104,8 @@ struct RootView: View {
   /// Abruf beim Aktivwerden und Material bereithalten; gemeinsam für Szenenwechsel und neuen Datenort.
   private func activate(_ current: ScopedServices) {
     Task { await current.coordinator.refresh(.appBecameActive) }
+    // Ausstehende Umbenennungen von Notiz-Dateien nachholen (Aktivwerden und neuer Datenort, ADR-0011).
+    Task { await current.environment.penNotes.retryPending() }
     prepareForTeaching(current)
   }
 

@@ -16,6 +16,8 @@ import PencilKit
 
   private(set) var phase: Phase = .loading
   private(set) var document: PDFDocument?
+  /// Rohdaten des Materials (PDF oder Bild) – für die reine Anzeige am Mac.
+  private(set) var documentData: Data?
   private(set) var pageIndex = 0
   /// Passung je Seite mit Notiz (andere Seiten fehlen).
   private(set) var fitByPage: [Int: PenNoteFit] = [:]
@@ -89,6 +91,7 @@ import PencilKit
     }
 
     document = loaded
+    documentData = data
     fitByPage = fits
     pageIndex = 0
     secondScreen.openMaterial(
@@ -101,6 +104,11 @@ import PencilKit
   }
 
   // MARK: - Zeichnen und Blättern
+
+  /// Die Zeichnung einer Seite in Seitenkoordinaten, auch noch nicht geschriebene; `nil` ohne Notiz.
+  func drawing(forPage pageIndex: Int) -> PKDrawing? {
+    notes.currentNotes()[pageIndex]?.drawing
+  }
 
   /// Eine Zeichnung (Seitenkoordinaten) hat sich geändert.
   func drawingChanged(_ drawingInPageSpace: PKDrawing, pageIndex: Int) {

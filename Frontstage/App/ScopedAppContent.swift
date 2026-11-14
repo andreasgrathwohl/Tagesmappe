@@ -60,8 +60,19 @@ import SwiftUI
       store: store, storage: storage,
       today: { CalendarDay(Date(), calendar: .current) },
       dataLocation: { location.location })
-    // Weitere Dienste je Store ergänzen hier: Teilplan 06 (`environment.viewerAvailable`, `environment.penNotes`),
-    // Teilplan 07 (`ClassroomServices.shared.bind(store:)`). Haken beim Aktivwerden gehören in `RootView.activate(_:)`.
+    // Teilplan 06: Anzeige und Stiftnotizen neben dem Dokument (ADR-0011). Die Notiz-Dienste hängen am
+    // `StorageService` dieses Satzes; die Warteliste der Umbenennungen liegt in einer Datei und geht beim Wechsel
+    // des Datenorts nicht verloren.
+    environment.viewerAvailable = true
+    let penNoteFiles = StoragePenNoteFiles(storage: storage)
+    let reader = ScopedFileReader(storage: storage)
+    environment.penNotes = PenNoteFileService(
+      files: penNoteFiles, pending: PendingPenNoteMoves(),
+      makePDF: { reference, key in
+        await PenNotePDFRegenerator.regenerate(
+          reference: reference, key: key, reader: reader, files: penNoteFiles)
+      })
+    // Weitere Dienste je Store ergänzen hier: Teilplan 07 (`ClassroomServices.shared.bind(store:)`). Haken beim Aktivwerden gehören in `RootView.activate(_:)`.
     let services = ScopedServices(
       store: store, storage: storage, environment: environment,
       coordinator: sourceCoordinators.coordinator(for: store))

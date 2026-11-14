@@ -46,6 +46,16 @@ import Testing
     #expect(screen.material?.drawings[0]?.strokes.count == TestDrawings.word.strokes.count)
   }
 
+  @Test("Die Anzeige bekommt die Zeichnung je Seite und die Rohdaten des Materials")
+  func exposesDrawingPerPageAndDocumentData() async throws {
+    let data = TestDocuments.pdfData(pages: 2, size: .a4)
+    let (model, _, _) = try await TestViewer.make(kind: .pdf, data: data, notePages: [0])
+    await model.load()
+    #expect(model.drawing(forPage: 0)?.strokes.count == TestDrawings.word.strokes.count)
+    #expect(model.drawing(forPage: 1) == nil)
+    #expect(model.documentData == data)
+  }
+
   @Test("ADR-0011: geänderte Seitengröße und fehlende Seite werden gemeldet, nicht verworfen")
   func reportsOutdatedAndMissingPages() async throws {
     let (model, files, _) = try await TestViewer.make(

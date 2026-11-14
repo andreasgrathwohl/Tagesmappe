@@ -2700,6 +2700,166 @@
           }
         }
       }
+    },
+    "viewer.unavailable" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material nicht verfügbar"
+          }
+        }
+      }
+    },
+    "viewer.pageOfPages %lld %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seite %1$lld von %2$lld"
+          }
+        }
+      }
+    },
+    "viewer.pages %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seiten: %@"
+          }
+        }
+      }
+    },
+    "viewer.outdatedNotes.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notizen zu einer früheren Fassung"
+          }
+        }
+      }
+    },
+    "viewer.outdatedNotes.body" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Datei wurde in der Ablage geändert. Die Notizen dieser Stunde bleiben erhalten, liegen aber womöglich nicht mehr an der richtigen Stelle."
+          }
+        }
+      }
+    },
+    "viewer.outdatedNotes.hide" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ausblenden"
+          }
+        }
+      }
+    },
+    "viewer.missingPages" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notizen zu Seiten, die es nicht mehr gibt"
+          }
+        }
+      }
+    },
+    "viewer.missingPages.show" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notizen ansehen"
+          }
+        }
+      }
+    },
+    "viewer.missingPages.page %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seite %lld"
+          }
+        }
+      }
+    },
+    "viewer.done" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fertig"
+          }
+        }
+      }
+    },
+    "viewer.previousPage" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorige Seite"
+          }
+        }
+      }
+    },
+    "viewer.nextPage" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nächste Seite"
+          }
+        }
+      }
+    },
+    "viewer.notesInAppData" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Ordner dieses Materials ist nicht beschreibbar. Die Notizen dieser Stunde liegen deshalb in Frontstage statt neben dem Dokument."
+          }
+        }
+      }
+    },
+    "viewer.notesNotDownloaded" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Notizen dieser Stunde sind noch nicht geladen. Schreiben ist möglich, sobald sie da sind."
+          }
+        }
+      }
+    },
+    "viewer.notesUnreadable" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Notiz-Datei dieser Stunde ist nicht lesbar. Sie bleibt unverändert; Schreiben ist ausgeschaltet."
+          }
+        }
+      }
+    },
+    "viewer.notesNewerFormat" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Notizen stammen aus einer neueren Frontstage-Version. Zum Weiterschreiben die App aktualisieren."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
