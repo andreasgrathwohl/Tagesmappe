@@ -291,12 +291,42 @@
         }
       }
     },
-    "app.placeholder.title" : {
+    "app.section.dayView" : {
       "localizations" : {
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Frontstage"
+            "value" : "Heute"
+          }
+        }
+      }
+    },
+    "app.section.preparation" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorbereiten"
+          }
+        }
+      }
+    },
+    "app.section.setup" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einrichten"
+          }
+        }
+      }
+    },
+    "app.dataUnavailable" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Daten konnten nicht geöffnet werden."
           }
         }
       }
