@@ -2860,6 +2860,176 @@
           }
         }
       }
+    },
+    "secondScreen.mode.classScreen" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klassenbildschirm"
+          }
+        }
+      }
+    },
+    "secondScreen.mode.material" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material"
+          }
+        }
+      }
+    },
+    "secondScreen.mode.board" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tafel"
+          }
+        }
+      }
+    },
+    "secondScreen.mode.dark" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dunkel"
+          }
+        }
+      }
+    },
+    "secondScreen.picker" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anzeige auf dem Bildschirm"
+          }
+        }
+      }
+    },
+    "secondScreen.connected" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirm verbunden"
+          }
+        }
+      }
+    },
+    "secondScreen.disconnected" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kein Bildschirm verbunden"
+          }
+        }
+      }
+    },
+    "secondScreen.howTo" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "So verbinden"
+          }
+        }
+      }
+    },
+    "secondScreen.howTo.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit dem Bildschirm verbinden"
+          }
+        }
+      }
+    },
+    "secondScreen.howTo.autoDetect" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frontstage erkennt die Verbindung von selbst und zeigt dann den Klassenbildschirm."
+          }
+        }
+      }
+    },
+    "secondScreen.howTo.airplay" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per AirPlay"
+          }
+        }
+      }
+    },
+    "secondScreen.howTo.step1" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von der rechten oberen Ecke nach unten wischen: Das Kontrollzentrum öffnet sich."
+          }
+        }
+      }
+    },
+    "secondScreen.howTo.step2" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„Bildschirmsynchronisierung“ antippen."
+          }
+        }
+      }
+    },
+    "secondScreen.howTo.step3" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Apple TV des Raums wählen."
+          }
+        }
+      }
+    },
+    "secondScreen.howTo.cable" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per Kabel"
+          }
+        }
+      }
+    },
+    "secondScreen.howTo.cableText" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adapter (USB-C auf HDMI) anstecken – fertig. Das geht ohne Handgriff und auch, wenn das Schulnetz ausfällt."
+          }
+        }
+      }
+    },
+    "secondScreen.preview.accessibility %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorschaubild des Zweitbildschirms: %@"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

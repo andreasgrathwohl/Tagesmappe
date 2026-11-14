@@ -100,6 +100,10 @@ struct DayView: View {
       }
       .navigationTitle(Text(dayTitle))
       .toolbar { toolbar }
+      // Smartboard-Leiste unter den Zeilen (Teilplan 06); die Zeilenhöhe folgt dem verbleibenden Platz.
+      #if os(iOS)
+        .safeAreaInset(edge: .bottom, spacing: 0) { SmartboardBar() }
+      #endif
     }
     // Neuer Stand von diesem oder dem anderen Gerät → neu lesen.
     .onChange(of: environment.store.revision) { model.reload() }

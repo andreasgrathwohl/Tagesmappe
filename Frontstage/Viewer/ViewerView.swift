@@ -86,7 +86,9 @@ struct ViewerView: View {
     VStack(spacing: 0) {
       banners(for: model)
       document(model)
-      // Smartboard-Leiste (Task 12) folgt hier, nur iOS.
+      #if os(iOS)
+        SmartboardBar()
+      #endif
     }
   }
 
