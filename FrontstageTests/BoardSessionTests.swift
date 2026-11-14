@@ -90,6 +90,17 @@ import Testing
     #expect(session.saveFailed == false)
   }
 
+  @Test("Export enthält die noch nicht gespeicherte Zeichnung der gezeigten Seite")
+  func exportPagesIncludeUnflushedDrawing() throws {
+    let (session, _) = try makeSession()
+    try session.open(tue8b)
+    #expect(session.exportPages[0].drawingData == nil)
+    session.drawingChanged(PKDrawing())
+    // Noch nicht gespeichert, im Export aber schon enthalten.
+    #expect(session.pages[0].drawingData == nil)
+    #expect(session.exportPages[0].drawingData != nil)
+  }
+
   @Test("Seitenwechsel speichert die verlassene Seite")
   func pageChangeSavesLeftPage() throws {
     let (session, _) = try makeSession()

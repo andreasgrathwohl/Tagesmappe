@@ -57,6 +57,16 @@ enum BoardSessionError: Error, Equatable {
     self.saveDelay = saveDelay
   }
 
+  /// Die Seiten für den PDF-Export: wie `pages`, aber mit der noch nicht gespeicherten Zeichnung der gezeigten Seite
+  /// (das Speichern läuft verzögert). Die teure Serialisierung läuft nur bei ungespeicherten Strichen.
+  var exportPages: [BoardPageSnapshot] {
+    var result = pages
+    if isDirty, case .own = mode, result.indices.contains(pageIndex) {
+      result[pageIndex].drawingData = liveDrawing.dataRepresentation()
+    }
+    return result
+  }
+
   /// Die gezeigte Seite.
   var currentPage: BoardPageSnapshot? {
     pages.indices.contains(pageIndex) ? pages[pageIndex] : nil

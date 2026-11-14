@@ -164,7 +164,7 @@ struct BoardScreen: View {
         #endif
         // Teilen-Dialog: erzeugt das PDF erst, wenn ein Ziel gewählt wird (FR-12.4).
         ShareLink(
-          item: BoardDrawingPDF(pages: session.pages, fileName: pdfFileName(for: session)),
+          item: BoardDrawingPDF(pages: session.exportPages, fileName: pdfFileName(for: session)),
           preview: SharePreview(Text("board.sharePDF"))
         ) {
           Label("board.sharePDF", systemImage: "square.and.arrow.up")
