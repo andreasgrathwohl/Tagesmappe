@@ -46,7 +46,7 @@ import Testing
   /// Schlüsselbund. Dort gilt der Fehler als bekanntes Problem; signiert (Mac, Gerät) läuft
   /// der Test normal. Jeder andere Fehler bleibt ein Fehlschlag.
   private func withPurchaseEntitlement(_ body: () async throws -> Void) async throws {
-    await withKnownIssue("Kauf braucht einen signierten Test-Host", isIntermittent: true) {
+    try await withKnownIssue("Kauf braucht einen signierten Test-Host", isIntermittent: true) {
       try await body()
     } matching: { issue in
       issue.error.map { String(describing: $0).contains("notEntitled") } ?? false
