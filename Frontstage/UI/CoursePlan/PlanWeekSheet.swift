@@ -27,9 +27,10 @@ struct PlanWeekSheet: View {
         }
         Section {
           ForEach(editor.assessments, id: \.id) { assessment in
-            AssessmentRow(assessment: assessment, days: editor.selectableDays) {
-              editor.updateAssessment($0)
-            }
+            AssessmentRow(
+              assessment: assessment, days: editor.selectableDays,
+              onCommit: { editor.updateAssessment($0) },
+              onRemove: { editor.removeAssessment(id: assessment.id) })
             .swipeActions {
               Button("coursePlan.assessment.remove", role: .destructive) {
                 editor.removeAssessment(id: assessment.id)
@@ -72,17 +73,22 @@ struct PlanWeekSheet: View {
   }
 }
 
-/// Zeile eines Leistungsnachweises. Der Entwurf liegt lokal; gespeichert wird bei Auswahl (Art, Tag),
-/// beim Bestätigen und beim Verlassen des Titelfelds – nicht bei jedem Tastendruck.
+/// Zeile eines Leistungsnachweises. Der Entwurf liegt lokal und wird bei jeder Änderung (Art, Titel, Tag)
+/// zurückgeschrieben – so geht ein getippter Titel auch beim Wegwischen des Sheets nicht verloren.
+/// Löschen geht per Wischgeste (iOS) und über den Papierkorb-Knopf (auch Mac, wo `swipeActions` fehlt).
 private struct AssessmentRow: View {
   let days: [CalendarDay]
   let onCommit: (Assessment) -> Void
+  let onRemove: () -> Void
   @State private var draft: Assessment
-  @FocusState private var titleFocused: Bool
 
-  init(assessment: Assessment, days: [CalendarDay], onCommit: @escaping (Assessment) -> Void) {
+  init(
+    assessment: Assessment, days: [CalendarDay],
+    onCommit: @escaping (Assessment) -> Void, onRemove: @escaping () -> Void
+  ) {
     self.days = days
     self.onCommit = onCommit
+    self.onRemove = onRemove
     _draft = State(initialValue: assessment)
   }
 
@@ -94,8 +100,6 @@ private struct AssessmentRow: View {
         }
       }
       TextField("coursePlan.assessment.title", text: $draft.title)
-        .focused($titleFocused)
-        .onSubmit { onCommit(draft) }
       if !days.isEmpty {
         Picker("coursePlan.assessment.day", selection: $draft.day) {
           Text("coursePlan.assessment.noDay").tag(CalendarDay?.none)
@@ -104,11 +108,13 @@ private struct AssessmentRow: View {
           }
         }
       }
+      Button(role: .destructive, action: onRemove) {
+        Label("coursePlan.assessment.remove", systemImage: "trash")
+      }
+      .buttonStyle(.borderless)
     }
     .onChange(of: draft.kind) { onCommit(draft) }
+    .onChange(of: draft.title) { onCommit(draft) }
     .onChange(of: draft.day) { onCommit(draft) }
-    .onChange(of: titleFocused) { _, focused in
-      if !focused { onCommit(draft) }
-    }
   }
 }
