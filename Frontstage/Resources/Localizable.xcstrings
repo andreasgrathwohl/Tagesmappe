@@ -990,6 +990,46 @@
           }
         }
       }
+    },
+    "dayView.statement.noLesson" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Stunde"
+          }
+        }
+      }
+    },
+    "dayView.statement.lessonWithoutMaterial" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ohne Material"
+          }
+        }
+      }
+    },
+    "dayView.statement.materialUnavailable" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material nicht verfügbar"
+          }
+        }
+      }
+    },
+    "dayView.statement.cancellation" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfällt"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

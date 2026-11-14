@@ -69,3 +69,14 @@ extension CalendarDay {
   static let wed25 = Fixtures.wed25
   static let nov3 = Fixtures.nov3
 }
+
+extension Fixtures {
+  /// Abhängigkeitsbündel für View-Modell-Tests; „heute“ ist standardmäßig Dienstag, der 17.11.2026.
+  @MainActor static func environment(
+    store: DataStore, storage: FakeStorage, today: CalendarDay = tue17,
+    dataLocation: DataLocation = .iCloud
+  ) -> AppEnvironment {
+    AppEnvironment(
+      store: store, storage: storage, today: { today }, dataLocation: { dataLocation })
+  }
+}
