@@ -64,23 +64,29 @@ import OSLog
 
   /// Baut `content` und `materialsWithoutLesson` neu und liest die Verfügbarkeit des Materials dieses Tages.
   func reload() {
-    let store = environment.store
-    let storage = environment.storage
+    let result = Self.content(for: day, store: environment.store, storage: environment.storage)
+    content = result.content
+    materialsWithoutLesson = result.orphans
+  }
+
+  /// Zeilenbau eines Tages – gemeinsam für Tagesansicht und Vorbereiten-Woche (kein doppelter Bau).
+  /// Liest dabei die Verfügbarkeit des Materials (`storage.refreshAvailability`). Bei einem Datenfehler:
+  /// `.noLessons` und keine Zuordnungen ohne Stunde.
+  static func content(
+    for day: CalendarDay, store: any PreparationStore, storage: any MaterialStorage
+  ) -> (content: DayContent, orphans: [MaterialLinkItem]) {
     do {
       let orphans = try store.orphanedLinkItems(on: day)
-      materialsWithoutLesson = orphans
 
       if let period = try store.nonTeachingPeriods().first(where: { $0.contains(day) }) {
         storage.refreshAvailability(for: orphans.map(\.reference))
-        content = .nonTeachingDay(title: period.title)
-        return
+        return (.nonTeachingDay(title: period.title), orphans)
       }
 
       let lessons = try store.lessons(on: day)
       guard !lessons.isEmpty else {
         storage.refreshAvailability(for: orphans.map(\.reference))
-        content = .noLessons
-        return
+        return (.noLessons, orphans)
       }
 
       let bell = try store.timetable()?.bellSchedule.periods ?? [:]
@@ -96,7 +102,9 @@ import OSLog
 
       var rows: [DayRow] = []
       let byPeriod = Dictionary(grouping: lessons, by: \.period)
-      guard let first = byPeriod.keys.min(), let last = byPeriod.keys.max() else { return }
+      guard let first = byPeriod.keys.min(), let last = byPeriod.keys.max() else {
+        return (.noLessons, orphans)
+      }
       for period in first...last {
         // Gruppierung behält die Reihenfolge von `lessons(on:)` (Kern-Reihenfolge).
         guard let inPeriod = byPeriod[period] else {
@@ -110,15 +118,14 @@ import OSLog
           rows.append(
             .lesson(
               LessonRow(
-                lesson: lesson, status: Self.status(of: lesson), materials: materials,
+                lesson: lesson, status: status(of: lesson), materials: materials,
                 info: try store.lessonInfo(for: lesson.key))))
         }
       }
-      content = .rows(rows)
+      return (.rows(rows), orphans)
     } catch {
-      Self.logger.error("Tag laden gescheitert: \(String(describing: error), privacy: .public)")
-      content = .noLessons
-      materialsWithoutLesson = []
+      logger.error("Tag laden gescheitert: \(String(describing: error), privacy: .public)")
+      return (.noLessons, [])
     }
   }
 
