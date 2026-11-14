@@ -73,11 +73,19 @@ struct LessonDetailView: View {
         notice = .copied(count)
       }
     }
-    // Speichern beim Verlassen der Stunde und beim Verlassen der App.
-    .onDisappear { editor.save() }
+    // Speichern beim Verlassen der Stunde und beim Verlassen der App (nur bei echter Änderung und
+    // nur, solange die Stunde noch existiert).
+    .onDisappear { saveIfPresent() }
     .onChange(of: scenePhase) { _, phase in
-      if phase != .active { editor.save() }
+      if phase == .background { saveIfPresent() }
     }
+    // Änderungen eines anderen Geräts übernehmen, solange hier nichts bearbeitet wurde.
+    .onChange(of: actions.store.revision) { editor.reloadIfUnedited() }
+  }
+
+  private func saveIfPresent() {
+    guard lessonRow != nil else { return }
+    editor.save()
   }
 
   // MARK: Inhalt

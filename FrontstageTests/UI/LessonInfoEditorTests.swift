@@ -36,4 +36,32 @@ import Testing
     editor.save()
     #expect(try data.lessonInfo(for: key).homework == "Seite 13")
   }
+
+  @Test("Unveränderter Editor schreibt nichts und überschreibt keinen neueren Stand")
+  func unchangedSaveWritesNothing() throws {
+    let editor = LessonInfoEditor(key: key, store: data)
+    let before = data.revision
+    editor.save()
+    #expect(data.revision == before)
+    #expect(try data.lessonInfo(for: key) == LessonInfo())
+
+    // Anderes Gerät ändert das Thema; der veraltete Editor darf es nicht zurückschreiben.
+    try data.setLessonInfo(LessonInfo(topic: "Neu"), for: key)
+    editor.save()
+    #expect(try data.lessonInfo(for: key).topic == "Neu")
+  }
+
+  @Test("Unbearbeiteter Editor übernimmt neuen Stand, bearbeiteter behält seinen")
+  func reloadsOnlyWhenUnedited() throws {
+    let editor = LessonInfoEditor(key: key, store: data)
+    try data.setLessonInfo(LessonInfo(topic: "Remote"), for: key)
+    editor.reloadIfUnedited()
+    #expect(editor.topic == "Remote")
+
+    editor.homework = "Lokal"
+    try data.setLessonInfo(LessonInfo(topic: "Remote 2"), for: key)
+    editor.reloadIfUnedited()
+    #expect(editor.topic == "Remote")
+    #expect(editor.homework == "Lokal")
+  }
 }
