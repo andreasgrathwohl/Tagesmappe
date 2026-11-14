@@ -32,6 +32,7 @@ flowchart TB
         Lokal[("Nur auf diesem Gerät<br/>Ordnerfreigaben · Schlüsselbund")]
         Abl["Baustein Ablage<br/>auflösen · öffnen · bereithalten<br/>Area ablage"]
         OD["Baustein OneDrive-Zusatz<br/>nur nach Anmeldung"]
+        DOD["Baustein OneDrive-Abgleich<br/>nur bei Datenort OneDrive"]
         Quel["Stundenplan-Quellen<br/>von Hand · Schulmanager Online · (WebUntis)<br/>Area stundenplan-quellen"]
     end
 
@@ -49,8 +50,9 @@ flowchart TB
     Abl --> OD
     Quel --> Kern
     Quel --> Lokal
-    Daten <-- "Spiegelung (Datenort iCloud), ADR-0010" --> iCloud
-    Daten <-- "Abgleich über Dateien (Datenort Ordner), ADR-0010" --> Files
+    Daten <-- "Spiegelung (Datenort iCloud), ADR-0012" --> iCloud
+    Daten <--> DOD
+    DOD -- "Datenordner Apps/Frontstage, ADR-0012" --> Graph
     Abl -- "ADR-0003" --> Files
     Abl -- "Übergabe der Datei" --> Office
     OD --> Graph
@@ -110,8 +112,8 @@ den Oberflächen, nicht im Datenmodell. Mindestversion iPadOS 26 und macOS 26 ge
 
 ### Datenmodell
 
-Gemäß ADR-0010 (SwiftData lokal; abgeglichen je nach gewähltem Datenort über die private iCloud-Datenbank
-oder über einen Datenordner in der Ablage; löst ADR-0002 ab) und ADR-0005 (Identität der
+Gemäß ADR-0012 (SwiftData lokal; abgeglichen je nach gewähltem Datenort über die private iCloud-Datenbank
+oder über den Datenordner in OneDrive; löst ADR-0010 ab, das ADR-0002 ablöste) und ADR-0005 (Identität der
 Unterrichtsstunde). Wegen der iCloud-Spiegelung sind alle Eigenschaften optional oder haben einen
 Vorgabewert, alle Beziehungen sind optional, und kein Modell nutzt Eindeutigkeitsregeln.
 
@@ -143,34 +145,61 @@ betreffenden Datum als „ohne Stunde“, bis die Lehrkraft sie verschiebt (FR-7
 
 ### Datenort
 
-Gemäß ADR-0010 wählt die Lehrkraft beim Einrichten den Datenort (FR-14); er gilt je Gerät und wird
+Gemäß ADR-0012 wählt die Lehrkraft beim Einrichten den Datenort (FR-14); er gilt je Gerät und wird
 nicht selbst abgeglichen (`UserDefaults`), auf allen Geräten einer Lehrkraft muss derselbe gewählt sein.
+Ein zweites Gerät übernimmt ihn per Koppeln (FR-14.1, unten).
 
 | Datenort | Arbeitsspeicher | Abgleich |
 |---|---|---|
-| iCloud | SwiftData lokal | Spiegelung in die private iCloud-Datenbank durch das System |
-| Ordner in der Ablage | SwiftData lokal, ohne Spiegelung | eigener Baustein „Datenordner-Abgleich“ |
+| iCloud | SwiftData lokal (eigene Speicherdatei) | Spiegelung in die private iCloud-Datenbank durch das System |
+| OneDrive | SwiftData lokal, ohne Spiegelung (eigene Speicherdatei) | eigener Baustein „OneDrive-Abgleich“ über Microsoft Graph |
 
-Datenordner-Abgleich:
+OneDrive-Abgleich:
 
-- Der Datenordner ist eine Ordnerfreigabe wie für Material (Area ablage), aber nur für die App-Daten.
-  Darin `Frontstage/<Modell>/<Kennung>.json` – je Datensatz eine Datei mit Kennung, Änderungszeitpunkt,
-  Gerätekennung und Inhalt; Zeichnungen und Bilder als `<Kennung>.<Feld>.bin` daneben.
-- Schreiben: nach jeder lokalen Änderung den Datensatz als Datei schreiben (über die
-  Dateikoordination des Systems). Löschen schreibt eine Löschmarke (`deleted: true`), damit das andere
-  Gerät das Löschen erfährt; alte Löschmarken räumt die App nach 90 Tagen auf.
-- Lesen: beim Start, beim Wechsel in den Vordergrund und wenn das System Änderungen im Ordner meldet,
-  geänderte Dateien einlesen; je Datensatz gilt der jüngere Änderungszeitpunkt. Konfliktkopien des
-  Anbieters (z. B. „… (1).json“) werden wie ein zweiter Stand desselben Datensatzes behandelt und
-  danach entfernt.
-- Danach läuft dasselbe Zusammenführen wie nach einem iCloud-Abgleich (Nebenläufigkeit unten).
-- Wechsel des Datenorts: alle Datensätze einmal in den neuen Ort schreiben; der alte bleibt unberührt
-  stehen, bis die Lehrkraft ihn selbst löscht.
-- Die App schreibt nur in den Datenordner, nie in Material (FR-3.4, ADR-0006).
+- Der Datenordner ist der Ordner der App in OneDrive (`/me/drive/special/approot`, für die Lehrkraft
+  sichtbar als `Apps/Frontstage`). Darin `library.json` (zufällige Bibliothekskennung, Formatversion) und
+  je Modell ein Unterordner mit `<Kennung>.json` je Datensatz – Kennung, Änderungszeitpunkt, Gerät,
+  Löschmarke, Inhalt. Zeichnungen und Bilder als `<Kennung>.<Feld>.<Prüfsumme>.bin` daneben
+  (inhaltsadressiert: nie überschrieben, also nie im Konflikt; verwaiste erst nach 7 Tagen entfernt).
+- Der Baustein spricht nur Graph (`graph.microsoft.com`) über die Anmeldung aus dem Bereich ablage
+  (MSAL); Berechtigung `Files.ReadWrite`, erst bei der Wahl von OneDrive angefordert. Er schreibt nur in
+  den App-Ordner, nie in Material.
+- Ein Durchgang: Änderungen per Delta-Abfrage auf den App-Ordner holen (bei `410 Gone` neu aufzählen;
+  ohne Delta bei Schulkonten: Modellordner auflisten, Q-33), geänderte Dateien laden, je Datensatz gilt
+  der zuletzt geschriebene Stand (eine noch nicht geschriebene lokale Änderung mit ihrem
+  Änderungszeitpunkt), dann dasselbe Zusammenführen wie nach einem iCloud-Abgleich (Nebenläufigkeit
+  unten), dann lokale Änderungen schreiben (`PUT …:/content` mit `If-Match` auf das bekannte eTag).
+- Auslöser: Start, Wechsel in den Vordergrund, Rückkehr des Netzes, 1 s nach jedem lokalen Speichern
+  (nur Schreiben) und alle 60 s im Vordergrund.
+- Was geändert ist, merkt sich ein lokales Buch je Gerät (Prüfsumme und Stand je Datensatz, eTag je
+  Datei, Delta-Link) – nicht abgeglichen, nicht gesichert. Die Records bekommen dafür keine neuen Felder.
+- Löschen schreibt eine Löschmarke (`deleted: true`); Löschmarken älter als 90 Tage entfernt die App.
+  Lokal gelöscht wird nur durch eine gelesene Löschmarke, nie weil eine Datei fehlt.
+- Konfliktkopien (etwa von einem OneDrive-Synchronisierungsprogramm am PC: `<Kennung>-<Rechner>.json`)
+  werden wie ein zweiter Stand desselben Datensatzes behandelt und danach entfernt.
+- Wechsel des Datenorts: in der laufenden App; alle Datensätze werden mit Kennung und Anlagezeit in die
+  Speicherdatei des neuen Orts übertragen, der Container wird neu gebaut. Liegen im Datenordner schon
+  Daten (zweites Gerät), gilt für gemeinsame Datensätze der Stand im Datenordner; nur lokal Vorhandenes
+  wird geschrieben. Der alte Ort bleibt unberührt stehen.
+- Die App schreibt nur in den Datenordner, nie in Material (FR-3.4); Stiftnotizen neben dem Dokument
+  (ADR-0011) laufen über den Zugriff auf das Material, nicht über den Datenort.
+
+Koppeln (FR-14.1), ohne Server:
+
+- Das erste Gerät zeigt in Einrichten einen QR-Code mit Formatversion, Datenort und bei OneDrive
+  Bibliothekskennung, Laufwerks- und Ordnerkennung des App-Ordners sowie einem gekürzten Kontonamen als
+  Hinweis. Erzeugt mit Core Image (`CIFilter.qrCodeGenerator()`).
+- Das zweite Gerät scannt: am iPad mit VisionKit (`DataScannerViewController`), am Mac mit der Kamera
+  über AVFoundation und Vision (`DetectBarcodesRequest`). Ohne Kamera zeigt das zweite Gerät den Hinweis,
+  am anderen Gerät zu scannen, oder die Lehrkraft wählt von Hand.
+- iCloud: der Code setzt nur den Datenort. OneDrive: Anmeldung mit demselben Microsoft-Konto, dann
+  öffnet die App den App-Ordner direkt über Graph (keine Ordnerauswahl) und prüft Laufwerk, Ordner und
+  `library.json`; passt etwas nicht (anderes Konto, andere Bibliothek), ändert sie nichts und sagt das.
+- Der Code überträgt keinen Zugriff – nur Kennungen, die ohne Anmeldung am selben Konto nichts öffnen.
 
 ### Nebenläufigkeit
 
-Gemäß ADR-0010 (für beide Datenorte) gewinnt bei gleichzeitiger Änderung desselben Datensatzes der zuletzt abgeglichene
+Gemäß ADR-0012 (für beide Datenorte) gewinnt bei gleichzeitiger Änderung desselben Datensatzes der zuletzt abgeglichene
 Stand. Je Datenart:
 
 | Datenart | Verhalten | Unterlegener Wert |
@@ -190,8 +219,8 @@ aufgegebenen vorher an die behaltene gehängt.
 
 ### Betrieb
 
-Sicherung und Wiederherstellung übernimmt der Datenort (gemäß ADR-0010): iCloud im Konto der Lehrkraft
-oder der Datenordner beim Ablage-Anbieter. Der zu
+Sicherung und Wiederherstellung übernimmt der Datenort (gemäß ADR-0012): iCloud im Konto der Lehrkraft
+oder der Datenordner in ihrem OneDrive. Der zu
 prüfende Wiederherstellungsweg ist: App auf einem zweiten Gerät mit demselben Apple-Konto
 installieren – Stundenplan und Zuordnungen erscheinen ohne Zutun; nur die Ordnerfreigaben müssen dort
 einmal neu erteilt werden.
@@ -414,6 +443,8 @@ gehören sie zur Unterrichtsstunde. Das Original wird nie verändert.
 - ~~Q-15~~: Wie oft und wodurch ausgelöst wird der Schulmanager abgefragt, und wie spät dürfen Vertretungen dort ankommen? → answered 2026-11-13: einmal je Morgen und auf Knopfdruck; Vertretungen am selben Morgen (ADR-0004, accepted)
 - ~~Q-17~~: Wo liegen Stiftnotizen auf PDFs und Bildern – in der Datei in der Ablage (dann sieht sie jede andere App und jedes Gerät, das Original ist aber verändert) oder getrennt in den App-Daten (Original bleibt unberührt, Notizen sieht nur diese App)? Bis zur Klärung wird nichts angenommen; der Bereich `anzeige` bleibt `draft`. → answered 2026-11-13: getrennt in den App-Daten (ADR-0006, accepted); je Zuordnung (FR-6.1, Q-20 im PRD) → changed 2026-11-14: neben dem Dokument, Notiz-Datei plus lesbares PDF (ADR-0011 löst ADR-0006 ab)
 - Q-32: Übergibt `UIDocumentInteractionController` auf iPadOS 26 eine Datei aus der Ablage zum Bearbeiten am Ort, oder öffnet die Ziel-App sie nur lesend bzw. als Kopie? (Gefunden beim Planen von Teilplan 03; Prüfung am Gerät; bei „nur Kopie“ ist FR-3.4/AK-11 ohne OneDrive-Zusatz gefährdet.)
+- Q-33: Funktioniert die Delta-Abfrage auf dem App-Ordner (`/me/drive/special/approot/delta`) bei Schul- und Arbeitskonten (OneDrive for Business), oder nur bei privaten Konten? (Gefunden beim Planen von Teilplan 08; die Graph-Referenz nennt Delta nur am Wurzelordner, die Seite zum App-Ordner auch am App-Ordner. Rückfall: Modellordner auflisten. Prüfung am Gerät.)
+- Q-34: Dürfen Lehrkräfte selbst `Files.ReadWrite` für Frontstage zustimmen, oder verlangen Schulträger (Entra-ID-Mandanten) eine Administratorzustimmung? (Gefunden beim Planen von Teilplan 08; ohne Zustimmung bleibt nur iCloud als Datenort.)
 - Q-18: Öffnet PowerPoint auf iPadOS ein OneDrive-Dokument über die Office-Adresse mit AutoSpeichern, so wie am Mac? (Prüfung auf einem echten iPad nötig; siehe RISK-2.)
 
 ## Changes
@@ -432,6 +463,7 @@ gehören sie zur Unterrichtsstunde. Das Original wird nie verändert.
 - 2026-11-13: Q-32 new — Bearbeiten am Ort über `UIDocumentInteractionController` (aus Teilplan 03)
 - 2026-11-13: plattform changed — Kern-Paket lokal mit Swift für Windows testbar (`scripts/swift-test.ps1`), App weiter nur auf macOS
 - 2026-11-14: daten changed — Datenort wählbar (ADR-0010 löst ADR-0002 ab, FR-14): Abschnitt Datenort, Datenordner-Abgleich, Betrieb; Bausteinbild ergänzt
+- 2026-11-14: daten changed — Datenort iCloud oder OneDrive über Microsoft Graph (ADR-0012 löst ADR-0010 ab): Abschnitt Datenort neu (App-Ordner, Delta, Buch je Gerät, inhaltsadressierte Anhänge, Wechsel in der laufenden App, Beitreten), Koppeln per QR-Code (FR-14.1); Bausteinbild: OneDrive-Abgleich statt Abgleich über die Dateien-Schnittstelle; Q-33, Q-34 new
 - 2026-11-14: anzeige changed — Stiftnotizen neben dem Dokument (ADR-0011 löst ADR-0006 ab): Notiz-Datei je Stunde und lesbares PDF; daten changed — Modell Stiftnotiz nur noch Ersatz
 - 2026-11-13: Architecture Doc status ready — freigegeben von Andreas; offen bleiben Q-18 (am Gerät) und im PRD Q-22, beide blockieren den Bau nicht, weil für beide ein Rückfall beschrieben ist (Übergabe der Datei bzw. RISK-5)
 - 2026-11-13: anzeige changed — Klassenbildschirm im Verlauf der Stunde (FR-11.7), Kamera, Vorlage, Abdecken (FR-12.5 bis FR-12.7); daten changed — Stundenangaben mit Bereitlegen und Hausaufgabe, Tafelseite mit Bild als Hintergrund
