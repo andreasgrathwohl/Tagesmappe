@@ -4157,6 +4157,56 @@
           }
         }
       }
+    },
+    "coursePlan.compare.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frühere Jahre"
+          }
+        }
+      }
+    },
+    "coursePlan.compare.none" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine früheren Jahrespläne für dieses Fach und diesen Jahrgang."
+          }
+        }
+      }
+    },
+    "coursePlan.compare.week %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Woche %lld"
+          }
+        }
+      }
+    },
+    "coursePlan.compare.secondTerm" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2. Halbjahr"
+          }
+        }
+      }
+    },
+    "coursePlan.compare.done" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fertig"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

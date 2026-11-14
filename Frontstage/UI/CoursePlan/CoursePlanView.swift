@@ -57,6 +57,12 @@ struct CoursePlanView: View {
 
   @Environment(\.showSetup) private var showSetup
   @State private var showNewPlan = false
+  @State private var comparison: ComparisonRequest?
+
+  /// Auslöser für das Sheet „Frühere Jahre“ (`UUID` ist nicht `Identifiable`).
+  private struct ComparisonRequest: Identifiable {
+    let id: UUID
+  }
 
   init(
     model: CoursePlanListModel, store: any CoursePlanStore,
@@ -91,11 +97,20 @@ struct CoursePlanView: View {
     } detail: {
       if let planID = model.selection {
         // Neue Identität je Plan: Notiz- und Sheet-Zustand beginnen frisch.
-        CoursePlanDetailHost(planID: planID, store: store, onShowEarlierYears: onShowEarlierYears)
-          .id(planID)
+        CoursePlanDetailHost(
+          planID: planID, store: store,
+          onShowEarlierYears: { id in
+            comparison = ComparisonRequest(id: id)
+            onShowEarlierYears?(id)
+          }
+        )
+        .id(planID)
       } else {
         ContentUnavailableView("coursePlan.select", systemImage: "calendar")
       }
+    }
+    .sheet(item: $comparison) { request in
+      CoursePlanComparisonView(planID: request.id, store: store)
     }
     .sheet(isPresented: $showNewPlan) {
       NewCoursePlanSheet(options: model.newPlanOptions()) { subject, grade, startYear in
