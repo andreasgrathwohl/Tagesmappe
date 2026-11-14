@@ -35,3 +35,9 @@ Rulings:
   Ruling: Statuszeile „Stand des Abgleichs“ behält einen Fehlerstand bei Hintergrundabfragen, bis ein Durchgang gelingt (kein Flackern) — für Bündel B mitgeben.
 - Bündel A CI: 6 Läufe bis grün (43546001765 Syntax; 43546397969 Sendable; 43547742608 DataStore-Namenskollision Tests; 43548109087 2 Testfehler Abgleich-Reihenfolge; 43548893870 Absturz durch verwaisten Merge-Auslöser; 43550466708 grün: 177 App-Tests, 221 Kern-Tests).
   Lehre: scripts/swift-parse.ps1 (Syntax lokal) eingeführt; ci.yml baut beide Plattformen auch bei Fehler; echte Fehler gefunden: verlorener zweiter Abgleich-Aufruf, Task-Lebensdauer (starkes self) in SyncMergeTrigger/DataFolderSync.
+- Teilplan 05: complete (ac93d25..6e2a53a; preflight 13 Korrekturen; Aufgabe 1 übersprungen (Konto), 2–13 sauber, 14 CI → Controller; Gesamtprüfung Ready with fixes (u. a. leeres Zeitraster löschte vorhandenes) → Fix-Welle → Ready to merge). Lehrer-spezifische API-Werte als „unbelegt, Q-16 offen“ markiert (Platzhalter aus Eltern-/Schüler-Quellen).
+  Ruling: Bei .multipleSchoolsUnsupported Zugangsdaten löschen und automatische Abfrage stoppen (sonst täglich erfolglose Logins, RISK-1); bei offline/server/unexpectedResponse behalten — Kosten: erneute Anmeldung nach Fehlermeldung.
+  Ruling: Verworfene oder beibehaltene Vorschau merken (Prüfsumme des Stundenplan-Teils inkl. Zeitraster); dieselbe Vorschau erscheint erst bei neuer Abweichung wieder — Kosten: kleine Zustandsdatei je Gerät.
+  Ruling: Vorschau verwerfen, wenn sourceFetchedAt neuer als ihr Stand ist (anderes Gerät hat neuer abgefragt).
+  Ruling: Gerät ohne Zugangsdaten (meist Mac) fragt nicht ab und zeigt „Anmeldung auf diesem Gerät nötig, Stand kommt vom anderen Gerät“ statt Fehler.
+- Teilplan 05 Nachtrag (d3f6a01): vier Rulings umgesetzt, Kern 307 Tests grün. Teilplan 04 gestartet (Start d3f6a01) mit Rulings aus Bündel A und 05 als Vorgabe.
