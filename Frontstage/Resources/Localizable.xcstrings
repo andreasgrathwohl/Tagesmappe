@@ -3388,6 +3388,36 @@
         }
       }
     },
+    "board.cover" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abdecken"
+          }
+        }
+      }
+    },
+    "board.uncover" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abdeckung entfernen"
+          }
+        }
+      }
+    },
+    "board.cover.handle" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abdeckung verschieben"
+          }
+        }
+      }
+    },
     "board.unavailable" : {
       "localizations" : {
         "de" : {

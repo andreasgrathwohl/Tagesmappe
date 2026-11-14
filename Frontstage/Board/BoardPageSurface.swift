@@ -28,6 +28,8 @@ struct BoardPageSurface: View {
     self.isEditable = isEditable
     self.cover = cover
     self.audience = audience
+    // Gleich beim Anlegen dekodieren, damit auch ein sofortiges Rendern (Tests) das Bild enthält; `.task` aktualisiert.
+    _backgroundImage = State(initialValue: page.backgroundImageData.flatMap { BoardPageRenderer.decodeImage($0) })
   }
 
   var body: some View {
@@ -47,7 +49,8 @@ struct BoardPageSurface: View {
 
   @ViewBuilder private var drawingLayer: some View {
     #if os(iOS)
-      if audience == .tablet {
+      // Nur zum Zeichnen gibt es die `PenCanvas`; sonst (frühere Tafelbilder, Tests) genügt das Bild.
+      if audience == .tablet, isEditable {
         PenCanvas(drawing: drawing, isEditable: isEditable, contentSize: BoardGeometry.canvasSize)
       } else {
         drawingImage
@@ -72,7 +75,7 @@ struct BoardPageSurface: View {
       GeometryReader { proxy in
         VStack(spacing: 0) {
           Spacer(minLength: 0)
-          // Platzhalter-Farbe, Gestaltung offen.
+          // Platzhalter-Farbe (Schwarz), Gestaltung offen; die Abdeckung ist nie Teil der gespeicherten Seite.
           Rectangle()
             .fill(Color.black.opacity(BoardCover.opacity(for: audience)))
             .frame(height: proxy.size.height * (1 - cover.revealedFraction))
