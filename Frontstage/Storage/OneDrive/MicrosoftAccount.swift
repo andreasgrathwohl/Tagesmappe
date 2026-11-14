@@ -173,3 +173,63 @@ enum MicrosoftAccountError: Error, Equatable {
     func accessToken() async throws -> String { try await account.accessToken() }
   }
 }
+
+// MARK: - Datenort OneDrive (ADR-0012)
+
+// In dieser Datei, weil die Erweiterung die `private` Mitglieder `requireApplication()`, `map(_:)` und
+// `accountKey` braucht (`private` gilt in Swift auch für Erweiterungen derselben Datei).
+extension MicrosoftAccount {
+  /// Berechtigung des Datenorts OneDrive (ADR-0012).
+  static let dataLocationScopes = ["Files.ReadWrite"]
+
+  /// Still erneuerter Token für genau diese Berechtigungen; wirft `.interactionRequired`, wenn die
+  /// Zustimmung fehlt.
+  func accessToken(scopes: [String]) async throws -> String {
+    let app = try requireApplication()
+    guard let identifier = UserDefaults.standard.string(forKey: Self.accountKey),
+      let account = try? app.account(forIdentifier: identifier)
+    else { throw MicrosoftAccountError.interactionRequired }
+    let parameters = MSALSilentTokenParameters(scopes: scopes, account: account)
+    return try await withCheckedThrowingContinuation { continuation in
+      app.acquireTokenSilent(with: parameters) { result, error in
+        if let result {
+          continuation.resume(returning: result.accessToken)
+        } else {
+          continuation.resume(throwing: Self.map(error))
+        }
+      }
+    }
+  }
+
+  /// Nachträgliche Zustimmung (interaktiv) mit dem vorhandenen Konto, z. B. beim Wechsel auf OneDrive.
+  func requestScopes(_ scopes: [String], anchor: AuthPresentationAnchor) async throws {
+    let app = try requireApplication()
+    guard let identifier = UserDefaults.standard.string(forKey: Self.accountKey),
+      let account = try? app.account(forIdentifier: identifier)
+    else { throw MicrosoftAccountError.interactionRequired }
+    let webParameters = MSALWebviewParameters(authPresentationViewController: anchor)
+    let parameters = MSALInteractiveTokenParameters(scopes: scopes, webviewParameters: webParameters)
+    parameters.account = account
+    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+      app.acquireToken(with: parameters) { result, error in
+        if result != nil {
+          continuation.resume()
+        } else {
+          continuation.resume(throwing: Self.map(error))
+        }
+      }
+    }
+  }
+}
+
+/// Token-Lieferant für den Abgleich (`Sendable`-Hülle, springt auf den Hauptakteur).
+struct DataLocationTokenProvider: AccessTokenProviding {
+  // Eine `@MainActor`-Klasse ist implizit `Sendable`.
+  private let account: MicrosoftAccount
+
+  init(account: MicrosoftAccount) { self.account = account }
+
+  func accessToken() async throws -> String {
+    try await account.accessToken(scopes: MicrosoftAccount.dataLocationScopes)
+  }
+}
