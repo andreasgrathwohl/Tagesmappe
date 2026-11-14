@@ -1349,6 +1349,8 @@ func application(_ application: UIApplication,
 
 (Ausnahme vom Proportionsgebot: genau dieser Körper, weil die Versionsweiche und die Rückgabe für die SwiftUI-Hauptszene nicht aus der Signatur folgen.)
 
+**Korrektur 2026-11-14 (CI-Lauf 43586699822):** `return connectingSceneSession.configuration` ließ den Test-Host beim Start mit SIGSEGV abstürzen – deren `delegateClass` ist schon SwiftUIs `AppSceneDelegate`, SwiftUI verschachtelt ihn in sich selbst (endlose Rekursion `AppSceneDelegate.scene(_:willConnectTo:)` / `responds(to:)`, Stapelüberlauf). Für die Hauptszene stattdessen `UISceneConfiguration(name: nil, sessionRole: connectingSceneSession.role)` ohne `delegateClass` zurückgeben; der Code liegt in `AppDelegate.sceneConfiguration(for:)` mit Test `AppDelegateSceneConfigurationTests`.
+
 - [ ] **Step 7: Weg iOS 27 – `SceneAccessoryRegistrar` (nur `#if os(iOS)`)** – `UIViewControllerRepresentable` mit einem unsichtbaren `AccessoryHostViewController`. In `viewDidAppear(_:)` einmalig, nur `if #available(iOS 27, *)`: Ziel ist `view.window?.rootViewController` (die Hauptansicht, damit das Zubehör gilt, solange die App im Vordergrund ist – auch unter einem `.fullScreenCover` der Anzeige), sonst `self`:
 
 ```swift
