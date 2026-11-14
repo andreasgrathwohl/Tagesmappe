@@ -35,6 +35,16 @@ import Testing
     #expect(screen.state.mode == .classScreen)
   }
 
+  @Test("Schließen einer gescheiterten Anzeige nimmt dem Zweitbildschirm nichts weg (Tafel bleibt)")
+  func closingFailedViewerLeavesSecondScreenAlone() async throws {
+    let (model, _, screen) = try await TestViewer.make(kind: .pdf, readError: StubError.unresolvable)
+    screen.setBoardLesson(TestKeys.tue8aEnglish)
+    await model.load()
+    await model.close()
+    #expect(model.phase == .unavailable)
+    #expect(screen.boardLessonKey == TestKeys.tue8aEnglish)
+  }
+
   @Test("AK-23: Öffnen zeigt Seite 1 mit vorhandenen Notizen auf dem Zweitbildschirm")
   func openingPresentsMaterialWithNotes() async throws {
     let (model, _, screen) = try await TestViewer.make(

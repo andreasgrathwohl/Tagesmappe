@@ -43,6 +43,8 @@ struct StoredPenNote {
   private let files: any PenNoteFileAccessing
   private let fallback: DataStore
   private let saveDelay: Duration
+  /// Vorgabe für die Verzögerung des Schreibens: 0,5 s nach der letzten Änderung (AK-13).
+  static let defaultSaveDelay: Duration = .milliseconds(500)
   private let reference: MaterialReference
   private let key: LessonKey?
   private let documentName: String
@@ -62,7 +64,7 @@ struct StoredPenNote {
 
   init(
     link: MaterialLinkRecord, files: any PenNoteFileAccessing, fallback: DataStore,
-    saveDelay: Duration = .seconds(2)
+    saveDelay: Duration = PenNoteStore.defaultSaveDelay
   ) {
     self.link = link
     self.files = files

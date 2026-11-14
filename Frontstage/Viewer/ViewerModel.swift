@@ -45,6 +45,8 @@ import PencilKit
   private let files: any PenNoteFileAccessing
   private let secondScreen: SecondScreenState
   private let beforeLoad: @MainActor () async -> Void
+  /// Dieses Modell hat Material und Tafel auf den Zweitbildschirm gebracht; nur dann gibt `close()` sie frei.
+  @ObservationIgnored private var presentsOnSecondScreen = false
   private static let logger = Logger(
     subsystem: Bundle.main.bundleIdentifier ?? "com.example.frontstage", category: "ViewerModel")
 
@@ -100,6 +102,7 @@ import PencilKit
         drawings: stored.mapValues(\.drawing)))
     // AK-29: Die Tafel der Unterrichtsstunde ist wählbar (nil bei „Material ohne Stunde“).
     secondScreen.setBoardLesson(LessonKey(storageText: lessonKeyText))
+    presentsOnSecondScreen = true
     phase = .ready
   }
 
@@ -135,6 +138,9 @@ import PencilKit
   func close() async {
     await notes.flush()
     await writeNotesPDFIfNeeded()
+    // Eine gescheiterte Anzeige hat nichts geöffnet und nimmt deshalb auch nichts weg (z. B. die Tafel).
+    guard presentsOnSecondScreen else { return }
+    presentsOnSecondScreen = false
     secondScreen.closeMaterial()
     secondScreen.setBoardLesson(nil)
   }

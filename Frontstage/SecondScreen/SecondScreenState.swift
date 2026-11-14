@@ -13,7 +13,9 @@ struct MaterialPresentation: Equatable {
   let kind: MaterialFileKind
   /// Gezeigte Seite, ab 0.
   var pageIndex: Int
-  /// Sichtbarer Ausschnitt in Seitenkoordinaten, `nil` = ganze Seite.
+  /// Sichtbarer Ausschnitt in **PDFKit-Seitenkoordinaten** (ungedrehte `mediaBox`, Ursprung unten links),
+  /// `nil` = ganze Seite. Anders als die Notizen nicht in Seitenkoordinaten (oben links, Drehung angewandt):
+  /// Erzeuger (`PDFCanvasView`) und Abnehmer (`PDFDisplayView`, `PDFView.go(to:on:)`) arbeiten beide in PDFKit.
   var visibleRect: CGRect?
   /// Stiftnotizen je Seite, in Seitenkoordinaten.
   var drawings: [Int: PKDrawing]
@@ -67,7 +69,8 @@ struct MaterialPresentation: Equatable {
     state.materialClosed()
   }
 
-  /// Seitenwechsel oder Zoom des Betrachters; ohne offenes Material wirkungslos.
+  /// Seitenwechsel oder Zoom des Betrachters; `visibleRect` in PDFKit-Seitenkoordinaten (siehe
+  /// `MaterialPresentation.visibleRect`). Ohne offenes Material wirkungslos.
   func showPage(_ pageIndex: Int, visibleRect: CGRect?) {
     guard material != nil else { return }
     material?.pageIndex = pageIndex

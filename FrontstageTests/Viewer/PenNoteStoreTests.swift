@@ -20,6 +20,23 @@ import Testing
     #expect(try ctx.penNotes(for: link).isEmpty)  // nichts im Datenort
   }
 
+  @Test("AK-13: Ohne Angabe wird 0,5 s nach der letzten Änderung geschrieben")
+  func defaultSaveDelayIsHalfASecond() async throws {
+    #expect(PenNoteStore.defaultSaveDelay == .milliseconds(500))
+    let (ctx, link) = try TestStore.contextWithLink()
+    let files = InMemoryPenNoteFiles()
+    let notes = PenNoteStore(link: link, files: files, fallback: ctx)
+    _ = await notes.loadAll()
+    notes.scheduleSave(TestDrawings.word, pageIndex: 0, pageSize: .a4)
+    #expect(await files.writeCount == 0)
+    // Spätestens nach 1,5 s geschrieben – mit einer Vorgabe von 2 s schlüge das fehl.
+    for _ in 0..<15 {
+      if await files.writeCount > 0 { break }
+      try await Task.sleep(for: .milliseconds(100))
+    }
+    #expect(await files.writeCount == 1)
+  }
+
   @Test("Review Focus 3: flush schreibt eine ausstehende Notiz sofort")
   func flushWritesPendingDrawingImmediately() async throws {
     let (ctx, link) = try TestStore.contextWithLink()
