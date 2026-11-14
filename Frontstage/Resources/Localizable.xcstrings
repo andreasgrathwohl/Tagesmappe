@@ -1,6 +1,316 @@
 {
   "sourceLanguage" : "de",
   "strings" : {
+    "timetableSource.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stundenplan-Quelle"
+          }
+        }
+      }
+    },
+    "timetableSource.source" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quelle"
+          }
+        }
+      }
+    },
+    "timetableSource.source.manual" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Von Hand"
+          }
+        }
+      }
+    },
+    "timetableSource.source.schulmanager" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schulmanager Online"
+          }
+        }
+      }
+    },
+    "timetableSource.unofficialNotice" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inoffizielle Anbindung, ohne Gewähr: Schulmanager Online bietet diese Schnittstelle nicht offiziell an. Sie kann sich jederzeit ändern oder ausfallen."
+          }
+        }
+      }
+    },
+    "timetableSource.account.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmeldung"
+          }
+        }
+      }
+    },
+    "timetableSource.username" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benutzername"
+          }
+        }
+      }
+    },
+    "timetableSource.password" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passwort"
+          }
+        }
+      }
+    },
+    "timetableSource.signIn" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anmelden"
+          }
+        }
+      }
+    },
+    "timetableSource.signedIn" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Angemeldet"
+          }
+        }
+      }
+    },
+    "timetableSource.signedOut" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht angemeldet"
+          }
+        }
+      }
+    },
+    "timetableSource.signOut" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abmelden"
+          }
+        }
+      }
+    },
+    "timetableSource.credentialsNotice" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zugangsdaten bleiben nur auf diesem Gerät im Schlüsselbund."
+          }
+        }
+      }
+    },
+    "timetableSource.importNow" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jetzt importieren"
+          }
+        }
+      }
+    },
+    "timetableSource.fetchedAt %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stand: %@"
+          }
+        }
+      }
+    },
+    "timetableSource.neverImported" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noch nicht importiert"
+          }
+        }
+      }
+    },
+    "timetableSource.preview.available" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine Vorschau liegt zur Übernahme bereit."
+          }
+        }
+      }
+    },
+    "timetableSource.preview.show" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorschau ansehen"
+          }
+        }
+      }
+    },
+    "timetableSource.preview.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorschau"
+          }
+        }
+      }
+    },
+    "timetableSource.preview.placeholder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Stundenplan der Quelle weicht vom vorhandenen ab. Übernehmen ersetzt ihn; von Hand geänderte Stunden bleiben erhalten."
+          }
+        }
+      }
+    },
+    "timetableSource.preview.accept" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Übernehmen"
+          }
+        }
+      }
+    },
+    "timetableSource.preview.discard" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwerfen"
+          }
+        }
+      }
+    },
+    "timetableSource.error.notConfigured" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Zugangsdaten hinterlegt."
+          }
+        }
+      }
+    },
+    "timetableSource.error.invalidCredentials" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Benutzername oder Passwort wurden nicht akzeptiert."
+          }
+        }
+      }
+    },
+    "timetableSource.error.multipleSchools" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Konto gehört zu mehreren Schulen; das wird noch nicht unterstützt."
+          }
+        }
+      }
+    },
+    "timetableSource.error.offline" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Verbindung. Der letzte Stand bleibt erhalten."
+          }
+        }
+      }
+    },
+    "timetableSource.error.server %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Server antwortet mit Fehler %lld. Der letzte Stand bleibt erhalten."
+          }
+        }
+      }
+    },
+    "timetableSource.error.unexpected" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Antwort des Anbieters war unerwartet. Der letzte Stand bleibt erhalten."
+          }
+        }
+      }
+    },
+    "timetableSource.error.tooSoon" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zu kurz nach der letzten Abfrage. Bitte später erneut versuchen."
+          }
+        }
+      }
+    },
+    "timetableSource.error.storage" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Einstellung konnte nicht gespeichert werden."
+          }
+        }
+      }
+    },
+    "timetableSource.error.keychain" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Zugangsdaten konnten nicht im Schlüsselbund gespeichert werden."
+          }
+        }
+      }
+    },
     "app.placeholder.title" : {
       "localizations" : {
         "de" : {
