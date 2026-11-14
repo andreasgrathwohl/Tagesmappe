@@ -6,6 +6,8 @@
 # Xcode-Projekt wird aus project.yml erzeugt (ADR-0008)
 *.xcodeproj/
 *.xcworkspace/
+# Von XcodeGen aus project.yml erzeugt (Entitlements, Info.plist)
+/Config/
 xcuserdata/
 DerivedData/
 .build/

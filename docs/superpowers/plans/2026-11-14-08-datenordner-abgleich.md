@@ -11,7 +11,7 @@
 
 **Spec:** `docs/adr/0012-datenort-icloud-oder-onedrive-nativ.md` (löst ADR-0010 ab), `docs/ARCHITECTURE.md` (Area daten: Datenort mit „OneDrive-Abgleich“ und „Koppeln“, Nebenläufigkeit, Betrieb; Open Questions Q-33, Q-34), `docs/PRD.md` (FR-14 samt Änderung vom 2026-11-14, FR-14.1, AK-43, AK-44, RISK-9, Glossar „Datenort“ `DataLocation` (`iCloud`, `oneDrive`), „Datenordner“ `DataFolder`, „Koppeln“ `pairing`), `docs/adr/0011-stiftnotizen-neben-dem-dokument.md` (Stiftnotizen neben dem Dokument; `PenNoteRecord` nur Ersatz – wird trotzdem mit abgeglichen).
 
-**Baut auf (Plantexte auf `main`, Umsetzung läuft parallel):** Teilplan 02 (`DataStore`, die acht Records mit Suffix `Record`, `ModelContainerFactory`, `SyncMerger`, `SyncMergeTrigger`, `DataStore.mergeDuplicates()`, Test-Hilfe `makeStore()`), Teilplan 03 (`MicrosoftAccount`, `AccessTokenProviding`, `AuthPresentationAnchor`, `NetworkMonitor`, Test-Attrappe `StubURLProtocol`). Teilplan 01 liegt als Code auf `main` (`Packages/FrontstageCore`, Einrückung **zwei Leerzeichen**).
+**Baut auf (als Code auf dem Branch `feature/batch-a-daten-ablage`):** Teilplan 02 (`DataStore`, die acht Records mit Suffix `Record`, `ModelContainerFactory`, `SyncMerger`, `SyncMergeTrigger`, `DataStore.mergeDuplicates()` (`@discardableResult`, liefert `MergePlan`), Test-Hilfe `makeStore()` in `FrontstageTests/Data/Fixtures.swift`), Teilplan 03 (`MicrosoftAccount` in `Frontstage/Storage/OneDrive/MicrosoftAccount.swift`, `AccessTokenProviding` in `…/OneDrive/GraphClient.swift`, `AuthPresentationAnchor`, `NetworkMonitor` in `Frontstage/Storage/NetworkMonitor.swift`, Test-Attrappen `StubURLProtocol` und `FakeTokens` in `FrontstageTests/Storage/StubURLProtocol.swift`). Teilplan 01 liegt als Code vor (`Packages/FrontstageCore`, Einrückung **zwei Leerzeichen**). Stand im Repo: `Frontstage/App/FrontstageApp.swift` ist noch der Platzhalter aus 02 (Container, `DataStore`, `SyncMergeTrigger`); `MicrosoftAccount`, `NetworkMonitor` und `StorageService` sind dort noch nicht eingebunden; `Frontstage/UI/` (Teilplan 04) gibt es noch nicht.
 
 **Quellen (gelesen 2026-11-14):**
 - Microsoft, „What is an App Folder“ (learn.microsoft.com/onedrive/developer/rest-api/concepts/special-folders-appfolder): App-Ordner unter `Apps/` im OneDrive der Person, „created … when your app makes the first call to the folder using the special folder namespace“; Zugriff mit `Files.ReadWrite.AppFolder` **oder** `Files.ReadWrite`; Operationen per Pfad `GET/PUT/DELETE /drive/special/approot:/{path}`, `…:/{path}:/delta`, Upload `PUT /drive/special/approot:/{parent-path}/{name}:/content`.
@@ -36,7 +36,7 @@ Alle Zeilen der Übersicht gelten (Abschnitt „Global Constraints“, Abstimmun
 - **Prüfsummen** immer über die **kodierten Bytes** (`ContentHash.fnv1a64`), nie über Werte im Speicher. FNV-1a statt SHA-256, weil der Kern nur Foundation importiert (CryptoKit fehlt unter Windows) und hier Änderungserkennung genügt, keine Sicherheit.
 - **Abgeglichen werden alle acht Records aus Teilplan 02** (auch `PenNoteRecord`). Neue Modelle oder Felder späterer Teilpläne brauchen eine Zeile in `RecordPayload` und `RecordCodec` – „jede Änderung am Datenmodell muss in beiden Abgleichwegen funktionieren“ (ADR-0012, Kosten).
 - **Gestaltung:** Tasks 13 und 14 berühren Oberfläche (`Design-Takt: Hauptstufe`), alle anderen `Design-Takt: keiner`. Nur Systemstandard, keine eigenen Gestaltungsentscheidungen; Lücken im Abschlussbericht nennen.
-- Testdaten: Klassen `8a`, `8b`; Fach `Englisch`; Material „Vokabeln.pdf“; Geräte-Kennungen `"device-A"`, `"device-B"`; Konto `lehrkraft@example.com`; Laufwerk `"b!drive"`, App-Ordner `"01APPROOT"`; Zeiten `t(n) = Date(timeIntervalSince1970: n)`.
+- Testdaten: Klassen `8a`, `8b`; Fach `Englisch`; Material „Vokabeln.pdf“; Geräte-Kennungen `"device-A"`, `"device-B"`; Konto `lehrkraft@example.com`; Laufwerk `"b!drive"`, App-Ordner `"01APPROOT"`; Zeiten `t(n) = Date(timeIntervalSince1970: n)`; Kennungen `id(n) = UUID(uuidString: "00000000-0000-0000-0000-" + n zwölfstellig mit Nullen)!` (also `id(1) < id(2)` auch als Text). Die Kern-Testhilfen (`id(_:)`, `t(_:)`, `file(…)`, `folder(…)`, `state(…)`, `decoded(…)`, `tombstone(…)`, `ledgerWithIndex(_:)`, `sampleLink`, `payload2` …) stehen **einmal** in `Packages/FrontstageCore/Tests/FrontstageCoreTests/DataFolder/DataFolderFixtures.swift` – freie Funktionen gelten im ganzen Testmodul, doppelt definiert bricht der Bau. Das vorhandene `t(_ h: Int, _ m: Int) -> TimeOfDay` aus `Fixtures.swift` bleibt; `t(_ n: TimeInterval) -> Date` hat eine andere Stelligkeit und kollidiert nicht.
 
 ## Entscheidungen dieses Teilplans (mit Begründung)
 
@@ -119,7 +119,7 @@ public enum SyncModel: String, Codable, Sendable, CaseIterable {
 public struct AttachmentRef: Codable, Hashable, Sendable { public var hash: String; public var byteCount: Int; public init(hash:byteCount:) }
 ```
 
-Inhalt je Modell – Felder 1:1 aus Teilplan 02, Task 4 (gleiche Namen, gleiche Optionalität), plus `createdAt: Date` in jedem; abweichend nur:
+Inhalt je Modell – Felder 1:1 aus `Frontstage/Data/Records/*Record.swift` (Teilplan 02, Task 4; gleiche Namen, gleiche Optionalität), ohne `id` (steht in der Hülle), mit `createdAt: Date` (hat jeder Record) und bei `LessonInfoPayload` samt `topicUpdatedAt`, `toPrepareUpdatedAt`, `homeworkUpdatedAt`; abweichend nur:
 
 | Struktur (`public struct …: Codable, Hashable, Sendable`, Initialisierer mit allen Feldern) | anders als am Record |
 |---|---|
@@ -141,7 +141,7 @@ public enum RecordPayload: Hashable, Sendable {
 }
 
 /// Inhalt einer Datei <Modell>/<Kennung>.json.
-public struct RecordEnvelope: Hashable, Sendable {
+public struct RecordEnvelope: Codable, Hashable, Sendable {
   public static let currentFormatVersion = 1
   public var formatVersion: Int
   public var id: UUID
@@ -187,7 +187,8 @@ JSON-Form (verbindlich; so liegt sie im OneDrive der Lehrkraft):
 ```swift
 @Test("FR-14: Hülle hin und zurück, Zeitstempel mit Millisekunden")
 func envelopeRoundTrip() throws {
-  let env = RecordEnvelope(id: id(1), model: .materialLink, updatedAt: Date(timeIntervalSince1970: 1_795_000_000.123),
+  // .125 statt .123: binär exakt darstellbar, sonst kann der Rundlauf über Millisekunden-Text um ein ulp abweichen
+  let env = RecordEnvelope(id: id(1), model: .materialLink, updatedAt: Date(timeIntervalSince1970: 1_795_000_000.125),
                            deviceID: "device-A", deleted: false, payload: .materialLink(sampleLink))
   #expect(try DataFolderCoding.decode(try DataFolderCoding.encode(env)) == env)
 }
@@ -195,7 +196,7 @@ func envelopeRoundTrip() throws {
 @Test("Festes Dateiformat: Schlüssel sortiert, Datum als ISO-Text in UTC, Löschmarke ohne Inhalt")
 func encodesPinnedLayout() throws {
   let text = String(decoding: try DataFolderCoding.encode(tombstone(id(1), at: 1_795_000_000.5)), as: UTF8.self)
-  #expect(text.contains(#""updatedAt" : "2026-11-18T09:46:40.500Z""#))
+  #expect(text.contains(#""updatedAt" : "2026-11-18T11:06:40.500Z""#))
   #expect(text.range(of: "\"deleted\"")!.lowerBound < text.range(of: "\"deviceID\"")!.lowerBound)
   #expect(!text.contains("payload"))
 }
@@ -328,7 +329,7 @@ Design-Takt: keiner
 
 ```swift
 /// Ausschnitt eines Graph-driveItem aus Delta oder children ($select=id,name,parentReference,file,folder,deleted,eTag,size,lastModifiedDateTime).
-public struct RemoteItem: Hashable, Sendable {
+public struct RemoteItem: Codable, Hashable, Sendable {   // Codable, weil RemoteIndex die Elemente speichert
   public var id: String
   public var name: String?             // fehlt bei Löschungen in OneDrive for Business
   public var parentID: String?
@@ -466,7 +467,7 @@ public enum DataFolderPlanner {
 @Test("Buch hin und zurück als JSON") func ledgerCodableRoundTrip()
 ```
 
-Kernzusicherungen (Beispiel `filesToReadComparesETags`): `seenETags = [a: "e1"]`, Index mit `a` (e1), `b` (e2), `<a> (1).json` (e3), einem Anhang und `library.json` → `filesToRead == [b, aCopy]`.
+Kernzusicherungen (Beispiel `filesToReadComparesETags`): `seenETags = [a: "e1"]`, Index mit `a` (e1), `b` (e2), `<a> (1).json` (e3), einem Anhang und `library.json` (a = `id(1)`, b = `id(2)`, alle `MaterialLink`) → `filesToRead == [aCopy, b]` (gleiches Modell, dann nach Pfad: `…0001 (1).json` vor `…0002.json`).
 
 - [ ] **Step 2: Rot belegen** – `.\scripts\swift-test.ps1 -Filter "DataFolder Planner"`.
 - [ ] **Step 3: Implementieren.**
@@ -753,7 +754,7 @@ Design-Takt: keiner
 
 **Files:**
 - Create: `Frontstage/Data/Folder/DataLocationSettings.swift`, `Frontstage/Data/Folder/DeviceIdentity.swift`, `Frontstage/Data/ModelContainerFactory+DataLocation.swift`
-- Modify: `Frontstage/Storage/OneDrive/MicrosoftAccount.swift` (Teilplan 03, Task 9) – zwei Methoden ergänzen, nichts anderes ändern
+- Modify: `Frontstage/Storage/OneDrive/MicrosoftAccount.swift` (Teilplan 03, Task 9) – zwei Methoden ergänzen, nichts anderes ändern; die Erweiterung muss in **dieser** Datei stehen, weil sie die `private` Mitglieder `requireApplication()`, `map(_:)` und `accountKey` braucht (Swift: `private` gilt auch für Erweiterungen in derselben Datei, nicht in anderen)
 - Test: `FrontstageTests/Data/Folder/DataLocationSettingsTests.swift`
 
 **Interfaces:**
@@ -820,6 +821,7 @@ Design-Takt: keiner
 **Files:**
 - Create: `Frontstage/Data/Folder/RemoteDataFolder.swift`, `Frontstage/Data/Folder/OneDriveDataClient.swift`
 - Test: `FrontstageTests/Data/Folder/OneDriveDataClientTests.swift`, `FrontstageTests/Data/Folder/InMemoryRemoteDataFolder.swift`
+- Modify: `FrontstageTests/Storage/StubURLProtocol.swift` (Teilplan 03) – nur additiv: Die Attrappe liefert heute nur Status und Rumpf (`Handler = (URLRequest) -> (status:, body:)`), keine Antwortköpfe und keinen `URLError`. Für `Retry-After` und „kein Netz“ einen zweiten `Server`-Initialisierer ergänzen (z. B. `init(responder:)` mit Ergebnis `.response(status:, headers:, body:)` oder `.failure(URLError.Code)`); der vorhandene `Handler` und alle Tests aus 03 bleiben unverändert.
 
 **Interfaces:**
 - Consumes: `AccessTokenProviding` (03), `DataLocationTokenProvider` (Task 9), `RemoteItem`, `RemoteFile`, `RemoteLayout`, `LibraryMarker` (Task 2, 3); Test-Attrappe `StubURLProtocol` (Teilplan 03, Task 9)
@@ -904,7 +906,8 @@ Design-Takt: keiner
 - Produces:
 
 ```swift
-// In DataStore.swift (Teilplan 02), weil `revision` dort private(set) ist:
+// In DataStore.swift (Teilplan 02, Übersicht Abstimmung 15); speichert über das vorhandene `saveAndBump()`
+// (speichert, bei Fehler `rollback()`, dann `revision += 1` – `revision` selbst ist private(set)):
 extension DataStore {
   /// Änderungen von außen im Kontext ausführen, speichern, revision erhöhen. Kein Zusammenführen.
   func applyExternalChanges(_ body: (ModelContext) throws -> Void) throws
@@ -938,7 +941,7 @@ Ablauf `runCycle()` (verbindlich; deutsche Kommentare mit den Nummern):
 1. `status.phase = .syncing`. Delta abholen: `remote.delta(link: ledger.remote.deltaLink)`, Folgeseiten bis `deltaLink`, je Seite `ledger.remote.apply`. `resyncRequired` → `ledger.remote.beginResync()`, von vorn (`link: nil`). Delta nicht unterstützt (`server(400)`/`server(501)` beim ersten Aufruf) → `listAll()` nach `beginResync()` (Q-33; im Buch vermerken, dass Delta fehlt).
 2. `filesToRead(ledger:)` → je Datei `remote.download` → `DataFolderCoding.decode` → `ReadOutcome` (Dekodierfehler `.unreadable`, `unsupportedFormatVersion` `.newerFormat`).
 3. `resolution = IncomingResolver.resolve(read:ledger:now:)`.
-4. Anwenden in `store.applyExternalChanges { ctx in … }`: je Hülle die Anhänge laden (`remote.download` über die Kennung aus `ledger.remote.file(at:)`), dann `RecordCodec.upsert` bzw. `delete`. `missingParent` oder fehlgeschlagener Anhang → Kennung zusätzlich wartend.
+4. Erst die Anhänge aller anzuwendenden Hüllen laden (`remote.download` über die Kennung aus `ledger.remote.file(at:)`; fehlgeschlagen → Kennung zusätzlich wartend, Hülle nicht anwenden), **dann** anwenden in `store.applyExternalChanges { ctx in … }` mit `RecordCodec.upsert` bzw. `delete` – die Closure ist synchron (`throws`, nicht `async`), ein `await` darin kompiliert nicht. `missingParent` → Kennung zusätzlich wartend.
 5. Nach erfolgreichem Speichern im selben Haupt-Akteur-Schritt: `recordApplied`, `recordSeen` (ohne Wartende), `forgetIDs` entfernen, Buch speichern. *Warum im selben Schritt:* Das `didSave` des Anwendens wirkt erst nach der Entprellzeit; dann stimmen die Prüfsummen schon mit dem Buch, übernommene Stände werden nicht zurückgeschrieben.
 6. `try store.mergeDuplicates()` (Teilplan 02).
 7. Lokale Änderungen erfassen: erster Durchgang nach `start()` `RecordCodec.exportAll`, sonst die im `didSave` gesammelten Kennungen → `markLocalChanges(changed:liveIDs:ledger:now:)`.
@@ -968,7 +971,7 @@ Auslöser: `ModelContext.didSave` von `store.modelContext` (`NotificationCenter.
 }
 ```
 
-Kernzusicherungen (Beispiel `linkTravelsBetweenDevices`): `try mac.store.assign(reference("Vokabeln.pdf"), to: di8b); await mac.sync.runCycle(); await ipad.sync.runCycle()` → `try ipad.store.links(for: di8b).map(\.displayName) == ["Vokabeln.pdf"]`.
+Kernzusicherungen (Beispiel `linkTravelsBetweenDevices`; `reference(_:)` und `tue17` aus `FrontstageTests/Data/Fixtures.swift`, `di8b` gibt es dort nicht – im Test wie in `DataStoreLessonDataTests` anlegen: `LessonKey(date: tue17, schoolClass: SchoolClass("8b"), subject: Subject("Englisch"), ordinal: 1)`): `try mac.store.assign(reference("Vokabeln.pdf"), to: di8b); await mac.sync.runCycle(); await ipad.sync.runCycle()` → `try ipad.store.links(for: di8b).map(\.displayName) == ["Vokabeln.pdf"]`.
 
 - [ ] **Step 2: Diff durchsehen** – Schritt-Nummern 1–10 als Kommentare; kein `Task.detached`; Beobachter-Token gehalten und in `stop()` entfernt; `applyExternalChanges` ist die einzige Änderung an `DataStore.swift`.
 - [ ] **Step 3: Implementieren.**
@@ -993,8 +996,18 @@ Design-Takt: keiner
 ```swift
 enum DataLocationError: Error, Equatable { case notSignedIn, consentMissing, offline, moveFailed }
 
+/// Schmale Sicht auf die Microsoft-Anmeldung, damit Tests Zustimmung und Ablehnung nachstellen können:
+/// `MicrosoftAccount(signedInUsernameForTesting:)` aus 03 wirft bei jedem MSAL-Weg `.notConfigured`.
+@MainActor protocol DataLocationAccount: AnyObject {
+  var signedInUsername: String? { get }
+  var isSignedIn: Bool { get }
+  func signIn(anchor: AuthPresentationAnchor) async throws
+  func requestScopes(_ scopes: [String], anchor: AuthPresentationAnchor) async throws
+}
+extension MicrosoftAccount: DataLocationAccount {}
+
 @MainActor @Observable final class DataLocationController {
-  init(settings: DataLocationSettings = .init(), account: MicrosoftAccount,
+  init(settings: DataLocationSettings = .init(), account: any DataLocationAccount,
        makeContainer: @escaping @MainActor (DataLocation) throws -> ModelContainer = ModelContainerFactory.makeContainer(for:),
        makeRemote: @escaping @MainActor () -> any RemoteDataFolder,
        ledgerStore: LedgerStore = .init(), deviceID: String = DeviceIdentity.current())
@@ -1022,9 +1035,9 @@ struct DataScopedRoot<Content: View>: View {
 Ablauf `switchToOneDrive` (Entscheidungen 3, 4): `isMoving = true` → `account.requestScopes(MicrosoftAccount.dataLocationScopes, anchor:)` (fehlt die Anmeldung, vorher `account.signIn(anchor:)`) → `remote.appFolder()` → `library.json` laden (`listAll`/Index; fehlt: bei Kopplung `libraryMissing` zurückgeben und **nichts ändern**; sonst neu anlegen mit `LibraryMarker(libraryID: UUID(), createdAt: now)`) → bei Kopplung `PairingVerifier.verify` – nicht `ok` → zurückgeben, nichts ändern → `remote.ensureModelFolders()` → `RecordCodec.exportAll` aus dem aktuellen Container → `removeOneDriveStore()` → neuer OneDrive-Container → `upsert` in `SyncModel.applyOrder` → speichern → `ledgerStore.ledger = DataFolderJoin.ledger(local:deviceID:appFolderID:)` → neues `DataStore`, `SyncMergeTrigger`, `DataFolderSync` → `settings.dataFolder`, `settings.location = .oneDrive` → `generation += 1` → `await folderSync.runCycle()` → `isMoving = false`. Scheitert ein Schritt vor dem Setzen von `settings.location`, bleibt alles beim alten Datenort.
 `switchToICloud`: `folderSync.runCycle()` (ausstehende Änderungen noch hinaus; offline → trotzdem weiter, Hinweis im Status) → `exportAll` → iCloud-Container → `upsert` nach `id`, nichts löschen → speichern → `mergeDuplicates()` → `ledgerStore.remove()`, `settings.dataFolder = nil`, `settings.location = .iCloud` → `generation += 1`. Der Datenordner in OneDrive bleibt unberührt.
 
-`FrontstageApp`: `@State private var dataLocation = DataLocationController(account: …, makeRemote: { OneDriveDataClient(tokens: DataLocationTokenProvider(account: …)) })` ersetzt den Container-Aufbau aus 02 (`makeDefault()`, `DataStore(…)`, `SyncMergeTrigger`). `MicrosoftAccount` wird dafür **vor** dem Controller einmal im `App`-Typ erzeugt (er hängt nicht am Datenort). Inhalt des `WindowGroup`: `DataScopedRoot(controller: dataLocation) { store, container in … }`; alles, was 03, 04 und 05 dort mit dem `DataStore` erzeugen (`StorageService`, `AppEnvironment`, `TimetableSourceCoordinator`, `.modelContainer(container)`, `.environment(store)`), wandert unverändert in eine kleine Ansicht in der Closure, die diese Objekte in `@State` hält. Szenenphase `.active`/`.background` und `NetworkMonitor.onBecameOnline` rufen zusätzlich die Methoden des Controllers. Swift-Hinweis: `@State` in einer Ansicht mit `.id(x)` wird neu angelegt, sobald sich `x` ändert – so entstehen nach einem Wechsel alle Dienste auf dem neuen `DataStore`.
+`FrontstageApp`: `@State private var dataLocation = DataLocationController(account: …, makeRemote: { OneDriveDataClient(tokens: DataLocationTokenProvider(account: …)) })` ersetzt den Container-Aufbau aus 02 (`makeDefault()`, `DataStore(…)`, `SyncMergeTrigger`). `MicrosoftAccount` wird dafür **vor** dem Controller einmal im `App`-Typ erzeugt (er hängt nicht am Datenort). Inhalt des `WindowGroup`: `DataScopedRoot(controller: dataLocation) { store, container in … }`; alles, was 03, 04 und 05 dort mit dem `DataStore` erzeugen (`StorageService`, `AppEnvironment`, `TimetableSourceCoordinator`, `.modelContainer(container)`, `.environment(store)`), wandert unverändert in eine kleine Ansicht in der Closure, die diese Objekte in `@State` hält. Szenenphase `.active`/`.background` und `NetworkMonitor.onBecameOnline` rufen zusätzlich die Methoden des Controllers. Stand im Repo: Der App-Typ hat noch keinen `NetworkMonitor` und keinen `MicrosoftAccount` – 08 legt beide dort an (`NetworkMonitor()`, `start()`), ebenso `.onOpenURL { _ = MicrosoftAccount.handleRedirect($0) }`, falls noch nicht vorhanden (sonst kehrt die MSAL-Anmeldung am iPad nicht zurück). `onBecameOnline` ist eine **einzelne** Closure: einen schon gesetzten Wert nicht überschreiben, sondern verketten. Der Platzhalter `Text("app.placeholder.title")` wandert unverändert in die Closure von `DataScopedRoot`. Swift-Hinweis: `@State` in einer Ansicht mit `.id(x)` wird neu angelegt, sobald sich `x` ändert – so entstehen nach einem Wechsel alle Dienste auf dem neuen `DataStore`.
 
-- [ ] **Step 1: Failing Tests schreiben** (In-Memory-Container je Datenort, `InMemoryRemoteDataFolder`, Attrappe für Zustimmung)
+- [ ] **Step 1: Failing Tests schreiben** (In-Memory-Container je Datenort, `InMemoryRemoteDataFolder`, Attrappe `FakeDataLocationAccount: DataLocationAccount` für Zustimmung/Ablehnung)
 
 ```swift
 @MainActor @Suite struct DataLocationControllerTests {
@@ -1203,7 +1216,7 @@ Texte (Platzhalter):
   @Test("FR-14: OneDrive wählen → Bestätigung → Wechsel") func choosingOneDriveConfirmsThenSwitches() async
   @Test("Abbrechen ändert nichts") func cancelKeepsLocation()
   @Test("Zustimmung verweigert → Meldung, Datenort bleibt") func consentErrorSetsErrorKey() async
-  @Test("Statuszeile je Zusammenfassung") func statusLineKeys()   // upToDate heute 08:12 → ("sync.status.upToDate %@", "08:12"); offline(pending: 2) → ("sync.status.offline %lld", "2"); iCloud → nil
+  @Test("Statuszeile je Zusammenfassung") func statusLineKeys()   // upToDate heute 08:12 → ("sync.status.upToDate %@", <dieselbe Date.FormatStyle .time(.shortened) für diesen Zeitpunkt>) – kein festes "08:12", der Simulator in CI läuft mit en_US ("8:12 AM"); offline(pending: 2) → ("sync.status.offline %lld", "2"); iCloud → nil
 }
 ```
 
@@ -1229,7 +1242,7 @@ gh run list --workflow ci.yml --limit 1
 gh run watch <run-id> --exit-status
 ```
 
-Erwartet: Kern-Job grün inkl. `DataFolder Format`, `DataFolder Layout`, `DataFolder RemoteIndex`, `DataFolder Planner`, `DataFolder Incoming`, `DataFolder Join and Status`, `Pairing`; App-Job (iPad-Simulator) grün mit `RecordCodecTests`, `DataLocationSettingsTests`, `OneDriveDataClientTests`, `DataFolderSyncTests`, `DataLocationControllerTests`, `PairingFlowModelTests`, `DataLocationSettingsViewModelTests`; macOS-Ziel baut.
+Erwartet (`ci.yml` hat einen Job `build-and-test` mit den Schritten „Core tests“, „Build macOS“, „App tests (iPad simulator)“, `timeout-minutes: 15`): Schritt „Core tests“ grün inkl. `DataFolder Format`, `DataFolder Layout`, `DataFolder RemoteIndex`, `DataFolder Planner`, `DataFolder Incoming`, `DataFolder Join and Status`, `Pairing`; Schritt „App tests (iPad simulator)“ grün mit `RecordCodecTests`, `DataLocationSettingsTests`, `OneDriveDataClientTests`, `DataFolderSyncTests`, `DataLocationControllerTests`, `PairingFlowModelTests`, `DataLocationSettingsViewModelTests`; Schritt „Build macOS“ grün. Implementierer pushen nicht und starten keinen Lauf – Push und `gh workflow run` nur durch den Controller (Übersicht, CI-Sparregel).
 
 - [ ] **Step 4: Bei Rot** – `gh run view <run-id> --log-failed`, Ursache mit superpowers:systematic-debugging klären, alle Korrekturen sammeln, **ein** neuer Lauf.
 
@@ -1270,7 +1283,7 @@ Nicht hier: Stiftnotizen neben dem Dokument (ADR-0011, Teilplan 06); iCloud-Spie
 ## Produziert für spätere Teilpläne (Zusammenfassung)
 
 - **Kern:** `DataLocation`, `SyncModel`, `RecordPayload` samt acht Inhalts-Strukturen, `AttachmentRef`, `RecordEnvelope`, `DataFolderCoding`, `ContentHash`, `RemoteLayout`, `RemoteEntry`, `LibraryMarker`, `RemoteItem`, `RemoteFile`, `RemoteIndex`, `SyncLedger`, `LedgerEntry`, `LocalRecordState`, `DataFolderPlanner`, `IncomingResolver`, `IncomingResolution`, `ReadOutcome`, `ReadFile`, `DataFolderJoin`, `DataFolderSyncStatus`, `DataFolderSyncSummary`, `PairingPayload`, `PairingVerifier`, `PairingVerdict`.
-- **App:** `RecordCodec`, `DataFolder`, `DataLocationSettings`, `DeviceIdentity`, `ModelContainerFactory.makeContainer(for:)`/`makeOneDriveContainer`, `MicrosoftAccount.accessToken(scopes:)`/`requestScopes(_:anchor:)`/`dataLocationScopes`, `DataLocationTokenProvider`, `RemoteDataFolder`, `OneDriveDataClient`, `LedgerStore`, `DataFolderSync`, `DataStore.applyExternalChanges(_:)`, `DataLocationController`, `DataScopedRoot`, `QRCodeRenderer`, `PairingScannerView`, `PairingFlowModel`, `PairingSheet`, `DataLocationSettingsView`.
+- **App:** `RecordCodec`, `DataFolder`, `DataLocationSettings`, `DeviceIdentity`, `ModelContainerFactory.makeContainer(for:)`/`makeOneDriveContainer`, `MicrosoftAccount.accessToken(scopes:)`/`requestScopes(_:anchor:)`/`dataLocationScopes`, `DataLocationTokenProvider`, `RemoteDataFolder`, `OneDriveDataClient`, `LedgerStore`, `DataFolderSync`, `DataStore.applyExternalChanges(_:)`, `DataLocationAccount`, `DataLocationController`, `DataScopedRoot`, `QRCodeRenderer`, `PairingScannerView`, `PairingFlowModel`, `PairingSheet`, `DataLocationSettingsView`.
 - **Regel für jeden späteren Teilplan, der ein Modell oder Feld hinzufügt:** `RecordPayload` (Kern) und `RecordCodec` (App) im selben Task ergänzen und den Rundlauf-Test in `RecordCodecTests` erweitern.
 
 ## Abstimmungsbedarf

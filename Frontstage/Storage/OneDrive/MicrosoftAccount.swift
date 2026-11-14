@@ -1,0 +1,255 @@
+import Foundation
+import Observation
+
+@preconcurrency import MSAL
+
+#if os(iOS)
+  import UIKit
+  typealias AuthPresentationAnchor = UIViewController
+#else
+  import AppKit
+  typealias AuthPresentationAnchor = NSViewController
+#endif
+
+enum MicrosoftAccountError: Error, Equatable {
+  case notConfigured, interactionRequired, cancelled, failed(String)
+  /// Kein Netz beim (stillen) Holen des Tokens.
+  case offline
+}
+
+/// Hülle um MSAL – die einzige Stelle der App, die MSAL anfasst.
+///
+/// Swift-Hinweis: `@preconcurrency import` stellt die MSAL-Typen (Objective-C, ohne `Sendable`-Angaben)
+/// von Swift 6s strenger Nebenläufigkeitsprüfung frei. Die Rückrufe liefern deshalb nur `Sendable`-Werte
+/// (Zeichenketten), keine MSAL-Objekte, über die Fortsetzung zurück.
+///
+/// Der Token-Cache liegt im privaten Schlüsselbund (Gruppe = Bundle-ID, NFR-4); gespeichert wird nur die
+/// Konto-Kennung in `UserDefaults`, nie ein Token.
+@MainActor @Observable final class MicrosoftAccount {
+  static let scopes = ["Files.Read"]
+  static let authority = "https://login.microsoftonline.com/common"
+  private static let accountKey = "MicrosoftAccountIdentifier"
+
+  private(set) var signedInUsername: String?
+  /// Wird nach erfolgreicher Anmeldung in einer eigenen Aufgabe gerufen (StorageService stößt die
+  /// Ordnererkennung an); `signIn` wartet nicht darauf.
+  @ObservationIgnored var onSignedIn: (@MainActor () async -> Void)?
+
+  @ObservationIgnored private let isStub: Bool
+  @ObservationIgnored private var application: MSALPublicClientApplication?
+
+  var isConfigured: Bool {
+    if isStub { return true }
+    return !Self.clientID.isEmpty
+  }
+
+  var isSignedIn: Bool { signedInUsername != nil }
+
+  private static var clientID: String {
+    (Bundle.main.object(forInfoDictionaryKey: "MSALClientID") as? String) ?? ""
+  }
+
+  init() {
+    isStub = false
+    guard !Self.clientID.isEmpty, let app = try? Self.makeApplication() else { return }
+    application = app
+    if let identifier = UserDefaults.standard.string(forKey: Self.accountKey),
+      let account = try? app.account(forIdentifier: identifier)
+    {
+      signedInUsername = account.username
+    }
+  }
+
+  /// Nur für Tests (kein MSAL): gilt als konfiguriert und, wenn `signedInUsername` gesetzt ist, als angemeldet.
+  init(signedInUsernameForTesting username: String?) {
+    isStub = true
+    signedInUsername = username
+  }
+
+  private static func makeApplication() throws -> MSALPublicClientApplication {
+    guard let bundleID = Bundle.main.bundleIdentifier, let authorityURL = URL(string: authority) else {
+      throw MicrosoftAccountError.notConfigured
+    }
+    let config = MSALPublicClientApplicationConfig(
+      clientId: clientID, redirectUri: "msauth.\(bundleID)://auth",
+      authority: try MSALAADAuthority(url: authorityURL))
+    config.cacheConfig.keychainSharingGroup = bundleID
+    return try MSALPublicClientApplication(configuration: config)
+  }
+
+  private func requireApplication() throws -> MSALPublicClientApplication {
+    guard !isStub, isConfigured else { throw MicrosoftAccountError.notConfigured }
+    if let application { return application }
+    do {
+      let app = try Self.makeApplication()
+      application = app
+      return app
+    } catch {
+      throw MicrosoftAccountError.failed(error.localizedDescription)
+    }
+  }
+
+  /// Übersetzt MSAL-Fehler in die eigenen; die Meldung enthält nie ein Token.
+  nonisolated private static func map(_ error: Error?) -> MicrosoftAccountError {
+    guard let nsError = error as NSError? else { return .failed("") }
+    // Wert von `MSALErrorDomain`; die MSAL-Konstante ist ein veränderliches Global
+    // und unter Swift 6 (strikte Nebenläufigkeit) nicht lesbar.
+    if nsError.domain == "MSALErrorDomain" {
+      if nsError.code == MSALError.userCanceled.rawValue { return .cancelled }
+      if nsError.code == MSALError.interactionRequired.rawValue { return .interactionRequired }
+    }
+    if isOffline(nsError) { return .offline }
+    return .failed(nsError.localizedDescription)
+  }
+
+  /// MSAL reicht Netzfehler entweder direkt (`NSURLErrorDomain`) oder als `NSUnderlyingErrorKey` weiter.
+  nonisolated private static func isOffline(_ error: NSError) -> Bool {
+    if error.domain == NSURLErrorDomain, URLError.Code(rawValue: error.code).meansOffline { return true }
+    if let underlying = error.userInfo[NSUnderlyingErrorKey] as? NSError { return isOffline(underlying) }
+    return false
+  }
+
+  /// Ergebnis der interaktiven Anmeldung, nur aus `Sendable`-Teilen.
+  private struct SignInOutcome: Sendable {
+    let identifier: String
+    let username: String?
+  }
+
+  func signIn(anchor: AuthPresentationAnchor) async throws {
+    let app = try requireApplication()
+    let webParameters = MSALWebviewParameters(authPresentationViewController: anchor)
+    let parameters = MSALInteractiveTokenParameters(scopes: Self.scopes, webviewParameters: webParameters)
+    parameters.completionBlockQueue = .main
+    let outcome: SignInOutcome = try await withCheckedThrowingContinuation { continuation in
+      app.acquireToken(with: parameters) { result, error in
+        if let result {
+          continuation.resume(
+            returning: SignInOutcome(identifier: result.account.identifier ?? "", username: result.account.username))
+        } else {
+          continuation.resume(throwing: Self.map(error))
+        }
+      }
+    }
+    UserDefaults.standard.set(outcome.identifier, forKey: Self.accountKey)
+    signedInUsername = outcome.username ?? outcome.identifier
+    // Die Ordnererkennung (je Freigabe mehrere Graph-Anfragen) läuft im Hintergrund weiter;
+    // die Anmeldung kehrt sofort zurück.
+    Task { [weak self] in await self?.onSignedIn?() }
+  }
+
+  /// Entfernt das Konto aus dem MSAL-Cache und vergisst die Kennung.
+  func signOut() async {
+    if let app = application, let identifier = UserDefaults.standard.string(forKey: Self.accountKey),
+      let account = try? app.account(forIdentifier: identifier)
+    {
+      try? app.remove(account)
+    }
+    UserDefaults.standard.removeObject(forKey: Self.accountKey)
+    signedInUsername = nil
+  }
+
+  /// Still: wirft `.interactionRequired`, wenn eine Anmeldung nötig ist.
+  func accessToken() async throws -> String {
+    let app = try requireApplication()
+    guard let identifier = UserDefaults.standard.string(forKey: Self.accountKey),
+      let account = try? app.account(forIdentifier: identifier)
+    else { throw MicrosoftAccountError.interactionRequired }
+    let parameters = MSALSilentTokenParameters(scopes: Self.scopes, account: account)
+    // Swift-Hinweis: Der Rückruf entsteht auf dem Hauptakteur und erbt unter Swift 6 dessen Isolation; die
+    // Laufzeit prüft das beim Aufruf. MSAL ruft stille Anfragen ohne diese Angabe auf einer beliebigen
+    // Warteschlange zurück – das bräche ab. Deshalb ausdrücklich die Hauptwarteschlange.
+    parameters.completionBlockQueue = .main
+    return try await withCheckedThrowingContinuation { continuation in
+      app.acquireTokenSilent(with: parameters) { result, error in
+        if let result {
+          continuation.resume(returning: result.accessToken)
+        } else {
+          continuation.resume(throwing: Self.map(error))
+        }
+      }
+    }
+  }
+
+  /// iOS: reicht die Rückkehr-Adresse der Anmeldung an MSAL (aus `.onOpenURL`). macOS: immer `false`.
+  static func handleRedirect(_ url: URL) -> Bool {
+    #if os(iOS)
+      return MSALPublicClientApplication.handleMSALResponse(url, sourceApplication: nil)
+    #else
+      return false
+    #endif
+  }
+
+  /// `Sendable`-Hülle für `GraphClient`: springt für jedes Token auf den Hauptakteur.
+  var tokenProvider: any AccessTokenProviding { Provider(account: self) }
+
+  private struct Provider: AccessTokenProviding {
+    // Eine `@MainActor`-Klasse ist implizit `Sendable`.
+    let account: MicrosoftAccount
+    func accessToken() async throws -> String { try await account.accessToken() }
+  }
+}
+
+// MARK: - Datenort OneDrive (ADR-0012)
+
+// In dieser Datei, weil die Erweiterung die `private` Mitglieder `requireApplication()`, `map(_:)` und
+// `accountKey` braucht (`private` gilt in Swift auch für Erweiterungen derselben Datei).
+extension MicrosoftAccount {
+  /// Berechtigung des Datenorts OneDrive (ADR-0012).
+  ///
+  /// Swift-Hinweis: `nonisolated`, weil `DataLocationTokenProvider` (ohne Akteur) sie liest; eine Konstante
+  /// eines `Sendable`-Typs darf das gefahrlos.
+  nonisolated static let dataLocationScopes = ["Files.ReadWrite"]
+
+  /// Still erneuerter Token für genau diese Berechtigungen; wirft `.interactionRequired`, wenn die
+  /// Zustimmung fehlt.
+  func accessToken(scopes: [String]) async throws -> String {
+    let app = try requireApplication()
+    guard let identifier = UserDefaults.standard.string(forKey: Self.accountKey),
+      let account = try? app.account(forIdentifier: identifier)
+    else { throw MicrosoftAccountError.interactionRequired }
+    let parameters = MSALSilentTokenParameters(scopes: scopes, account: account)
+    parameters.completionBlockQueue = .main  // siehe `accessToken()`
+    return try await withCheckedThrowingContinuation { continuation in
+      app.acquireTokenSilent(with: parameters) { result, error in
+        if let result {
+          continuation.resume(returning: result.accessToken)
+        } else {
+          continuation.resume(throwing: Self.map(error))
+        }
+      }
+    }
+  }
+
+  /// Nachträgliche Zustimmung (interaktiv) mit dem vorhandenen Konto, z. B. beim Wechsel auf OneDrive.
+  func requestScopes(_ scopes: [String], anchor: AuthPresentationAnchor) async throws {
+    let app = try requireApplication()
+    guard let identifier = UserDefaults.standard.string(forKey: Self.accountKey),
+      let account = try? app.account(forIdentifier: identifier)
+    else { throw MicrosoftAccountError.interactionRequired }
+    let webParameters = MSALWebviewParameters(authPresentationViewController: anchor)
+    let parameters = MSALInteractiveTokenParameters(scopes: scopes, webviewParameters: webParameters)
+    parameters.account = account
+    parameters.completionBlockQueue = .main
+    try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+      app.acquireToken(with: parameters) { result, error in
+        if result != nil {
+          continuation.resume()
+        } else {
+          continuation.resume(throwing: Self.map(error))
+        }
+      }
+    }
+  }
+}
+
+/// Token-Lieferant für den Abgleich (`Sendable`-Hülle, springt auf den Hauptakteur).
+struct DataLocationTokenProvider: AccessTokenProviding {
+  // Eine `@MainActor`-Klasse ist implizit `Sendable`.
+  private let account: MicrosoftAccount
+
+  init(account: MicrosoftAccount) { self.account = account }
+
+  func accessToken() async throws -> String {
+    try await account.accessToken(scopes: MicrosoftAccount.dataLocationScopes)
+  }
+}

@@ -10,6 +10,9 @@ Stand jeder Ebene steht im Frontmatter des jeweiligen Dokuments.
   `-Filter <Test>` für einzelne Tests). Die App (SwiftUI, SwiftData, UIKit) lässt sich auf Windows nicht
   bauen: Gebaut und getestet wird sie nur per GitHub Actions auf macOS oder auf einem Mac. Maßgeblich
   bleibt der CI-Lauf auf macOS – Foundation unter Windows weicht in Einzelheiten ab.
+- **App-Code lässt sich auf Windows nicht typprüfen, aber Syntaxfehler findet `.\scripts\swift-parse.ps1`**
+  (`swiftc -frontend -parse` über `Frontstage` und `FrontstageTests`, `-Paths` für andere Ordner). Vor jedem
+  CI-Lauf ausführen.
 - **CI kostet Geld, die macOS-Minuten sind begrenzt:** nur bei Tags oder manuell (`workflow_dispatch`),
   nie bei jedem Push. Änderungen sammeln, Diff sorgfältig auf Compilerfehler durchsehen, dann ein Lauf.
   Sparregeln:
