@@ -8,8 +8,8 @@ import SwiftUI
 /// dass ein Wechsel des Datenorts das Sheet mitten im Koppeln nicht abreißt. Alles, was an Daten hängt,
 /// öffnet sich als Ziel mit eigenem `ScopedAppContent` und wird beim Wechsel neu aufgebaut.
 ///
-/// Aufgabe 14 hängt hier Ablage und Stundenplan-Quelle ein; der
-/// Datenort steht laut Plan vor „Ablage“.
+/// Ablage und Stundenplan-Quelle folgen nach dem Datenort und öffnen sich als Ziel mit eigenem Datenbezug.
+/// Die Ansicht der Stundenplan-Quelle ist selbst ein `Form` und deshalb ein `NavigationLink`-Ziel.
 struct SetupView: View {
   let dataLocation: DataLocationController
   let account: MicrosoftAccount
@@ -32,7 +32,14 @@ struct SetupView: View {
         DataLocationSettingsView(
           controller: dataLocation, isOneDriveAvailable: account.isConfigured,
           accountUsername: { account.signedInUsername })
-        // Ablage (Aufgabe 14) und Stundenplan-Quelle (Aufgabe 14): folgen hier, ebenfalls über `scoped`.
+        Section {
+          NavigationLink("setup.storage.title") {
+            scoped { StorageSettingsScreen(account: account) }
+          }
+          NavigationLink("timetableSource.title") {
+            scoped { TimetableSourceSettingsView() }
+          }
+        }
       }
       .navigationTitle(Text("app.section.setup"))
     }

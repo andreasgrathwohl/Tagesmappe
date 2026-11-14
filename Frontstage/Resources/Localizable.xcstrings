@@ -1801,6 +1801,246 @@
         }
       }
     },
+    "setup.microsoft.account" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Konto"
+          }
+        }
+      }
+    },
+    "setup.microsoft.error.failed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Anmeldung bei Microsoft ist fehlgeschlagen."
+          }
+        }
+      }
+    },
+    "setup.microsoft.error.offline" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Verbindung. Anmelden geht nur online."
+          }
+        }
+      }
+    },
+    "setup.microsoft.signIn" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bei Microsoft anmelden"
+          }
+        }
+      }
+    },
+    "setup.microsoft.signOut" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bei Microsoft abmelden"
+          }
+        }
+      }
+    },
+    "setup.microsoft.signOut.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "setup.microsoft.signOut.confirm" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trotzdem abmelden"
+          }
+        }
+      }
+    },
+    "setup.microsoft.signOut.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bei Microsoft abmelden?"
+          }
+        }
+      }
+    },
+    "setup.microsoft.signOut.warning" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Datenort ist OneDrive. Nach dem Abmelden gleicht Frontstage nicht mehr ab, bis wieder angemeldet wird. Änderungen bleiben auf diesem Gerät erhalten."
+          }
+        }
+      }
+    },
+    "setup.microsoft.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Microsoft"
+          }
+        }
+      }
+    },
+    "setup.storage.addFolder" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ordner freigeben"
+          }
+        }
+      }
+    },
+    "setup.storage.cancel" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Abbrechen"
+          }
+        }
+      }
+    },
+    "setup.storage.error.accessDenied" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Zugriff auf den Ordner wurde verweigert."
+          }
+        }
+      }
+    },
+    "setup.storage.error.failed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Ordner konnte nicht freigegeben werden."
+          }
+        }
+      }
+    },
+    "setup.storage.error.nameInUse" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eine andere Freigabe trägt schon diesen Namen."
+          }
+        }
+      }
+    },
+    "setup.storage.footer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freigegebene Ordner gelten nur auf diesem Gerät. Frontstage liest daraus Material und verändert es nie."
+          }
+        }
+      }
+    },
+    "setup.storage.missing.footer" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material in diesen Ordnern ist auf einem anderen Gerät zugeordnet. Gib hier den passenden Ordner frei."
+          }
+        }
+      }
+    },
+    "setup.storage.missing.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auf diesem Gerät noch nicht freigegeben"
+          }
+        }
+      }
+    },
+    "setup.storage.name" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name der Freigabe"
+          }
+        }
+      }
+    },
+    "setup.storage.name.mirrored" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dieser Name gehört schon zu Material von einem anderen Gerät."
+          }
+        }
+      }
+    },
+    "setup.storage.remove" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfernen"
+          }
+        }
+      }
+    },
+    "setup.storage.save" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Freigeben"
+          }
+        }
+      }
+    },
+    "setup.storage.shareHere" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hier freigeben"
+          }
+        }
+      }
+    },
+    "setup.storage.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ablage"
+          }
+        }
+      }
+    },
     "setup.timetable.title" : {
       "localizations" : {
         "de" : {
