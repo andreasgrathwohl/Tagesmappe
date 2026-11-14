@@ -30,7 +30,8 @@ import Testing
     _ page: BoardPageSnapshot, cover: BoardCover?, audience: BoardCover.Audience
   ) -> CGImage? {
     let view = BoardPageSurface(
-      page: page, drawing: .constant(PKDrawing()), isEditable: false, cover: cover, audience: audience
+      page: page, drawing: .constant(PKDrawing()), isEditable: false, cover: cover, audience: audience,
+      preloadedImage: page.backgroundImageData.flatMap { BoardPageRenderer.decodeImage($0) }
     )
     .frame(width: 800, height: 450)
     let renderer = ImageRenderer(content: view)

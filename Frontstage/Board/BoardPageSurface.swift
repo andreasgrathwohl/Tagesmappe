@@ -19,17 +19,18 @@ struct BoardPageSurface: View {
   /// Das dekodierte Hintergrundbild; wird beim Seitenwechsel neu gelesen.
   @State private var backgroundImage: CGImage?
 
+  /// `preloadedImage` ist nur für Tests gedacht, die sofort rendern; die App lässt es leer und dekodiert in `.task`
+  /// (nicht im `init`, der bei jeder Strich- und Ziehänderung des Elternteils läuft).
   init(
     page: BoardPageSnapshot, drawing: Binding<PKDrawing>, isEditable: Bool = false, cover: BoardCover?,
-    audience: BoardCover.Audience
+    audience: BoardCover.Audience, preloadedImage: CGImage? = nil
   ) {
     self.page = page
     self.drawing = drawing
     self.isEditable = isEditable
     self.cover = cover
     self.audience = audience
-    // Gleich beim Anlegen dekodieren, damit auch ein sofortiges Rendern (Tests) das Bild enthält; `.task` aktualisiert.
-    _backgroundImage = State(initialValue: page.backgroundImageData.flatMap { BoardPageRenderer.decodeImage($0) })
+    _backgroundImage = State(initialValue: preloadedImage)
   }
 
   var body: some View {

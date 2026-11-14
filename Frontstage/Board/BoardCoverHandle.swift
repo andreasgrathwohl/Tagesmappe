@@ -24,7 +24,6 @@ struct BoardCoverHandle: View {
         .frame(maxWidth: .infinity)
         .frame(height: Self.touchHeight)
         .contentShape(Rectangle())
-        .position(x: proxy.size.width / 2, y: height * current.revealedFraction)
         // Swift-Hinweis: Die Geste liefert die Position im Koordinatensystem der umgebenden `GeometryReader`-Fläche
         // (`.local` des Elternteils wäre hier der Griff selbst), deshalb ein benannter Raum.
         .gesture(
@@ -42,6 +41,9 @@ struct BoardCoverHandle: View {
           updated.reveal(to: updated.revealedFraction + (direction == .increment ? step : -step))
           cover = updated
         }
+        // `.position` zuletzt: Es füllt die ganze Fläche; Geste und Trefferfläche müssen vorher am 44-pt-Streifen
+        // hängen, sonst schluckt die Geste jede Berührung der Tafel.
+        .position(x: proxy.size.width / 2, y: height * current.revealedFraction)
       }
     }
     .coordinateSpace(name: Self.space)
