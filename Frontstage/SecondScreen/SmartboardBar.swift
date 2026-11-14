@@ -87,8 +87,15 @@
       } else {
         Text("secondScreen.disconnected")
           .foregroundStyle(.secondary)
-        Button("secondScreen.howTo") { showHowTo = true }
-          .frame(minHeight: 44)  // Tippfläche mindestens 44 pt (accessibility.md › Control size)
+        Button {
+          showHowTo = true
+        } label: {
+          // Die Tippfläche eines Buttons ist sein Label: Rahmen und contentShape gehören deshalb
+          // ins Label, damit die Fläche wirklich mindestens 44 pt hoch ist (accessibility.md › Control size).
+          Text("secondScreen.howTo")
+            .frame(minHeight: 44)
+            .contentShape(Rectangle())
+        }
       }
     }
   }
