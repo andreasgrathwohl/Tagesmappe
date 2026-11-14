@@ -68,9 +68,7 @@ struct RootView: View {
     .onChange(of: scenePhase, initial: true) { _, newPhase in
       switch newPhase {
       case .active:
-        let current = currentServices()
-        Task { await current.coordinator.refresh(.appBecameActive) }
-        prepareForTeaching(current)
+        activate(currentServices())
       case .background:
         #if os(iOS)
           MorningRefresh.schedule()
@@ -84,8 +82,10 @@ struct RootView: View {
       if isOnline { prepareForTeaching(currentServices()) }
     }
     // Neuer Datenort: neue Dienste, neu bereithalten.
+    // Der Szenen-Haken sitzt außerhalb des Teilbaums und feuert dabei nicht neu: der Abruf des neuen
+    // Stundenplan-Koordinators läuft deshalb hier mit.
     .onChange(of: dataLocation.generation) { _, _ in
-      prepareForTeaching(currentServices())
+      activate(currentServices())
     }
     // Szenen-Zubehör für den Zweitbildschirm meldet Teilplan 06 an dieser Stelle an.
   }
@@ -110,6 +110,12 @@ struct RootView: View {
 
   private func currentServices() -> ScopedServices {
     services.services(for: dataLocation.store)
+  }
+
+  /// Abruf beim Aktivwerden und Material bereithalten; gemeinsam für Szenenwechsel und neuen Datenort.
+  private func activate(_ current: ScopedServices) {
+    Task { await current.coordinator.refresh(.appBecameActive) }
+    prepareForTeaching(current)
   }
 
   /// Hält Material für heute und die nächsten Tage bereit; ohne Stundenplan gibt es nichts zu tun.
