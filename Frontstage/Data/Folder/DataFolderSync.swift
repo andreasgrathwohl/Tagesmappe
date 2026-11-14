@@ -633,7 +633,7 @@ private struct SavedIdentifiers: Sendable {
         } catch RemoteDataFolderError.server(let code) where code == 404 && ifMatch != nil {
           // 404 auf ein bedingtes Schreiben: Die Datei gibt es nicht mehr. Ohne If-Match neu anlegen.
           ledger.seenETags[path] = nil
-          file =try await remote.upload(data, to: path, ifMatch: nil)
+          file = try await remote.upload(data, to: path, ifMatch: nil)
         }
         let hash = try envelope.payload.map { try DataFolderCoding.payloadHash($0) }
         ledger.recordWritten(envelope, payloadHash: hash, file: file)
