@@ -509,6 +509,144 @@ dunkel.
 
 ---
 
+### UI-12 — „Jetzt“ und „Am Smartboard“: zwei gelbe Kapseln auf zwei Objekten
+
+- category: 8
+- Constrained by: UI-1, UI-3, UI-6, UI-11
+
+**Entscheidung:** Die laufende Unterrichtsstunde trägt in ihrer Listenzeile eine kleine gelbe Kapsel „Jetzt“ (am
+Ende der zweiten Zeile); das Material, das gerade auf dem Zweitbildschirm steht, trägt auf seiner Kachel oben eine
+gelbe Kapsel „Am Smartboard“. Kapselfläche Gelb `#FFC94A` (UI-1, Bedeutung „jetzt, gezeigt“), Wort und Symbol in
+fester dunkler Farbe `#1F1A14` in **beiden** Modi (etwa 11:1); Gelb nie als große Fläche. VoiceOver: die Zeile
+liest „läuft jetzt“ mit, die Kachel meldet „am Smartboard“ als Wert; ein Wechsel des gezeigten Materials wird
+angesagt. Andreas hat am 2026-11-15 alle weiteren Gestaltungsentscheidungen delegiert („ich will keine fragen mehr beantworten. mach es wie du es für richtig hälst“); entschieden nach Apples Richtlinien (Gutachten mit dem Skill `apple-design`), ohne gerenderte Vergleichsrunde.
+
+**Kontext:** Die laufende Stunde ist meist automatisch gewählt (UI-3) und kann gerade Material, die Tafel oder
+nichts zeigen (FR-6.2, FR-11, FR-11.5) – „jetzt“ (Stunde) und „gezeigt“ (Material) sind zwei Aussagen über zwei
+Dinge. Ausnahme zu UI-11 (Wort in Textfarbe, keine Plakette): Gelb ist keine Signalfarbe für einen Mangel, sondern
+eine Markierung mit eigenem, festem Wortfarbenpaar.
+
+**Verworfen, jeweils mit Vorzug:**
+- Ein gemeinsamer Marker an der Zeile — weniger Elemente; verschweigt, welches Material die Klasse sieht.
+- Zeile gelb tönen — am auffälligsten; kollidiert mit der Auswahlfläche der meist gewählten laufenden Stunde.
+- Nur ein gelbes Symbol — leise; 1,4:1 gegen den warmen Grund.
+- Farbiger Balken am Zeilenanfang — knapp; Farbe als alleiniger Träger.
+
+**Konsequenzen mit Kosten:**
+- Neues Wort „Am Smartboard“ in `Localizable.xcstrings`; „Jetzt“ ebenso.
+- Gelb erscheint auch bei frei gewähltem Akzent (FR-16.1) unverändert; ein gelber Akzent kollidiert damit (Q-40).
+- Am Gerät bestätigen (UI-2).
+
+**Revisit if:** Am Gerät übersieht die Lehrkraft, welches Material gerade gezeigt wird, oder die Kapsel stört in
+der 44-pt-Zeile.
+
+---
+
+### UI-13 — Freie Fläche bleibt leer; Tageszustände als ruhige Aussage im Detailbereich
+
+- category: 8
+- Constrained by: UI-3, UI-4, UI-11
+
+**Entscheidung:**
+- Unter der kompakten Liste steht nichts, außer es gibt „Material ohne Stunde“ (FR-7) – dann steht dieser Abschnitt
+  direkt unter der Liste.
+- Tag ohne Unterrichtsstunde, unterrichtsfreier Tag (mit Namen, z. B. „Herbstferien“) und Fehler ohne jeden Stand:
+  `ContentUnavailableView` im Detailbereich, je mit eigenem Symbol und Titel; der Fehler mit der Taste „Erneut
+  abfragen“.
+- Laden und Aktualisieren: Der letzte Stand bleibt sichtbar; ein kleiner Fortschrittsanzeiger in der Statusleiste
+  der Quelle (`SourceStatusBar`), nie ein Vollbild-Ladezustand.
+- Fehler der Quelle bei vorhandenem Stand: Symbol und Wort in der Statusleiste, kein Dialog.
+
+Andreas hat am 2026-11-15 alle weiteren Gestaltungsentscheidungen delegiert („ich will keine fragen mehr beantworten. mach es wie du es für richtig hälst“); entschieden nach Apples Richtlinien (Gutachten mit dem Skill `apple-design`), ohne gerenderte Vergleichsrunde.
+
+**Kontext:** Die kompakte Dichte (UI-4) lässt an kurzen Tagen viel Fläche frei. Apples Richtlinien: so früh wie
+möglich etwas zeigen, Status in die Oberfläche integrieren statt Dialoge, leere Bildschirme mit klarem nächstem
+Schritt.
+
+**Verworfen, jeweils mit Vorzug:**
+- Tageszusammenfassung in der freien Fläche (Zahl der Stunden, Leistungsnachweise) — nutzt den Platz; ist eine
+  daneben gepflegte Zahl und Lärm beim kurzen Blick.
+- Nächster Tag als Vorschau darunter — vorausschauend; vermischt zwei Tage in einer Liste.
+- Ladezustand als Vollbild — eindeutig; versteckt den letzten gültigen Stand.
+
+**Konsequenzen mit Kosten:**
+- An kurzen Tagen wirkt die Liste unten leer; das ist gewollt.
+- Am Gerät bestätigen (UI-2).
+
+**Revisit if:** Lehrkräfte vermissen am Gerät einen Überblick über den Tag.
+
+---
+
+### UI-14 — Bewegung nur, wo sie erklärt: Systemauswahl, kurze Überblendung, nichts blinkt
+
+- category: 9
+- Constrained by: UI-3, UI-11, UI-12
+
+**Entscheidung:**
+- Auswahlwechsel in der Liste: Systemverhalten, keine eigene Animation.
+- Wechsel des Detailbereichs: Überblendung, höchstens etwa 0,2 s (`.smooth`).
+- Druck auf Kacheln und Knöpfe: Hervorhebung des Systemstils, kein eigenes Skalieren.
+- Material öffnen: System-Vollbilddarstellung; Zoom-Übergang erlaubt, bei „Bewegung reduzieren“ Überblendung.
+- Wechsel der gelben Kapseln (UI-12): Überblendung etwa 0,15 s (`.snappy`), am iPad mit leichtem haptischem Tick.
+- Nie bewegt: Pulsieren oder Blinken (auch nicht „Jetzt“), Änderung von Zeilenhöhen, automatisches Scrollen,
+  während die Lehrkraft die Liste hält, Sekunden- oder Minutentakt der Uhrzeit.
+- „Bewegung reduzieren“: Zoom und Skalieren entfallen, Überblendungen bleiben. Keine Bedeutung hängt an Bewegung.
+
+Andreas hat am 2026-11-15 alle weiteren Gestaltungsentscheidungen delegiert („ich will keine fragen mehr beantworten. mach es wie du es für richtig hälst“); entschieden nach Apples Richtlinien (Gutachten mit dem Skill `apple-design`), ohne gerenderte Vergleichsrunde.
+
+**Kontext:** Apples Richtlinien nennen keine Dauern; sie verlangen sparsame Bewegung bei häufigen Handlungen,
+Ergänzung durch Haptik und Rücksicht auf „Bewegung reduzieren“. Die Tagesansicht wird im Unterricht oft und
+schnell bedient.
+
+**Verworfen, jeweils mit Vorzug:**
+- Federnde Übergänge beim Stundenwechsel — lebendig; lenkt beim kurzen Blick ab.
+- Pulsierender „Jetzt“-Marker — fällt sofort auf; Blinken verbietet die Barrierefreiheit, und es lenkt die Klasse
+  bei Bildschirmspiegelung ab.
+
+**Konsequenzen mit Kosten:**
+- Die App wirkt ruhig, fast statisch.
+- Am Gerät bestätigen (UI-2).
+
+**Revisit if:** Am Gerät fühlen sich Wechsel abrupt an.
+
+---
+
+### UI-15 — Sprache: du, Verb zuerst, Systemformate, Dateinamen in der Mitte gekürzt
+
+- category: 10
+- Constrained by: UI-6, UI-11
+
+**Entscheidung:**
+- Anrede „du“ im Imperativ, wie die vorhandenen Texte („Gib ihn unter Einrichten frei“). Kein „wir“, kein „Ups“,
+  keine Schuldzuweisung.
+- Fehlertexte: Ursache, Folge, nächster Schritt („Keine Verbindung. Der letzte Stand bleibt erhalten.“).
+- Tasten: Verb zuerst, kurz („Erneut abfragen“, „Zuordnen“, „Ausfall markieren“).
+- Aussagen an der Stunde als Zustand: „Entfällt“, „Vertretung“, „Ohne Material“, „Material nicht verfügbar“,
+  „Keine Stunde“. Im PRD und Glossar bleibt der Begriff „Ausfall“.
+- Uhrzeiten und Daten nur über die Systemformate (`Date.FormatStyle`, Intervallstil), damit 12/24 Stunden und
+  Sprache des Geräts gelten; Uhrzeiten mit Tabellenziffern. Kein handformatiertes `"%d:%02d"`.
+- Lange Dateinamen werden in der Mitte gekürzt (`.truncationMode(.middle)`), Endung bleibt sichtbar; im Detail
+  bis zu zwei Zeilen.
+
+Andreas hat am 2026-11-15 alle weiteren Gestaltungsentscheidungen delegiert („ich will keine fragen mehr beantworten. mach es wie du es für richtig hälst“); entschieden nach Apples Richtlinien (Gutachten mit dem Skill `apple-design`), ohne gerenderte Vergleichsrunde.
+
+**Kontext:** Die vorhandenen Texte in `Frontstage/Resources/Localizable.xcstrings` duzen bereits. Die Tagesansicht
+formatiert Uhrzeiten heute von Hand (`PeriodHeader` in `Frontstage/UI/DayView/DayRowView.swift`).
+
+**Verworfen, jeweils mit Vorzug:**
+- „Sie“ — förmlich, in Schulverwaltung üblich; bricht mit allen vorhandenen Texten.
+- Feste Schreibweise „8:45“ von Hand — kompakt; ignoriert die Einstellungen des Geräts.
+- Kürzen am Ende — Anfang bleibt lesbar; die Endung (pdf, pptx) geht verloren.
+
+**Konsequenzen mit Kosten:**
+- `PeriodHeader` und andere handformatierte Zeiten werden beim Bau umgestellt; die Darstellung kann „08:45“
+  lauten (deutsches Systemformat).
+- Am Gerät bestätigen (UI-2).
+
+**Revisit if:** Testerinnen empfinden „du“ als unpassend.
+
+---
+
 ## Wiederkehrende Fallen
 
 - **Eine Farbe, die zwei Dinge bedeutet, bedeutet keines.**
@@ -548,3 +686,4 @@ dunkel.
 - 2026-11-15: UI-9 new — Runde 6: Standard-Akzent Petrol, deckende Tönung, Signalfarben festgehalten; Q-41 new — Kontrast der Signalfarben auf hellem Grund
 - 2026-11-15: UI-10 new — Runde 7: Formen beim Ist-Zustand (Kacheln 16, Auswahl 10, Knöpfe Kapsel)
 - 2026-11-15: UI-11 new — Runde 8a: Aussagen mit Signalfarbe nur im Symbol (nach best practice, von Andreas delegiert); Q-41 answered
+- 2026-11-15: UI-12, UI-13, UI-14, UI-15 new — Runden 8b, 8c, 9, 10 von Andreas delegiert, nach Apples Richtlinien entschieden (Gutachten apple-design)
