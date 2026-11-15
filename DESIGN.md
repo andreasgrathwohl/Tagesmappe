@@ -227,6 +227,49 @@ Dynamic-Type-Stufe nicht in 44 pt.
 
 ---
 
+### UI-5 — Ebenen trennen sich mit Systemmitteln: eine Spaltenlinie, Systemauswahl, getönte Material-Ziele
+
+- category: 3
+- Constrained by: UI-2, UI-3, UI-4
+
+**Entscheidung:** Liste und Detailbereich trennt eine Haarlinie (Systemtrenner von `NavigationSplitView`). Die
+gewählte Stunde hebt sich durch die Auswahlfläche des Systems ab (`List(selection:)`), Zeilen untereinander und
+Abschnitte im Detail nur durch Abstand. Material-Ziele und Aktionen sind getönte Flächen – die Tönung ist eine
+System- oder semantische Farbe, nie ein fester Farbwert, damit dunkler Modus und „Kontrast erhöhen“ von selbst
+greifen. Keine Schatten auf der Inhaltsebene, kein Liquid Glass auf Zeilen oder Kacheln (Glas nur auf der
+Funktionsebene: Tab-Leiste, Werkzeugleiste, Sheets). Gewählt von Andreas am 2026-11-15, nachdem er nach der
+Empfehlung der Apple-Richtlinien gefragt hatte.
+
+**Kontext:** Fünf Varianten im kompakten Rahmen (UI-4), je hell und dunkel gerendert (HTML-Nachbau). Gutachten
+mit dem Skill `apple-design` (HIG-Seiten liquid-glass, materials, sidebars, split-views, lists-and-tables, color,
+dark-mode, layout, accessibility): Glas gehört auf die Funktionsebene, Inhalt nutzt Standard-Materialien und
+Systemhintergründe; im dunklen Modus trennt das System über Grund- und erhöhte Farben, nicht über Schatten; die
+Auswahl in geteilten Ansichten bleibt in jedem Bereich sichtbar. A entspricht dem, was SwiftUI ohne eigenen Code
+liefert.
+
+**Verworfen, jeweils mit Vorzug:**
+- Linien überall, umrandete Ziele, Auswahl als Akzentbalken — klarste Struktur, wirkt wie ein Werkzeug; der
+  Balken ist aber eine eigene Auswahlform statt der des Systems.
+- Flächen (gruppierter Grund, Zeilen als Zellen, Detail als Karte) — ruhig und deutlich in beiden Modi; die
+  gruppierten Farben sind für gruppierte Listen gedacht, nicht für Liste und Detail.
+- Schatten auf Weiß — plastisch und hell; im dunklen Modus verschwinden die Schatten mitsamt der Auswahl, und
+  es entsteht eine zweite Tiefensprache neben Liquid Glass.
+- Nur Weißraum — am ruhigsten; die Trefferfläche großer Ziele ist nicht zu sehen, „Kontrast erhöhen“ hat nichts
+  zu verstärken.
+
+**Konsequenzen mit Kosten:**
+- Kaum eigener Code: Trennung, Auswahl und dunkler Modus kommen vom System. Die Auswahlfarbe folgt dem
+  System (grau oder Akzent je nach Fokus) und ist damit nicht frei wählbar.
+- Welche System- oder semantische Farbe die Ziele tönt und wie stark, bleibt offen (Runden 5 und 6); Form und
+  Radius ebenso (Runde 7).
+- Beschluss am HTML-Nachbau; beim ersten Bau am Gerät bestätigen (UI-2), auch mit „Kontrast erhöhen“ und
+  „Transparenz reduzieren“.
+
+**Revisit if:** Am Gerät hebt sich im dunklen Modus oder bei „Kontrast erhöhen“ der Detailbereich nicht genug
+von der Liste ab, oder die Systemauswahl ist im Stehen nicht auf einen Blick zu sehen.
+
+---
+
 ## Wiederkehrende Fallen
 
 - **Eine Farbe, die zwei Dinge bedeutet, bedeutet keines.**
@@ -257,3 +300,4 @@ Dynamic-Type-Stufe nicht in 44 pt.
 - 2026-11-14: UI-3 new — Runde 1: Tagesansicht als Liste und Detail, gewählt aus vier Varianten
 - 2026-11-15: UI-4 new — Runde 2: Dichte bleibt beim Ist-Zustand (Zeilen füllen die Höhe), Skala des Detailbereichs festgelegt
 - 2026-11-15: UI-4 changed — Andreas wählt doch die kompakte Dichte (B) statt des Ist-Zustands (A)
+- 2026-11-15: UI-5 new — Runde 3: Trennung der Ebenen mit Systemmitteln (Spaltenlinie, Systemauswahl, getönte Ziele in Systemfarbe), nach HIG-Gutachten
