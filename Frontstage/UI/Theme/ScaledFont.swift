@@ -34,21 +34,21 @@ enum TypeScale {
   }
 }
 
-/// Setzt die Schrift in der Skalagröße, skaliert mit Dynamic Type und übernimmt das Schriftdesign aus der
-/// Umgebung (UI-7: `.fontDesign(.rounded)`). Kein Fettdruck (UI-6).
+/// Setzt die Schrift in der Skalagröße, skaliert mit Dynamic Type. Das Schriftdesign bleibt offen und kommt
+/// aus dem Kontext (UI-7: `.fontDesign(.rounded)` an der Wurzel). Kein Fettdruck (UI-6).
 ///
 /// Swift-Hinweis: `@ScaledMetric(relativeTo:)` skaliert einen Zahlenwert wie den genannten Textstil; der
 /// Stil steht erst im `init` fest, daher wird der Wrapper dort mit `_size = ScaledMetric(...)` gesetzt.
+/// `.system(size:)` ohne `design:` lässt das Design offen, sodass `.fontDesign(...)` aus dem Kontext greift.
 private struct ScaledFontModifier: ViewModifier {
   @ScaledMetric private var size: CGFloat
-  @Environment(\.fontDesign) private var fontDesign
 
   init(scale: TypeScale) {
     _size = ScaledMetric(wrappedValue: scale.size, relativeTo: scale.textStyle)
   }
 
   func body(content: Content) -> some View {
-    content.font(.system(size: size, design: fontDesign ?? .default))
+    content.font(.system(size: size))
   }
 }
 
