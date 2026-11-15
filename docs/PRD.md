@@ -87,6 +87,10 @@ Person (Q-13).
 | Jahresplan | Vorplanung eines Schuljahrs für ein Fach und einen Jahrgang (z. B. Englisch, Jahrgang 8, 2026/27): je Unterrichtswoche Thema, Leistungsnachweise und Notizen; alle Klassen dieses Jahrgangs folgen ihm | Stundenplan (wann welche Klasse Unterricht hat) | `CoursePlan` |
 | Planwoche | der Eintrag eines Jahresplans für eine Unterrichtswoche: Thema und Notizen; ohne Woche „nicht zugeordnet“ | Unterrichtsstunde | `PlanWeek` |
 | Leistungsnachweis | im Jahresplan vorgemerkte Prüfung: Test oder Klassenarbeit, mit Titel, in einer Unterrichtswoche, wahlweise an einem Tag | Ausfall | `Assessment` (`kind`: `test`, `classTest`) |
+| Erscheinungsbild | wie die App für die Lehrkraft aussieht: Grundton, Akzentfarbe und Hell/Dunkel; ein Standard ist voreingestellt | Gestaltungsbeschluss (DESIGN.md, gilt für alle) | `Theme` |
+| Grundton | Färbung aller neutralen Flächen, Linien und Texte: warm (Standard), System, kühl oder Petrol | Akzentfarbe | `BaseTone` (`warm`, `system`, `cool`, `petrol`) |
+| Akzentfarbe | die eine Farbe für Bedienbares (Material-Ziele, Knöpfe, Auswahl); frei wählbar, mit Kontrastschutz | Signalfarbe (Ausfall, Warnung) | `ThemeAccent` |
+| Hell/Dunkel | ob die App hell, dunkel oder wie das System erscheint | Dunkel auf dem Zweitbildschirm (FR-11.4) | `AppearanceMode` (`system`, `light`, `dark`) |
 
 ## Constraints
 
@@ -367,6 +371,10 @@ Anzeige des Klassenbildschirms auf dem Zweitbildschirm (FR-11, FR-11.7, samt The
 Timer (FR-11.2), Arbeitsform (FR-11.3) und die Tafel (FR-12 bis FR-12.7). Ohne Kauf zeigt der
 Zweitbildschirm im Ruhezustand eine neutrale Fläche.
 
+Geändert 2026-11-15: Zum Kauf gehören zusätzlich die Anpassung des Erscheinungsbilds außerhalb des Standards
+(FR-16): andere Grundtöne, eine eigene Akzentfarbe (FR-16.1) und Hell/Dunkel unabhängig vom iPad (FR-16.2).
+Kostenlos bleibt der Standard; Hell/Dunkel wie das System gilt immer.
+
 ### FR-13.1 — Schulmanager-Import ohne Bezahlung und ohne Gewähr [MVP]
 
 Der Import aus Schulmanager Online (FR-2, FR-2.2) gehört immer zum kostenlosen Teil und wird in der
@@ -465,6 +473,27 @@ Fach des Jahresplans – mit Tag an diesem Tag, ohne Tag an jeder dieser Unterri
 („diese Woche“). Vorbereiten zeigt die Leistungsnachweise zusätzlich bei der Woche. Ausfälle tragen keinen
 Hinweis.
 
+### FR-16 — Erscheinungsbild anpassbar [MVP]
+
+Die Lehrkraft stellt in Einrichten das Erscheinungsbild der App ein: den Grundton (warm, System, kühl, Petrol),
+die Akzentfarbe und Hell/Dunkel. Voreingestellt ist der Standard aus DESIGN.md (warmer Grundton, Standardakzent,
+Hell/Dunkel wie das System). Die Einstellung gilt auf allen Geräten der Lehrkraft (Datenort, FR-14). Der
+Zweitbildschirm mit Material und Klassenbildschirm folgt ihr nicht; was die Klasse sieht, bleibt eine eigene
+Gestaltungsfrage (Q-37). Vom Nutzer am 2026-11-15: „Theme sollte anpassbar sein“; Umfang Grundton, Akzentfarbe,
+Hell/Dunkel in der App; freie Farbwahl; Standard frei, Rest im Kauf.
+
+### FR-16.1 — Freie Akzentfarbe mit Kontrastschutz [MVP]
+
+Die Akzentfarbe ist mit dem Farbwähler des Systems frei wählbar. Die App prüft sie gegen den gewählten Grundton,
+hell und dunkel: Text in Akzentfarbe auf seiner Tönung braucht mindestens 4,5:1, Symbole mindestens 3:1. Reicht
+eine Farbe nicht, verschiebt die App ihre Helligkeit je Modus, bis der Kontrast reicht, und zeigt die so
+angepasste Farbe in der Vorschau; die Lehrkraft sieht also immer, was tatsächlich erscheint. Signalfarben
+(Ausfall, Warnung, „jetzt, gezeigt“) sind nicht wählbar und bleiben fest.
+
+### FR-16.2 — Hell/Dunkel unabhängig vom iPad [MVP]
+
+Die App kann hell, dunkel oder wie das System erscheinen, unabhängig von der Einstellung des Geräts.
+
 ### NFR-1 — Material sofort und aktuell verfügbar [MVP]
 
 Im Unterricht öffnet das Material ohne spürbares Warten und ist der aktuelle Stand aus der Ablage
@@ -487,7 +516,7 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 ## Lieferstufen
 
 - **MVP:** FR-1, FR-1.1, FR-2, FR-2.2, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-7, FR-8,
-  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, FR-13.1, NFR-1 bis NFR-4, FR-1.2, FR-14, FR-14.1, FR-15, FR-15.1 bis FR-15.6 (geprüfte Zahl: 50). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
+  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, FR-13.1, NFR-1 bis NFR-4, FR-1.2, FR-14, FR-14.1, FR-15, FR-15.1 bis FR-15.6, FR-16, FR-16.1, FR-16.2 (geprüfte Zahl: 53). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
 - **Later:** FR-2.1, FR-7.1, FR-10, FR-13.2.
 
 ## Out of Scope
@@ -628,6 +657,7 @@ Ab etwa 5 000 Datensätzen messen, wie lange ein erster Abgleich dauert.
 - ~~Q-28~~: Andreas am 2026-11-13: „In der App muss man die AirPlay-Verbindung starten können.“ Befund aus Apples Doku und Entwicklerforen (gelesen 2026-11-13): Eine App kann die Bildschirmverbindung zu einem Apple TV nicht selbst starten; das geht nur über das Kontrollzentrum des Systems („Bildschirmsynchronisierung“). Die AirPlay-Auswahl, die Apps einbauen dürfen (`AVRoutePickerView`), leitet nur Ton und Video weiter und liefert keinen Zweitbildschirm. Was soll stattdessen gelten – (a) die App erkennt die Verbindung sofort und führt bei fehlender Verbindung mit einer kurzen Anleitung dorthin (zwei Handgriffe im Kontrollzentrum), (b) zusätzlich Kabelverbindung empfehlen, die ohne Handgriff steht, (c) technisch untersuchen, ob sich der Zweitbildschirm-Inhalt als Videostrom über die einbaubare AirPlay-Auswahl senden lässt (unbelegt, mit Verzögerung beim Schreiben zu rechnen)? Bis zur Antwort entsteht keine Anforderung. → answered 2026-11-13: (a) und (b) – erkennen, hinführen und Kabel empfehlen (FR-11.6); (c) wird nicht verfolgt.
 - ~~Q-35~~: Gehört die Jahresplanung (FR-15 bis FR-15.6) zum kostenlosen Kern oder zum Einmalkauf (FR-13)? Bis zur Antwort ist sie kostenlos und hinter keiner Freischaltung gebaut; eine spätere Freischaltung braucht nur eine Abfrage an der Stelle „Freischaltung“. → answered 2026-11-14: kostenlos, Teil des Kerns; verkauft werden weiter Klassenbildschirm, Timer, Arbeitsform und Tafel (Andreas).
 - ~~Q-36~~: Reichen Notizen für Klassen, die vom Jahresplan abweichen (z. B. 8b eine Woche hinter 8a), oder soll eine Klasse ihren Stand im Jahresplan versetzen können, sodass ihr in Vorbereiten das Thema einer anderen Planwoche vorgeschlagen wird? Bis zur Antwort: nur Notizen (ADR-0013), vorgeschlagen wird immer das Thema der Kalenderwoche. → answered 2026-11-14: Notizen reichen; kein Versatz je Klasse (Andreas). Vorgeschlagen wird weiter das Thema der Kalenderwoche.
+- Q-40: Was passiert, wenn eine Lehrkraft eine Akzentfarbe wählt, die einer Signalfarbe gleicht (Rot wie „Entfällt“, Orange wie „nicht verfügbar“, Gelb wie „jetzt, gezeigt“)? Bis zur Antwort: zulässig, Signale bleiben über Symbol und Wort unterscheidbar (DESIGN.md, „Zustände nicht allein am Farbton“); ein Hinweis in der Vorschau wäre möglich.
 
 ## Abnahmekriterien
 
@@ -682,6 +712,9 @@ Ab etwa 5 000 Datensätzen messen, wie lange ein erster Abgleich dauert.
 - AK-49 (FR-15.4): Aufbau: Jahresplan Englisch 8, 2025/26 (erster Schultag Mo 15.9.2025, zweites Halbjahr ab 2.2.2026, letzter Schultag Mi 29.7.2026, Herbstferien 27.–31.10.2025; 45 Unterrichtswochen) mit Thema in jeder Woche, Klassenarbeit „KA 1“ am Di 11.11.2025 (Woche 8); Jahresplan 2026/27 wie AK-46, in Woche 2 schon das Thema „Projekt Schulfest“. Handlung: im Jahresplan 2026/27 „Vorjahresplan übernehmen“ mit 2025/26. Ergebnis: Woche 1 hat das Thema der Vorjahreswoche 1; „KA 1“ steht am Di 10.11.2026 in Woche 8; Woche 2 behält „Projekt Schulfest“; unter „nicht zugeordnet“ stehen das Thema der Vorjahreswoche 2 und die Einträge der Vorjahreswochen 44 und 45; der Jahresplan 2025/26 ist unverändert.
 - AK-50 (FR-15.5): Aufbau: Jahresplan Englisch 8, 2026/27 mit Thema „Unit 2 – Past tense“ in Woche 8 (KW 46); Unterrichtsstunden Di 10.11.2026 8a Englisch (ohne Thema) und Di 10.11.2026 7a Englisch. Handlung: Vorbereiten öffnen, die Stunde der 8a wählen, den Vorschlag antippen; dann die Stunde der 7a wählen. Ergebnis: Bei 8a erscheint „Unit 2 – Past tense“ als Vorschlag und steht nach dem Tipp als Thema der Stunde (auch auf dem Klassenbildschirm); ohne Tipp bleibt das Thema leer; bei 7a erscheint kein Vorschlag.
 - AK-51 (FR-15.6): Aufbau: wie AK-47 (Klassenarbeit „KA 1“ am Di 10.11.2026, Test „Vokabeltest Unit 2“ ohne Tag in KW 46); Stunden Di 10.11. 8a Englisch, Do 12.11. 8b Englisch, Di 10.11. 8a Mathe. Handlung: Tagesansicht Di 10.11. und Do 12.11. öffnen; Vorbereiten für die Woche ab 9.11. öffnen. Ergebnis: Di 8a Englisch zeigt „Klassenarbeit: KA 1“ und „diese Woche: Test Vokabeltest Unit 2“; Do 8b Englisch zeigt nur den Test-Hinweis; 8a Mathe zeigt nichts; Vorbereiten zeigt beide Leistungsnachweise bei der Woche.
+- AK-52 (FR-16): Aufbau: frische Installation, iPad im hellen Modus. Handlung: Einrichten › Erscheinungsbild öffnen, ohne Kauf „kühl“ wählen; nach dem Kauf „kühl“ wählen. Ergebnis: Voreingestellt ist warm mit Standardakzent; ohne Kauf erscheint statt der Auswahl das Kaufangebot und die App bleibt warm; nach dem Kauf ist die App kühl, auch auf dem zweiten Gerät nach dem Abgleich.
+- AK-53 (FR-16.1): Aufbau: Kauf vorhanden, Grundton warm. Handlung: als Akzentfarbe ein helles Gelb (#FFF3A0) wählen. Ergebnis: Die Vorschau zeigt eine abgedunkelte Fassung; Material-Namen auf ihrer Tönung haben hell und dunkel mindestens 4,5:1; „Entfällt“ und „Material nicht verfügbar“ behalten ihre Farbe.
+- AK-54 (FR-16.2): Aufbau: Kauf vorhanden, iPad im hellen Modus. Handlung: in der App „Dunkel“ wählen. Ergebnis: Die App erscheint dunkel, andere Apps bleiben hell; mit „Wie das System“ folgt sie wieder dem iPad.
 
 ## Changes
 
@@ -722,6 +755,7 @@ Ab etwa 5 000 Datensätzen messen, wie lange ein erster Abgleich dauert.
 - 2026-11-14: FR-15, FR-15.1 bis FR-15.6 new — Jahresplanung je Fach, Jahrgang und Schuljahr (Wunsch von Andreas, ADR-0013); Glossar um Schuljahr, Halbjahr, Unterrichtswoche, Jahrgang, Jahresplan, Planwoche, Leistungsnachweis ergänzt; Nutzerschaft, Ablauf (Schritt 6), AK-45 bis AK-51, RISK-10, Q-35, Q-36, Lieferstufen (50) und Abdeckung angepasst
 - 2026-11-14: Verworfen (FR-15): ein Jahresplan je Klasse – feiner, aber doppelte Arbeit für Parallelklassen und kein Vergleich über die Jahre, weil Klassennamen jährlich wechseln
 - 2026-11-14: Q-35, Q-36 answered — Jahresplanung bleibt kostenlos, abweichende Klassen nur über Notizen (Andreas); Q-31 changed — Stand der Websuche, Prüfnotiz in docs/research/
+- 2026-11-15: FR-16, FR-16.1, FR-16.2 new — Erscheinungsbild anpassbar (Wunsch von Andreas): Grundton, freie Akzentfarbe mit Kontrastschutz, Hell/Dunkel in der App; FR-13 changed (Anpassung außerhalb des Standards im Kauf); Glossar um Erscheinungsbild, Grundton, Akzentfarbe, Hell/Dunkel ergänzt; AK-52 bis AK-54, Q-40, Lieferstufen (53) und Abdeckung angepasst
 
 ## Anhang A — Abdeckung
 
@@ -785,6 +819,9 @@ nicht (Geschäftsmodell, quer zu allen Phasen).
 | FR-15.4 | AK-49 |
 | FR-15.5 | AK-50 |
 | FR-15.6 | AK-51 |
+| FR-16 | AK-52 |
+| FR-16.1 | AK-53 |
+| FR-16.2 | AK-54 |
 | FR-7 | AK-14 |
 | FR-8 | AK-15 |
 | FR-9 | AK-16 |

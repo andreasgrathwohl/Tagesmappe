@@ -14,8 +14,9 @@
 | Smartboard | Klassenbildschirm als Ruhezustand (FR-11) mit Thema und Hinweis (FR-11.1), Timer (FR-11.2), Arbeitsform (FR-11.3), Dunkel (FR-11.4), Vorschau und Umschalten am iPad (FR-11.5), Verbindung erkennen und hinführen (FR-11.6), folgt dem Verlauf der Stunde (FR-11.7) |
 | Tafel | mit dem Stift an die Tafel schreiben (FR-12), Seiten und Hintergründe (FR-12.1), Tafelbild bleibt an der Unterrichtsstunde (FR-12.2), letztes Tafelbild der Klasse (FR-12.3), als PDF sichern (FR-12.4), Dokumentenkamera (FR-12.5), Vorlage aus Ablage oder Material (FR-12.6), Abdecken und Aufdecken (FR-12.7) |
 | Jahresplanung | Jahresplan je Fach, Jahrgang und Schuljahr (FR-15), Schuljahr und Halbjahre (FR-15.1), Wochen mit Thema, Tests, Klassenarbeiten und Notizen (FR-15.2), frühere Jahre im Blick (FR-15.3), Vorjahresplan übernehmen (FR-15.4), Wochenthema als Vorschlag beim Vorbereiten (FR-15.5), Leistungsnachweise in Tagesansicht und Vorbereiten (FR-15.6) |
+| Erscheinungsbild | Grundton, Akzentfarbe und Hell/Dunkel einstellbar (FR-16), freie Akzentfarbe mit Kontrastschutz (FR-16.1), Hell/Dunkel unabhängig vom iPad (FR-16.2) |
 | Qualität | sofort und aktuell verfügbar (NFR-1), keine eigenen Server (NFR-2), jede Ablage (NFR-3), Zugangsdaten nur auf dem Gerät (NFR-4) |
-| Preis | Kern kostenlos, Klassenbildschirm und Tafel per Einmalkauf, kein Abo (FR-13); Schulmanager-Import immer kostenlos (FR-13.1) |
+| Preis | Kern kostenlos, Klassenbildschirm, Tafel und Anpassung des Erscheinungsbilds per Einmalkauf, kein Abo (FR-13); Schulmanager-Import immer kostenlos (FR-13.1) |
 
 ## Später
 
