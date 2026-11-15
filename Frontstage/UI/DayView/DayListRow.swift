@@ -27,10 +27,11 @@ struct DayListRow: View {
           .strikethrough(isCancelled)
           .lineLimit(1)
         Spacer(minLength: 0)
-        Text(periodTime)
+        // monospacedDigit vor scaledFont: Text.monospacedDigit() wirkt auf die Schrift des Textes selbst
+        periodTime
+          .monospacedDigit()
           .scaledFont(.listMeta)
           .foregroundStyle(style.text)
-          .monospacedDigit()
           .lineLimit(1)
       }
       HStack(spacing: DayViewLayout.tileSpacing) {
@@ -97,9 +98,9 @@ struct DayGapRow: View {
         .lineLimit(1)
       Spacer(minLength: 0)
       periodTime
+        .monospacedDigit()
         .scaledFont(.listMeta)
         .foregroundStyle(style.text)
-        .monospacedDigit()
         .lineLimit(1)
     }
     .frame(maxWidth: .infinity, minHeight: minHeight, alignment: .leading)
