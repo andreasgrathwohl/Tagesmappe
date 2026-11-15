@@ -308,6 +308,34 @@ Listenzeilen nicht mehr.
 
 ---
 
+### UI-7 — Die Schrift ist SF Rounded
+
+- category: 4
+- Constrained by: UI-6
+
+**Entscheidung:** Die App setzt ihren Inhalt in SF Rounded, der abgerundeten Variante der Systemschrift
+(SwiftUI: `.fontDesign(.rounded)` an der Wurzel der Inhaltsansichten). Größen und Hierarchie folgen UI-6. Uhrzeiten
+mit Tabellenziffern (`.monospacedDigit()`). Gewählt von Andreas am 2026-11-15 ohne gerenderten Vergleich (Runde 4b).
+
+**Kontext:** Zur Wahl standen SF Pro (Systemstandard), SF Rounded und New York (Serife) für Überschriften. SF
+Rounded lässt sich unter Windows nicht rendern; Andreas hat ohne Vergleichsbild entschieden.
+
+**Verworfen, jeweils mit Vorzug:**
+- SF Pro — Apples Standard für Werkzeug-Apps, am neutralsten, keine Abweichung vom System.
+- New York für Überschriften — eigene, ruhige Stimme in Titeln, Inhalt bleibt in SF Pro.
+
+**Konsequenzen mit Kosten:**
+- Freundlicher, weicher Ton; die App hebt sich von reinen Systemlisten ab. Das passt zur Zielgruppe Schule, kann
+  aber verspielt wirken.
+- Tab-Leiste, Werkzeugleiste, Menüs und Systemdialoge bleiben in SF Pro (Systembestandteile); zwei Schriftformen
+  stehen also nebeneinander.
+- Bei 11 pt (UI-6) sind die abgerundeten Formen etwas weniger scharf als SF Pro – am Gerät mitprüfen.
+- Kein gerenderter Vergleich: Eindruck am Gerät bestätigen (UI-2).
+
+**Revisit if:** Am Gerät wirkt die Schrift im Unterricht zu verspielt oder die 11-pt-Angaben werden unscharf.
+
+---
+
 ## Wiederkehrende Fallen
 
 - **Eine Farbe, die zwei Dinge bedeutet, bedeutet keines.**
@@ -340,3 +368,4 @@ Listenzeilen nicht mehr.
 - 2026-11-15: UI-4 changed — Andreas wählt doch die kompakte Dichte (B) statt des Ist-Zustands (A)
 - 2026-11-15: UI-5 new — Runde 3: Trennung der Ebenen mit Systemmitteln (Spaltenlinie, Systemauswahl, getönte Ziele in Systemfarbe), nach HIG-Gutachten
 - 2026-11-15: UI-6 new — Runde 4a: Hierarchie im Text nur über die Größe
+- 2026-11-15: UI-7 new — Runde 4b: Schrift SF Rounded (ohne gerenderten Vergleich)
