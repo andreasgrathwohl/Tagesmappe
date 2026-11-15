@@ -336,6 +336,49 @@ Rounded lässt sich unter Windows nicht rendern; Andreas hat ohne Vergleichsbild
 
 ---
 
+### UI-8 — Die Grundtöne sind warm: Elfenbein hell, Braunschwarz dunkel
+
+- category: 5
+- Constrained by: UI-5, UI-6
+
+**Entscheidung:** Alle neutralen Töne sind warm gestimmt.
+
+| Rolle | hell | dunkel |
+|---|---|---|
+| Hintergrund | `#FBF8F2` (Elfenbein) | `#17130E` (Braunschwarz) |
+| Auswahlfläche / zweite Fläche | `#ECE5D8` | `#2F2921` |
+| Text | `#1F1A14` | `#F5EFE5` |
+| Haarlinie | `rgba(92,72,48,.22)` | `rgba(125,108,86,.55)` |
+
+Gewählt von Andreas am 2026-11-15 aus vier Varianten, je hell und dunkel gerendert (HTML-Nachbau, Schrift M PLUS
+Rounded als Ersatz für SF Rounded).
+
+**Kontext:** Ist-Zustand sind die Systemfarben von iOS (Weiß/`#F2F2F7`/`#E5E5EA`, dunkel Schwarz/`#1C1C1E`/`#2C2C2E`).
+Gemessene Kontraste: Text auf Hintergrund 16,3:1 hell und 16,2:1 dunkel, Text auf Auswahlfläche 13,8:1 und 12,6:1
+(Ziel ≥ 7:1, kleine Angaben ≥ 4,5:1).
+
+**Verworfen, jeweils mit Vorzug:**
+- Systemgrau (Ist-Zustand) — passt sich ohne Zutun an hell, dunkel und „Kontrast erhöhen“ an; höchster Kontrast.
+- Kühles Blaugrau — sachlich, technisch klar.
+- Petrol-getönt — leiser Bezug zum App-Icon (UI-1).
+
+**Konsequenzen mit Kosten:**
+- Eigene Farben statt Systemfarben: Beim Bau entsteht je Rolle eine Farbe im Asset-Katalog mit Fassungen für hell,
+  dunkel und hohen Kontrast; was das System sonst liefert (Hintergrund, Auswahlfläche, Trenner), wird darauf
+  umgestellt. UI-5 gilt in der Struktur weiter (eine Spaltenlinie, Auswahlfläche, keine Schatten), aber in diesen
+  Farben statt in Systemgrau. Die Auswahlfläche von `List(selection:)` lässt sich nur über eigene Zeilenhintergründe
+  färben; die Systemhervorhebung bei Tastaturfokus am Mac bleibt Akzentfarbe.
+- Glas-Leisten (Tab-Leiste, Werkzeugleiste) bleiben Systemmaterial und nehmen den warmen Grund durch ihre
+  Transparenz auf; sie werden nicht eingefärbt.
+- Halbtransparente Tönungen (Material-Ziele) nehmen den warmen Grund an und wirken leicht grünlich-blau; die
+  Tönung wird in Runde 6 mit dem Akzent festgelegt.
+- Beschluss am Nachbau; Farbwirkung auf dem iPad-Display (True Tone) am Gerät bestätigen (UI-2).
+
+**Revisit if:** Am Gerät wirkt der Grund mit True Tone vergilbt, oder „Kontrast erhöhen“ reicht mit den eigenen
+Farben nicht.
+
+---
+
 ## Wiederkehrende Fallen
 
 - **Eine Farbe, die zwei Dinge bedeutet, bedeutet keines.**
@@ -369,3 +412,4 @@ Rounded lässt sich unter Windows nicht rendern; Andreas hat ohne Vergleichsbild
 - 2026-11-15: UI-5 new — Runde 3: Trennung der Ebenen mit Systemmitteln (Spaltenlinie, Systemauswahl, getönte Ziele in Systemfarbe), nach HIG-Gutachten
 - 2026-11-15: UI-6 new — Runde 4a: Hierarchie im Text nur über die Größe
 - 2026-11-15: UI-7 new — Runde 4b: Schrift SF Rounded (ohne gerenderten Vergleich)
+- 2026-11-15: UI-8 new — Runde 5: warme Grundtöne (Elfenbein/Braunschwarz); UI-5 gilt in der Struktur, Farben eigene statt Systemgrau
