@@ -21,14 +21,28 @@ private struct AppThemeModifier: ViewModifier {
   let store: DataStore
   let unlock: Unlock
 
+  /// Zwischenspeicher für den Akzent: Eine dynamische `Color` ist an einen UIColor/NSColor gebunden und wird
+  /// nur neu gebaut, wenn sich das aufgelöste Erscheinungsbild ändert, nicht bei jeder `store.revision`.
+  @State private var cachedTint: (resolved: ResolvedTheme, color: Color)?
+
   func body(content: Content) -> some View {
     _ = store.revision
     let effective = ((try? store.theme()) ?? .standard).effective(isUnlocked: unlock.isUnlocked)
-    let style = ThemeStyle(ThemeResolver.resolve(effective))
+    let resolved = ThemeResolver.resolve(effective)
+    let style = ThemeStyle(resolved)
+    let tint: Color
+    if let cachedTint, cachedTint.resolved == resolved {
+      tint = cachedTint.color
+    } else {
+      tint = style.accent
+    }
     return
       content
       .environment(\.themeStyle, style)
-      .tint(style.accent)
+      .tint(tint)
+      .onChange(of: resolved, initial: true) { _, newValue in
+        cachedTint = (newValue, ThemeStyle(newValue).accent)
+      }
       .preferredColorScheme(effective.appearanceMode.colorScheme)
   }
 }

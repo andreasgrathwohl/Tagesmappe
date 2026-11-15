@@ -212,10 +212,12 @@ struct DayView: View {
             )
             .tag(lesson.lesson.key)
             .modifier(SelectionRowBackground(isSelected: model.selection == lesson.lesson.key))
+            .listRowSeparator(.hidden)
           case .noLesson(let period, let time):
             DayGapRow(period: period, time: time, day: model.day)
               .selectionDisabled()
               .modifier(SelectionRowBackground(isSelected: false))
+              .listRowSeparator(.hidden)
           }
         }
       }
@@ -229,6 +231,7 @@ struct DayView: View {
             )
             .selectionDisabled()
             .modifier(SelectionRowBackground(isSelected: false))
+            .listRowSeparator(.hidden)
           }
         } header: {
           Text("dayView.withoutLesson")
@@ -236,7 +239,6 @@ struct DayView: View {
       }
     }
     .listStyle(.plain)
-    .listRowSeparator(.hidden)
     #if os(iOS)
       .listRowSpacing(DayViewLayout.rowSpacing)
     #endif

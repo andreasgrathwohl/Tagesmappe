@@ -14,7 +14,7 @@ struct TileButtonStyle: ButtonStyle {
     var body: some View {
       configuration.label
         .background(
-          RoundedRectangle(cornerRadius: 16, style: .continuous).fill(style.accentTint)
+          RoundedRectangle(cornerRadius: DayViewLayout.tileRadius, style: .continuous).fill(style.accentTint)
         )
         .opacity(configuration.isPressed ? 0.7 : 1)
     }

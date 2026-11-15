@@ -302,7 +302,7 @@ private struct SavedIdentifiers: Sendable {
         // Nach eigenen Änderungen durch Anwenden oder Zusammenführen ist die Menge der gesammelten Kennungen
         // womöglich veraltet (gelöschte Datensätze): dann wird alles geprüft.
         // Hinweis: `plan` ist nur der `SyncMerger`-Plan. Ein Zusammenführen, das allein Jahrespläne betrifft
-        // (`CoursePlanMerger`), sieht diese Zeile nicht; die gelöschten Datensätze erfasst dann der
+        // (`CoursePlanMerger`) oder das Erscheinungsbild (`ThemeMerger`), sieht diese Zeile nicht; die gelöschten Datensätze erfasst dann der
         // Speicher-Beobachter über `changedIDs`. Wer `mergeDuplicates()` ändert, muss das mitbedenken.
         forceFullScan = !resolution.apply.isEmpty || !plan.isEmpty
       }
