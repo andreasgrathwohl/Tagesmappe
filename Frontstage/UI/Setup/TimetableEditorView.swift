@@ -56,6 +56,7 @@ struct TimetableEditorView: View {
         Text("setup.timetable.grid.footer")
       }
     }
+    .themedBackground()
     .navigationTitle(Text("setup.timetable.title"))
     .toolbar {
       ToolbarItem(placement: .primaryAction) {

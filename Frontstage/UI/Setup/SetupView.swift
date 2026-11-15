@@ -70,6 +70,7 @@ struct SetupView: View {
           Text("purchase.offer.note")
         }
       }
+      .themedBackground()
       .navigationTitle(Text("app.section.setup"))
     }
   }

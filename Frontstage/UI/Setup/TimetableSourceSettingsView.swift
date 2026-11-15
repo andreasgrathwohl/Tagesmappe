@@ -51,6 +51,7 @@ struct TimetableSourceSettingsView: View {
         Text("timetableSource.unofficialNotice")
       }
     }
+    .themedBackground()
     .navigationTitle("timetableSource.title")
     .task { reload() }
     .sheet(isPresented: $isShowingPreview) { previewSheet }

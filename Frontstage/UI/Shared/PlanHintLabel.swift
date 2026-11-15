@@ -14,7 +14,7 @@ struct PlanHintLabel: View {
       } icon: {
         Image(systemName: "checkmark.rectangle.stack")
       }
-      .font(.subheadline)
+      .scaledFont(.detailMeta)
       .lineLimit(1)
     }
   }

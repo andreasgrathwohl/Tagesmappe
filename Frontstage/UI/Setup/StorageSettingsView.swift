@@ -49,6 +49,7 @@ struct StorageSettingsView: View {
         Section { Text(LocalizedStringKey(errorKey)).foregroundStyle(.red) }
       }
     }
+    .themedBackground()
     .navigationTitle("setup.storage.title")
     .background(AnchorReader(holder: holder).frame(width: 0, height: 0))
     .task { model.reload() }
