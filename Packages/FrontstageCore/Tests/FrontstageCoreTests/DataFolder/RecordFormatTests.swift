@@ -181,6 +181,26 @@ struct RecordFormatTests {
     }
   }
 
+  @Test("FR-16: Erscheinungsbild hin und zurück")
+  func themePayloadRoundTrips() throws {
+    let payload = ThemePayload(
+      createdAt: created, baseToneRaw: "cool", accentHex: "#FFF3A0", appearanceModeRaw: "dark", updatedAt: created)
+    let env = RecordEnvelope(
+      id: id(30), model: .theme, updatedAt: Date(timeIntervalSince1970: 1_795_000_000.125),
+      deviceID: "device-A", deleted: false, payload: .theme(payload))
+    #expect(try DataFolderCoding.decode(try DataFolderCoding.encode(env)) == env)
+    #expect(RecordPayload.theme(payload).attachments.isEmpty)
+    #expect(RecordPayload.theme(payload).parentID == nil)
+  }
+
+  @Test("Theme hängt hinten an, die zwölf bisherigen behalten ihre Reihenfolge")
+  func themeAppendedLast() {
+    #expect(SyncModel.applyOrder.last == .theme)
+    #expect(SyncModel.applyOrder.count == 13)
+    #expect(SyncModel(rawValue: "Theme") == .theme)
+    #expect(SyncModel.applyOrder[11] == .assessment)
+  }
+
   @Test("Eltern vor Kindern: Jahresplan vor Planwoche und Leistungsnachweis")
   func coursePlanApplyOrder() {
     let order = SyncModel.applyOrder
