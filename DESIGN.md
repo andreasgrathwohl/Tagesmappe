@@ -390,6 +390,47 @@ Kosten: vier Farbsätze statt einem, je mit hoher Kontrastfassung; jede Gestaltu
 
 ---
 
+### UI-9 — Standard-Akzent ist Petrol; Kacheln sind deckend getönt
+
+- category: 6
+- Constrained by: UI-1, UI-5, UI-8, FR-16.1
+
+**Entscheidung:** Die Standard-Akzentfarbe auf dem warmen Grund ist Petrol: `#0E6B7A` hell, `#5FC2CF` dunkel. Sie gilt
+für Material-Ziele (Text, Symbol), Aktionen, gewählten Reiter und Werkzeugleiste. Die Tönung der Material-Ziele
+und Aktionen ist **deckend** berechnet, nicht halbtransparent: Akzent zu 14 % (hell) bzw. 22 % (dunkel) über dem
+Grund – beim Standard `#DAE4E1` hell und `#273A38` dunkel. Text auf der Tönung erreicht 4,76:1 hell und 5,81:1
+dunkel, der Akzent auf dem Grund 5,82:1 und 8,90:1; der Kontrastschutz (FR-16.1) muss den Standard in keinem Modus
+korrigieren. Gewählt von Andreas am 2026-11-15 aus vier Varianten, hell und dunkel, mit Signalblatt.
+
+**Signalfarben (fest, nicht wählbar, FR-16.1):** Entfällt Rot `#FF3B30` / `#FF453A`; Material nicht verfügbar
+Orange `#FF9500` / `#FF9F0A`; Vertretung ohne eigene Farbe (Textfarbe mit Symbol); „jetzt, gezeigt“ Gelb
+`#FFC94A` aus dem Icon (UI-1). Rot und Orange erreichen als kleiner Text auf hellem warmem Grund nur 3,35:1 bzw.
+2,07:1 – offen als Q-41. Wo und wie „jetzt, gezeigt“ erscheint, ist nicht entschieden (Runde 8).
+
+**Kontext:** Ist-Zustand war Systemblau `#0088FF`. Gerendert im Rahmen UI-3 bis UI-8 (HTML-Nachbau, M PLUS Rounded
+als Ersatz für SF Rounded).
+
+**Verworfen, jeweils mit Vorzug:**
+- Systemblau (Ist-Zustand) — vertraut aus allen Apple-Apps; braucht auf warmem Grund in beiden Modi eine Korrektur,
+  „Heute“ in der Werkzeugleiste ist hell zu schwach (3,32:1).
+- Terrakotta — am wärmsten, passt zum Grund; liegt nah an Rot und Orange, „Ausfall markieren“ stand neben dem roten
+  „Entfällt“.
+- Waldgrün — deutlich von allen Signalen abgesetzt; hell leicht abzudunkeln.
+
+**Konsequenzen mit Kosten:**
+- Icon und Oberfläche teilen jetzt die Farbfamilie Petrol. Das Gelb bleibt der Bedeutung „jetzt, gezeigt“
+  vorbehalten.
+- Mit FR-16.1 rechnet die App für jeden gewählten Akzent Tönung und Schriftton nach derselben Regel (deckende
+  Tönung 14 %/22 %, Helligkeit verschieben bis 4,5:1). Ein Akzent kann damit in einem Modus zwei Töne haben.
+- Die Systemhervorhebung bei Tastaturfokus am Mac und Systemsteuerelemente übernehmen den Akzent nur, wenn er als
+  `tint` bzw. `AccentColor` gesetzt wird; das ist beim Bau zu prüfen.
+- Beschluss am Nachbau; Farbwirkung am Gerät bestätigen (UI-2).
+
+**Revisit if:** Am Gerät wirkt Petrol auf dem warmen Grund trüb, oder Lehrkräfte verwechseln getönte Material-Ziele
+mit nicht bedienbaren Flächen.
+
+---
+
 ## Wiederkehrende Fallen
 
 - **Eine Farbe, die zwei Dinge bedeutet, bedeutet keines.**
@@ -407,6 +448,7 @@ Kosten: vier Farbsätze statt einem, je mit hoher Kontrastfassung; jede Gestaltu
 - Q-37: Wie zeigt sich der Klassenbildschirm auf Distanz (FR-11 bis FR-11.3)? Offen seit Teilplan 07, gebaut mit Systemvorgaben: Schriftgrößen (Systemstile, aus dem Klassenraum vermutlich zu klein), Farben, Symbole der Arbeitsform (`person`, `person.2`, `person.3`), Material der Timer-Karte, Timer-Signal (Platzhalter Sinus 880 Hz, dreimal), Wortlaut.
 - Q-38: Wie sieht die Tafel aus (FR-12 bis FR-12.7)? Offen seit Teilplan 07, gebaut mit Systemvorgaben: Breite (220 pt) und Reihenfolge der Seitenleiste, Seitenvorschauen statt Nummern, Farbe und Abstand der Linien und Karos, Farbe der Abdeckung (Platzhalter Schwarz; die Systemhintergrundfarbe wäre auf der weißen Seite am Tablet unsichtbar), Farbe der Streifen neben der Seite am Zweitbildschirm (Platzhalter Schwarz), Wortlaut „Letztes Tafelbild“.
 - Q-39: Wie sieht das Kaufangebot aus (FR-13)? Offen seit Teilplan 07: Wortlaut (Platzhalter) und Anordnung von Titel, Hinweis, Produktansicht und „Käufe wiederherstellen“.
+- Q-41: Rot („Entfällt“) und Orange („Material nicht verfügbar“) erreichen als kleiner Text auf dem hellen warmen Grund nur 3,35:1 bzw. 2,07:1 (Ziel 4,5:1). Dunklere Signaltöne für hell (z. B. Rot `#C4271D`, Orange `#B25C00`), Signal nur im Symbol und Text in Textfarbe, oder Signal als getönte Fläche? Gehört zu Runde 8 (Zustände). Gefunden in Runde 6.
 
 ## Changes
 
@@ -425,3 +467,4 @@ Kosten: vier Farbsätze statt einem, je mit hoher Kontrastfassung; jede Gestaltu
 - 2026-11-15: UI-7 new — Runde 4b: Schrift SF Rounded (ohne gerenderten Vergleich)
 - 2026-11-15: UI-8 new — Runde 5: warme Grundtöne (Elfenbein/Braunschwarz); UI-5 gilt in der Struktur, Farben eigene statt Systemgrau
 - 2026-11-15: UI-8 changed — warmer Grundton ist der Standard; System, kühl und Petrol werden wählbare Grundtöne (FR-16)
+- 2026-11-15: UI-9 new — Runde 6: Standard-Akzent Petrol, deckende Tönung, Signalfarben festgehalten; Q-41 new — Kontrast der Signalfarben auf hellem Grund
