@@ -431,6 +431,35 @@ mit nicht bedienbaren Flächen.
 
 ---
 
+### UI-10 — Formen bleiben beim Ist-Zustand: Kacheln 16, Auswahl 10, Knöpfe als Kapsel
+
+- category: 7
+- Constrained by: UI-5, UI-9
+
+**Entscheidung:** Material-Ziele haben 16 pt Eckenradius, die Auswahlfläche in der Liste 10 pt, Aktionsknöpfe sind
+Kapseln. Keine Rahmen (Linienstärke 0), keine Schatten (UI-5). Ecken sind kontinuierlich (SwiftUI-Standard von
+`RoundedRectangle`, `style: .continuous`). Tab-Leiste und Werkzeugleiste bleiben Systemform. Gewählt von Andreas am
+2026-11-15 aus vier Varianten, hell und dunkel.
+
+**Kontext:** Der Nachbau seit Runde 1 nutzte diese Radien; im Code gibt es noch keine Material-Kacheln (heute
+`.bordered`-Knöpfe in `DayRowView.swift`). Der Nachbau zeigte A mit gewöhnlich runden Ecken, die anderen mit
+kontinuierlichen – in der App sind sie kontinuierlich.
+
+**Verworfen, jeweils mit Vorzug:**
+- Eckig (Kacheln 6, Auswahl 4, Knöpfe fast rechteckig) — sachlich, werkzeughaft, größte nutzbare Fläche; steht
+  gegen die runden Systemleisten und SF Rounded.
+- Konzentrisch (Kacheln 24, Auswahl 12) — Apples Ansatz in iOS 26, Radien aus der umgebenden Form; ohne sichtbare
+  Container (UI-5) bleibt die Bezugsform gedacht.
+- Kapsel (Kacheln 32, alles kapselförmig) — am weichsten, passt am stärksten zu SF Rounded.
+
+**Konsequenzen mit Kosten:**
+- Drei Radien für drei Rollen; neue Elemente wählen einen davon statt eines eigenen Werts.
+- Beschluss am Nachbau; am Gerät bestätigen (UI-2).
+
+**Revisit if:** Neben den runden Glas-Leisten von iOS 26 wirken die 16-pt-Kacheln am Gerät zu kantig.
+
+---
+
 ## Wiederkehrende Fallen
 
 - **Eine Farbe, die zwei Dinge bedeutet, bedeutet keines.**
@@ -468,3 +497,4 @@ mit nicht bedienbaren Flächen.
 - 2026-11-15: UI-8 new — Runde 5: warme Grundtöne (Elfenbein/Braunschwarz); UI-5 gilt in der Struktur, Farben eigene statt Systemgrau
 - 2026-11-15: UI-8 changed — warmer Grundton ist der Standard; System, kühl und Petrol werden wählbare Grundtöne (FR-16)
 - 2026-11-15: UI-9 new — Runde 6: Standard-Akzent Petrol, deckende Tönung, Signalfarben festgehalten; Q-41 new — Kontrast der Signalfarben auf hellem Grund
+- 2026-11-15: UI-10 new — Runde 7: Formen beim Ist-Zustand (Kacheln 16, Auswahl 10, Knöpfe Kapsel)
