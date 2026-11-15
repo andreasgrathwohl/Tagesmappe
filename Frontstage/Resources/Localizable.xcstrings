@@ -1198,6 +1198,46 @@
         }
       }
     },
+    "dayView.selectLesson" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wähle eine Stunde"
+          }
+        }
+      }
+    },
+    "dayView.empty.sourceFailed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stundenplan nicht abrufbar"
+          }
+        }
+      }
+    },
+    "dayView.retry" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erneut abfragen"
+          }
+        }
+      }
+    },
+    "dayView.onSmartboard.announcement %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Am Smartboard: %@"
+          }
+        }
+      }
+    },
     "dayView.noLesson" : {
       "localizations" : {
         "de" : {
