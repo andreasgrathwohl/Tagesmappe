@@ -377,6 +377,17 @@ Gemessene Kontraste: Text auf Hintergrund 16,3:1 hell und 16,2:1 dunkel, Text au
 **Revisit if:** Am Gerät wirkt der Grund mit True Tone vergilbt, oder „Kontrast erhöhen“ reicht mit den eigenen
 Farben nicht.
 
+*Geändert 2026-11-15:* Mit FR-16 ist der Grundton einstellbar. UI-8 beschreibt den **Standard-Grundton**. Die
+verworfenen Varianten werden zu wählbaren Grundtönen mit denselben Rollen:
+
+| Grundton | Hintergrund hell / dunkel | Auswahlfläche hell / dunkel | Text hell / dunkel | Haarlinie hell / dunkel |
+|---|---|---|---|---|
+| System | Systemfarben (`systemBackground` u. a.) | Systemfarben | Systemfarben | Systemtrenner |
+| kühl | `#F7F9FC` / `#0B1120` | `#E2E8F0` / `#1E293B` | `#0F172A` / `#EEF2F7` | `rgba(51,65,85,.20)` / `rgba(71,85,105,.60)` |
+| Petrol | `#F6F9F9` / `#061416` | `#DFE9EA` / `#15292C` | `#0C1F23` / `#ECF4F4` | `rgba(14,75,87,.18)` / `rgba(60,100,106,.55)` |
+
+Kosten: vier Farbsätze statt einem, je mit hoher Kontrastfassung; jede Gestaltungsprüfung läuft gegen alle vier.
+
 ---
 
 ## Wiederkehrende Fallen
@@ -413,3 +424,4 @@ Farben nicht.
 - 2026-11-15: UI-6 new — Runde 4a: Hierarchie im Text nur über die Größe
 - 2026-11-15: UI-7 new — Runde 4b: Schrift SF Rounded (ohne gerenderten Vergleich)
 - 2026-11-15: UI-8 new — Runde 5: warme Grundtöne (Elfenbein/Braunschwarz); UI-5 gilt in der Struktur, Farben eigene statt Systemgrau
+- 2026-11-15: UI-8 changed — warmer Grundton ist der Standard; System, kühl und Petrol werden wählbare Grundtöne (FR-16)

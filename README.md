@@ -30,6 +30,8 @@ Stand.
 - **Jahresplanung**: je Fach und Jahrgang das Schuljahr in Unterrichtswochen vorplanen – Themen, Tests und
   Klassenarbeiten, Notizen; frühere Jahre nebeneinander ansehen und den Vorjahresplan übernehmen. Das
   Wochenthema erscheint in Vorbereiten als Vorschlag, Leistungsnachweise an den Unterrichtsstunden.
+- **Erscheinungsbild**: warmer Standard; Grundton, Akzentfarbe (frei, mit Kontrastschutz) und Hell/Dunkel
+  einstellbar, außerhalb des Standards per Einmalkauf.
 - **Datenschutz**: keine eigenen Server – Stundenplan, Zuordnungen und Material bleiben bei der
   Lehrkraft.
 
