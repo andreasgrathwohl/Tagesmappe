@@ -41,27 +41,33 @@ struct RootView: View {
     TabView(selection: $selection) {
       Tab(AppSection.dayView.titleKey, systemImage: AppSection.dayView.systemImage, value: AppSection.dayView) {
         scoped { DayScreen() }
+          .fontDesign(.rounded)
       }
       Tab(
         AppSection.preparation.titleKey, systemImage: AppSection.preparation.systemImage,
         value: AppSection.preparation
       ) {
         scoped { PreparationScreen() }
+          .fontDesign(.rounded)
       }
       Tab(
         AppSection.coursePlan.titleKey, systemImage: AppSection.coursePlan.systemImage,
         value: AppSection.coursePlan
       ) {
         scoped { CoursePlanScreen() }
+          .fontDesign(.rounded)
       }
       Tab(AppSection.setup.titleKey, systemImage: AppSection.setup.systemImage, value: AppSection.setup) {
         setup
+          .fontDesign(.rounded)
       }
     }
     // iPad: Leiste oder Seitenleiste nach Wahl der Lehrkraft; Mac: Seitenleiste.
     .tabViewStyle(.sidebarAdaptable)
     .environment(account)
     .environment(dataLocation)
+    // Erscheinungsbild (FR-16): Farben, Akzent, Hell/Dunkel; ohne Kauf der Standard (FR-13).
+    .appTheme(store: dataLocation.store, unlock: ClassroomServices.shared.unlock)
     // „Ordner freigeben“ aus der Tagesansicht führt hierher.
     .environment(\.showSetup, { selection = .setup })
     // `initial: true` ruft den Block auch beim ersten Erscheinen auf – sonst fehlt der Abruf, wenn die Szene
