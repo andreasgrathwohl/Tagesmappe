@@ -270,6 +270,44 @@ von der Liste ab, oder die Systemauswahl ist im Stehen nicht auf einen Blick zu 
 
 ---
 
+### UI-6 — Hierarchie im Text entsteht nur über die Größe
+
+- category: 4
+- Constrained by: UI-2, UI-4, UI-5
+
+**Entscheidung:** Rangfolge im Text zeigt allein die Schriftgröße; alles in normalem Gewicht und in der
+Textfarbe, kein Fett, kein Grau als Rangmittel. Gerenderte Skala: Detailtitel 34 pt, Material-Namen 20 pt, Thema
+20 pt, Titel in der Liste (Klasse · Fach) 18 pt, Aktionen 15 pt, Stunde, Uhrzeit, Hinweis und Aussagezeilen
+13 pt im Detail und 11 pt in der Liste, Dateityp 11 pt. Ausgenommen sind Seitentitel, Tab-Leiste und Werkzeugleiste
+(Systemstil). Gewählt von Andreas am 2026-11-15 (Runde 4a; die Schriftfamilie ist offen, Runde 4b).
+
+**Kontext:** Fünf Varianten im kompakten Rahmen (UI-4, UI-5), gesetzt in Inter als Ersatz für SF Pro. Ist-Zustand
+im Nachbau: Größe, Gewicht und Grau gemischt (Liste 15/13 pt halbfett/regulär, Detailtitel 28 pt fett); im Code
+Systemstile (`.headline`, `.subheadline`, `.title3` in `Frontstage/UI/DayView/DayRowView.swift`).
+
+**Verworfen, jeweils mit Vorzug:**
+- Ist-Zustand (gemischt) — vertraut, jede Ebene doppelt markiert.
+- Nur Gewicht (fast eine Größe, Titel fett) — ruhige, gleichmäßige Zeilenhöhen, gut für 44 pt.
+- Nur Farbe (eine Größe, Abstufung über Grau) — am ruhigsten; im dunklen Modus treten Uhrzeit und Dateityp fast
+  ganz zurück.
+- Apples Systemtextstile unverändert — wachsen ohne Zutun mit Dynamic Type; füllen die 44-pt-Zeilen aber ohne
+  Innenabstand (Widerspruch zu UI-4).
+
+**Konsequenzen mit Kosten:**
+- 11 pt ist Apples kleinster Textstil (Caption 2); Uhrzeit und Aussagen in der Liste sind im Stehen auf Armlänge
+  knapp lesbar. Die Aussagen (keine Stunde, ohne Material, nicht verfügbar, Ausfall) bleiben über Symbol und Wort
+  unterscheidbar, nicht über die Größe.
+- Dynamic Type: Jede Größe wird beim Bau an einen Systemstil gekoppelt (`Font.system(size:relativeTo:)` bzw.
+  `@ScaledMetric`), damit sie mit „Größerer Text“ mitwächst; bei großen Stufen fällt die Liste auf Scrollen zurück
+  (UI-4).
+- Ohne Grau und Fett tragen allein die Größensprünge; Material-Namen und Thema (beide 20 pt) stehen gleichrangig.
+- Beschluss am Nachbau in Inter; Laufweite und Umbrüche in SF Pro weichen ab – am Gerät bestätigen (UI-2).
+
+**Revisit if:** Am Gerät sind die 11-pt-Angaben im Stehen nicht lesbar, oder bei „Größerer Text“ passen die
+Listenzeilen nicht mehr.
+
+---
+
 ## Wiederkehrende Fallen
 
 - **Eine Farbe, die zwei Dinge bedeutet, bedeutet keines.**
@@ -301,3 +339,4 @@ von der Liste ab, oder die Systemauswahl ist im Stehen nicht auf einen Blick zu 
 - 2026-11-15: UI-4 new — Runde 2: Dichte bleibt beim Ist-Zustand (Zeilen füllen die Höhe), Skala des Detailbereichs festgelegt
 - 2026-11-15: UI-4 changed — Andreas wählt doch die kompakte Dichte (B) statt des Ist-Zustands (A)
 - 2026-11-15: UI-5 new — Runde 3: Trennung der Ebenen mit Systemmitteln (Spaltenlinie, Systemauswahl, getönte Ziele in Systemfarbe), nach HIG-Gutachten
+- 2026-11-15: UI-6 new — Runde 4a: Hierarchie im Text nur über die Größe
