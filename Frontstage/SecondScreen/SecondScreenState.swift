@@ -47,6 +47,14 @@ struct MaterialPresentation: Equatable {
   /// Aktuell gezeigter Inhalt.
   var content: SecondScreenContent { state.mode }
 
+  /// Zuordnung, die gerade am verbundenen Zweitbildschirm steht (UI-12); sonst `nil`.
+  var shownMaterialLinkID: UUID? {
+    isConnected && content == .material ? material?.linkID : nil
+  }
+
+  /// Die Tafel steht gerade am verbundenen Zweitbildschirm (UI-12).
+  var isBoardShown: Bool { isConnected && content == .board }
+
   /// Wählt einen Inhalt; nicht verfügbare Inhalte werden ignoriert.
   func select(_ mode: SecondScreenContent) {
     state.select(mode)

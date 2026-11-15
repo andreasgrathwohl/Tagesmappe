@@ -74,9 +74,17 @@ extension Fixtures {
   /// Abhängigkeitsbündel für View-Modell-Tests; „heute“ ist standardmäßig Dienstag, der 17.11.2026.
   @MainActor static func environment(
     store: DataStore, storage: FakeStorage, today: CalendarDay = tue17,
-    dataLocation: DataLocation = .iCloud
+    dataLocation: DataLocation = .iCloud, now: Date? = nil
   ) -> AppEnvironment {
     AppEnvironment(
-      store: store, storage: storage, today: { today }, dataLocation: { dataLocation })
+      store: store, storage: storage, today: { today }, dataLocation: { dataLocation },
+      now: { now ?? Date() })
+  }
+
+  /// Zeitpunkt eines Tages und einer Uhrzeit im aktuellen Kalender (wie die Tagesansicht ihn liest).
+  static func date(_ day: CalendarDay, _ hour: Int, _ minute: Int) -> Date {
+    Calendar.current.date(
+      from: DateComponents(
+        year: day.year, month: day.month, day: day.day, hour: hour, minute: minute)) ?? Date()
   }
 }

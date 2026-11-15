@@ -312,11 +312,3 @@ struct MaterialButton: View {
     }
   }
 }
-
-extension Optional where Wrapped == MaterialAvailability {
-  /// `nil` (noch nicht gelesen) gilt nicht als nicht verfügbar.
-  var isUnavailable: Bool {
-    if case .unavailable? = self { return true }
-    return false
-  }
-}
