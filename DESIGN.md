@@ -460,6 +460,55 @@ kontinuierlichen – in der App sind sie kontinuierlich.
 
 ---
 
+### UI-11 — Aussagen tragen ihre Signalfarbe nur im Symbol; das Wort steht in Textfarbe
+
+- category: 8
+- Constrained by: UI-6, UI-8, UI-9
+
+**Entscheidung:** Jede Aussage einer Unterrichtsstunde ist Symbol plus Wort. Das Wort steht immer in Textfarbe; die
+Signalfarbe trägt allein das Symbol, verschoben auf mindestens 3:1 gegen die ungünstigste Fläche (Grund,
+Auswahlfläche, Kachel-Tönung):
+
+| Aussage | Symbol hell | Symbol dunkel | Wort |
+|---|---|---|---|
+| Entfällt (zusätzlich durchgestrichen) | Rot `#ED372D` | Rot `#FF453A` | Textfarbe |
+| Material nicht verfügbar | Orange `#B86B00` | Orange `#FF9F0A` | Textfarbe |
+| Vertretung | Textfarbe | Textfarbe | Textfarbe |
+| Ohne Material | Textfarbe | Textfarbe | Textfarbe |
+| Keine Stunde | ohne Symbol, als Titel | ohne Symbol | Textfarbe |
+
+Gemessen: Wort 16,3/13,8/13,3:1 hell und 16,2/12,6/10,5:1 dunkel (Grund/Auswahl/Kachel); Symbole hell ≥ 3,12:1,
+dunkel ≥ 3,53:1. Material, das nicht verfügbar ist, bleibt eine antippbare Kachel in Akzent-Tönung; statt des
+Dateityps steht darin die Aussage mit orangem Symbol. Im Detail steht unter dem Titel eine Aussagezeile.
+
+Andreas hat die Wahl am 2026-11-15 delegiert („mache es nach best practice!“); entschieden nach Apples Richtlinie,
+Information nie allein über Farbe zu tragen, nach WCAG (Text 4,5:1, Grafik 3:1) und nach der Lesbarkeit der
+11-pt-Aussagen (UI-6).
+
+**Kontext:** Ist-Zustand war Symbol und Wort in Systemrot/-orange (UI-9); hell 3,35:1 bzw. 2,07:1, dunkel Rot auf
+Auswahl und Kachel unter 4,5:1 (Q-41). Vier Varianten an zwei Bildschirmen (2. und 6. Stunde gewählt), hell und
+dunkel.
+
+**Verworfen, jeweils mit Vorzug:**
+- Systemrot/-orange für Symbol und Wort (Ist-Zustand) — stärkstes Signal, vertraut; als kleiner Text nicht lesbar.
+- Symbol und Wort in abgedunkelten Signaltönen (Rot `#BA2B23`, Orange `#915500`, dunkel aufgehellt) — Signal im
+  ganzen Ausdruck, überall ≥ 4,5:1; Wort aber nur etwa 4,7:1 statt 13:1, und mehr Farbe in der dichten Liste.
+  Nächstbeste Wahl.
+- Getönte Plakette — deutlich abgegrenzt; die Pille verschwindet auf der Auswahlfläche (Vertretung 1,01:1) und
+  dunkel auf der Kachel.
+
+**Konsequenzen mit Kosten:**
+- Das Signal ist leiser: Auf einen Blick fällt nur das farbige Symbol auf. „Entfällt“ trägt zusätzlich die
+  Durchstreichung.
+- Signalsymbole brauchen je Grundton (FR-16) eine eigene Verschiebung auf 3:1; dieselbe Regel wie beim Akzent.
+- SF-Symbole werden einfarbig in der Signalfarbe gesetzt (`foregroundStyle`), der Text getrennt in Textfarbe – nicht
+  als ein `Label` mit einer gemeinsamen Farbe.
+- Beschluss am Nachbau; am Gerät bestätigen (UI-2).
+
+**Revisit if:** Am Gerät wird ein Ausfall oder fehlendes Material im Unterricht übersehen.
+
+---
+
 ## Wiederkehrende Fallen
 
 - **Eine Farbe, die zwei Dinge bedeutet, bedeutet keines.**
@@ -477,7 +526,7 @@ kontinuierlichen – in der App sind sie kontinuierlich.
 - Q-37: Wie zeigt sich der Klassenbildschirm auf Distanz (FR-11 bis FR-11.3)? Offen seit Teilplan 07, gebaut mit Systemvorgaben: Schriftgrößen (Systemstile, aus dem Klassenraum vermutlich zu klein), Farben, Symbole der Arbeitsform (`person`, `person.2`, `person.3`), Material der Timer-Karte, Timer-Signal (Platzhalter Sinus 880 Hz, dreimal), Wortlaut.
 - Q-38: Wie sieht die Tafel aus (FR-12 bis FR-12.7)? Offen seit Teilplan 07, gebaut mit Systemvorgaben: Breite (220 pt) und Reihenfolge der Seitenleiste, Seitenvorschauen statt Nummern, Farbe und Abstand der Linien und Karos, Farbe der Abdeckung (Platzhalter Schwarz; die Systemhintergrundfarbe wäre auf der weißen Seite am Tablet unsichtbar), Farbe der Streifen neben der Seite am Zweitbildschirm (Platzhalter Schwarz), Wortlaut „Letztes Tafelbild“.
 - Q-39: Wie sieht das Kaufangebot aus (FR-13)? Offen seit Teilplan 07: Wortlaut (Platzhalter) und Anordnung von Titel, Hinweis, Produktansicht und „Käufe wiederherstellen“.
-- Q-41: Rot („Entfällt“) und Orange („Material nicht verfügbar“) erreichen als kleiner Text auf dem hellen warmen Grund nur 3,35:1 bzw. 2,07:1 (Ziel 4,5:1). Dunklere Signaltöne für hell (z. B. Rot `#C4271D`, Orange `#B25C00`), Signal nur im Symbol und Text in Textfarbe, oder Signal als getönte Fläche? Gehört zu Runde 8 (Zustände). Gefunden in Runde 6.
+- ~~Q-41~~: Rot („Entfällt“) und Orange („Material nicht verfügbar“) erreichen als kleiner Text auf dem hellen warmen Grund nur 3,35:1 bzw. 2,07:1 (Ziel 4,5:1). Dunklere Signaltöne für hell (z. B. Rot `#C4271D`, Orange `#B25C00`), Signal nur im Symbol und Text in Textfarbe, oder Signal als getönte Fläche? Gehört zu Runde 8 (Zustände). Gefunden in Runde 6. → answered 2026-11-15: Signalfarbe nur im Symbol (≥ 3:1), Wort in Textfarbe (UI-11).
 
 ## Changes
 
@@ -498,3 +547,4 @@ kontinuierlichen – in der App sind sie kontinuierlich.
 - 2026-11-15: UI-8 changed — warmer Grundton ist der Standard; System, kühl und Petrol werden wählbare Grundtöne (FR-16)
 - 2026-11-15: UI-9 new — Runde 6: Standard-Akzent Petrol, deckende Tönung, Signalfarben festgehalten; Q-41 new — Kontrast der Signalfarben auf hellem Grund
 - 2026-11-15: UI-10 new — Runde 7: Formen beim Ist-Zustand (Kacheln 16, Auswahl 10, Knöpfe Kapsel)
+- 2026-11-15: UI-11 new — Runde 8a: Aussagen mit Signalfarbe nur im Symbol (nach best practice, von Andreas delegiert); Q-41 answered
