@@ -99,8 +99,9 @@ den Oberflächen, nicht im Datenmodell. Mindestversion iPadOS 26 und macOS 26 ge
   besteht, prüft die App auf dem Gerät mit den signierten Kaufbelegen, die StoreKit liefert – ohne
   eigenen Server (NFR-2). Auf weiteren Geräten derselben Apple-ID meldet StoreKit den Kauf von selbst;
   „Käufe wiederherstellen“ gibt es zusätzlich, weil der App Store es verlangt.
-- Freigeschaltet wird an genau einer Stelle („Freischaltung“), die Klassenbildschirm und Tafel abfragen.
-  Ohne Kauf zeigen beide ein Kaufangebot; der Zweitbildschirm zeigt dann statt des Klassenbildschirms
+- Freigeschaltet wird an genau einer Stelle („Freischaltung“), die Klassenbildschirm, Tafel und Erscheinungsbild abfragen.
+  Ohne Kauf gilt der Standard des Erscheinungsbilds; eine gespeicherte Wahl bleibt erhalten und gilt, sobald der Kauf besteht (FR-13, FR-16).
+  Ohne Kauf zeigen Klassenbildschirm und Tafel ein Kaufangebot; der Zweitbildschirm zeigt dann statt des Klassenbildschirms
   eine neutrale Fläche, und Material am Zweitbildschirm (FR-6.2) bleibt kostenlos.
 - Der Kaufstand wird nicht in den App-Daten gespeichert und nicht gespiegelt – StoreKit ist die
   einzige Quelle.
@@ -134,6 +135,7 @@ Vorgabewert, alle Beziehungen sind optional, und kein Modell nutzt Eindeutigkeit
 | Jahresplan | Fach (Schreibweise wie eingegeben), Jahrgang, `startYear` des Schuljahrs, Notiz zum Plan | FR-15, gemäß ADR-0013; fachlicher Schlüssel Fach (normalisiert) + Jahrgang + `startYear`; kein Verweis auf den Datensatz des Schuljahrs |
 | Planwoche | Jahresplan (Beziehung, Löschen mit dem Plan), Montag der Kalenderwoche (leer = „nicht zugeordnet“), Position unter „nicht zugeordnet“, Thema, Notizen, Änderungszeit | FR-15.2; eine leere Planwoche (kein Thema, keine Notiz) wird nicht gespeichert bzw. gelöscht |
 | Leistungsnachweis | Jahresplan (Beziehung, Löschen mit dem Plan), Montag der Kalenderwoche (leer = „nicht zugeordnet“), Tag (optional, in dieser Woche), Art (`test`, `classTest`), Titel, Änderungszeit | FR-15.2, FR-15.6 |
+| Erscheinungsbild | Grundton, Akzentfarbe (sRGB-Hex, leer = Standard), Hell/Dunkel, Änderungszeit | FR-16; ein Datensatz für alle Geräte, doppelte werden zusammengeführt |
 
 **Unterrichtsstunden werden nicht gespeichert, sondern berechnet:** aus Stundenplan, Wochenvariante des
 Datums, unterrichtsfreien Zeiträumen und Abweichungen. Gespeichert wird nur, was die Lehrkraft dazu
@@ -189,6 +191,7 @@ Gemäß ADR-0013 (Jahresplan je Fach, Jahrgang und Schuljahr). Alle Regeln sind 
   Kern, `RecordCodec` in der App, Reihenfolge Schuljahr → Jahresplan → Planwoche → Leistungsnachweis
   (Eltern vor Kindern). Dateien im Datenordner: `SchoolYear/`, `CoursePlan/`, `PlanWeek/`, `Assessment/`.
   Ein Gerät mit älterer App-Version kennt die Ordner nicht und lässt sie unberührt (RISK-10).
+  Dazu kommt der Ordner `Theme/` (Erscheinungsbild, ein Datensatz): ein Gerät mit älterer Version lässt ihn unberührt.
 
 ### Datenort
 
@@ -263,6 +266,7 @@ Stand. Je Datenart:
 | Jahresplan (zwei Geräte legen denselben an) | doppelte mit gleichem Schlüssel werden zusammengeführt; Planwochen und Leistungsnachweise des aufgegebenen hängt die App vorher an den behaltenen | geht nicht verloren |
 | Planwoche (zwei Geräte, dieselbe Woche) | doppelte Planwochen eines Plans mit gleichem Montag werden zusammengeführt; der Inhalt der zuletzt geänderten gilt | Thema oder Notiz des anderen Geräts verloren – hinnehmbar, sichtbar |
 | Leistungsnachweis | gleiche (Plan, Montag, Tag, Art, Titel) werden zusammengeführt | geht nicht verloren |
+| Erscheinungsbild (zwei Geräte) | doppelte werden zusammengeführt; der Inhalt des zuletzt geänderten gilt | Wahl des anderen Geräts verloren – sichtbar, sofort korrigierbar |
 
 Zusammenführen heißt: Nach jedem Abgleich sucht die App Datensätze mit gleichem fachlichem Schlüssel
 und behält den ältesten. Werden dabei zwei Zuordnungen zu einer, werden die Stiftnotizen der
@@ -553,3 +557,4 @@ gehören sie zur Unterrichtsstunde. Das Original wird nie verändert.
 - 2026-11-14: anzeige changed — Szene des Zweitbildschirms wird auch ab iOS 27 immer angenommen (FR-6.2, Stand ohne iOS-27-Werkzeug); Stiftnotizen: gescheitertes Schreiben beim Schließen geht in den Ersatz im Datenort, beim Öffnen gewinnt je Seite der neuere Stand, überholter Ersatz wird gelöscht; Schließen während des Ladens bricht das Laden ab (Nachtrag Teilplan 06)
 - 2026-11-14: daten changed — Jahresplanung (FR-15, ADR-0013): Modelle Schuljahr, Jahresplan, Planwoche, Leistungsnachweis; Abschnitt Jahresplanung (Unterrichtswochen berechnet, Jahrgang aus dem Klassennamen, Zuordnung über den Montag, Vorjahresplan übernehmen, frühere Jahre, Hinweis zur Unterrichtsstunde, Abgleich); Nebenläufigkeit ergänzt; Bausteinbild um Jahresplan ergänzt
 - 2026-11-14: daten changed — Q-33, Q-34 mit Rechercheergebnis ergänzt (beide weiter offen, Prüfung im Schul-Testmandanten)
+- 2026-11-15: daten changed — Erscheinungsbild als abgeglichener Datensatz (FR-16), Modell, Nebenläufigkeit und Ordner `Theme/` ergänzt; plattform changed — Freischaltung um das Erscheinungsbild ergänzt (FR-13)

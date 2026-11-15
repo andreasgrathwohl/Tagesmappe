@@ -20,8 +20,11 @@ extension DataStore {
     let loaded = try LoadedRecords(modelContext)
     let plan = SyncMerger.plan(for: loaded.snapshot())
     let coursePlan = CoursePlanMerger.plan(for: loaded.coursePlanSnapshot())
-    // Früher Ausgang nur, wenn beide Pläne leer sind: Doppelte Jahrespläne allein müssen laufen.
-    if plan.isEmpty && coursePlan.isEmpty { return plan }
+    let themePlan = ThemeMerger.plan(
+      for: loaded.themes.map { ThemeMergeEntry(id: $0.id, createdAt: $0.createdAt, updatedAt: $0.updatedAt) })
+    // Früher Ausgang nur, wenn alle drei Pläne leer sind: Doppelte Jahrespläne oder ein doppeltes
+    // Erscheinungsbild allein müssen laufen.
+    if plan.isEmpty && coursePlan.isEmpty && themePlan.isEmpty { return plan }
 
     // Wörterbuch je Modell (id → Datensatz). Doppelte ids dürfte es nicht geben; falls doch, gewinnt
     // der erste Treffer, statt abzustürzen.
@@ -134,7 +137,21 @@ extension DataStore {
       }
     }
 
-    // 7. Speichern (erhöht auch `revision`, damit die Oberfläche neu lädt).
+    // 7. Erscheinungsbild: Inhalt des zuletzt geänderten auf den behaltenen Datensatz, dann löschen.
+    let themes = Self.byID(loaded.themes, id: \.id)
+    if let keeperID = themePlan.keeperID, let sourceID = themePlan.contentSourceID, keeperID != sourceID,
+      let keeper = themes[keeperID], let source = themes[sourceID]
+    {
+      keeper.baseToneRaw = source.baseToneRaw
+      keeper.accentHex = source.accentHex
+      keeper.appearanceModeRaw = source.appearanceModeRaw
+      keeper.updatedAt = source.updatedAt
+    }
+    for id in themePlan.deletions {
+      if let record = themes[id] { modelContext.delete(record) }
+    }
+
+    // 8. Speichern (erhöht auch `revision`, damit die Oberfläche neu lädt).
     try saveAndBump()
     return plan
   }
@@ -173,12 +190,14 @@ extension DataStore {
   let coursePlans: [CoursePlanRecord]
   let planWeeks: [PlanWeekRecord]
   let assessments: [AssessmentRecord]
+  let themes: [ThemeRecord]
 
   init(_ context: ModelContext) throws {
     schoolYears = try context.fetch(FetchDescriptor<SchoolYearRecord>())
     coursePlans = try context.fetch(FetchDescriptor<CoursePlanRecord>())
     planWeeks = try context.fetch(FetchDescriptor<PlanWeekRecord>())
     assessments = try context.fetch(FetchDescriptor<AssessmentRecord>())
+    themes = try context.fetch(FetchDescriptor<ThemeRecord>())
     timetables = try context.fetch(FetchDescriptor<TimetableRecord>())
     entries = try context.fetch(FetchDescriptor<TimetableEntryRecord>())
     links = try context.fetch(FetchDescriptor<MaterialLinkRecord>())
