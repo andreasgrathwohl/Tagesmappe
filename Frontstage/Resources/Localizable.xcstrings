@@ -4277,6 +4277,206 @@
           }
         }
       }
+    },
+    "setup.appearance.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erscheinungsbild"
+          }
+        }
+      }
+    },
+    "setup.appearance.baseTone" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grundton"
+          }
+        }
+      }
+    },
+    "setup.appearance.baseTone.warm" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Warm (Standard)"
+          }
+        }
+      }
+    },
+    "setup.appearance.baseTone.system" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System"
+          }
+        }
+      }
+    },
+    "setup.appearance.baseTone.cool" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kühl"
+          }
+        }
+      }
+    },
+    "setup.appearance.baseTone.petrol" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Petrol"
+          }
+        }
+      }
+    },
+    "setup.appearance.accent" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Akzentfarbe"
+          }
+        }
+      }
+    },
+    "setup.appearance.accent.standard" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Standardakzent verwenden"
+          }
+        }
+      }
+    },
+    "setup.appearance.preview" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorschau"
+          }
+        }
+      }
+    },
+    "setup.appearance.preview.light" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hell"
+          }
+        }
+      }
+    },
+    "setup.appearance.preview.dark" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dunkel"
+          }
+        }
+      }
+    },
+    "setup.appearance.preview.sampleMaterial" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arbeitsblatt Vokabeln"
+          }
+        }
+      }
+    },
+    "setup.appearance.preview.adjusted" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Für ausreichenden Kontrast angepasst"
+          }
+        }
+      }
+    },
+    "setup.appearance.mode" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hell/Dunkel"
+          }
+        }
+      }
+    },
+    "setup.appearance.mode.system" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wie das System"
+          }
+        }
+      }
+    },
+    "setup.appearance.mode.light" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hell"
+          }
+        }
+      }
+    },
+    "setup.appearance.mode.dark" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dunkel"
+          }
+        }
+      }
+    },
+    "setup.appearance.reset" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auf Standard zurücksetzen"
+          }
+        }
+      }
+    },
+    "setup.appearance.locked" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ohne Kauf gilt der Standard. Deine Auswahl bleibt gespeichert."
+          }
+        }
+      }
+    },
+    "setup.appearance.saveFailed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht gespeichert. Die bisherige Einstellung bleibt. Versuch es erneut."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"

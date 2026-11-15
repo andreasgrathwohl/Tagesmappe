@@ -45,6 +45,11 @@ struct SetupView: View {
           }
         }
         Section {
+          NavigationLink("setup.appearance.title") {
+            scoped { AppearanceSettingsScreen() }
+          }
+        }
+        Section {
           Button("purchase.restore") {
             Task {
               do {
