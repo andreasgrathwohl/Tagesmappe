@@ -22,7 +22,7 @@ Alle Zeilen der Übersicht gelten (Abschnitt „Global Constraints“, Abstimmun
   - Grundton **warm** (Standard, UI-8): Hintergrund `#FBF8F2` / `#17130E`, Auswahlfläche `#ECE5D8` / `#2F2921`, Text `#1F1A14` / `#F5EFE5`, Haarlinie `rgba(92,72,48,.22)` / `rgba(125,108,86,.55)`.
   - **kühl:** `#F7F9FC` / `#0B1120`, `#E2E8F0` / `#1E293B`, `#0F172A` / `#EEF2F7`, `rgba(51,65,85,.20)` / `rgba(71,85,105,.60)`.
   - **Petrol:** `#F6F9F9` / `#061416`, `#DFE9EA` / `#15292C`, `#0C1F23` / `#ECF4F4`, `rgba(14,75,87,.18)` / `rgba(60,100,106,.55)`.
-  - **System:** Systemfarben in der App; für die Kontrastrechnung die Bezugswerte aus UI-8 „Kontext“: Hintergrund `#FFFFFF` / `#000000`, Auswahlfläche `#E5E5EA` / `#2C2C2E`, Text `#000000` / `#FFFFFF`, Haarlinie `rgba(60,60,67,.29)` / `rgba(84,84,88,.60)`.
+  - **System:** Systemfarben in der App; für die Kontrastrechnung Bezugswerte – Hintergrund `#FFFFFF` / `#000000` und Auswahlfläche `#E5E5EA` / `#2C2C2E` aus UI-8 „Kontext“; Text `#000000` / `#FFFFFF` und Haarlinie `rgba(60,60,67,.29)` / `rgba(84,84,88,.60)` stehen nicht in DESIGN.md, sondern sind die iOS-Werte von `label` und `separator` (gehen in keine Kontrastregel ein).
   - Standard-Akzent Petrol `#0E6B7A` / `#5FC2CF`; Tönung deckend, Akzent zu **14 %** (hell) bzw. **22 %** (dunkel) über dem Hintergrund (UI-9).
   - Signalsymbole (UI-11): Entfällt `#ED372D` / `#FF453A`, Material nicht verfügbar `#B86B00` / `#FF9F0A`; Vertretung und Ohne Material in Textfarbe.
   - „jetzt, gezeigt“ (UI-12): Kapselfläche `#FFC94A`, Wort und Symbol `#1F1A14` in **beiden** Modi.
@@ -77,7 +77,7 @@ Alle Zeilen der Übersicht gelten (Abschnitt „Global Constraints“, Abstimmun
 | `Frontstage/UI/Setup/AppearanceSettingsModel.swift`, `AppearanceSettingsView.swift`, `ThemePreview.swift`; `SetupView.swift` (ändern) | Einrichten › Erscheinungsbild | 7 |
 | `Frontstage/UI/DayView/LessonStatement.swift`, `DayEmptyState.swift`, `Frontstage/UI/Shared/LessonTimeFormat.swift`; `App/AppEnvironment.swift`, `DayViewModel.swift`, `SecondScreen/SecondScreenState.swift` (ändern) | Logik der Tagesansicht | 8 |
 | `Frontstage/UI/DayView/DayListRow.swift`, `MaterialTile.swift`, `SignalCapsule.swift`, `StatementView.swift`, `OrphanMaterialRow.swift`; `DayViewLayout.swift`, `SourceStatusBar.swift` (ändern) | Bausteine der Tagesansicht | 9 |
-| `Frontstage/UI/DayView/DayLessonDetail.swift`; `DayView.swift` (ändern), `DayRowView.swift` (löschen) | Liste und Detail zusammensetzen | 10 |
+| `Frontstage/UI/DayView/DayLessonDetail.swift`; `DayView.swift`, `DayViewLayout.swift` (ändern), `DayRowView.swift` (löschen) | Liste und Detail zusammensetzen | 10 |
 | `PreparationView.swift`, `LessonDetailView.swift`, `CoursePlanView.swift`, `Setup/*View.swift`, `Shared/PlanHintLabel.swift` (ändern) | Grundton und Schrift app-weit | 11 |
 | `FrontstageTests/Data/ThemeStoreTests.swift`, `FrontstageTests/UI/AppearanceSettingsModelTests.swift`, `ThemeColorConversionTests.swift`, `DayViewSelectionTests.swift`, `LessonTimeFormatTests.swift`, `LessonStatementTests.swift`, `DayEmptyStateTests.swift`; `RecordCodecTests.swift`, `RecordSchemaTests.swift`, `SecondScreenStateTests.swift`, `TestSupport/UIFixtures.swift` (ändern); `FrontstageTests/UI/DayViewLayoutTests.swift` (löschen) | App-Tests (Simulator) | 5–10 |
 | `Frontstage/Resources/Localizable.xcstrings` (ändern) | Texte | 7–10 |
@@ -342,7 +342,7 @@ public struct DaySelection: Hashable, Sendable {
 ```
 
 - [ ] **Step 2: Rot belegen** – `…swift-test.ps1 -Filter DaySelectionTests`.
-- [ ] **Step 3: Implementieren** – `automaticTarget` nutzt `ClassScreenCalculator.phase`: `.inLesson`/`.finalMinutes`/`.upcoming` → deren Schlüssel; `.noMoreLessons` → hat irgendeine Stunde ohne Ausfall eine Zeit, die letzte nach Zeit, sonst die erste ohne Ausfall. `runningLesson` = `phase(…).runningLessonKey`.
+- [ ] **Step 3: Implementieren** – `automaticTarget` nutzt `ClassScreenCalculator.phase`: `.inLesson`/`.finalMinutes`/`.upcoming` → deren Schlüssel; `.noMoreLessons` → hat irgendeine Stunde ohne Ausfall eine Zeit, die letzte nach Zeit, sonst die erste ohne Ausfall; gibt es keine Stunde ohne Ausfall, die erste Stunde (`allCancelledSelectsFirstLesson`; `phase` lässt Ausfälle weg und liefert dann `.noMoreLessons`). `now == nil` → ohne `phase` direkt die erste ohne Ausfall (bzw. die erste). `runningLesson` = `phase(…).runningLessonKey`.
 - [ ] **Step 4: Grün belegen**, danach das ganze Paket.
 - [ ] **Step 5: Commit** – `git commit -m "core: add day view lesson selection rule"`
 
@@ -414,7 +414,7 @@ Design-Takt: keiner
 **Files:**
 - Create: `Frontstage/Data/Records/ThemeRecord.swift`, `Frontstage/Data/DataStore+Theme.swift`
 - Modify: `Frontstage/Data/ModelContainerFactory.swift` (`modelTypes` + `ThemeRecord.self` → 13), `Frontstage/Data/Folder/RecordCodec.swift` (`exportAll`, `export(_:from:)`-`switch`, `liveIDs`, privates `export(_ record: ThemeRecord)`, `upsert`, `delete`, `extension ThemeRecord: HasRecordID {}`; Doku-Kommentar „zwölf“ → „dreizehn“), `Frontstage/Data/DataStore+Merge.swift` (`LoadedRecords.themes`, Plan, Anwenden)
-- Modify: `docs/ARCHITECTURE.md` – Area daten, Tabelle „Datenmodell“: Zeile `| Erscheinungsbild | Grundton, Akzentfarbe (sRGB-Hex, leer = Standard), Hell/Dunkel, Änderungszeit | FR-16; ein Datensatz für alle Geräte, doppelte werden zusammengeführt |`; Tabelle „Nebenläufigkeit“: `| Erscheinungsbild (zwei Geräte) | doppelte werden zusammengeführt; der Inhalt des zuletzt geänderten gilt | Wahl des anderen Geräts verloren – sichtbar, sofort korrigierbar |`; Area plattform, „Kauf“: „Freigeschaltet wird an genau einer Stelle („Freischaltung“), die Klassenbildschirm, Tafel und Erscheinungsbild abfragen. Ohne Kauf gilt der Standard des Erscheinungsbilds; eine gespeicherte Wahl bleibt erhalten und gilt, sobald der Kauf besteht (FR-13, FR-16).“; unter Abgleich: Ordner `Theme/` im Datenordner, ein Gerät mit älterer Version lässt ihn unberührt; `## Changes`: `- 2026-11-15: Erscheinungsbild als abgeglichener Datensatz (FR-16), Freischaltung um das Erscheinungsbild ergänzt (FR-13)`.
+- Modify: `docs/ARCHITECTURE.md` – Area daten, Tabelle „Datenmodell“: Zeile `| Erscheinungsbild | Grundton, Akzentfarbe (sRGB-Hex, leer = Standard), Hell/Dunkel, Änderungszeit | FR-16; ein Datensatz für alle Geräte, doppelte werden zusammengeführt |`; Tabelle „Nebenläufigkeit“: `| Erscheinungsbild (zwei Geräte) | doppelte werden zusammengeführt; der Inhalt des zuletzt geänderten gilt | Wahl des anderen Geräts verloren – sichtbar, sofort korrigierbar |`; Area plattform, „Kauf“: „Freigeschaltet wird an genau einer Stelle („Freischaltung“), die Klassenbildschirm, Tafel und Erscheinungsbild abfragen. Ohne Kauf gilt der Standard des Erscheinungsbilds; eine gespeicherte Wahl bleibt erhalten und gilt, sobald der Kauf besteht (FR-13, FR-16).“; Area daten, Abschnitt „Datenort“, Liste „OneDrive-Abgleich“: Ordner `Theme/` im Datenordner, ein Gerät mit älterer Version lässt ihn unberührt; `## Changes` (Format der vorhandenen Zeilen `<area> changed — …`): `- 2026-11-15: daten changed — Erscheinungsbild als abgeglichener Datensatz (FR-16), Modell, Nebenläufigkeit und Ordner `Theme/` ergänzt; plattform changed — Freischaltung um das Erscheinungsbild ergänzt (FR-13)`.
 - Modify (Test): `FrontstageTests/Data/Folder/RecordCodecTests.swift` (`populate(_:)` legt zusätzlich einen `ThemeRecord` mit allen Feldern an; `liveIDsCoverAllModels`: `exported.count == 13`; Testname des Rundlaufs „dreizehn Modelle“), `FrontstageTests/Data/RecordSchemaTests.swift` (ThemeRecord einfügen, speichern, zählen)
 - Test: `FrontstageTests/Data/ThemeStoreTests.swift`
 
@@ -730,8 +730,7 @@ Design-Takt: Hauptstufe
 
 **Files:**
 - Create: `Frontstage/UI/DayView/StatementView.swift`, `Frontstage/UI/DayView/SignalCapsule.swift`, `Frontstage/UI/DayView/DayListRow.swift`, `Frontstage/UI/DayView/MaterialTile.swift`, `Frontstage/UI/DayView/OrphanMaterialRow.swift`
-- Modify: `Frontstage/UI/DayView/DayViewLayout.swift` – Inhalt ersetzen durch Konstanten (UI-4, UI-10): `rowHeight 44`, `rowSpacing 4`, `detailPadding 16`, `sectionSpacing 16`, `tileSpacing 8`, `tileHeight 120`, `tileMinWidth 200`, `tileRadius 16`, `selectionRadius 10`; `rowHeight(availableHeight:rowCount:spacing:)`, `minRowHeight`, `maxRowHeight`, `orphanReserve(count:)` entfallen
-- Delete: `FrontstageTests/UI/DayViewLayoutTests.swift` (prüfte nur die entfallenen Funktionen)
+- Modify: `Frontstage/UI/DayView/DayViewLayout.swift` – Inhalt ersetzen durch Konstanten (UI-4, UI-10): `rowHeight 44`, `rowSpacing 4`, `detailPadding 16`, `sectionSpacing 16`, `tileSpacing 8`, `tileHeight 120`, `tileMinWidth 200`, `tileRadius 16`, `selectionRadius 10`; `rowHeight(availableHeight:rowCount:spacing:)`, `minRowHeight`, `maxRowHeight`, `orphanReserve(count:)` bleiben in diesem Task noch stehen (das alte `DayView.swift` nutzt sie bis Task 10) und entfallen in Task 10
 - Modify: `Frontstage/UI/DayView/SourceStatusBar.swift` – beim Abfragen `ProgressView().controlSize(.small)` vor dem Stand (`coordinator.isFetching`, UI-13); Schrift `scaledFont(.detailMeta)`, Farben `themeStyle.text` statt `.secondary` (UI-6); Fehler bleiben Symbol und Wort, kein Dialog
 - Modify: `Frontstage/Resources/Localizable.xcstrings`
 
@@ -755,9 +754,9 @@ struct DayListRow: View { init(row: LessonRow, line: DayRowLine, isRunning: Bool
 struct DayGapRow: View { init(period: Int, time: ClosedRange<TimeOfDay>?, day: CalendarDay) }
 /// Material-Ziel (UI-4, UI-9, UI-10, UI-11): Höhe @ScaledMetric 120, TileButtonStyle; oben ggf. SignalCapsule(.onSmartboard);
 /// Name materialName im Akzentton, 2 Zeilen, Mitte gekürzt; unten Dateityp (fileType, Endung groß, sonst „Datei“) –
-/// oder bei nicht verfügbar StatementView(.materialUnavailable, scale: .fileType) – oder beim Laden ProgressView + „Lädt …“.
+/// oder bei nicht verfügbar StatementView(.materialUnavailable, scale: .fileType) – oder beim Laden ProgressView + „Wird geladen …“ (`dayView.loading`).
 /// Kontextmenü: inLesson → „In die nächste Stunde“; sonst „Zuordnen …“; nicht verfügbar → zusätzlich „Neu verknüpfen“.
-/// Barrierefreiheit: Label = Dateiname, Value = „am Smartboard“ / „Lädt …“ / „Material nicht verfügbar“.
+/// Barrierefreiheit: Label = Dateiname, Value = „am Smartboard“ / „Wird geladen …“ / „Material nicht verfügbar“.
 struct MaterialTile: View {
   init(row: MaterialRow, isOpening: Bool, isShown: Bool, inLesson: Bool, actions: DayRowActions)
 }
@@ -773,7 +772,7 @@ Texte: `dayView.now` Jetzt · `dayView.now.accessibility` läuft jetzt · `dayVi
 
 - [ ] **Step 1: Skill laden** – `apple-design`; prüfen gegen HIG lists-and-tables, buttons, color (Signal nie allein über Farbe), typography, accessibility (VoiceOver, Dynamic Type, 44-pt-Ziele).
 - [ ] **Step 2: Diff-Plan durchsehen** – jede Maßzahl aus `DayViewLayout`, keine Zahl im View-Code außer `TypeScale`; keine Datei außer den genannten berührt.
-- [ ] **Step 3: Implementieren.** `DayRowView.swift` bleibt in diesem Task noch stehen (Task 10 löscht sie), damit der Stand baut.
+- [ ] **Step 3: Implementieren.** `DayRowView.swift` und die alten Funktionen in `DayViewLayout` bleiben in diesem Task noch stehen (Task 10 löscht sie), damit der Stand baut. Die neue Konstante `rowHeight` und die alte Funktion `rowHeight(availableHeight:rowCount:spacing:)` dürfen nebeneinander stehen (verschiedene vollständige Namen).
 - [ ] **Step 4: Syntax prüfen** (`scripts\swift-parse.ps1`), Diff durchsehen; Lücken im Abschlussbericht (mindestens: Kachelbreite 200 pt, Tafel-Kachel trägt „Am Smartboard“ nach UI-12 sinngemäß).
 - [ ] **Step 5: Commit** – `git commit -m "ui: day view rows, material tiles and yellow capsules"`
 
@@ -787,6 +786,8 @@ Design-Takt: Hauptstufe
 - Create: `Frontstage/UI/DayView/DayLessonDetail.swift`
 - Modify: `Frontstage/UI/DayView/DayView.swift`
 - Delete: `Frontstage/UI/DayView/DayRowView.swift` (`DayRowActions` vorher nach `DayLessonDetail.swift` verschieben, unverändert; `MaterialButton`, `PeriodHeader`, `StatementLabel`, `LessonRowView` entfallen)
+- Modify: `Frontstage/UI/DayView/DayViewLayout.swift` – `rowHeight(availableHeight:rowCount:spacing:)`, `minRowHeight`, `maxRowHeight`, `orphanReserve(count:)` entfernen (aus Task 9 hierher verschoben, weil das alte `DayView.swift` sie bis hier nutzt)
+- Delete: `FrontstageTests/UI/DayViewLayoutTests.swift` (prüfte nur die entfallenen Funktionen)
 - Modify: `Frontstage/Resources/Localizable.xcstrings`
 
 **Interfaces:**
@@ -810,7 +811,7 @@ struct DayLessonDetail: View {
 - `NavigationSplitView { list } detail: { detail }`; `.safeAreaInset(edge: .bottom, spacing: 0) { SmartboardBar() }` (iOS) am Split-View. Alle vorhandenen Dialoge, `fileImporter`, Alerts, `confirmationDialog`, Betrachter-Anzeige (`fullScreenCover`/`sheet`), `boardPresentation`, `AssignLessonSheet` und Aktionen (`rowActions`, `open`, `handle`, `offer`, `relink`, `carryNotes`) bleiben inhaltlich unverändert.
 - **Listenspalte:** `List(selection: $model.selection)`, `.listStyle(.plain)`, `.listRowSeparator(.hidden)`, iOS `.listRowSpacing(DayViewLayout.rowSpacing)`; Stunden als `DayListRow(...).tag(key)`, Lücken als `DayGapRow` ohne Tag mit `.selectionDisabled()`; darunter Section „Material ohne Stunde“ mit `OrphanMaterialRow` nur bei Einträgen (UI-13). Ohne Systemneutrale: `.scrollContentBackground(.hidden)`, `.background(themeStyle.background)`, gewählte Zeile `.listRowBackground(RoundedRectangle(cornerRadius: DayViewLayout.selectionRadius, style: .continuous).fill(themeStyle.selection))`, sonst `themeStyle.background` (UI-8, UI-10); mit Systemneutralen nichts davon (Entscheidung 14). Oben `.safeAreaInset(edge: .top) { SourceStatusBar() }`. Titel und Werkzeugleiste (gestern/Heute/morgen) wie bisher an der Listenspalte.
 - **Detailspalte:** `DayEmptyState.make(...)` ≠ nil → `ContentUnavailableView` (noLessons: Titel `dayView.noLesson`, Symbol `DayStatement.noLesson.symbolName`; nonTeachingDay: Titel = Name, Symbol `sun.max`; sourceFailed: Titel `dayView.empty.sourceFailed`, Beschreibung = `error.settingsMessageKey` bzw. `timetableSource.error.server %lld`, Symbol `calendar.badge.exclamationmark`, Taste `dayView.retry` → `coordinator.refresh(.userRequest)`); sonst `selectedRow` → `DayLessonDetail(...).id(key.storageText).transition(.opacity)`, `.animation(.smooth(duration: 0.2), value: model.selection)` (UI-14); sonst `.selectLesson` → `ContentUnavailableView("dayView.selectLesson", systemImage: "hand.tap")`. Hintergrund `themeStyle.background` (ohne Systemneutrale).
-- **Schmale Breite (Lücke):** Ist der Tag ohne Zeilen und `horizontalSizeClass == .compact`, zeigt die Listenspalte denselben `ContentUnavailableView` als `.overlay` – das Detail ist dort sonst nicht erreichbar. Im Abschlussbericht nennen.
+- **Schmale Breite (Lücke):** Ist der Tag ohne Zeilen und `horizontalSizeClass == .compact` (nur `#if os(iOS)`: `EnvironmentValues.horizontalSizeClass` gibt es unter macOS nicht), zeigt die Listenspalte denselben `ContentUnavailableView` als `.overlay` – das Detail ist dort sonst nicht erreichbar. Im Abschlussbericht nennen.
 - **Takt:** `.task(id: model.day) { while !Task.isCancelled { try? await Task.sleep(for: .seconds(30)); model.tick() } }`; in der vorhandenen `onChange(of: scenePhase)` bei `.active` zusätzlich `model.sceneDidBecomeActive()`. Kein automatisches Scrollen (UI-14).
 - **„Am Smartboard“ ansagen (UI-12, UI-14):** `.onChange(of: secondScreen.shownMaterialLinkID)` → neuer Wert mit Namen aus den Zeilen: `AccessibilityNotification.Announcement(String(localized: "dayView.onSmartboard.announcement \(name)")).post()`; iOS zusätzlich `.sensoryFeedback(.selection, trigger: secondScreen.shownMaterialLinkID)`.
 - **Material öffnen (UI-14):** iOS: Kachel `.matchedTransitionSource(id: row.id, in: zoomNamespace)`, Betrachter `.navigationTransition(.zoom(sourceID: target.id, in: zoomNamespace))` nur wenn `!accessibilityReduceMotion`; sonst die Systemdarstellung ohne Zoom.
@@ -820,7 +821,7 @@ Texte: `dayView.selectLesson` Wähle eine Stunde · `dayView.empty.sourceFailed`
 - [ ] **Step 1: Skill laden** – `apple-design`; prüfen gegen HIG split-views, sidebars, lists-and-tables (Auswahl), materials (Glas nur Funktionsebene), motion (Reduce Motion), accessibility (Ansagen).
 - [ ] **Step 2: Erreichbarkeit prüfen (vor dem Löschen)** – Liste aller Closures in `DayRowActions` (`open`, `relink`, `moveToNext`, `assign`, `setCancelled`, `passOn`, `openBoard`) und je die neue Stelle notieren: Kachel-Tipp, Kachel-Kontextmenü, Kapselknopf, Tafel-Kachel, `OrphanMaterialRow`. Jede muss eine Stelle haben.
 - [ ] **Step 3: Implementieren.**
-- [ ] **Step 4: Syntax prüfen** (`scripts\swift-parse.ps1`), `rg "DayRowView|MaterialButton|DayViewLayout.rowHeight|orphanReserve|%d:%02d" Frontstage FrontstageTests` → keine Treffer; vorhandene `DayViewModelTests`, `PlanHintTests` bauen unverändert. Lücken im Abschlussbericht.
+- [ ] **Step 4: Syntax prüfen** (`scripts\swift-parse.ps1`), `rg "DayRowView|MaterialButton|DayViewLayout\.rowHeight\(|minRowHeight|maxRowHeight|orphanReserve|%d:%02d" Frontstage FrontstageTests` → keine Treffer (die Konstante `DayViewLayout.rowHeight` ohne Klammer bleibt erlaubt); vorhandene `DayViewModelTests`, `PlanHintTests` bauen unverändert. Lücken im Abschlussbericht.
 - [ ] **Step 5: Commit** – `git commit -m "ui: rebuild day view as list and detail per design decisions"`
 
 ---
