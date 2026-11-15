@@ -2,6 +2,22 @@ import Foundation
 
 /// Zeilenhöhe der Tagesansicht: so hoch wie der Platz erlaubt, damit alle Stunden ohne Scrollen passen.
 enum DayViewLayout {
+  // MARK: Maße der Tagesansicht (UI-4, UI-10)
+
+  /// Zeilenhöhe der Liste (Mindesthöhe, skaliert mit Dynamic Type).
+  static let rowHeight: CGFloat = 44
+  static let rowSpacing: CGFloat = 4
+  static let detailPadding: CGFloat = 16
+  static let sectionSpacing: CGFloat = 16
+  static let tileSpacing: CGFloat = 8
+  static let tileHeight: CGFloat = 120
+  /// Mindestbreite einer Kachel im adaptiven Raster.
+  static let tileMinWidth: CGFloat = 200
+  static let tileRadius: CGFloat = 16
+  static let selectionRadius: CGFloat = 10
+
+  // MARK: Alt (entfällt mit Task 10, wenn das alte `DayView` verschwindet)
+
   /// Platzhalter der offenen Gestaltungskategorie „Dichte“.
   static let minRowHeight: CGFloat = 44
   static let maxRowHeight: CGFloat = 96

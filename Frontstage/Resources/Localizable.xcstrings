@@ -1228,6 +1228,66 @@
         }
       }
     },
+    "dayView.now" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jetzt"
+          }
+        }
+      }
+    },
+    "dayView.now.accessibility" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "läuft jetzt"
+          }
+        }
+      }
+    },
+    "dayView.onSmartboard" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Am Smartboard"
+          }
+        }
+      }
+    },
+    "dayView.onSmartboard.accessibility" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "am Smartboard"
+          }
+        }
+      }
+    },
+    "dayView.row.periodTime %lld %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lld. Stunde · %2$@"
+          }
+        }
+      }
+    },
+    "dayView.fileType.unknown" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datei"
+          }
+        }
+      }
+    },
     "dayView.withoutLesson" : {
       "localizations" : {
         "de" : {
