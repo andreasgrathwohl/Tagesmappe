@@ -132,6 +132,7 @@ struct CoursePlanView: View {
         }
       }
     }
+    .themedBackground()
     .overlay {
       if model.groups.isEmpty {
         ContentUnavailableView {
@@ -244,6 +245,7 @@ private struct CoursePlanDetailView: View {
         unassigned(layout)
       }
     }
+    .themedBackground()
   }
 
   @ViewBuilder

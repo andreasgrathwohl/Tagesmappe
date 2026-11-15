@@ -39,6 +39,7 @@ enum RecordCodecError: Error, Equatable {
     try result += context.fetch(FetchDescriptor<CoursePlanRecord>()).map { export($0) }
     try result += context.fetch(FetchDescriptor<PlanWeekRecord>()).map { export($0) }
     try result += context.fetch(FetchDescriptor<AssessmentRecord>()).map { export($0) }
+    try result += context.fetch(FetchDescriptor<ThemeRecord>()).map { export($0) }
     return result
   }
 
@@ -62,6 +63,7 @@ enum RecordCodecError: Error, Equatable {
       case let record as CoursePlanRecord: result.append(export(record))
       case let record as PlanWeekRecord: result.append(export(record))
       case let record as AssessmentRecord: result.append(export(record))
+      case let record as ThemeRecord: result.append(export(record))
       default: continue
       }
     }
@@ -83,6 +85,7 @@ enum RecordCodecError: Error, Equatable {
     ids.formUnion(try fetchIDs(CoursePlanRecord.self, \.id, in: context))
     ids.formUnion(try fetchIDs(PlanWeekRecord.self, \.id, in: context))
     ids.formUnion(try fetchIDs(AssessmentRecord.self, \.id, in: context))
+    ids.formUnion(try fetchIDs(ThemeRecord.self, \.id, in: context))
     return ids
   }
 
@@ -215,6 +218,13 @@ enum RecordCodecError: Error, Equatable {
       createdAt: record.createdAt, coursePlanID: record.coursePlan?.id, mondayText: record.mondayText,
       dayText: record.dayText, kindRaw: record.kindRaw, title: record.title, updatedAt: record.updatedAt)
     return ExportedRecord(id: record.id, payload: .assessment(payload), attachmentData: [:])
+  }
+
+  private static func export(_ record: ThemeRecord) -> ExportedRecord {
+    let payload = ThemePayload(
+      createdAt: record.createdAt, baseToneRaw: record.baseToneRaw, accentHex: record.accentHex,
+      appearanceModeRaw: record.appearanceModeRaw, updatedAt: record.updatedAt)
+    return ExportedRecord(id: record.id, payload: .theme(payload), attachmentData: [:])
   }
 
   // MARK: - Inhalt → Datensatz
@@ -377,6 +387,15 @@ enum RecordCodecError: Error, Equatable {
       record.kindRaw = value.kindRaw
       record.title = value.title
       record.updatedAt = value.updatedAt
+
+    case .theme(let value):
+      let record = try existing(ThemeRecord.self, #Predicate<ThemeRecord> { $0.id == id }, in: context)
+        ?? insert(ThemeRecord(), id: id, in: context)
+      record.createdAt = value.createdAt
+      record.baseToneRaw = value.baseToneRaw
+      record.accentHex = value.accentHex
+      record.appearanceModeRaw = value.appearanceModeRaw
+      record.updatedAt = value.updatedAt
     }
   }
 
@@ -408,6 +427,8 @@ enum RecordCodecError: Error, Equatable {
       if let record = try existing(PlanWeekRecord.self, #Predicate<PlanWeekRecord> { $0.id == id }, in: context) { context.delete(record) }
     case .assessment:
       if let record = try existing(AssessmentRecord.self, #Predicate<AssessmentRecord> { $0.id == id }, in: context) { context.delete(record) }
+    case .theme:
+      if let record = try existing(ThemeRecord.self, #Predicate<ThemeRecord> { $0.id == id }, in: context) { context.delete(record) }
     }
   }
 
@@ -458,7 +479,7 @@ enum RecordCodecError: Error, Equatable {
   }
 }
 
-/// Gemeinsamer Zugriff auf die Kennung der zwölf Datensatz-Klassen (für `insert`).
+/// Gemeinsamer Zugriff auf die Kennung der dreizehn Datensatz-Klassen (für `insert`).
 /// Swift-Hinweis: Ein Protokoll mit `var id` ist nötig, weil `@Model`-Klassen sonst keinen
 /// gemeinsamen Typ für die schreibbare Eigenschaft haben.
 private protocol HasRecordID: AnyObject {
@@ -477,3 +498,4 @@ extension SchoolYearRecord: HasRecordID {}
 extension CoursePlanRecord: HasRecordID {}
 extension PlanWeekRecord: HasRecordID {}
 extension AssessmentRecord: HasRecordID {}
+extension ThemeRecord: HasRecordID {}

@@ -65,16 +65,22 @@ private struct DayViewHost: View {
   var body: some View { DayView(model: model) }
 }
 
-/// Tagesansicht (FR-4): alle Stunden des Tages ohne Scrollen, Material als Knöpfe.
-///
-/// Teilplan 06 legt die Smartboard-Leiste per `.safeAreaInset(edge: .bottom)` darunter; die Höhe der Zeilen
-/// folgt aus dem `GeometryReader` und passt sich damit an.
+/// Tagesansicht (FR-4, UI-3): links die Liste der Stunden des Tages, rechts die gewählte Stunde mit Material,
+/// Tafel und Aktionen. Teilplan 06 legt die Smartboard-Leiste per `.safeAreaInset(edge: .bottom)` darunter.
 struct DayView: View {
-  let model: DayViewModel
+  /// Swift-Hinweis: `@Bindable` erlaubt `$model.selection` für ein `@Observable`-Objekt, das als `let`
+  /// übergeben wird.
+  @Bindable var model: DayViewModel
 
   @Environment(AppEnvironment.self) private var environment
+  @Environment(SecondScreenState.self) private var secondScreen
+  @Environment(TimetableSourceCoordinator.self) private var coordinator
   @Environment(\.scenePhase) private var scenePhase
   @Environment(\.showSetup) private var showSetup
+  @Environment(\.accessibilityReduceMotion) private var reduceMotion
+  #if os(iOS)
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+  #endif
 
   @State private var relinkTarget: MaterialRow?
   @State private var isImporting = false
@@ -88,36 +94,45 @@ struct DayView: View {
   @State private var boardTarget: BoardTarget?
   /// Anker der zuletzt geöffneten Zeile – für „ohne AutoSpeichern öffnen“ nach der Rückkehr.
   @State private var lastAnchor = HandOffAnchor()
-
+  /// Verbindet die Material-Kachel mit dem Betrachter (Zoom-Übergang, UI-14).
+  @Namespace private var zoomNamespace
 
   var body: some View {
-    NavigationStack {
-      VStack(spacing: 0) {
-        SourceStatusBar()
-          .padding(.horizontal)
-          .padding(.bottom, 8)
-        GeometryReader { proxy in
-          content(availableHeight: proxy.size.height)
-        }
-      }
-      // Die Tafel hängt an der inneren Ansicht, nicht am `NavigationStack`: dort sitzt schon die Anzeige des
-      // Betrachters, und zwei Präsentationen am selben Knoten stören sich.
-      .boardPresentation($boardTarget)
-      .navigationTitle(Text(dayTitle))
-      .toolbar { toolbar }
-      // Smartboard-Leiste unter den Zeilen (Teilplan 06); die Zeilenhöhe folgt dem verbleibenden Platz.
-      #if os(iOS)
-        .safeAreaInset(edge: .bottom, spacing: 0) { SmartboardBar() }
-      #endif
+    NavigationSplitView {
+      list
+    } detail: {
+      detail
     }
+    // Smartboard-Leiste unter beiden Spalten (Teilplan 06).
+    #if os(iOS)
+      .safeAreaInset(edge: .bottom, spacing: 0) { SmartboardBar() }
+    #endif
     // Neuer Stand von diesem oder dem anderen Gerät → neu lesen.
     .onChange(of: environment.store.revision) { model.reload() }
-    // Zurück in der App nach einer Cloud-Übergabe: „ohne AutoSpeichern öffnen“ anbieten.
+    // Zurück in der App: nach einer Cloud-Übergabe „ohne AutoSpeichern öffnen“ anbieten, Uhrzeit und Tag nachführen.
     .onChange(of: scenePhase) { _, phase in
       if phase == .active {
         autoSaveOffer = environment.storage.offerOpenWithoutAutoSave(now: .now)
+        model.sceneDidBecomeActive()
       }
     }
+    // Takt für Automatik und „Jetzt“; kein automatisches Scrollen (UI-14). Endet mit dem Tageswechsel.
+    .task(id: model.day) {
+      while !Task.isCancelled {
+        try? await Task.sleep(for: .seconds(30))
+        model.tick()
+      }
+    }
+    // „Am Smartboard“ ansagen (UI-12): die Kapsel allein erreicht VoiceOver beim Wechsel nicht.
+    .onChange(of: secondScreen.shownMaterialLinkID) { _, linkID in
+      guard let linkID, let name = materialName(for: linkID) else { return }
+      AccessibilityNotification.Announcement(
+        String(localized: "dayView.onSmartboard.announcement \(name)")
+      ).post()
+    }
+    #if os(iOS)
+      .sensoryFeedback(.selection, trigger: secondScreen.shownMaterialLinkID)
+    #endif
     .fileImporter(isPresented: $isImporting, allowedContentTypes: [.item]) { result in
       guard let target = relinkTarget else { return }
       relinkTarget = nil
@@ -151,7 +166,10 @@ struct DayView: View {
       Button("dayView.ok", role: .cancel) {}
     }
     #if os(iOS)
-      .fullScreenCover(item: $viewerTarget) { target in ViewerView(linkID: target.id) }
+      .fullScreenCover(item: $viewerTarget) { target in
+        ViewerView(linkID: target.id)
+          .modifier(ZoomTransition(sourceID: target.id, namespace: zoomNamespace, isEnabled: !reduceMotion))
+      }
     #else
       .sheet(item: $viewerTarget) { target in
         ViewerView(linkID: target.id).frame(minWidth: 720, minHeight: 560)
@@ -165,7 +183,7 @@ struct DayView: View {
     }
   }
 
-  // MARK: Kopf
+  // MARK: Listenspalte
 
   private var dayTitle: String {
     let day = model.day
@@ -181,77 +199,150 @@ struct DayView: View {
     }
   }
 
-  // MARK: Inhalt
+  /// Die Stunden des Tages (UI-3, UI-4); darunter nur „Material ohne Stunde“, wenn es welches gibt (UI-13).
+  private var list: some View {
+    List(selection: $model.selection) {
+      if case .rows(let rows) = model.content {
+        ForEach(rows) { row in
+          switch row {
+          case .lesson(let lesson):
+            DayListRow(
+              row: lesson, line: lesson.listLine(availability: liveAvailability),
+              isRunning: model.runningLessonKey == lesson.lesson.key
+            )
+            .tag(lesson.lesson.key)
+            .modifier(SelectionRowBackground(isSelected: model.selection == lesson.lesson.key))
+            .listRowSeparator(.hidden)
+          case .noLesson(let period, let time):
+            DayGapRow(period: period, time: time, day: model.day)
+              .selectionDisabled()
+              .modifier(SelectionRowBackground(isSelected: false))
+              .listRowSeparator(.hidden)
+          }
+        }
+      }
+      if !model.materialsWithoutLesson.isEmpty {
+        Section {
+          ForEach(model.materialsWithoutLesson) { item in
+            OrphanMaterialRow(
+              row: MaterialRow(
+                item: item, availability: environment.storage.availability[item.reference.locationKey]),
+              isOpening: model.openingLinkIDs.contains(item.id), actions: rowActions
+            )
+            .selectionDisabled()
+            .modifier(SelectionRowBackground(isSelected: false))
+            .listRowSeparator(.hidden)
+          }
+        } header: {
+          Text("dayView.withoutLesson")
+        }
+      }
+    }
+    .listStyle(.plain)
+    #if os(iOS)
+      .listRowSpacing(DayViewLayout.rowSpacing)
+    #endif
+    .modifier(ThemedSurface(hidesListBackground: true))
+    .safeAreaInset(edge: .top, spacing: 0) {
+      SourceStatusBar()
+        .padding(.horizontal)
+        .padding(.bottom, 8)
+    }
+    .overlay { compactEmptyState }
+    .navigationTitle(Text(dayTitle))
+    .toolbar { toolbar }
+  }
 
-  @ViewBuilder private func content(availableHeight: CGFloat) -> some View {
-    switch model.content {
-    case .nonTeachingDay(let title):
-      ScrollView {
-        VStack(spacing: 16) {
-          ContentUnavailableView(title, systemImage: "sun.max")
-          orphanSection
-        }
-        .padding(.horizontal)
+  /// Zustand der Quelle und des Tages zur Renderzeit; `nil`, solange es Zeilen gibt.
+  private var emptyState: DayEmptyState? {
+    // Mitlesen, damit ein Abgleich vom anderen Gerät (Quelle, Stand) neu zeichnet.
+    _ = coordinator.repository.revision
+    return DayEmptyState.make(
+      content: model.content,
+      sourceKind: (try? coordinator.repository.timetableSourceKind()) ?? .manual,
+      fetchedAt: try? coordinator.repository.sourceFetchedAt(),
+      lastError: coordinator.status.lastError)
+  }
+
+  /// Schmale Breite (z. B. Split View): Das Detail ist ohne Zeilen nicht erreichbar, also zeigt die Liste
+  /// den Zustand selbst. Unter macOS gibt es keine `horizontalSizeClass`.
+  @ViewBuilder private var compactEmptyState: some View {
+    #if os(iOS)
+      if horizontalSizeClass == .compact, let state = emptyState {
+        emptyView(state)
       }
-    case .noLessons:
-      ScrollView {
-        VStack(spacing: 16) {
-          ContentUnavailableView(
-            "dayView.noLesson", systemImage: DayStatement.noLesson.symbolName)
-          orphanSection
-        }
-        .padding(.horizontal)
-      }
-    case .rows(let rows):
-      let reserve = DayViewLayout.orphanReserve(count: model.materialsWithoutLesson.count)
-      // Höhe fest, solange selbst die Mindesthöhe passt; sonst `nil` → Scrollen.
-      if let rowHeight = DayViewLayout.rowHeight(
-        availableHeight: availableHeight - reserve, rowCount: rows.count)
-      {
-        VStack(alignment: .leading, spacing: 8) {
-          ForEach(rows) { row in
-            DayRowView(row: row, openingIDs: model.openingLinkIDs, actions: rowActions)
-              .frame(height: rowHeight)
-          }
-          // Eigener Scrollbereich mit Höchsthöhe: auch viele Einträge bleiben erreichbar (FR-7).
-          ScrollView { orphanSection }
-            .frame(maxHeight: reserve)
-          Spacer(minLength: 0)
-        }
-        .padding(.horizontal)
+    #endif
+  }
+
+  // MARK: Detailspalte
+
+  private var detail: some View {
+    Group {
+      if let state = emptyState {
+        emptyView(state)
+      } else if let row = model.selectedRow {
+        DayLessonDetail(
+          row: row, day: model.day, openingIDs: model.openingLinkIDs,
+          shownLinkID: secondScreen.shownMaterialLinkID,
+          isBoardShown: secondScreen.isBoardShown && secondScreen.boardLessonKey == row.lesson.key,
+          actions: rowActions, zoomNamespace: zoomNamespace
+        )
+        .id(row.id)
+        .transition(.opacity)
       } else {
-        ScrollView {
-          VStack(alignment: .leading, spacing: 8) {
-            ForEach(rows) { row in
-              DayRowView(row: row, openingIDs: model.openingLinkIDs, actions: rowActions)
-                .frame(minHeight: DayViewLayout.minRowHeight)
-            }
-            orphanSection
-          }
-          .padding(.horizontal)
-        }
+        emptyView(.selectLesson)
       }
+    }
+    // Überblendung beim Stundenwechsel, kurz; sie bleibt auch bei „Bewegung reduzieren“ (UI-14).
+    .animation(.smooth(duration: 0.2), value: model.selection)
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .modifier(ThemedSurface(hidesListBackground: false))
+    // Die Tafel hängt an der Detailspalte, nicht am Wurzelknoten: dort sitzt schon die Anzeige des Betrachters,
+    // und zwei Präsentationen am selben Knoten stören sich.
+    .boardPresentation($boardTarget)
+  }
+
+  /// Ruhige Aussage statt leerer Fläche (UI-13).
+  @ViewBuilder private func emptyView(_ state: DayEmptyState) -> some View {
+    switch state {
+    case .noLessons:
+      ContentUnavailableView("dayView.noLesson", systemImage: DayStatement.noLesson.symbolName)
+    case .nonTeachingDay(let title):
+      ContentUnavailableView(title, systemImage: "sun.max")
+    case .sourceFailed(let error):
+      ContentUnavailableView {
+        Label("dayView.empty.sourceFailed", systemImage: "calendar.badge.exclamationmark")
+      } description: {
+        if case .server(let status) = error {
+          Text("timetableSource.error.server \(status)")
+        } else {
+          Text(LocalizedStringKey(error.settingsMessageKey))
+        }
+      } actions: {
+        Button("dayView.retry") { Task { await coordinator.refresh(.userRequest) } }
+      }
+    case .selectLesson:
+      ContentUnavailableView("dayView.selectLesson", systemImage: "hand.tap")
     }
   }
 
-  /// „Material ohne Stunde“ (FR-7): Zuordnungen dieses Tages, deren Stunde es heute nicht gibt.
-  @ViewBuilder private var orphanSection: some View {
-    if !model.materialsWithoutLesson.isEmpty {
-      VStack(alignment: .leading, spacing: 8) {
-        Divider()
-        Text("dayView.withoutLesson").font(.headline)
-        ForEach(model.materialsWithoutLesson) { item in
-          let row = MaterialRow(item: item, availability: environment.storage.availability[item.reference.locationKey])
-          HStack {
-            MaterialButton(
-              row: row, isOpening: model.openingLinkIDs.contains(row.id), style: .full, inLesson: false,
-              actions: rowActions)
-            Button("dayView.assign") { assignTarget = item }
-              .frame(minHeight: 44)
-          }
+  // MARK: Material
+
+  /// Zustand zur Renderzeit aus der Ablage (beobachtet); die Zeile trägt nur den Stand des letzten Lesens.
+  private func liveAvailability(_ row: MaterialRow) -> MaterialAvailability? {
+    environment.storage.availability[row.item.reference.locationKey] ?? row.availability
+  }
+
+  /// Name des Materials, das am Zweitbildschirm erscheint (aus den Zeilen des Tages).
+  private func materialName(for linkID: UUID) -> String? {
+    if case .rows(let rows) = model.content {
+      for case .lesson(let lesson) in rows {
+        if let material = lesson.materials.first(where: { $0.id == linkID }) {
+          return material.item.reference.displayName
         }
       }
     }
+    return model.materialsWithoutLesson.first { $0.id == linkID }?.reference.displayName
   }
 
   // MARK: Aktionen
@@ -423,3 +514,56 @@ struct AssignLessonSheet: View {
     return (date ?? .now).formatted(.dateTime.weekday(.abbreviated).day().month(.abbreviated))
   }
 }
+
+/// Hintergrund der Spalten in der gewählten Farbwelt (UI-8, UI-10). Beim Grundton „System“ bleibt alles beim
+/// Systemstandard (Entscheidung 14).
+private struct ThemedSurface: ViewModifier {
+  let hidesListBackground: Bool
+  @Environment(\.themeStyle) private var style
+
+  func body(content: Content) -> some View {
+    if style.usesSystemNeutrals {
+      content
+    } else if hidesListBackground {
+      content.scrollContentBackground(.hidden).background(style.background)
+    } else {
+      content.background(style.background)
+    }
+  }
+}
+
+/// Zeilenfläche der Liste: gewählt mit gerundeter Auswahlfläche, sonst Grundfarbe; beim Grundton „System“
+/// nichts davon.
+private struct SelectionRowBackground: ViewModifier {
+  let isSelected: Bool
+  @Environment(\.themeStyle) private var style
+
+  func body(content: Content) -> some View {
+    if style.usesSystemNeutrals {
+      content
+    } else if isSelected {
+      content.listRowBackground(
+        RoundedRectangle(cornerRadius: DayViewLayout.selectionRadius, style: .continuous)
+          .fill(style.selection))
+    } else {
+      content.listRowBackground(style.background)
+    }
+  }
+}
+
+#if os(iOS)
+  /// Zoom-Übergang vom Material zum Betrachter; bei „Bewegung reduzieren“ die Systemdarstellung (UI-14).
+  private struct ZoomTransition: ViewModifier {
+    let sourceID: UUID
+    let namespace: Namespace.ID
+    let isEnabled: Bool
+
+    func body(content: Content) -> some View {
+      if isEnabled {
+        content.navigationTransition(.zoom(sourceID: sourceID, in: namespace))
+      } else {
+        content
+      }
+    }
+  }
+#endif

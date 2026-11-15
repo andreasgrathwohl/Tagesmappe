@@ -23,28 +23,93 @@ import OSLog
   /// Herunterladen) – Ladezustand der Zeile.
   private(set) var openingLinkIDs: Set<UUID> = []
   let actions: LessonActions
+  /// Auswahl der Stunde: Automatik, bis die Lehrkraft von Hand wählt (UI-3, UI-12).
+  private(set) var selectionState = DaySelection()
+  /// Die Stunde, die gerade läuft („Jetzt“); nur am heutigen Tag und nur während einer Stunde ohne Ausfall.
+  private(set) var runningLessonKey: LessonKey?
+  /// Kalendertag der letzten Aktivierung der Szene – erkennt einen Tageswechsel über Nacht.
+  private var lastActiveDay: CalendarDay
 
   init(environment: AppEnvironment) {
     self.environment = environment
     self.day = environment.today()
+    self.lastActiveDay = environment.today()
     self.actions = LessonActions(environment: environment)
     reload()
+  }
+
+  // MARK: Auswahl
+
+  /// Gewählte Stunde. Das Setzen ist eine Handauswahl; sie bleibt über Minutentakt und `reload()` stehen,
+  /// solange es die Stunde gibt. Für `List(selection:)`.
+  var selection: LessonKey? {
+    get { selectionState.selected }
+    set { selectionState.select(newValue, lessons: lessons, now: nowTime) }
+  }
+
+  /// Die Zeile der gewählten Stunde.
+  var selectedRow: LessonRow? {
+    guard let key = selectionState.selected else { return nil }
+    return lessonRows.first { $0.lesson.key == key }
+  }
+
+  /// Minutentakt: Automatik und „Jetzt“ nachführen.
+  func tick() {
+    updateSelection()
+  }
+
+  /// Die Szene wird aktiv: Ist seit der letzten Aktivierung ein neuer Kalendertag angebrochen, zurück zu
+  /// heute und zur Automatik; sonst nur der Zeittakt.
+  func sceneDidBecomeActive() {
+    let today = environment.today()
+    if today != lastActiveDay {
+      lastActiveDay = today
+      showToday()
+    } else {
+      tick()
+    }
+  }
+
+  private var lessonRows: [LessonRow] {
+    guard case .rows(let rows) = content else { return [] }
+    return rows.compactMap { row in
+      if case .lesson(let lesson) = row { return lesson }
+      return nil
+    }
+  }
+
+  private var lessons: [Lesson] { lessonRows.map(\.lesson) }
+
+  /// Uhrzeit „jetzt“, nur am heutigen Tag; an anderen Tagen `nil` (keine Automatik nach der Uhr).
+  private var nowTime: TimeOfDay? {
+    guard day == environment.today() else { return nil }
+    return TimeOfDay(environment.now(), calendar: .current)
+  }
+
+  private func updateSelection() {
+    let lessons = lessons
+    let now = nowTime
+    selectionState.update(lessons: lessons, now: now)
+    runningLessonKey = now.flatMap { DaySelection.runningLesson(lessons: lessons, now: $0) }
   }
 
   // MARK: Tageswechsel
 
   func showPreviousDay() {
     day = day.adding(days: -1)
+    selectionState.reset()
     reload()
   }
 
   func showNextDay() {
     day = day.adding(days: 1)
+    selectionState.reset()
     reload()
   }
 
   func showToday() {
     day = environment.today()
+    selectionState.reset()
     reload()
   }
 
@@ -66,6 +131,7 @@ import OSLog
     let result = Self.content(for: day, store: environment.store, storage: environment.storage)
     content = result.content
     materialsWithoutLesson = result.orphans
+    updateSelection()
   }
 
   /// Zeilenbau eines Tages – gemeinsam für Tagesansicht und Vorbereiten-Woche (kein doppelter Bau).

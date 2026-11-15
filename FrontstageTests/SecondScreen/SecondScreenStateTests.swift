@@ -83,4 +83,24 @@ import Testing
     m.updateDrawing(TestDrawings.word, pageIndex: 0)
     #expect(m.material == nil)
   }
+
+  @Test("UI-12: gezeigtes Material nur verbunden und im Modus Material")
+  func shownMaterialLinkIDOnlyWhenShown() {
+    let m = SecondScreenState()
+    m.openMaterial(presentation)
+    #expect(m.shownMaterialLinkID == nil)  // kein Bildschirm verbunden
+    m.displayConnected(aspectRatio: 16.0 / 9.0)
+    #expect(m.shownMaterialLinkID == presentation.linkID)
+    m.toggleDark()
+    #expect(m.shownMaterialLinkID == nil)
+    m.toggleDark()
+    m.closeMaterial()
+    #expect(m.shownMaterialLinkID == nil)
+    #expect(!m.isBoardShown)
+    m.setBoardLesson(TestKeys.tue8aEnglish)
+    m.select(.board)
+    #expect(m.isBoardShown)
+    m.displayDisconnected()
+    #expect(!m.isBoardShown)
+  }
 }

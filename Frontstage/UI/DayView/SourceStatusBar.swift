@@ -74,7 +74,7 @@ struct SourceStatusBarModel: Equatable {
 }
 
 /// Statusleiste der Stundenplan-Quelle für den Kopf der Tagesansicht; Teilplan 04 hängt sie dort ein.
-/// Zustand immer als Symbol plus Text, nie nur über Farbe. Gestaltung (Wortlaut, Anordnung) ist offen.
+/// Zustand immer als Symbol plus Text, nie nur über Farbe; Schrift und Farben nach UI-6 (keine `.secondary`-Töne).
 ///
 /// Swift-Hinweis: `@Environment(Type.self)` liest ein `@Observable`-Objekt aus der Umgebung; SwiftUI
 /// zeichnet die Ansicht neu, sobald sich eine dabei gelesene Eigenschaft ändert.
@@ -88,6 +88,7 @@ struct SourceStatusBar: View {
   /// Erscheinen und nach Anmelden/Abmelden, nicht bei jedem Neuzeichnen (jeder Zugriff fragt den Schlüsselbund).
   @State private var hasCredentials: Bool?
   @State private var isShowingPreview = false
+  @Environment(\.themeStyle) private var style
 
   init() {}
 
@@ -102,8 +103,11 @@ struct SourceStatusBar: View {
             Image(systemName: "calendar.badge.clock")
           }
           Spacer()
+          // Beim Abfragen bleibt der letzte Stand sichtbar; nur ein kleiner Fortschrittsanzeiger davor (UI-13).
+          if coordinator.isFetching {
+            ProgressView().controlSize(.small)
+          }
           fetchedAtText(model)
-            .foregroundStyle(.secondary)
           Button("sourceStatus.refresh") {
             Task { await coordinator.refresh(.userRequest) }
           }
@@ -111,7 +115,8 @@ struct SourceStatusBar: View {
         }
         noticeLabel(model.notice)
       }
-      .font(.footnote)
+      .scaledFont(.detailMeta)
+      .foregroundStyle(style.text)
       // Dieselbe Vorschau wie unter Einrichten › Stundenplan-Quelle (gleicher Koordinator, kein eigener Zustand).
       .sheet(isPresented: $isShowingPreview) {
         if let preview = coordinator.pendingPreview {

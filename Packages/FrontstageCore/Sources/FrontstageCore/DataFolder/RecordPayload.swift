@@ -214,6 +214,7 @@ public enum RecordPayload: Hashable, Sendable {
   case coursePlan(CoursePlanPayload)
   case planWeek(PlanWeekPayload)
   case assessment(AssessmentPayload)
+  case theme(ThemePayload)
 
   public var model: SyncModel {
     switch self {
@@ -229,6 +230,7 @@ public enum RecordPayload: Hashable, Sendable {
     case .coursePlan: .coursePlan
     case .planWeek: .planWeek
     case .assessment: .assessment
+    case .theme: .theme
     }
   }
 
@@ -275,6 +277,7 @@ extension RecordPayload: Encodable {
     case .coursePlan(let value): try value.encode(to: encoder)
     case .planWeek(let value): try value.encode(to: encoder)
     case .assessment(let value): try value.encode(to: encoder)
+    case .theme(let value): try value.encode(to: encoder)
     }
   }
 
@@ -293,6 +296,7 @@ extension RecordPayload: Encodable {
     case .coursePlan: self = .coursePlan(try CoursePlanPayload(from: decoder))
     case .planWeek: self = .planWeek(try PlanWeekPayload(from: decoder))
     case .assessment: self = .assessment(try AssessmentPayload(from: decoder))
+    case .theme: self = .theme(try ThemePayload(from: decoder))
     }
   }
 }

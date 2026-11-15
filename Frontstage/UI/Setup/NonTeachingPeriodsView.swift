@@ -46,6 +46,7 @@ struct NonTeachingPeriodsView: View {
         periodRow(period)
       }
     }
+    .themedBackground()
     .navigationTitle(Text("setup.nonTeaching.title"))
     .toolbar {
       ToolbarItem(placement: .primaryAction) {

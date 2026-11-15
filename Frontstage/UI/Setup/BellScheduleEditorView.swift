@@ -50,6 +50,7 @@ struct BellScheduleEditorView: View {
           .disabled(model.periods.isEmpty)
       }
     }
+    .themedBackground()
     .navigationTitle(Text("setup.bellSchedule.title"))
     .alert(
       Text("setup.bellSchedule.error.title"), isPresented: errorBinding,

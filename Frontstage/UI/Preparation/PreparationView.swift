@@ -175,6 +175,7 @@ struct PreparationView: View {
         }
       }
     }
+    .themedBackground()
   }
 
   /// Ein Leistungsnachweis der Woche mit Klasse-unabhängiger Angabe: Art, Titel, Fach und Jahrgang, ggf. Tag.

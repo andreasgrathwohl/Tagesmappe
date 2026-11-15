@@ -56,6 +56,7 @@ struct SchoolYearSettingsView: View {
         Text("setup.schoolYears.removeHint")
       }
     }
+    .themedBackground()
     .navigationTitle(Text("setup.schoolYears.title"))
     .toolbar {
       ToolbarItem(placement: .primaryAction) {

@@ -26,6 +26,7 @@ private final class BundleToken {}
     context.insert(CoursePlanRecord())
     context.insert(PlanWeekRecord())
     context.insert(AssessmentRecord())
+    context.insert(ThemeRecord())
     try context.save()
     #expect(try context.fetchCount(FetchDescriptor<SchoolYearRecord>()) == 1)
     #expect(try context.fetchCount(FetchDescriptor<CoursePlanRecord>()) == 1)
@@ -39,6 +40,7 @@ private final class BundleToken {}
     #expect(try context.fetchCount(FetchDescriptor<LessonInfoRecord>()) == 1)
     #expect(try context.fetchCount(FetchDescriptor<BoardPageRecord>()) == 1)
     #expect(try context.fetchCount(FetchDescriptor<PenNoteRecord>()) == 1)
+    #expect(try context.fetchCount(FetchDescriptor<ThemeRecord>()) == 1)
   }
 
   @Test("Zuordnung löschen löscht ihre Stiftnotizen mit (Area anzeige, Stiftnotizen)")

@@ -117,6 +117,7 @@ struct LessonDetailView: View {
       materialSection(items)
       actionSection(row, hasMaterial: !items.isEmpty)
     }
+    .themedBackground()
     .navigationTitle(
       Text(verbatim: "\(row.lesson.key.schoolClass.normalized) · \(row.lesson.key.subject.display)")
     )

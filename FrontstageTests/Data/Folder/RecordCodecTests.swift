@@ -11,7 +11,7 @@ import Testing
 
   private func makeContext() throws -> ModelContext { try makeStore().modelContext }
 
-  /// Füllt einen Store mit je einem Datensatz aller zwölf Modelle (alle Felder gesetzt).
+  /// Füllt einen Store mit je einem Datensatz aller dreizehn Modelle (alle Felder gesetzt).
   @discardableResult
   private func populate(_ context: ModelContext) -> (timetable: TimetableRecord, link: MaterialLinkRecord) {
     let timetable = TimetableRecord(
@@ -115,6 +115,14 @@ import Testing
     assessment.updatedAt = later
     context.insert(assessment)
 
+    let theme = ThemeRecord()
+    theme.createdAt = date
+    theme.baseToneRaw = "petrol"
+    theme.accentHex = "#C2410C"
+    theme.appearanceModeRaw = "dark"
+    theme.updatedAt = later
+    context.insert(theme)
+
     return (timetable, link)
   }
 
@@ -132,7 +140,7 @@ import Testing
     Dictionary(uniqueKeysWithValues: try records.map { ($0.id, try RecordCodec.state(of: $0).payloadHash) })
   }
 
-  @Test("FR-14/FR-15: Jedes der zwölf Modelle hin und zurück ergibt dieselbe Prüfsumme")
+  @Test("FR-14/FR-15: Jedes der dreizehn Modelle hin und zurück ergibt dieselbe Prüfsumme")
   func roundTripKeepsHashForEveryModel() throws {
     let source = try makeContext()
     populate(source)
@@ -271,7 +279,7 @@ import Testing
     try context.save()
     let exported = try RecordCodec.exportAll(from: context)
     #expect(try RecordCodec.liveIDs(in: context) == Set(exported.map(\.id)))
-    #expect(exported.count == 12)
+    #expect(exported.count == 13)
   }
 
   @Test("export(_:) liefert nur die genannten Datensätze")

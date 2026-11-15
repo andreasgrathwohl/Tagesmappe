@@ -119,6 +119,7 @@ struct ImportPreviewView: View {
           }
         }
       }
+      .themedBackground()
       .navigationTitle("timetableSource.preview.title")
       #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
