@@ -1,4 +1,6 @@
 # Dockhand-Stack (Git): Dockhand klont das Repository und baut das Image selbst (pull_policy: build).
+# In Dockhand: Compose path server/deploy/docker-compose.yml, Context directory . (Repo-Wurzel) –
+# sonst liegt nur diese Datei im Stack-Ordner und der Build-Kontext .. (= server/) fehlt.
 # Alle Geheimnisse kommen als Umgebungsvariablen des Stacks; fehlt eine, bricht Compose ab.
 # Öffentlich erreichbar nur über den Cloudflare Tunnel; keine veröffentlichten Ports.
 name: frontstage
