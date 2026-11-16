@@ -16,7 +16,9 @@
 | Jahresplanung | Jahresplan je Fach, Jahrgang und Schuljahr (FR-15), Schuljahr und Halbjahre (FR-15.1), Wochen mit Thema, Tests, Klassenarbeiten und Notizen (FR-15.2), frühere Jahre im Blick (FR-15.3), Vorjahresplan übernehmen (FR-15.4), Wochenthema als Vorschlag beim Vorbereiten (FR-15.5), Leistungsnachweise in Tagesansicht und Vorbereiten (FR-15.6) |
 | Erscheinungsbild | Grundton, Akzentfarbe und Hell/Dunkel einstellbar (FR-16), freie Akzentfarbe mit Kontrastschutz (FR-16.1), Hell/Dunkel unabhängig vom iPad (FR-16.2) |
 | Hilfe und Rückmeldung | Hilfeknöpfe an jedem Bildschirm (FR-17.1), Hilfecenter mit Suche, ohne Netz, am Mac im Menü „Hilfe“ (FR-17.2), Idee oder Hinweis per E-Mail (FR-17.3), Bildschirmfotos mit Zeichnung und Schwärzen (FR-17.4), Kurz-Tipps beim ersten Gebrauch (FR-17.5); immer kostenlos (FR-17) |
-| Qualität | sofort und aktuell verfügbar (NFR-1), keine eigenen Server (NFR-2), jede Ablage (NFR-3), Zugangsdaten nur auf dem Gerät (NFR-4) |
+| Rückmeldedienst | Rückmeldungen beim Betreiber annehmen und aufbewahren (FR-18), Verwaltungsseite (FR-18.1), Löschen nach zwölf Monaten und auf Anfrage (FR-18.2) |
+| Startseite | ein Schultag mit der App (FR-19), Impressum und Datenschutz (FR-19.1) |
+| Qualität | sofort und aktuell verfügbar (NFR-1), keine Nutzerdaten auf Servern des Produkts, nur ausdrücklich gesendete Rückmeldungen (NFR-2), jede Ablage (NFR-3), Zugangsdaten nur auf dem Gerät (NFR-4) |
 | Preis | Kern kostenlos, Klassenbildschirm, Tafel und Anpassung des Erscheinungsbilds per Einmalkauf, kein Abo (FR-13); Hilfe und Rückmeldung immer kostenlos; Schulmanager-Import immer kostenlos (FR-13.1) |
 
 ## Später

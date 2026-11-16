@@ -57,8 +57,9 @@ gerade sieht. Was an die Tafel geschrieben wird, bleibt als Tafelbild bei der Un
 
 An jedem Bildschirm führt ein Fragezeichen zur passenden Erklärung, die in der App liegt und ohne Netz
 lesbar ist; das Hilfecenter in Einrichten durchsucht alle Artikel. Ideen und Hinweise schickt die Lehrkraft
-per E-Mail aus ihrem eigenen Mail-Programm, auf Wunsch mit Bildschirmfotos, auf die sie zeichnen und auf denen
-sie Namen schwärzen kann.
+an den Rückmeldedienst der Entwickler – nach einmaliger Zustimmung, ersatzweise per E-Mail –, auf Wunsch mit
+Bildschirmfotos, auf die sie zeichnen und auf denen sie Namen schwärzen kann. Die Entwickler lesen sie auf einer
+Verwaltungsseite; nach zwölf Monaten werden sie gelöscht. Eine Startseite zeigt an einem Schultag, wie die App hilft.
 
 ## Für wen
 
@@ -67,7 +68,7 @@ Eltern oder Verwaltung.
 
 ## Grundsätze
 
-- **Keine eigenen Server** – Daten bleiben bei der Lehrkraft, wahlweise in iCloud oder in ihrem OneDrive; ein zweites Gerät koppelt per QR-Code.
+- **Keine Nutzerdaten auf unseren Servern** – nur eine Rückmeldung, die die Lehrkraft ausdrücklich sendet, erreicht den Dienst der Entwickler; alle Daten bleiben bei der Lehrkraft, wahlweise in iCloud oder in ihrem OneDrive; ein zweites Gerät koppelt per QR-Code.
 - **Notizen neben dem Dokument** – Stiftnotizen liegen als Notiz-Datei und lesbares PDF im Ordner des Materials.
 - **Ein Stand je Datei** – Zuordnen verweist, kopiert nie.
 - **Präsentieren bleibt in PowerPoint & Co.** – die App ersetzt sie nicht.

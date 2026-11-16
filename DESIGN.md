@@ -665,6 +665,8 @@ formatiert Uhrzeiten heute von Hand (`PeriodHeader` in `Frontstage/UI/DayView/Da
 - Q-38: Wie sieht die Tafel aus (FR-12 bis FR-12.7)? Offen seit Teilplan 07, gebaut mit Systemvorgaben: Breite (220 pt) und Reihenfolge der Seitenleiste, Seitenvorschauen statt Nummern, Farbe und Abstand der Linien und Karos, Farbe der Abdeckung (Platzhalter Schwarz; die Systemhintergrundfarbe wäre auf der weißen Seite am Tablet unsichtbar), Farbe der Streifen neben der Seite am Zweitbildschirm (Platzhalter Schwarz), Wortlaut „Letztes Tafelbild“.
 - Q-39: Wie sieht das Kaufangebot aus (FR-13)? Offen seit Teilplan 07: Wortlaut (Platzhalter) und Anordnung von Titel, Hinweis, Produktansicht und „Käufe wiederherstellen“.
 - ~~Q-41~~: Rot („Entfällt“) und Orange („Material nicht verfügbar“) erreichen als kleiner Text auf dem hellen warmen Grund nur 3,35:1 bzw. 2,07:1 (Ziel 4,5:1). Dunklere Signaltöne für hell (z. B. Rot `#C4271D`, Orange `#B25C00`), Signal nur im Symbol und Text in Textfarbe, oder Signal als getönte Fläche? Gehört zu Runde 8 (Zustände). Gefunden in Runde 6. → answered 2026-11-15: Signalfarbe nur im Symbol (≥ 3:1), Wort in Textfarbe (UI-11).
+- Q-46: Wie sieht die Startseite aus (FR-19)? Sie ist eine neue Oberfläche außerhalb der Referenz aus UI-2 (Web, Modus Persuade statt Operate). Bis zur Antwort: Die Gestaltung entsteht beim Bau (Teilplan 13) mit dem Skill `design-taste-frontend`, von Andreas delegiert; Darstellungen der App folgen UI-6 bis UI-12 (warmer Grundton, Petrol-Akzent, Rundschrift als Ersatz für SF Rounded). Das Ergebnis wird danach hier als Beschluss festgehalten oder in einer Design-Runde bestätigt.
+- Q-47: Wie verhält und zeigt sich die Verwaltungsseite (FR-18.1)? Neue Oberfläche außerhalb von UI-2 (Web, datendicht, nur für den Betreiber). Bis zur Antwort: Verhalten nach `design:enterprise-ux-patterns` (Liste mit Filtern, leere/Fehler-Zustände, Löschen mit Rückfrage), Aussehen schlicht nach Systemstandard des Browsers mit den Grundtönen aus UI-8; entschieden beim Bau (Teilplan 12), von Andreas delegiert.
 
 ## Changes
 
@@ -687,3 +689,4 @@ formatiert Uhrzeiten heute von Hand (`PeriodHeader` in `Frontstage/UI/DayView/Da
 - 2026-11-15: UI-10 new — Runde 7: Formen beim Ist-Zustand (Kacheln 16, Auswahl 10, Knöpfe Kapsel)
 - 2026-11-15: UI-11 new — Runde 8a: Aussagen mit Signalfarbe nur im Symbol (nach best practice, von Andreas delegiert); Q-41 answered
 - 2026-11-15: UI-12, UI-13, UI-14, UI-15 new — Runden 8b, 8c, 9, 10 von Andreas delegiert, nach Apples Richtlinien entschieden (Gutachten apple-design)
+- 2026-11-16: Q-46, Q-47 new — Startseite und Verwaltungsseite als neue Oberflächen außerhalb von UI-2 (FR-18.1, FR-19, ADR-0015); Aussehen entsteht beim Bau, keine UI-Beschlüsse jetzt

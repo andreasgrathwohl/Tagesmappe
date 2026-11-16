@@ -29,3 +29,7 @@ auch nach ADR-0006 (am selben Tag von Andreas entschieden und `accepted`).
 Ergänzt 2026-11-16: ADR-0014 (Rückmeldung per E-Mail über das System, ohne eigenen Server) ist
 `two-way` und `accepted` (Entscheidung von Andreas delegiert); die Freigabe oben gilt unverändert. Offen und
 anderswo geführt: Q-42 im PRD (Empfangsadresse und Datenschutz).
+
+Ergänzt 2026-11-16: ADR-0015 (Rückmeldung an einen eigenen Dienst im Container, `Amends: ADR-0014`) ist
+`two-way` und `accepted` und führt den neuen Bereich `dienst` ein; NFR-2 ist dafür geändert. Offen und im PRD geführt:
+Q-43 (Domain und Hoster), Q-44 (Impressum und Datenschutz), Q-45 (Aufbewahrungsfrist).

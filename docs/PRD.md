@@ -34,6 +34,8 @@ iPad in der Präsentation schreibt und zeichnet.
 | Lehrkraft beim Vorbereiten | Material schnell den kommenden Stunden zuordnen | FR-1, FR-2, FR-3 |
 | Lehrkraft im Unterricht | den heutigen Tag auf einen Blick, Material mit einem Tipp öffnen und zeigen, an die Tafel schreiben | FR-4, FR-5, FR-6, FR-11, FR-12 |
 | Lehrkraft beim Vorplanen des Schuljahrs | je Fach und Jahrgang festlegen, in welcher Woche welches Thema und welcher Leistungsnachweis dran ist; sehen, was frühere Jahre gemacht wurde | FR-15 |
+| Lehrkraft vor dem Laden | auf der Startseite sehen, wie die App einen Schultag erleichtert | FR-19 |
+| Betreiber (Entwickler) | Rückmeldungen lesen, bearbeiten und fristgerecht löschen | FR-18, FR-18.1, FR-18.2 |
 
 Nicht Zielgruppe: Schülerinnen und Schüler, Eltern, Schulverwaltung.
 
@@ -97,6 +99,10 @@ Person (Q-13).
 | Hilfecenter | alle Hilfeartikel mit Suche, in Einrichten und am Mac im Menü „Hilfe“; von dort geht es auch zur Rückmeldung | Hilfeknopf (führt zu einem Artikel) | `HelpCenter` |
 | Rückmeldung | eine Idee oder ein Hinweis der Lehrkraft an die Entwickler, verschickt als E-Mail aus ihrem eigenen Mail-Konto | Bewertung im App Store (öffentlich); Hinweis der Stunde (FR-11.1) | `Feedback` (`kind`: `idea`, `issue`) |
 | Bildschirmfoto | Bild in einer Rückmeldung: Aufnahme des App-Fensters oder Foto aus der Mediathek, wahlweise mit Zeichnung und geschwärzten Stellen | Standbild (Tafel), Stiftnotiz | `FeedbackAttachment` (Zeichnung `markup`, Schwärzung `redactions`) |
+| Rückmeldedienst | der Dienst der Entwickler, der Rückmeldungen aus der App entgegennimmt und aufbewahrt; läuft als Container beim Betreiber | Datenort (dort liegen die App-Daten der Lehrkraft) | `FeedbackService` (Paket `frontstage_service`, Ordner `server/`) |
+| Verwaltungsseite | die passwortgeschützte Webseite des Rückmeldedienstes, auf der die Entwickler Rückmeldungen lesen, bearbeiten, ausführen und löschen | Einrichten (in der App) | `admin` |
+| Bearbeitungsstand | wie weit eine Rückmeldung in der Verwaltung ist: neu, in Arbeit, erledigt oder verworfen | Art der Rückmeldung (Idee, Hinweis) | `FeedbackStatus` (`new`, `inProgress`, `done`, `rejected`) |
+| Startseite | die öffentliche Webseite des Produkts, die an einem Schultag zeigt, wie die App im Unterricht hilft, mit Impressum und Datenschutz | Tagesansicht (in der App) | `landing` |
 | Kurz-Tipp | kurzer Hinweis beim ersten Gebrauch eines Bildschirms, der nach dem Schließen nicht wiederkommt | Hilfeartikel | `HelpTips` (einzelne Tipps als TipKit-`Tip`, z. B. `DaySelectionTip`) |
 
 ## Constraints
@@ -510,7 +516,8 @@ Die App erklärt sich selbst: Zu jedem Bildschirm und jedem schwierigen Bereich 
 Deutsch, der in der App liegt und ohne Netz lesbar ist. Aus der Hilfe heraus kann die Lehrkraft den Entwicklern
 eine Idee oder einen Hinweis schicken, mit Bildschirmfotos, auf die sie zeichnen kann. Hilfe und Rückmeldung
 sind kostenlos, auch für bezahlte Funktionen (FR-13), und brauchen keinen Server des Produkts (NFR-2,
-ADR-0014). Vom Nutzer am 2026-11-16: „implementiere eine in app hilfe. viele hilfe buttons und eine
+ADR-0014). Geändert 2026-11-16 (ADR-0015): Rückmeldungen gehen bevorzugt an den Rückmeldedienst der Entwickler
+(FR-18); die Hilfe bleibt vollständig in der App. Vom Nutzer am 2026-11-16: „implementiere eine in app hilfe. viele hilfe buttons und eine
 rückmeldungsmöglichkeit mit idee und hinweise. möglichkeit screenshots mit zeichnung“.
 
 ### FR-17.1 — Hilfeknöpfe an jedem Hauptbildschirm und jedem schwierigen Bereich [MVP]
@@ -540,6 +547,14 @@ wird nicht abgeglichen. Ist kein Mail-Konto eingerichtet, teilt sie die Rückmel
 oder kopiert den Text. Die Mail geht vom Mail-Konto der Lehrkraft aus, nicht über einen Server des Produkts
 (NFR-2, ADR-0014).
 
+Geändert 2026-11-16 (ADR-0015 ergänzt ADR-0014): Ist ein Rückmeldedienst hinterlegt (Build-Einstellung
+`FEEDBACK_URL`), lädt die App Art, Text, Hilfethema, Bildschirmfotos und – nur wenn eingeschaltet – Geräteangaben
+dorthin hoch, mit Fortschritt und erneutem Versuch. Vor dem ersten Senden zeigt sie einmal, was gesendet wird, wohin
+und wie lange es aufbewahrt wird (FR-18.2), und verlinkt die Datenschutzseite (FR-19.1); erst nach Zustimmung wird
+gesendet. Ist kein Dienst hinterlegt oder ist er nicht erreichbar, bleibt der Weg über Mail, Teilen und Kopieren wie
+oben. Der Entwurf bleibt bis zum erfolgreichen Senden auf dem Gerät. Vom Nutzer: „ist es möglich diese funktion in
+einen container auszulagern?“
+
 ### FR-17.4 — Bildschirmfotos mit Zeichnung [MVP]
 
 Beim Start einer Rückmeldung nimmt die App das aktuelle Fenster auf – ohne das Hilfe- oder
@@ -555,12 +570,58 @@ Wenige Kurz-Tipps erklären beim ersten Öffnen eines Bildschirms das Wichtigste
 Stunde schon gewählt ist) und erscheinen nach dem Schließen nicht wieder. Im Hilfecenter lassen sie sich
 abschalten und zurücksetzen; zurückgesetzte Tipps erscheinen ab dem nächsten Start der App erneut.
 
+### FR-18 — Rückmeldedienst [MVP]
+
+Ein Dienst der Entwickler nimmt Rückmeldungen aus der App entgegen und bewahrt sie auf (ADR-0015). Er prüft jede
+Rückmeldung: Art, Text bis 10 000 Zeichen, höchstens fünf Bilder (PNG oder JPEG, je bis 8 MB, zusammen bis 25 MB),
+ein gemeinsamer App-Schlüssel als einfache Sperre gegen Fremdeinsendungen und eine Begrenzung je Absenderadresse gegen
+Überflutung. IP-Adressen speichert er nicht dauerhaft. Er läuft als ein Container beim Betreiber, hinter dessen
+Reverse-Proxy mit TLS. Vom Nutzer am 2026-11-16: „ist es möglich diese funktion in einen container auszulagern? dann
+eine admin page und landing page dazu zu bauen“.
+
+### FR-18.1 — Verwaltungsseite [MVP]
+
+Die Entwickler melden sich mit einem Passwort an und sehen alle Rückmeldungen als Liste, filterbar nach Art,
+Bearbeitungsstand und Zeitraum, neueste zuerst. Eine Rückmeldung zeigt Text, Hilfethema, Geräteangaben und die
+Bildschirmfotos mit Zeichnung und Schwärzung, so wie sie gesendet wurden. Sie setzen den Bearbeitungsstand (neu, in
+Arbeit, erledigt, verworfen), schreiben eine interne Notiz, führen die gefilterte Liste als CSV oder JSON aus und
+löschen einzelne Rückmeldungen samt Bildern.
+
+### FR-18.2 — Aufbewahrung und Löschen [MVP]
+
+Rückmeldungen werden zwölf Monate nach Eingang automatisch gelöscht, samt Bildern; die Frist ist einstellbar (Q-45).
+Bittet eine Lehrkraft um Löschung, löschen die Entwickler ihre Rückmeldung auf der Verwaltungsseite; dafür zeigt die
+App nach dem Senden eine kurze Kennung der Rückmeldung.
+
+### FR-19 — Startseite [MVP]
+
+Eine öffentliche Webseite zeigt an einem realistischen Schultag, wie die App im Unterricht hilft: der Blick am
+Morgen auf den Tag, ein Tipp und das Material steht am Smartboard, die Tafel mit Stift, der Jahresplan beim
+Vorplanen, das eigene Erscheinungsbild. Beispiele nur mit erfundenen Klassen (8b, 9c) und Materialien, ohne
+Personennamen. Sie nennt, was kostenlos ist und was der Einmalkauf freischaltet, und führt zum Laden (bis zum
+App-Store-Eintrag ein Platzhalter für TestFlight). Sie lädt nichts von fremden Servern – auch Schriften liegen auf
+dem eigenen Server – und setzt keine Cookies. Vom Nutzer: „landing page muss eine richtig gute, praxisnahe anwendung mit der app darstellen“.
+
+### FR-19.1 — Impressum und Datenschutz [MVP]
+
+Die Startseite hat ein Impressum und eine Datenschutzerklärung, die den Rückmeldedienst (FR-18) beschreibt: was
+gesendet wird, wozu, wie lange es bleibt, wer es liest, wie man Löschung verlangt. Die App verlinkt diese Seite vor dem
+ersten Senden (FR-17.3). Die Texte sind bis zur Prüfung erkennbare Platzhalter (Q-44).
+
 ### NFR-1 — Material sofort und aktuell verfügbar [MVP]
 
 Im Unterricht öffnet das Material ohne spürbares Warten und ist der aktuelle Stand aus der Ablage
 — auch bei unzuverlässigem Schulnetz. Vom Nutzer: „sollen aber sofort und aktuell verfügbar sein“.
 
 ### NFR-2 — Keine Daten auf Servern des Produkts [MVP]
+
+**Geändert 2026-11-16 (ADR-0015):** Nutzerdaten – Stundenplan, Abweichungen, Zuordnungen, Material, Stiftnotizen,
+Tafelbilder, Jahrespläne, Erscheinungsbild und Zugangsdaten – liegen weiterhin nie auf Servern des Produkts. Einzige
+Ausnahme ist eine Rückmeldung (FR-17.3, FR-17.4), die die Lehrkraft ausdrücklich absendet: Sie geht an den
+Rückmeldedienst des Betreibers (FR-18). Die App überträgt nie etwas von selbst dorthin. Verworfen: Rückmeldungen über
+einen fremden Dienst (z. B. Sentry, UserVoice) – Daten bei einem Auftragsverarbeiter außerhalb der Kontrolle des
+Betreibers; nur E-Mail – keine Übersicht, Anhänge verstreut. Ursprünglicher Wortlaut (bleibt stehen):
+
 
 Stundenplan, Zuordnungen und Material liegen ausschließlich bei der Lehrkraft (Gerät, eigene Ablage,
 eigenes Apple-Konto) — das Produkt betreibt keine eigenen Server für Nutzerdaten.
@@ -577,7 +638,7 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 ## Lieferstufen
 
 - **MVP:** FR-1, FR-1.1, FR-2, FR-2.2, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-7, FR-8,
-  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, FR-13.1, NFR-1 bis NFR-4, FR-1.2, FR-14, FR-14.1, FR-15, FR-15.1 bis FR-15.6, FR-16, FR-16.1, FR-16.2, FR-17, FR-17.1 bis FR-17.5 (geprüfte Zahl: 59). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
+  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, FR-13.1, NFR-1 bis NFR-4, FR-1.2, FR-14, FR-14.1, FR-15, FR-15.1 bis FR-15.6, FR-16, FR-16.1, FR-16.2, FR-17, FR-17.1 bis FR-17.5, FR-18, FR-18.1, FR-18.2, FR-19, FR-19.1 (geprüfte Zahl: 64). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
 - **Later:** FR-2.1, FR-7.1, FR-10, FR-13.2.
 
 ## Out of Scope
@@ -700,6 +761,21 @@ sind voreingestellt aus und enthalten nie Namen oder Inhalte. Eingehende Rückme
 personenbezogene Daten: Die Datenschutzerklärung muss den Weg nennen, das Postfach wird nur dafür genutzt
 und regelmäßig geleert (Q-42).
 
+Geändert 2026-11-16 (ADR-0015): Rückmeldungen landen bevorzugt im Rückmeldedienst (FR-18) statt im Postfach; der
+Umgang gilt dort entsprechend, mit Zustimmung vor dem ersten Senden (FR-17.3), automatischer Löschung nach zwölf
+Monaten und Löschung auf Anfrage (FR-18.2).
+
+### RISK-12 — Betrieb eines eigenen Dienstes
+
+Mit dem Rückmeldedienst (FR-18) betreibt das Produkt erstmals einen Server: Er kann ausfallen, braucht
+Sicherheitsupdates (Basis-Image, Python-Pakete), ist aus dem Netz erreichbar (Spam, Überflutung, Angriffe auf die
+Verwaltungsseite) und macht den Betreiber zum Verantwortlichen nach DSGVO (Verzeichnis der Verarbeitung, Auskunft,
+Löschung, Datenschutzerklärung, Auftragsverarbeitung mit dem Hoster). Der App-Schlüssel ist aus der App auslesbar und
+schützt nur schwach. Umgang: Ein Ausfall bricht nichts – die App fällt auf Mail und Teilen zurück und behält den
+Entwurf; ein Container, keine weiteren Dienste; Begrenzung je Adresse und Größenlimits; Verwaltungsseite nur mit
+Passwort, sicheren Cookies, CSRF-Schutz und begrenzten Anmeldeversuchen; Image regelmäßig neu bauen; tägliche Sicherung
+des Volumes; App Attest als spätere Stufe (ADR-0015). Domain und Hoster sind offen (Q-43).
+
 ## Open Questions
 
 - ~~Q-1~~: Wie heißt das Produkt? „Tagesmappe“ ist Arbeitstitel. → answered 2026-11-13: „Pult“ – das Lehrerpult, an dem alles für die Stunde bereitliegt und von dem aus gesteuert wird, was die Klasse sieht. „Tagesmappe“ bleibt Name des Repositorys. Markenrecherche (DPMA, App Store) steht aus (Q-29). → changed 2026-11-13: „Frontstage“ – was vorne vor der Klasse passiert. „Pult“ verworfen, weil „PULT“ als Software-Marke in Gebrauch ist (RISK-8); dazwischen geprüft und verworfen: Stundenlicht, Klassenlicht, Katheder, Doppelstunde, Stundenbühne, Stundenregie, Klassenregie, Klassenblick, Tafelrand, Taktgeber, Lessonstage, Lectern, Teachdeck (Classcue und Classcast vergeben).
@@ -731,6 +807,9 @@ und regelmäßig geleert (Q-42).
 - ~~Q-36~~: Reichen Notizen für Klassen, die vom Jahresplan abweichen (z. B. 8b eine Woche hinter 8a), oder soll eine Klasse ihren Stand im Jahresplan versetzen können, sodass ihr in Vorbereiten das Thema einer anderen Planwoche vorgeschlagen wird? Bis zur Antwort: nur Notizen (ADR-0013), vorgeschlagen wird immer das Thema der Kalenderwoche. → answered 2026-11-14: Notizen reichen; kein Versatz je Klasse (Andreas). Vorgeschlagen wird weiter das Thema der Kalenderwoche.
 - Q-40: Was passiert, wenn eine Lehrkraft eine Akzentfarbe wählt, die einer Signalfarbe gleicht (Rot wie „Entfällt“, Orange wie „nicht verfügbar“, Gelb wie „jetzt, gezeigt“)? Bis zur Antwort: zulässig, Signale bleiben über Symbol und Wort unterscheidbar (DESIGN.md, „Zustände nicht allein am Farbton“); ein Hinweis in der Vorschau wäre möglich.
 - Q-42: An welche E-Mail-Adresse gehen Rückmeldungen (FR-17.3), wer liest sie, und wie lange werden sie aufbewahrt (Datenschutzerklärung, RISK-11)? Bis zur Antwort: Die Adresse kommt aus der Build-Einstellung `FEEDBACK_EMAIL` (in CI aus einem Secret); im Repo steht nur der Platzhalter `feedback@example.com`, und ohne echte Adresse bietet die App nur Teilen und „Text kopieren“ (ADR-0014).
+- Q-43: Unter welcher Domain und bei welchem Hoster laufen Rückmeldedienst und Startseite (FR-18, FR-19), und wer betreibt den Reverse-Proxy mit TLS? Bis zur Antwort: Platzhalter `frontstage.example.com`; die App bekommt die Adresse über `FEEDBACK_URL` aus einem CI-Secret.
+- Q-44: Wie lauten Impressum und Datenschutzerklärung (FR-19.1) – Anbieter, Anschrift, Verantwortlicher, Hoster als Auftragsverarbeiter? Bis zur Antwort: als Platzhalter erkennbare Texte, vor dem ersten öffentlichen Aufruf von einem Menschen zu ersetzen.
+- Q-45: Reichen zwölf Monate Aufbewahrung für Rückmeldungen (FR-18.2), oder kürzer (z. B. sechs Monate nach „erledigt“)? Bis zur Antwort: zwölf Monate ab Eingang, einstellbar über `RETENTION_DAYS` (Vorgabe 365).
 
 ## Abnahmekriterien
 
@@ -775,7 +854,7 @@ und regelmäßig geleert (Q-42).
 - AK-15 (FR-8): Aufbau: Di 8b mit Material, nächste 8b-Stunde Do. Handlung: Di als Ausfall markieren, Material weiterreichen. Ergebnis: Di als Ausfall erkennbar, Material am Do.
 - AK-16 (FR-9): Handlung: Vertretungsstunde „Mi 4. Stunde 6c Mathe“ anlegen, Material zuordnen. Ergebnis: erscheint in der Tagesansicht am Mittwoch, nur an diesem Datum.
 - AK-17 (NFR-1): Aufbau: Material des Tages wurde morgens im WLAN geöffnet bzw. bereitgehalten; danach WLAN aus. Handlung: Material antippen. Ergebnis: es öffnet in unter 3 Sekunden.
-- AK-18 (NFR-2): Aufbau: Netzwerkmitschnitt während Einrichten, Vorbereiten und Unterricht. Ergebnis: keine Verbindung zu Servern des Produkts; nur Ablage-Anbieter, Apple, Microsoft (bei FR-5.1) und Schulmanager (bei FR-2).
+- AK-18 (NFR-2): Aufbau: Netzwerkmitschnitt während Einrichten, Vorbereiten und Unterricht. Ergebnis: keine Verbindung zu Servern des Produkts; nur Ablage-Anbieter, Apple, Microsoft (bei FR-5.1) und Schulmanager (bei FR-2). Geändert 2026-11-16 (ADR-0015): außer beim ausdrücklichen Senden einer Rückmeldung (FR-17.3) – dann genau eine Verbindung zum Rückmeldedienst.
 - AK-19 (NFR-3): Aufbau: je ein Material aus iCloud Drive, OneDrive und Google Drive. Handlung: zuordnen und öffnen. Ergebnis: alle drei öffnen.
 - AK-20 (NFR-4): Aufbau: Schulmanager-Import eingerichtet. Handlung: Gerätespeicher und Ablage nach dem Passwort durchsuchen. Ergebnis: nur im sicheren Speicher des Geräts (Schlüsselbund) gefunden.
 - AK-45 (FR-15): Aufbau: Stundenplan mit „Di 2. Stunde 8a Englisch“ und „Do 3. Stunde 8b Englisch“; Schuljahr 2026/27 eingerichtet. Handlung: Jahresplan „Englisch, Jahrgang 8, 2026/27“ anlegen und in Woche 1 das Thema „Unit 1 – Back to school“ eintragen; App beenden und neu öffnen; am zweiten Gerät öffnen. Ergebnis: Es gibt genau einen Jahresplan für Englisch 8 – er gilt für 8a und 8b; das Thema steht nach dem Neustart und nach dem Abgleich auf dem zweiten Gerät in Woche 1. Eine Klasse „EF“ im Stundenplan erscheint in Einrichten ohne Jahrgang und lässt sich auf 11 setzen.
@@ -791,8 +870,13 @@ und regelmäßig geleert (Q-42).
 - AK-55 (FR-17): Aufbau: kein Kauf, iPad im Flugmodus. Handlung: in der Tagesansicht das Fragezeichen antippen; im Hilfecenter den Artikel „Tafel“ öffnen; „Rückmeldung geben“ antippen. Ergebnis: Beide Artikel erscheinen ohne Netz und ohne Kaufangebot; die Rückmeldung lässt sich ohne Kauf schreiben.
 - AK-56 (FR-17.1): Aufbau: frische Installation, VoiceOver an. Handlung: auf Heute, Vorbereiten, Jahresplan und Einrichten sowie in Einrichten › Datenort, Ablage und Stundenplan-Quelle jeweils das Fragezeichen ansteuern und antippen. Ergebnis: VoiceOver sagt jeweils „Hilfe zu <Thema>“; jeder Knopf öffnet den Artikel zu genau diesem Bereich, mit verwandten Themen und „Rückmeldung geben“.
 - AK-57 (FR-17.2): Aufbau: Mac. Handlung: Menü Hilfe › Frontstage-Hilfe (⌘?); nacheinander „AirPlay“, „ferien“, „ubernehmen“ und „xyz“ suchen. Ergebnis: Das Hilfecenter öffnet sich; „AirPlay“ zeigt „Smartboard verbinden“ als ersten Treffer, „ferien“ zeigt „Ferien und Feiertage“ als ersten Treffer, „ubernehmen“ findet „Vorbereiten“ (Für Klasse übernehmen) und „Jahresplan“ (Vorjahresplan übernehmen); „xyz“ zeigt „Keine Treffer“.
-- AK-58 (FR-17.3): Aufbau: Mail-Konto eingerichtet, Empfangsadresse hinterlegt. Handlung: Rückmeldung öffnen, „Hinweis“ wählen, „Tafel speichert nicht“ schreiben; App beenden und neu öffnen; Rückmeldung erneut öffnen, Geräteangaben einschalten, Senden. Ergebnis: Nach dem Neustart steht der Entwurf noch da; das Mail-Fenster zeigt die Empfangsadresse, den Betreff „Frontstage – Hinweis: Tafel speichert nicht“, den Text und Geräteangaben ohne Gerätenamen; nach dem Senden ist der Entwurf leer. Ohne Mail-Konto stehen „Teilen“ und „Text kopieren“ statt „Senden“ zur Wahl.
+- AK-58 (FR-17.3): Aufbau: Mail-Konto eingerichtet, Empfangsadresse hinterlegt. Handlung: Rückmeldung öffnen, „Hinweis“ wählen, „Tafel speichert nicht“ schreiben; App beenden und neu öffnen; Rückmeldung erneut öffnen, Geräteangaben einschalten, Senden. Ergebnis: Nach dem Neustart steht der Entwurf noch da; das Mail-Fenster zeigt die Empfangsadresse, den Betreff „Frontstage – Hinweis: Tafel speichert nicht“, den Text und Geräteangaben ohne Gerätenamen; nach dem Senden ist der Entwurf leer. Ohne Mail-Konto stehen „Teilen“ und „Text kopieren“ statt „Senden“ zur Wahl. Geändert 2026-11-16 (ADR-0015): Mit hinterlegtem Rückmeldedienst wird hochgeladen statt gemailt – vor dem ersten Senden erscheint einmal der Hinweis mit Link zur Datenschutzseite; nach „Zustimmen und senden“ zeigt die App den Fortschritt und danach eine Kennung; die Rückmeldung erscheint auf der Verwaltungsseite mit Text und Geräteangaben; ist der Dienst nicht erreichbar, bleibt der Entwurf, und die App bietet „Erneut versuchen“ sowie Mail bzw. Teilen an.
 - AK-59 (FR-17.4): Aufbau: Tagesansicht mit der Stunde „8b Englisch“. Handlung: Fragezeichen › „Rückmeldung geben“; das erste Bild öffnen, „8b“ schwärzen und einen Pfeil zeichnen; aus der Mediathek Fotos hinzufügen, bis es nicht mehr geht; eines entfernen. Ergebnis: Das erste Bild zeigt die Tagesansicht ohne Hilfefenster; im gesendeten Bild ist „8b“ vollständig schwarz und der Pfeil sichtbar; mehr als fünf Bilder lassen sich nicht hinzufügen; das entfernte Bild fehlt in der Mail.
+- AK-61 (FR-18): Aufbau: laufender Container mit leerem Volume. Handlung: per Skript eine gültige Rückmeldung mit zwei Bildern senden; eine ohne App-Schlüssel; eine mit sechs Bildern; eine mit einem 9-MB-Bild; elf Rückmeldungen in einer Minute von derselben Adresse; den Container neu starten. Ergebnis: Die gültige wird mit Kennung bestätigt und ist nach dem Neustart samt Bildern noch da; ohne Schlüssel 401, sechs Bilder und 9 MB 413; die elfte Einsendung 429 mit Angabe, wann es wieder geht; in der Datenbank steht keine IP-Adresse.
+- AK-62 (FR-18.1): Aufbau: Dienst mit fünf Rückmeldungen (drei Hinweise, zwei Ideen, eine mit Bild). Handlung: Verwaltungsseite ohne Anmeldung öffnen; mit falschem, dann richtigem Passwort anmelden; nach „Hinweis“ filtern; die mit Bild öffnen, Stand „in Arbeit“ und eine Notiz setzen; als CSV ausführen; eine Rückmeldung löschen; abmelden. Ergebnis: Ohne Anmeldung nur die Anmeldeseite; falsches Passwort abgelehnt; der Filter zeigt drei; das Bild erscheint mit Zeichnung und Schwärzung; Stand und Notiz bleiben nach Neuladen; die CSV hat eine Kopfzeile und fünf Zeilen; nach dem Löschen fehlt die Rückmeldung samt Bilddatei im Volume; nach dem Abmelden führt die Liste zur Anmeldung.
+- AK-63 (FR-18.2): Aufbau: Dienst mit `RETENTION_DAYS=365`, eine Rückmeldung vom 2025-11-15 und eine vom 2026-11-15. Handlung: Aufräumlauf am 2026-11-16 auslösen. Ergebnis: Die ältere ist samt Bildern gelöscht, die jüngere bleibt.
+- AK-64 (FR-19): Aufbau: Startseite im Browser bei 390 px und 1440 px Breite. Handlung: von oben nach unten scrollen. Ergebnis: Ein Schultag ist in mindestens fünf Stationen erkennbar (Morgen, Smartboard, Tafel, Vorplanen, Erscheinungsbild), jeweils mit einer Darstellung der App; Kostenlos und Einmalkauf sind benannt; der Ladeknopf ist da; nirgends steht ein Personenname; die Seite lädt nichts von fremden Servern (auch keine Schriften) und setzt kein Cookie; keine waagerechte Scrollleiste.
+- AK-65 (FR-19.1): Aufbau: Startseite und App mit hinterlegtem Rückmeldedienst. Handlung: Impressum und Datenschutz öffnen; in der App vor dem ersten Senden den Link „Datenschutz“ antippen. Ergebnis: Beide Seiten sind erreichbar; die Datenschutzseite nennt Zweck, Inhalt, die Frist von zwölf Monaten und den Weg zur Löschung; der Link aus der App führt dorthin.
 - AK-60 (FR-17.5): Aufbau: frische Installation. Handlung: Tagesansicht öffnen, den Kurz-Tipp schließen, App neu starten; im Hilfecenter „Kurz-Tipps erneut zeigen“, App neu starten; danach „Kurz-Tipps zeigen“ ausschalten und die Tagesansicht erneut öffnen. Ergebnis: Der Tipp erscheint beim ersten Öffnen, nach dem Schließen nicht wieder; nach dem Zurücksetzen und Neustart erscheint er erneut; ausgeschaltet erscheint kein Tipp.
 
 ## Changes
@@ -836,6 +920,9 @@ und regelmäßig geleert (Q-42).
 - 2026-11-14: Q-35, Q-36 answered — Jahresplanung bleibt kostenlos, abweichende Klassen nur über Notizen (Andreas); Q-31 changed — Stand der Websuche, Prüfnotiz in docs/research/
 - 2026-11-15: FR-16, FR-16.1, FR-16.2 new — Erscheinungsbild anpassbar (Wunsch von Andreas): Grundton, freie Akzentfarbe mit Kontrastschutz, Hell/Dunkel in der App; FR-13 changed (Anpassung außerhalb des Standards im Kauf); Glossar um Erscheinungsbild, Grundton, Akzentfarbe, Hell/Dunkel ergänzt; AK-52 bis AK-54, Q-40, Lieferstufen (53) und Abdeckung angepasst
 - 2026-11-16: FR-17, FR-17.1 bis FR-17.5 new — In-App-Hilfe mit Hilfeknöpfen, Hilfecenter, Rückmeldung per E-Mail mit Bildschirmfotos und Zeichnung, Kurz-Tipps (Wunsch von Andreas, ADR-0014); FR-13 changed (Hilfe und Rückmeldung immer kostenlos); Glossar um Hilfethema, Hilfeartikel, Hilfeknopf, Hilfecenter, Rückmeldung, Bildschirmfoto, Kurz-Tipp ergänzt; AK-55 bis AK-60, RISK-11, Q-42, Lieferstufen (59) und Abdeckung angepasst
+- 2026-11-16: NFR-2 changed — Ausnahme für ausdrücklich gesendete Rückmeldungen (ADR-0015); FR-17, FR-17.3 changed — Hochladen zum Rückmeldedienst mit Zustimmung, Mail/Teilen als Rückfall; AK-58 changed; FR-18, FR-18.1, FR-18.2, FR-19, FR-19.1 new — Rückmeldedienst im Container, Verwaltungsseite, Aufbewahrung, Startseite, Impressum und Datenschutz (Wunsch von Andreas); Glossar um Rückmeldedienst, Verwaltungsseite, Bearbeitungsstand, Startseite ergänzt; AK-61 bis AK-65, RISK-11 changed, RISK-12 new, Q-43 bis Q-45 new, Lieferstufen (64) und Abdeckung angepasst
+- 2026-11-16: Verworfen (FR-19): Schriften von Google Fonts laden – überträgt die IP-Adresse jedes Besuchers an Google ohne Einwilligung (LG München I, 20.01.2022, 3 O 17493/20); stattdessen Schriften mit freier Lizenz auf dem eigenen Server
+- 2026-11-16: Verworfen (NFR-2, FR-18): fremder Dienst für Rückmeldungen (Sentry, UserVoice – Auftragsverarbeiter außerhalb der Kontrolle), nur E-Mail (keine Übersicht); Node/TypeScript statt Python, je Teil ein eigener Container, Postgres statt SQLite – siehe ADR-0015
 - 2026-11-16: Verworfen (FR-17.3): eigenes Web-Formular bzw. eigener Endpunkt (Server, widerspricht NFR-2), GitHub-Issues (Zugangsschlüssel in der App), nur TestFlight-Feedback (gibt es im App Store nicht), App-Store-Bewertungen (öffentlich, ohne Bildschirmfotos) – siehe ADR-0014
 
 ## Anhang A — Abdeckung
@@ -854,7 +941,7 @@ und regelmäßig geleert (Q-42).
 
 FR-10 gehört zu keiner Ablaufphase (Ausgabe nach außen, neben dem Ablauf). FR-13 bis FR-13.2 ebenfalls
 nicht (Geschäftsmodell, quer zu allen Phasen), ebenso FR-17 bis FR-17.5 (Hilfe und Rückmeldung, in jeder
-Phase erreichbar).
+Phase erreichbar) und FR-18 bis FR-19.1 (Rückmeldedienst, Verwaltung und Startseite liegen außerhalb der App).
 
 | Anforderung | Abnahmekriterium |
 |---|---|
@@ -910,6 +997,11 @@ Phase erreichbar).
 | FR-17.3 | AK-58 |
 | FR-17.4 | AK-59 |
 | FR-17.5 | AK-60 |
+| FR-18 | AK-61 |
+| FR-18.1 | AK-62 |
+| FR-18.2 | AK-63 |
+| FR-19 | AK-64 |
+| FR-19.1 | AK-65 |
 | FR-7 | AK-14 |
 | FR-8 | AK-15 |
 | FR-9 | AK-16 |

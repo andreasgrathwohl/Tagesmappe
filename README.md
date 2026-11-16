@@ -7,8 +7,8 @@ bleibt in der eigenen Ablage (iCloud Drive, OneDrive, Google Drive, …) und ist
 Stand.
 
 > **Stand:** Umsetzung. Anforderungen und Architektur sind freigegeben (`docs/PRD.md`, `docs/ARCHITECTURE.md`);
-> vierzehn Architekturentscheidungen stehen in `docs/adr/`. Die Teilpläne 01–10 sind umgesetzt, Teilplan 11 (Hilfe und Rückmeldung) ist geplant (`docs/superpowers/plans/`):
-> SwiftUI-App für iPad und Mac unter `Frontstage/`, Kernlogik im Paket `Packages/FrontstageCore`. Offen sind Prüfungen auf
+> fünfzehn Architekturentscheidungen stehen in `docs/adr/`. Die Teilpläne 01–10 sind umgesetzt, Teilpläne 11 (Hilfe und Rückmeldung), 12 (Rückmeldedienst und Verwaltung) und 13 (Startseite) sind geplant (`docs/superpowers/plans/`):
+> SwiftUI-App für iPad und Mac unter `Frontstage/`, Kernlogik im Paket `Packages/FrontstageCore`; Rückmeldedienst und Startseite (geplant) unter `server/`. Offen sind Prüfungen auf
 > echten Geräten, die Gestaltungsrunden und der Test der Schulmanager-Schnittstelle (Q-16). Unter `mockup/` liegen HTML-Mockups.
 > Der Name „Frontstage“ ist intern festgelegt, die Registerprüfung steht aus (Q-31). Das Repository
 > heißt weiter `Tagesmappe`.
@@ -33,11 +33,13 @@ Stand.
 - **Erscheinungsbild**: warmer Standard; Grundton, Akzentfarbe (frei, mit Kontrastschutz) und Hell/Dunkel
   einstellbar, außerhalb des Standards per Einmalkauf.
 - **Hilfe und Rückmeldung**: ein Fragezeichen an jedem Bildschirm öffnet die passende Erklärung, auch ohne Netz;
-  das Hilfecenter durchsucht alle Artikel. Ideen und Hinweise gehen per E-Mail an die Entwickler, mit
-  Bildschirmfotos, auf die man zeichnen und Stellen schwärzen kann. Kurz-Tipps erklären das Wichtigste beim
+  das Hilfecenter durchsucht alle Artikel. Ideen und Hinweise gehen an den Rückmeldedienst der Entwickler (ersatzweise per E-Mail),
+  mit Bildschirmfotos, auf die man zeichnen und Stellen schwärzen kann. Kurz-Tipps erklären das Wichtigste beim
   ersten Gebrauch.
-- **Datenschutz**: keine eigenen Server – Stundenplan, Zuordnungen und Material bleiben bei der
-  Lehrkraft.
+- **Datenschutz**: keine Nutzerdaten auf Servern des Produkts – Stundenplan, Zuordnungen und Material bleiben bei der
+  Lehrkraft; nur eine ausdrücklich gesendete Rückmeldung erreicht den Rückmeldedienst, der sie nach zwölf Monaten löscht.
+- **Rückmeldedienst und Startseite**: ein Container beim Betreiber nimmt Rückmeldungen an, bietet eine Verwaltungsseite
+  und liefert die Startseite mit Impressum und Datenschutz aus (`server/`, ADR-0015).
 
 ## Dokumente
 

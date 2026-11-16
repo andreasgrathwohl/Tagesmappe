@@ -7,6 +7,9 @@ area: plattform
 
 # ADR-0014 — Rückmeldung per E-Mail über das System, ohne eigenen Server
 
+Ergänzt durch ADR-0015 (2026-11-16): Rückmeldungen gehen bevorzugt an einen eigenen Dienst; der hier
+festgelegte Weg über Mail, Teilen und Kopieren bleibt als Rückfall gültig.
+
 ## Context and Problem Statement
 
 Andreas wünscht am 2026-11-16 eine In-App-Hilfe mit vielen Hilfeknöpfen und eine Möglichkeit, Ideen und

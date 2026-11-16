@@ -3,13 +3,13 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 > Rahmen: `docs/superpowers/plans/2026-11-13-00-uebersicht.md` – gilt vollständig und geht diesem Teilplan vor.
 
-**Goal:** Die App erklärt sich selbst und nimmt Rückmeldungen an (FR-17 bis FR-17.5): Hilfeknöpfe an jedem Hauptbildschirm und jedem schwierigen Bereich, ein durchsuchbares Hilfecenter ohne Netz (am Mac im Menü „Hilfe“, ⌘?), Rückmeldung als Idee oder Hinweis per E-Mail über das System mit Bildschirmfotos, auf die man zeichnen und Stellen schwärzen kann, und Kurz-Tipps beim ersten Gebrauch – alles kostenlos, ohne Server (ADR-0014).
+**Goal:** Die App erklärt sich selbst und nimmt Rückmeldungen an (FR-17 bis FR-17.5): Hilfeknöpfe an jedem Hauptbildschirm und jedem schwierigen Bereich, ein durchsuchbares Hilfecenter ohne Netz (am Mac im Menü „Hilfe“, ⌘?), Rückmeldung als Idee oder Hinweis – hochgeladen zum Rückmeldedienst nach einmaliger Zustimmung, ersatzweise per E-Mail über das System – mit Bildschirmfotos, auf die man zeichnen und Stellen schwärzen kann, und Kurz-Tipps beim ersten Gebrauch – alles kostenlos; Nutzerdaten verlassen das Gerät nie, nur eine ausdrücklich gesendete Rückmeldung (ADR-0014, ADR-0015).
 
-**Architecture:** Reine Logik im Kern (`Packages/FrontstageCore/Sources/FrontstageCore/Help/`, `…/Feedback/`): Themen samt Gruppen und verwandten Themen, Zerlegen des Artikeltexts in Blöcke, Katalog mit Prüfung, Suche mit Rangfolge, Entwurf, Geräteangaben, Betreff und Text der Mail, Empfangsadresse, Bildgrenzen und Weg (Mail oder Teilen) – lokal mit `scripts\swift-test.ps1` belegt. Die Artikeltexte stehen in `Localizable.xcstrings`; ein Kern-Test liest diese Datei aus dem Repo und prüft Vollständigkeit und Datenhygiene. Die App lädt den Katalog aus dem Bundle, zeigt Artikel als Blatt am Ort des Hilfeknopfs, speichert den Entwurf nur lokal, nimmt das Fenster der Hauptszene auf, zeichnet mit PencilKit (Mac: eigene Zeichenfläche, die `PKStroke` erzeugt), schwärzt mit deckenden Rechtecken und übergibt an `MFMailComposeViewController` bzw. `NSSharingService`; Rückfall `ShareLink` und Kopieren. Kurz-Tipps über TipKit.
+**Architecture:** Reine Logik im Kern (`Packages/FrontstageCore/Sources/FrontstageCore/Help/`, `…/Feedback/`): Themen samt Gruppen und verwandten Themen, Zerlegen des Artikeltexts in Blöcke, Katalog mit Prüfung, Suche mit Rangfolge, Entwurf, Geräteangaben, Betreff und Text der Mail, Empfangsadresse, Bildgrenzen und Weg (Mail oder Teilen) – lokal mit `scripts\swift-test.ps1` belegt. Die Artikeltexte stehen in `Localizable.xcstrings`; ein Kern-Test liest diese Datei aus dem Repo und prüft Vollständigkeit und Datenhygiene. Die App lädt den Katalog aus dem Bundle, zeigt Artikel als Blatt am Ort des Hilfeknopfs, speichert den Entwurf nur lokal, nimmt das Fenster der Hauptszene auf, zeichnet mit PencilKit (Mac: eigene Zeichenfläche, die `PKStroke` erzeugt), schwärzt mit deckenden Rechtecken und lädt per `URLSession` (Multipart, Fortschritt, Wiederholung) zum Rückmeldedienst hoch; ohne Dienst oder bei Ausfall übergibt sie an `MFMailComposeViewController` bzw. `NSSharingService`, Rückfall `ShareLink` und Kopieren. Den Dienst selbst baut Teilplan 12; dieser Plan hängt nur am Vertrag in Entscheidung 16. Kurz-Tipps über TipKit.
 
 **Tech Stack:** Swift 6 strikt, SwiftUI (`.sheet`, `NavigationStack`, `.searchable`, `PhotosPicker`, `ShareLink`, `CommandGroup(replacing: .help)`, `TipView`/`.popoverTip`), PencilKit (`PKDrawing`, `PKCanvasView`/`PKToolPicker` nur iPad, `PKStroke`/`PKStrokePath`/`PKStrokePoint` auch Mac), MessageUI (iPad), AppKit `NSSharingService` (Mac), ImageIO/CoreGraphics, TipKit, Swift Testing, XcodeGen. Keine neue Abhängigkeit.
 
-**Spec:** `docs/PRD.md` (FR-17 bis FR-17.5, FR-13 „Geändert 2026-11-16“, AK-55 bis AK-60, RISK-11, Q-42, Glossar „Hilfethema“ `HelpTopic`, „Hilfeartikel“ `HelpArticle`, „Hilfeknopf“ `HelpButton`, „Hilfecenter“ `HelpCenter`, „Rückmeldung“ `Feedback` mit `kind` `idea`/`issue`, „Bildschirmfoto“ `FeedbackAttachment` mit `markup`/`redactions`, „Kurz-Tipp“ `HelpTips`); `docs/adr/0014-rueckmeldung-per-e-mail-ohne-eigenen-server.md`; `docs/ARCHITECTURE.md` (Area plattform, Abschnitt „Hilfe und Rückmeldung“); `docs/adr/0009-quellcode-englisch-kommentare-deutsch.md` (Texte in `Localizable.xcstrings`); `DESIGN.md` UI-2 bis UI-15 (anwenden, nichts neu beschließen).
+**Spec:** `docs/PRD.md` (FR-17 bis FR-17.5, FR-17.3 „Geändert 2026-11-16 (ADR-0015 …)“, NFR-2 geändert, FR-13 „Geändert 2026-11-16“, AK-58 geändert, AK-65, AK-55 bis AK-60, RISK-11, Q-42, Glossar „Hilfethema“ `HelpTopic`, „Hilfeartikel“ `HelpArticle`, „Hilfeknopf“ `HelpButton`, „Hilfecenter“ `HelpCenter`, „Rückmeldung“ `Feedback` mit `kind` `idea`/`issue`, „Bildschirmfoto“ `FeedbackAttachment` mit `markup`/`redactions`, „Kurz-Tipp“ `HelpTips`); `docs/adr/0014-rueckmeldung-per-e-mail-ohne-eigenen-server.md`; `docs/adr/0015-rueckmeldung-an-eigenen-dienst-im-container.md` (Vertrag der Annahme in `docs/ARCHITECTURE.md`, Area dienst, Abschnitt „Annahme“); `docs/ARCHITECTURE.md` (Area plattform, Abschnitt „Hilfe und Rückmeldung“); `docs/adr/0009-quellcode-englisch-kommentare-deutsch.md` (Texte in `Localizable.xcstrings`); `DESIGN.md` UI-2 bis UI-15 (anwenden, nichts neu beschließen).
 
 **Baut auf (Code auf `main`):** Teilpläne 01–10 vollständig gemergt. Genutzt werden u. a.: `RootView` (Tabs, `.appTheme(store:unlock:)`, `.environment(\.showSetup, …)`), `FrontstageApp` (`WindowGroup`, `scenePhase`), `SetupView` (Sections, `scoped { … }`), `DataLocationController.location`/`.store`, `DataStore.theme()` (10), `ClassroomServices.shared.unlock.isUnlocked` (07), `Theme`/`BaseTone`/`AppearanceMode` (10, Kern), `DataLocation` (08, Kern), `DrawingGeometry.toPageSpace(_:viewSize:pageSize:)`/`toViewSpace(_:viewSize:pageSize:)` (06, `Frontstage/Viewer/DrawingGeometry.swift`, ohne `#if`, also auch am Mac) und `PageSize` (Kern, `Packages/FrontstageCore/Sources/FrontstageCore/PenNotes/PenNoteFit.swift`), `PenCanvas`-Muster mit `PKToolPicker` (06), `TypeScale`/`scaledFont(_:)`, `CapsuleActionButtonStyle`, `themedBackground()` (10), `PurchaseOfferView`, `PaidGate` (07), `ConnectHowToView`, `SmartboardBar` (06), `BoardScreen` (07), `ViewerView` (06), `makeStore()` (`FrontstageTests/Data/Fixtures.swift`).
 
@@ -20,6 +20,7 @@ Alle Zeilen der Übersicht gelten (Abschnitt „Global Constraints“, Abstimmun
 - **Kern zuerst und lokal belegt:** Tasks 1–4 berühren nur `Packages/FrontstageCore` (nur `import Foundation`) bzw. in Task 4 zusätzlich `Frontstage/Resources/Localizable.xcstrings` und laufen TDD mit `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\swift-test.ps1 -Filter <Struct>`. Gefiltert wird nach dem **Namen der Suite-Struktur** (`HelpBodyParserTests`), nie nach dem Anzeigenamen aus `@Suite("…")` – sonst läuft nichts bei Exit-Code 0. Jede Suite-Struktur heißt wie ihre Datei. Tasks 5–11 sind App-Code: auf Windows nicht baubar; „Test ausführen“ heißt dort Task 12 (ein CI-Lauf, führt der Controller aus). Vor jedem Commit eines App-Tasks `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\swift-parse.ps1` (keine Zeile mit `error:`) und Diff-Durchsicht.
 - **Begriffe (Glossar):** `HelpTopic`, `HelpArticle`, `HelpButton`, `HelpCenter` (Ansicht `HelpCenterView`), `Feedback…` mit `FeedbackKind` (`idea`, `issue`), `FeedbackAttachment` (`markup`, `redactions`), `HelpTips`. Rein technische Namen dieses Plans (`HelpGroup`, `HelpBlock`, `HelpBodyParser`, `HelpCatalog`, `HelpSearch`, `HelpText`, `NormalizedRect`, `DeviceInfo`, `FeedbackDraft`, `FeedbackMessage`, `FeedbackComposer`, `FeedbackRecipient`, `FeedbackAttachmentPolicy`, `FeedbackRoute`, `HelpLibrary`, `FeedbackDraftStore`, `FeedbackImageEncoder`, `WindowCapture`, `MarkupEditorModel`, `FeedbackModel`, `FeedbackSession`, `FeedbackContext`, `SupportCoordinator`) brauchen keine Glossarzeile (Übersicht, Abstimmung Punkt 10).
 - **Neue App-Ordner:** `Frontstage/Help/` und `Frontstage/Feedback/` (Unterordner `Feedback/Markup/`); Tests unter `FrontstageTests/Help/` und `FrontstageTests/Feedback/`. Plattformcode mit `#if os(iOS)` / `#if os(macOS)`, keine eigenen Ordner je Plattform.
+- **Rückmeldedienst (ADR-0015, Q-43):** Build-Einstellungen `FEEDBACK_URL` (Platzhalter `https://frontstage.example.com`) und `FEEDBACK_APP_KEY` (Platzhalter `not-a-real-key`) → Info.plist `FrontstageFeedbackURL`, `FrontstageFeedbackAppKey` in **beiden** Zielen; CI übergibt `FEEDBACK_URL="${{ secrets.FEEDBACK_URL }}" FEEDBACK_APP_KEY="${{ secrets.FEEDBACK_APP_KEY }}"`. Echte Werte nie im Repo. Endpunkt = Basis + `/api/v1/feedback`, Datenschutzseite = Basis + `/datenschutz`.
 - **Empfangsadresse (ADR-0014, Q-42):** Build-Einstellung `FEEDBACK_EMAIL`, im Repo nur `feedback@example.com`; Info.plist-Schlüssel `FrontstageFeedbackEmail` in **beiden** Zielen; CI übergibt `FEEDBACK_EMAIL="${{ secrets.FEEDBACK_EMAIL }}"` wie `MSAL_CLIENT_ID`. Nie eine echte Adresse in Code, Tests oder Doku.
 - **Kostenlos (FR-13 geändert 2026-11-16):** Kein Hilfe- oder Rückmeldungs-Code steht hinter `PaidGate` oder fragt `Unlock` ab – außer zum Auslesen des Kaufstands für die Geräteangaben.
 - **Geräteangaben nur aus diesen Quellen:** `CFBundleShortVersionString`, `CFBundleVersion`, Systemname und -version, Modellkennung (`sysctlbyname("hw.machine")` am iPad, `"hw.model"` am Mac), `DataLocationController.location`, `DataStore.theme()`, `Unlock.isUnlocked`, `Locale.current.language.languageCode`. **Nie** `UIDevice.current.name`, `Host.current().localizedName`, Benutzername, Klassen, Fächer, Dateinamen.
@@ -45,13 +46,16 @@ Alle Zeilen der Übersicht gelten (Abschnitt „Global Constraints“, Abstimmun
 12. **Nach dem Senden:** iPad leert den Entwurf nur bei `MFMailComposeResult.sent`; `.saved` und `.cancelled` behalten ihn; `.failed` zeigt einen Hinweis. Mac leert ihn bei `sharingService(_:didShareItems:)` (Übergabe an Mail; ADR-0014 Kosten). Teilen und Kopieren leeren nie – dafür gibt es „Entwurf verwerfen“.
 13. **Kurz-Tipps:** vier Tipps (`DaySelectionTip`, `MaterialTileTip`, `SmartboardBarTip` nur iPad, `HelpButtonTip`), `Tips.configure([.displayFrequency(.daily)])`; gemeinsamer Schalter `HelpTips.$isEnabled` (`@Parameter static var isEnabled: Bool = true` in `struct HelpTips`, laut Apple-Doku als statischer Parameter außerhalb eines Tips zulässig) in jeder Regel. Zurücksetzen setzt `UserDefaults`-Schlüssel `help.tips.resetOnNextLaunch`; beim Start ruft `HelpTipsConfiguration` dann `Tips.resetDatastore()` **vor** `Tips.configure` (Apple: muss davor stehen). Im Testlauf (`XCTestConfigurationFilePath` gesetzt) wird TipKit nicht konfiguriert – Tests hängen nie am Tip-Zustand.
 14. **Verworfene Wege für die Rückmeldung** (ADR-0014): eigener Endpunkt/Web-Formular (Server, NFR-2), GitHub-Issues (Schlüssel in der App), nur TestFlight-Feedback (fehlt im App Store), App-Store-Bewertungen (öffentlich, ohne Bilder). Kein Task baut einen davon nach.
-15. **Platzierung der Hilfeknöpfe** (FR-17.1): eigenes `ToolbarItem(placement: .automatic)` bzw. im Section-Header; Thema je Ort siehe Task 10. Einrichten bekommt unten die Section „Hilfe und Rückmeldung“ (iPad-Einstellungen-Muster: Hilfe zuletzt).
+16. **Hochladen zuerst, Mail als Rückfall (ADR-0015).** `FeedbackRoute.choose` liefert `.upload(endpoint:)`, sobald `FeedbackServiceEndpoint.resolve` eine Adresse ergibt; sonst wie bisher Mail oder Teilen. Scheitert das Hochladen endgültig, bietet die Ansicht „Erneut versuchen“ und den Rückfallweg (`FeedbackRoute.fallback(recipient:canSendMail:)`) an. **Vertrag mit Teilplan 12 (verbindlich):** `POST <Basis>/api/v1/feedback`, Header `X-Frontstage-App-Key`, Multipart mit Teil `feedback` (`application/json`, Inhalt `FeedbackUploadPayload`, Schlüssel wie unten) und 0–5 Teilen `attachment` (`image/jpeg`, Dateiname `Bildschirmfoto-n.jpg`). JSON: `{"clientDraftId": "<UUID>", "kind": "idea|issue", "text": "…", "topic": "<HelpTopic>"|null, "appVersion": "0.1.0 (1)", "deviceInfo": null|{"appVersion","build","systemName","systemVersion","modelIdentifier","dataLocation":"iCloud|oneDrive","baseTone":"warm|system|cool|petrol","accent":"#RRGGBB"|null,"appearanceMode":"system|light|dark","isUnlocked":bool,"languageCode"}}`. Antwort 201 (neu) oder 200 (gleiche `clientDraftId` schon angenommen) mit `{"id": "<UUID>", "reference": "<8 Zeichen>"}`. *Grund:* `clientDraftId` macht Wiederholungen nach abgebrochener Antwort unschädlich.
+17. **Wiederholung:** höchstens 3 Versuche, Wartezeiten 1 s und 4 s, nur bei Netzfehlern (`URLError`) und 5xx; 401, 413, 415, 422, 429 sofort endgültig (429 mit Hinweis „Später erneut versuchen“). Zeitlimit je Versuch 60 s. *Verworfen:* Hintergrund-Upload (`URLSessionConfiguration.background`) – Rückmeldungen sind klein, und die Lehrkraft wartet ohnehin auf die Bestätigung.
+18. **Zustimmung einmal je Gerät** (`UserDefaults`-Schlüssel `feedback.consent.v1`, nicht abgeglichen), Version im Schlüssel: Ändert sich die Datenschutzerklärung wesentlich, fragt `v2` neu. Ohne Zustimmung wird nicht hochgeladen; „Lieber per Mail“ wählt den Rückfallweg. Nach dem Senden zeigt die App die `reference` („Kennung für Löschanfragen“), kopierbar.
+19. **Platzierung der Hilfeknöpfe** (FR-17.1): eigenes `ToolbarItem(placement: .automatic)` bzw. im Section-Header; Thema je Ort siehe Task 10. Einrichten bekommt unten die Section „Hilfe und Rückmeldung“ (iPad-Einstellungen-Muster: Hilfe zuletzt).
 
 ## Review Focus
 
 1. **Rückmeldung aus einem offenen Hilfeblatt** → das erste Bildschirmfoto zeigt den Bildschirm darunter, nicht das Hilfeblatt; aus einem Blatt heraus (Koppeln, Tafel) erscheint die Rückmeldung trotzdem. Tests: Task 8 `FeedbackStarterTests.captureRunsBeforeSessionExists` (Reihenfolge Aufnahme → Sitzung), Task 10 `SupportCoordinatorTests.menuFeedbackCapturesFirst`; Geräte-Checkliste 4.
 2. **Geschwärzte Stelle mit Strich darüber, Bild verkleinert** → im gesendeten JPEG vollständig schwarz. Tests: Task 6 `FeedbackImageEncoderTests.redactionCoversAreaCompletely`, `redactionDrawnAboveMarkup`, `downscaleKeepsRedactionPosition`.
-3. **Keine echte Adresse konfiguriert** (leer, `$(FEEDBACK_EMAIL)` unaufgelöst, `feedback@example.com`) → kein Mail-Fenster an eine Platzhalteradresse, sondern Teilen/Kopieren mit Hinweis. Tests: Task 3 `FeedbackRecipientTests.rejectsPlaceholders`, `rejectsUnresolvedBuildSetting`; `FeedbackRouteTests.noRecipientWinsOverMailAccount`; Task 8 `FeedbackModelTests.routeWithoutRecipientIsShare`.
+3. **Kein echter Dienst bzw. keine echte Adresse konfiguriert, oder Dienst nicht erreichbar** (leer, `$(FEEDBACK_URL)` unaufgelöst, `frontstage.example.com`, `feedback@example.com`; Zeitüberschreitung, 503) → kein Upload an einen Platzhalter, kein Mail-Fenster an eine Platzhalteradresse; bei Ausfall bleibt der Entwurf und der Rückfallweg wird angeboten. Tests: Task 3 `FeedbackServiceEndpointTests.rejectsPlaceholders`, `FeedbackRouteTests.uploadWinsWhenServiceConfigured`; Task 6 `FeedbackUploaderTests.retriesServerErrorsThenFails`, `doesNotRetryClientErrors`; Task 8 `FeedbackModelTests.uploadFailureKeepsDraftAndOffersFallback`; Task 3 `FeedbackRecipientTests.rejectsPlaceholders`, `rejectsUnresolvedBuildSetting`; `FeedbackRouteTests.noRecipientWinsOverMailAccount`; Task 8 `FeedbackModelTests.routeWithoutRecipientIsShare`.
 4. **Entwurf mit Bildern, App beendet; Entwurfsdatei kaputt** → nach Neustart ist alles da; kaputte Datei startet leer ohne Absturz; nach „verwerfen“ oder Senden liegen keine Bilddateien mehr im Ordner. Tests: Task 6 `FeedbackDraftStoreTests.roundTripsDraftWithAttachments`, `corruptDraftLoadsAsNil`, `discardRemovesAllFiles`; Task 8 `FeedbackModelTests.didSendClearsDraftAndFiles`.
 5. **Text mit leerer erster Zeile, sehr langer Zeile, nur Leerraum** → Betreff aus der ersten nicht leeren Zeile, auf 60 Zeichen mit „…“; nur Leerraum lässt sich nicht senden. Tests: Task 3 `FeedbackComposerTests.subjectUsesFirstNonEmptyLine`, `subjectIsCutAt60WithEllipsis`; `FeedbackDraftTests.whitespaceOnlyCannotSend`.
 
@@ -215,8 +219,8 @@ public enum HelpSearch {
 Design-Takt: keiner
 
 **Files:**
-- Create: `Packages/FrontstageCore/Sources/FrontstageCore/Feedback/FeedbackKind.swift`, `FeedbackDraft.swift`, `NormalizedRect.swift`, `DeviceInfo.swift`, `FeedbackComposer.swift`, `FeedbackRecipient.swift`, `FeedbackAttachmentPolicy.swift`, `FeedbackRoute.swift`
-- Test: `Packages/FrontstageCore/Tests/FrontstageCoreTests/Feedback/FeedbackDraftTests.swift`, `NormalizedRectTests.swift`, `DeviceInfoTests.swift`, `FeedbackComposerTests.swift`, `FeedbackRecipientTests.swift`, `FeedbackAttachmentPolicyTests.swift`, `FeedbackRouteTests.swift`
+- Create: `Packages/FrontstageCore/Sources/FrontstageCore/Feedback/FeedbackKind.swift`, `FeedbackDraft.swift`, `NormalizedRect.swift`, `DeviceInfo.swift`, `FeedbackComposer.swift`, `FeedbackRecipient.swift`, `FeedbackAttachmentPolicy.swift`, `FeedbackRoute.swift`, `FeedbackServiceEndpoint.swift`, `FeedbackUploadPayload.swift`, `FeedbackRetryPolicy.swift`
+- Test: `Packages/FrontstageCore/Tests/FrontstageCoreTests/Feedback/FeedbackDraftTests.swift`, `NormalizedRectTests.swift`, `DeviceInfoTests.swift`, `FeedbackComposerTests.swift`, `FeedbackRecipientTests.swift`, `FeedbackAttachmentPolicyTests.swift`, `FeedbackRouteTests.swift`, `FeedbackServiceEndpointTests.swift`, `FeedbackUploadPayloadTests.swift`, `FeedbackRetryPolicyTests.swift`
 
 **Interfaces:**
 - Consumes: `HelpTopic` (1); `DataLocation` (08); `Theme`, `BaseTone`, `AppearanceMode`, `ThemeAccent` (10)
@@ -267,8 +271,29 @@ public enum FeedbackAttachmentPolicy {
 }
 public enum FeedbackShareReason: Hashable, Sendable { case noRecipient, noMailAccount }
 public enum FeedbackRoute: Hashable, Sendable {
-  case mail(recipient: String), share(FeedbackShareReason)
-  public static func choose(recipient: String?, canSendMail: Bool) -> FeedbackRoute   // fehlende Adresse zuerst
+  case upload(endpoint: FeedbackServiceEndpoint), mail(recipient: String), share(FeedbackShareReason)
+  /// Dienst zuerst (Entscheidung 16), sonst `fallback`.
+  public static func choose(service: FeedbackServiceEndpoint?, recipient: String?, canSendMail: Bool) -> FeedbackRoute
+  /// Ohne Dienst: fehlende Adresse vor fehlendem Konto.
+  public static func fallback(recipient: String?, canSendMail: Bool) -> FeedbackRoute
+}
+/// Adresse des Rückmeldedienstes; nur https, keine Platzhalter-Domains (Regeln wie `FeedbackRecipient`), ohne Pfad, Abfrage oder Fragment.
+public struct FeedbackServiceEndpoint: Hashable, Sendable {
+  public static func resolve(_ raw: String?) -> FeedbackServiceEndpoint?   // "https://x.de/" → Basis "https://x.de"
+  public let baseURL: URL
+  public var feedbackURL: URL { get }     // Basis + "/api/v1/feedback"
+  public var privacyURL: URL { get }      // Basis + "/datenschutz"
+}
+/// JSON-Teil des Uploads (Entscheidung 16); Kodierung mit `.sortedKeys`, `null` für fehlende Werte ausdrücklich.
+public struct FeedbackUploadPayload: Hashable, Codable, Sendable {
+  public init(draftID: UUID, draft: FeedbackDraft, deviceInfo: DeviceInfo?, appVersion: String)   // deviceInfo nur, wenn draft.includesDeviceInfo
+  public func jsonData() throws -> Data
+}
+public struct FeedbackUploadReceipt: Hashable, Codable, Sendable { public let id: UUID; public let reference: String }
+public enum FeedbackRetryPolicy {
+  public static let maxAttempts = 3
+  public static let delays: [Double] = [1, 4]                  // Sekunden vor Versuch 2 und 3
+  public static func shouldRetry(statusCode: Int?) -> Bool     // nil (Netzfehler) und 500...599 → true; sonst false
 }
 ```
 
@@ -276,6 +301,7 @@ Wortlaut (Entscheidung 6, wörtlich):
 - Betreff: `"Frontstage – Idee"` / `"Frontstage – Hinweis"`; mit Text `"Frontstage – Idee: <Kurz>"` – `<Kurz>` = erste nicht leere Zeile, getrimmt, Leerraum zu einem Leerzeichen; länger als 60 Zeichen → die ersten 60 Zeichen (getrimmt) + `"…"`.
 - Text: getrimmter Text, Leerzeile, `"—"`, dann `"Art: Idee"`|`"Art: Hinweis"`, `"Hilfethema: <rawValue>"` (nur mit Thema), `"Bildschirmfotos: <n>"` (nur bei n > 0); mit Geräteangaben (nur wenn `includesDeviceInfo` und `deviceInfo != nil`) Leerzeile, `"Geräteangaben:"` und `reportLines`. Zeilen mit `\n`.
 - `reportLines`: `"App: Frontstage <appVersion> (<build>)"`, `"System: <systemName> <systemVersion>"`, `"Gerät: <modelIdentifier>"`, `"Datenort: iCloud"`|`"Datenort: OneDrive"`, `"Erscheinungsbild: <Grundton>, <Akzent>, <Modus>"` mit Grundton `warm`|`System`|`kühl`|`Petrol`, Akzent `Standardakzent` oder `Akzent #RRGGBB`, Modus `wie das System`|`hell`|`dunkel`, `"Kauf: ja"`|`"Kauf: nein"`, `"Sprache: <languageCode>"`.
+- `FeedbackDraft` bekommt zusätzlich `public let id: UUID` (beim Anlegen neu; wird `clientDraftId`).
 - `resolve`: getrimmt; `nil`, wenn leer, Leerraum enthält, `"$("` enthält, nicht genau ein `@`, Teil vor/nach `@` leer, Domain ohne Punkt, Domain (klein) gleich `example.com`/`example.org`/`example.net`/`localhost` oder endet auf `.example`/`.invalid`/`.local`/`.test`.
 
 - [ ] **Step 1: Failing Tests schreiben** (Suite-Strukturen wie Dateinamen; Geräteangaben-Beispiel `DeviceInfo(appVersion: "0.1.0", build: "1", systemName: "iPadOS", systemVersion: "26.1", modelIdentifier: "iPad14,5", dataLocation: .iCloud, theme: .standard, isUnlocked: false, languageCode: "de")`)
@@ -317,10 +343,24 @@ Wortlaut (Entscheidung 6, wörtlich):
   #expect(FeedbackAttachmentPolicy.scaledSize(width: 2732, height: 2048) == (2048, 1535))
   #expect(FeedbackAttachmentPolicy.scaledSize(width: 800, height: 600) == (800, 600))
 }
-// FeedbackRouteTests
+// FeedbackRouteTests – Mail-/Teilen-Fälle über fallback(recipient:canSendMail:), Dienst-Fälle über choose(service:recipient:canSendMail:)
 @Test("Mit Adresse und Konto: Mail") func mailWhenPossible()
 @Test("Review 3: fehlende Adresse vor fehlendem Konto") func noRecipientWinsOverMailAccount()   // (nil, false) → .share(.noRecipient)
 @Test("Ohne Konto: Teilen") func shareWithoutMailAccount()
+@Test("Review 3: Dienst schlägt Mail") func uploadWinsWhenServiceConfigured()   // (service, recipient, true) → .upload
+// FeedbackServiceEndpointTests
+@Test("https-Basis ohne Schrägstrich am Ende") func resolvesBase() { #expect(FeedbackServiceEndpoint.resolve("https://rueckmeldung.frontstage-app.de/")?.feedbackURL.absoluteString == "https://rueckmeldung.frontstage-app.de/api/v1/feedback") }
+@Test("Review 3: Platzhalter, http, unaufgelöst → nil") func rejectsPlaceholders()   // "https://frontstage.example.com", "http://x.de", "$(FEEDBACK_URL)", "", "https://x.de/pfad?x=1" → nil
+@Test("Datenschutzseite") func privacyURL()
+// FeedbackUploadPayloadTests
+@Test("Vertrag mit Teilplan 12, Schlüssel wörtlich") func encodesContract() throws {
+  // draft .issue, Text "Tafel speichert nicht", topic .board, Geräteangaben an, info wie oben
+  // JSON (sortedKeys) == {"appVersion":"0.1.0 (1)","clientDraftId":"<id>","deviceInfo":{"accent":null,"appVersion":"0.1.0","appearanceMode":"system","baseTone":"warm","build":"1","dataLocation":"iCloud","isUnlocked":false,"languageCode":"de","modelIdentifier":"iPad14,5","systemName":"iPadOS","systemVersion":"26.1"},"kind":"issue","text":"Tafel speichert nicht","topic":"board"}
+}
+@Test("Geräteangaben aus → deviceInfo null, topic fehlt → null") func encodesNulls() throws
+@Test("Quittung lesen") func decodesReceipt() throws   // {"id":"…","reference":"AB12CD34"}
+// FeedbackRetryPolicyTests
+@Test("Netz und 5xx wiederholen, 4xx nicht") func retryRules()   // nil, 500, 503 → true; 401, 413, 415, 422, 429 → false
 ```
 
 - [ ] **Step 2: Rot belegen** – je Filter (sieben Suites).
@@ -398,8 +438,8 @@ Schreibregeln: du-Form, kurze Sätze, je Artikel 80–250 Wörter; Kurzfassung e
 Design-Takt: keiner
 
 **Files:**
-- Modify: `project.yml` – unter `settings.base`: `FEEDBACK_EMAIL: "feedback@example.com"  # Platzhalter; echte Adresse per CI-Secret (Q-42), nie im Repo`; in **beiden** `info.properties`: `FrontstageFeedbackEmail: $(FEEDBACK_EMAIL)`
-- Modify: `.github/workflows/ci.yml` – an beide `xcodebuild`-Zeilen (Build macOS, App tests) ` FEEDBACK_EMAIL="${{ secrets.FEEDBACK_EMAIL }}"` anhängen
+- Modify: `project.yml` – unter `settings.base`: `FEEDBACK_EMAIL: "feedback@example.com"  # Platzhalter; echte Adresse per CI-Secret (Q-42), nie im Repo`, `FEEDBACK_URL: "https://frontstage.example.com"  # Platzhalter (Q-43)`, `FEEDBACK_APP_KEY: "not-a-real-key"  # Platzhalter; echter Schlüssel per CI-Secret`; in **beiden** `info.properties`: `FrontstageFeedbackEmail: $(FEEDBACK_EMAIL)`, `FrontstageFeedbackURL: $(FEEDBACK_URL)`, `FrontstageFeedbackAppKey: $(FEEDBACK_APP_KEY)`
+- Modify: `.github/workflows/ci.yml` – an beide `xcodebuild`-Zeilen (Build macOS, App tests) ` FEEDBACK_EMAIL="${{ secrets.FEEDBACK_EMAIL }}" FEEDBACK_URL="${{ secrets.FEEDBACK_URL }}" FEEDBACK_APP_KEY="${{ secrets.FEEDBACK_APP_KEY }}"` anhängen
 - Create: `Frontstage/Help/HelpLibrary.swift`, `Frontstage/Feedback/FeedbackConfiguration.swift`
 - Test: `FrontstageTests/Help/HelpLibraryTests.swift`
 
@@ -415,6 +455,8 @@ enum HelpLibrary {
 }
 enum FeedbackConfiguration {
   static func recipient(bundle: Bundle = .main) -> String?   // Info.plist "FrontstageFeedbackEmail" → FeedbackRecipient.resolve
+  static func service(bundle: Bundle = .main) -> FeedbackServiceEndpoint?   // "FrontstageFeedbackURL" → FeedbackServiceEndpoint.resolve
+  static func appKey(bundle: Bundle = .main) -> String?      // "FrontstageFeedbackAppKey", leer/"not-a-real-key"/"$(" → nil
 }
 ```
 
@@ -428,6 +470,7 @@ Text aus dem Bundle über `bundle.localizedString(forKey: key, value: nil, table
     let (catalog, issues) = HelpLibrary.load(bundle: .main)
     #expect(issues.isEmpty); #expect(catalog.articles.count == 21)
   }
+  @Test("Dienst ohne Schlüssel gilt als nicht hinterlegt") func serviceNeedsKey()   // service() != nil impliziert appKey() != nil – sonst liefert FeedbackContext.service nil (Task 8)
   @Test("Adresse ist nil oder gültig – nie ein Platzhalter") func recipientIsNilOrResolved() {
     if let r = FeedbackConfiguration.recipient() { #expect(FeedbackRecipient.resolve(r) == r) }
   }
@@ -440,16 +483,16 @@ Text aus dem Bundle über `bundle.localizedString(forKey: key, value: nil, table
 
 ---
 
-### Task 6: Entwurf auf dem Gerät, Bilder, Aufnahme, Geräteangaben (FR-17.3, FR-17.4)
+### Task 6: Entwurf auf dem Gerät, Bilder, Aufnahme, Geräteangaben, Hochladen (FR-17.3, FR-17.4)
 
 Design-Takt: keiner
 
 **Files:**
-- Create: `Frontstage/Feedback/FeedbackDraftStore.swift`, `Frontstage/Feedback/FeedbackImageEncoder.swift`, `Frontstage/Feedback/WindowCapture.swift`, `Frontstage/Feedback/DeviceInfoCollector.swift`
-- Test: `FrontstageTests/Feedback/FeedbackDraftStoreTests.swift`, `FeedbackImageEncoderTests.swift`, `DeviceInfoCollectorTests.swift`
+- Create: `Frontstage/Feedback/FeedbackDraftStore.swift`, `Frontstage/Feedback/FeedbackImageEncoder.swift`, `Frontstage/Feedback/WindowCapture.swift`, `Frontstage/Feedback/DeviceInfoCollector.swift`, `Frontstage/Feedback/FeedbackUploader.swift`, `Frontstage/Feedback/FeedbackConsent.swift`
+- Test: `FrontstageTests/Feedback/FeedbackDraftStoreTests.swift`, `FeedbackImageEncoderTests.swift`, `DeviceInfoCollectorTests.swift`, `FeedbackUploaderTests.swift` (mit dem vorhandenen `FrontstageTests/Storage/StubURLProtocol.swift`)
 
 **Interfaces:**
-- Consumes: `FeedbackDraft`, `FeedbackAttachment`, `NormalizedRect`, `FeedbackAttachmentPolicy`, `DeviceInfo` (3); `DrawingGeometry`, `PageSize` (06); `DataLocation`, `Theme`
+- Consumes: `FeedbackDraft`, `FeedbackAttachment`, `NormalizedRect`, `FeedbackAttachmentPolicy`, `DeviceInfo`, `FeedbackServiceEndpoint`, `FeedbackUploadPayload`, `FeedbackUploadReceipt`, `FeedbackRetryPolicy` (3); `DrawingGeometry`, `PageSize` (06); `DataLocation`, `Theme`
 - Produces:
 
 ```swift
@@ -477,7 +520,28 @@ enum FeedbackImageEncoder {
   static func collect(dataLocation: DataLocation, theme: Theme, isUnlocked: Bool) -> DeviceInfo
   static func modelIdentifier() -> String      // sysctlbyname "hw.machine" (iOS) / "hw.model" (macOS); Simulator: "SIMULATOR_MODEL_IDENTIFIER" aus der Umgebung
 }
+enum FeedbackUploadError: Error, Equatable {
+  case rejected(statusCode: Int)               // 401, 413, 415, 422 – endgültig
+  case rateLimited                             // 429
+  case unavailable                             // Netz oder 5xx nach allen Versuchen
+  case invalidResponse
+}
+/// Multipart-Upload nach Entscheidung 16/17; meldet Fortschritt 0...1 über den Anteil gesendeter Bytes.
+final class FeedbackUploader: Sendable {
+  init(session: URLSession = .shared, sleep: @escaping @Sendable (Double) async -> Void = { try? await Task.sleep(for: .seconds($0)) })
+  func upload(payload: FeedbackUploadPayload, attachments: [(fileName: String, data: Data)], to endpoint: FeedbackServiceEndpoint,
+              appKey: String, progress: @escaping @Sendable (Double) -> Void) async throws(FeedbackUploadError) -> FeedbackUploadReceipt
+  static func multipartBody(boundary: String, json: Data, attachments: [(fileName: String, data: Data)]) -> Data
+}
+/// Einmalige Zustimmung (Entscheidung 18).
+enum FeedbackConsent {
+  static let key = "feedback.consent.v1"
+  static func isGiven(defaults: UserDefaults = .standard) -> Bool
+  static func give(defaults: UserDefaults = .standard)
+}
 ```
+
+Fortschritt über `URLSession.upload(for:from:delegate:)` mit einem `URLSessionTaskDelegate`, der `didSendBodyData` in `progress(Double(totalBytesSent) / Double(totalBytesExpectedToSend))` übersetzt; Zeitlimit 60 s je Versuch (`URLRequest.timeoutInterval`).
 
 Aufnahme: iPad `UIApplication.shared.connectedScenes` → `UIWindowScene` mit `session.role == .windowApplication` und `activationState == .foregroundActive` → `keyWindow` → `UIGraphicsImageRenderer(bounds: window.bounds)` mit `drawHierarchy(in: window.bounds, afterScreenUpdates: true)` → `.cgImage`. Mac: `NSApp.mainWindow ?? NSApp.keyWindow` (ohne Blätter: `window.sheetParent == nil`), `contentView.bitmapImageRepForCachingDisplay(in: bounds)` + `cacheDisplay(in:to:)` → `cgImage`. Zusammensetzen mit `CGContext` (RGB, 8 Bit) in Pixelgröße; Zeichnung: iPad `markup.image(from: CGRect(origin: .zero, size: pixelSize), scale: 1)`, Mac dasselbe als `NSImage` → `cgImage(forProposedRect:context:hints:)`; Schwärzung `y_cg = height − (y + h) · height`.
 
@@ -498,6 +562,19 @@ Aufnahme: iPad `UIApplication.shared.connectedScenes` → `UIWindowScene` mit `s
   @Test("Review 2: Schwärzung liegt über der Zeichnung") func redactionDrawnAboveMarkup()   // roter Strich quer durch, Pixel in der Schwärzung ≤ 8
   @Test("Review 2: Lage stimmt nach Verkleinern") func downscaleKeepsRedactionPosition()   // 4096×2048 → 2048×1024, Mitte schwarz, Ecke weiß
   @Test("Unlesbare Daten → nil") func invalidDataIsNil()
+}
+@Suite struct FeedbackUploaderTests {   // URLSession mit StubURLProtocol, sleep als No-op
+  @Test("Vertrag: Methode, Pfad, Header, Teile") func sendsContract() async throws
+  // POST …/api/v1/feedback; X-Frontstage-App-Key; Content-Type multipart/form-data; boundary; Teil "feedback" application/json; zwei Teile "attachment" image/jpeg mit Dateinamen
+  @Test("201 → Quittung") func returnsReceipt() async throws
+  @Test("Review 3: 503, 503, 503 → unavailable nach drei Versuchen") func retriesServerErrorsThenFails() async
+  @Test("503 dann 201 → Erfolg") func retrySucceeds() async throws
+  @Test("Review 3: 401/413/422 sofort endgültig, ein Versuch") func doesNotRetryClientErrors() async
+  @Test("429 → rateLimited") func rateLimited() async
+  @Test("Fortschritt endet bei 1") func reportsProgress() async throws
+}
+@Suite struct FeedbackConsentTests {
+  @Test("Zustimmung wird gemerkt") func remembersConsent()   // eigene UserDefaults-Suite
 }
 @MainActor @Suite struct DeviceInfoCollectorTests {
   @Test("Version und Build aus dem Bundle, Modellkennung nicht leer") func collectsFromBundle()
@@ -586,6 +663,10 @@ Design-Takt: Hauptstufe
 /// Was eine Rückmeldung von außen braucht; `RootView` setzt es (Task 10), die Vorgabe taugt für Vorschauen.
 struct FeedbackContext {
   var store: FeedbackDraftStore
+  var service: FeedbackServiceEndpoint?         // nil, wenn FeedbackConfiguration.service() oder .appKey() fehlt
+  var appKey: String?
+  var uploader: FeedbackUploader
+  var consentDefaults: UserDefaults
   var recipient: String?
   var canSendMail: @MainActor () -> Bool        // iPad MFMailComposeViewController.canSendMail(); Mac NSSharingService(named: .composeEmail)?.canPerform(withItems: ["x"]) == true
   var deviceInfo: @MainActor () -> DeviceInfo
@@ -597,7 +678,12 @@ extension EnvironmentValues { @Entry var feedbackContext: FeedbackContext = .sta
 @MainActor @Observable final class FeedbackModel {
   init(draft: FeedbackDraft, context: FeedbackContext)
   private(set) var draft: FeedbackDraft
-  var route: FeedbackRoute { get }                   // FeedbackRoute.choose(recipient:canSendMail:)
+  var route: FeedbackRoute { get }                   // FeedbackRoute.choose(service:recipient:canSendMail:)
+  var fallbackRoute: FeedbackRoute { get }           // FeedbackRoute.fallback(recipient:canSendMail:)
+  private(set) var uploadState: FeedbackUploadState  // .idle, .uploading(progress: Double), .sent(reference: String), .failed(FeedbackUploadError)
+  var needsConsent: Bool { get }                     // route ist .upload und FeedbackConsent nicht gegeben
+  func giveConsent()
+  func upload() async                                // nur mit Zustimmung; bei Erfolg didSend(), uploadState .sent; bei Fehler Entwurf bleibt
   var message: FeedbackMessage { get }               // FeedbackComposer.compose(draft, deviceInfo: draft.includesDeviceInfo ? context.deviceInfo() : nil)
   var deviceInfoPreview: [String] { get }            // reportLines, auch wenn aus (zum Zeigen)
   var remainingSlots: Int { get }
@@ -628,12 +714,14 @@ Ansicht `FeedbackView` (`NavigationStack` + `Form`, `themedBackground()`):
 - Section: `TextEditor` (Mindesthöhe 160 pt, skaliert), Platzhalter je Art; Fußtext bei `topic`: `feedback.aboutTopic` mit Titel aus `HelpLibrary.shared`.
 - Section „Bildschirmfotos (n von 5)“: `AttachmentStrip` – Vorschaubilder (Höhe 120 pt, Ecken nach UI-10 „Kacheln 16“), Tipp öffnet `MarkupEditorView` (iPad `fullScreenCover`, Mac `sheet`), Kontextmenü und VoiceOver-Aktion „Entfernen“; `PhotosPicker(selection:maxSelectionCount: remainingSlots, matching: .images)` „Foto hinzufügen“, ausgeblendet bei 0; Fußtext `feedback.attachments.privacyHint`.
 - Section: `Toggle` „Geräteangaben anhängen“ (aus), darunter `DisclosureGroup` „Was wird angehängt?“ mit `deviceInfoPreview` in `.monospaced()`-freier Systemschrift, Größe `detailMeta`.
-- Leiste: `cancellationAction` „Schließen“ (Entwurf bleibt); `confirmationAction` je `route`: `.mail` → „Senden“ (deaktiviert ohne `draft.canSend`) öffnet `MailComposeView`/`MacMailComposer`; `.share` → `ShareLink(items: shareFiles(), subject: Text(message.subject), message: Text(message.body))` „Teilen“ (ohne Bilder `ShareLink(item: copyText())`); Menü „Mehr“ mit „Text kopieren“ (`UIPasteboard`/`NSPasteboard`) und „Entwurf verwerfen“ (`role: .destructive`, Rückfrage).
+- Leiste: `cancellationAction` „Schließen“ (Entwurf bleibt); `confirmationAction` je `route`: `.upload` → „Senden“ (deaktiviert ohne `draft.canSend`); mit `needsConsent` erst das Blatt **Zustimmung** (Text `feedback.consent.body` mit den echten Werten: Art, Text, Bilder, Geräteangaben nur wenn an; Ziel = Host von `service.baseURL`; Aufbewahrung zwölf Monate; `Link("feedback.consent.privacy", destination: service.privacyURL)`; Kapselknöpfe „Zustimmen und senden“ und „Lieber per Mail“ → Rückfallweg). Während `.uploading` ein `ProgressView(value:)` mit Prozent und deaktivierten Feldern; `.sent` → Alert mit `feedback.sent.reference` und „Kennung kopieren“; `.failed` → Zeile mit Grund (`feedback.upload.unavailable` / `.rateLimited` / `.rejected`) und den Tasten „Erneut versuchen“ sowie dem Rückfallweg (`fallbackRoute`: „Per Mail senden“ bzw. „Teilen“). `.mail` → „Senden“ (deaktiviert ohne `draft.canSend`) öffnet `MailComposeView`/`MacMailComposer`; `.share` → `ShareLink(items: shareFiles(), subject: Text(message.subject), message: Text(message.body))` „Teilen“ (ohne Bilder `ShareLink(item: copyText())`); Menü „Mehr“ mit „Text kopieren“ (`UIPasteboard`/`NSPasteboard`) und „Entwurf verwerfen“ (`role: .destructive`, Rückfrage).
 - Bei `.share(.noRecipient)` Fußzeile `feedback.share.noRecipient`, bei `.share(.noMailAccount)` `feedback.share.noMailAccount`.
 - Nach `.sent` bzw. Mac-Übergabe: `didSend()`, Blatt schließen, Hinweis `feedback.sent` als `AccessibilityNotification.Announcement` und kurzer Alert. `.failed` → Alert `feedback.sendFailed`.
 - Speichern: `.task(id: model.draft) { try? await Task.sleep(for: .milliseconds(400)); model.persist() }`; Bild-Änderungen (`add…`, `remove…`, `updateMarkup`) speichern sofort.
 
 `MailComposeView`: `UIViewControllerRepresentable` um `MFMailComposeViewController` (`setToRecipients`, `setSubject`, `setMessageBody(isHTML: false)`, `addAttachmentData(_:mimeType: "image/jpeg", fileName:)`), Delegate meldet `MFMailComposeResult`. `MacMailComposer`: `NSSharingService(named: .composeEmail)` mit `recipients`, `subject`, `perform(withItems: [body] + fileURLs)`, Delegate `didShareItems` / `didFailToShareItems`.
+
+Texte (zusätzlich für das Hochladen): `feedback.consent.title` Bevor du sendest · `feedback.consent.body %@` Deine Rückmeldung geht an den Rückmeldedienst der Entwickler (%@): Art, Text, Bildschirmfotos und – nur wenn eingeschaltet – Geräteangaben. Sie wird zwölf Monate aufbewahrt und dann gelöscht. Mit der Kennung, die du nach dem Senden siehst, kannst du die Löschung früher verlangen. · `feedback.consent.privacy` Datenschutz · `feedback.consent.agree` Zustimmen und senden · `feedback.consent.mailInstead` Lieber per Mail · `feedback.upload.progress` Wird gesendet … · `feedback.upload.unavailable` Der Rückmeldedienst ist gerade nicht erreichbar. Dein Entwurf bleibt erhalten. · `feedback.upload.rateLimited` Gerade kommen zu viele Rückmeldungen an. Versuch es später erneut. · `feedback.upload.rejected` Der Rückmeldedienst hat die Rückmeldung abgelehnt. Schick sie per Mail. · `feedback.upload.retry` Erneut versuchen · `feedback.upload.viaMail` Per Mail senden · `feedback.sent.reference %@` Danke! Kennung für Löschanfragen: %@ · `feedback.sent.copyReference` Kennung kopieren.
 
 Texte: `feedback.title` Rückmeldung · `feedback.kind.idea` Idee · `feedback.kind.issue` Hinweis · `feedback.text.placeholder.idea` Was wünschst du dir? · `feedback.text.placeholder.issue` Was ist passiert, und was hast du erwartet? · `feedback.aboutTopic %@` Zu: %@ · `feedback.attachments.title %lld` Bildschirmfotos (%lld von 5) · `feedback.attachments.add` Foto hinzufügen · `feedback.attachments.remove` Entfernen · `feedback.attachments.label %lld` Bildschirmfoto %lld · `feedback.attachments.labelMarked %lld` Bildschirmfoto %lld, bearbeitet · `feedback.attachments.privacyHint` Bildschirmfotos können Klassen-, Datei- und Personennamen zeigen. Schwärze sie vor dem Senden. · `feedback.deviceInfo` Geräteangaben anhängen · `feedback.deviceInfo.what` Was wird angehängt? · `feedback.deviceInfo.note` Ohne Gerätenamen und ohne Inhalte. · `feedback.close` Schließen · `feedback.send` Senden · `feedback.share` Teilen · `feedback.more` Mehr · `feedback.copy` Text kopieren · `feedback.copied` Text kopiert · `feedback.discard` Entwurf verwerfen · `feedback.discard.confirm` Entwurf und Bilder löschen? · `feedback.share.noRecipient` In dieser Fassung ist keine Empfangsadresse hinterlegt. Teile die Rückmeldung oder kopiere den Text. · `feedback.share.noMailAccount` Auf diesem Gerät ist kein Mail-Konto eingerichtet. Teile die Rückmeldung über eine andere App oder kopiere den Text. · `feedback.sent` Danke! Deine Rückmeldung ist unterwegs. · `feedback.sendFailed` Nicht gesendet. Dein Entwurf bleibt erhalten. · `feedback.saveFailed` Entwurf nicht gespeichert.
 
@@ -645,7 +733,10 @@ Texte: `feedback.title` Rückmeldung · `feedback.kind.idea` Idee · `feedback.k
   @Test("AK-59: höchstens fünf Bilder") func limitsToFiveAttachments()   // Aufnahme + addPhotos(6) → 5, remainingSlots 0
   @Test("AK-58: Entwurf übersteht neues Modell") func draftSurvivesReload() async throws
   @Test("Review 4: Senden leert Entwurf und Dateien") func didSendClearsDraftAndFiles()
-  @Test("Review 3: ohne Adresse Teilen") func routeWithoutRecipientIsShare()   // recipient nil → .share(.noRecipient)
+  @Test("Review 3: ohne Adresse Teilen") func routeWithoutRecipientIsShare()   // service nil, recipient nil → .share(.noRecipient)
+  @Test("Ohne Zustimmung kein Upload") func uploadRequiresConsent() async       // StubURLProtocol zählt 0 Anfragen
+  @Test("AK-58: Upload leert Entwurf, zeigt Kennung") func uploadSuccessClearsDraft() async
+  @Test("Review 3: Ausfall behält Entwurf, Rückfallweg angeboten") func uploadFailureKeepsDraftAndOffersFallback() async   // 503×3 → .failed(.unavailable), store.load() != nil, fallbackRoute == .mail(...)
   @Test("Geräteangaben voreingestellt aus und nicht im Text") func deviceInfoOffByDefault()
   @Test("Text kopieren enthält Betreff und Text") func copyTextHasSubjectAndBody()
   @Test("Zusammengesetzte Anhänge in Reihenfolge mit Dateinamen") func flattenedAttachmentsAreOrdered()
@@ -732,7 +823,7 @@ Design-Takt: Hauptstufe
 **Files:**
 - Create: `Frontstage/Help/SupportCoordinator.swift`, `Frontstage/Help/HelpCommands.swift`
 - Modify: `Frontstage/App/FrontstageApp.swift` – an `WindowGroup` `.commands { HelpCommands(support: .shared) }`
-- Modify: `Frontstage/App/RootView.swift` – `.environment(\.feedbackContext, …)` (Store `.shared`, `recipient: FeedbackConfiguration.recipient()`, Geräteangaben aus `dataLocation.location`, `(try? dataLocation.store.theme()) ?? .standard`, `ClassroomServices.shared.unlock.isUnlocked`), `.onAppear { SupportCoordinator.shared.context = <derselbe Kontext> }`, `.sheet(isPresented: $support.showsHelpCenter) { HelpSheet(root: .center) { … } }`, `.feedbackSheet($support.feedbackSession)` an einem eigenen Hintergrund-View
+- Modify: `Frontstage/App/RootView.swift` – `.environment(\.feedbackContext, …)` (Store `.shared`, `service`: `FeedbackConfiguration.service()` nur wenn auch `FeedbackConfiguration.appKey()` nicht nil, sonst nil; `appKey: FeedbackConfiguration.appKey()`, `uploader: FeedbackUploader()`, `consentDefaults: .standard`, `recipient: FeedbackConfiguration.recipient()`, Geräteangaben aus `dataLocation.location`, `(try? dataLocation.store.theme()) ?? .standard`, `ClassroomServices.shared.unlock.isUnlocked`), `.onAppear { SupportCoordinator.shared.context = <derselbe Kontext> }`, `.sheet(isPresented: $support.showsHelpCenter) { HelpSheet(root: .center) { … } }`, `.feedbackSheet($support.feedbackSession)` an einem eigenen Hintergrund-View
 - Modify (Hilfeknopf, Thema):
   - `Frontstage/UI/DayView/DayView.swift` – in `toolbar` eigenes `ToolbarItem { HelpButton(topic: .dayView) }` → `dayView`
   - `Frontstage/UI/Preparation/PreparationView.swift` – `toolbar` → `preparation`
@@ -845,7 +936,7 @@ Design-Takt: keiner
 
 - [ ] **Step 1: Gesamtdiff durchsehen** – `git diff main...HEAD -- Packages Frontstage FrontstageTests project.yml .github docs`: `FrontstageCore` importiert nur `Foundation`; Swift 6 strikt (Closures in `FeedbackContext` `@MainActor`, Delegates von MessageUI/AppKit mit `@preconcurrency` wie bei `PKCanvasViewDelegate`); MessageUI und `PKCanvasView` nur iOS; keine echte Adresse (`grep -rn "@" Frontstage/Feedback project.yml` zeigt nur `feedback@example.com`); `Localizable.xcstrings` gültiges JSON, 84 `help.*`-Schlüssel mit `extractionState manual`; kein Hilfe-/Rückmeldungs-Code hinter `PaidGate`; `RootView` und `FrontstageApp` behalten alles aus 04–10.
 - [ ] **Step 2: Kern lokal** – `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\swift-test.ps1` → alle Suites grün; `scripts\swift-parse.ps1` → keine Syntaxfehler.
-- [ ] **Step 3: Secret anlegen** (einmalig, wenn Q-42 beantwortet ist): `gh secret set FEEDBACK_EMAIL` – fehlt es, baut CI mit leerer Adresse (Rückmeldung nur per Teilen), das ist zulässig.
+- [ ] **Step 3: Secrets anlegen** (einmalig, wenn Q-42/Q-43 beantwortet sind): `gh secret set FEEDBACK_EMAIL`, `gh secret set FEEDBACK_URL`, `gh secret set FEEDBACK_APP_KEY` (gleicher Wert wie `APP_KEY` des Dienstes) – fehlen sie, baut CI mit leeren Werten (Rückmeldung nur per Teilen), das ist zulässig.
 - [ ] **Step 4: Lauf starten**
 
 ```bash
@@ -855,7 +946,7 @@ gh run list --workflow ci.yml --limit 1
 gh run watch <run-id> --exit-status
 ```
 
-Erwartet: „Core tests“ grün inkl. `Help Topics`, `Help Body`, `Help Text`, `Help Catalog`, `Help Search`, `Help Content` und der sieben Feedback-Suites; „App tests (iPad simulator)“ grün mit `HelpLibraryTests`, `FeedbackDraftStoreTests`, `FeedbackImageEncoderTests`, `DeviceInfoCollectorTests`, `MarkupEditorModelTests`, `FeedbackModelTests`, `FeedbackStarterTests`, `HelpCenterModelTests`, `SupportCoordinatorTests`, `HelpTipsConfigurationTests` sowie allen vorhandenen; „Build macOS“ grün (prüft `MacMarkupCanvas`, `MacMailComposer`, `HelpCommands`). Implementierer pushen nicht und starten keinen Lauf.
+Erwartet: „Core tests“ grün inkl. `Help Topics`, `Help Body`, `Help Text`, `Help Catalog`, `Help Search`, `Help Content` und der zehn Feedback-Suites; „App tests (iPad simulator)“ grün mit `HelpLibraryTests`, `FeedbackDraftStoreTests`, `FeedbackUploaderTests`, `FeedbackConsentTests`, `FeedbackImageEncoderTests`, `DeviceInfoCollectorTests`, `MarkupEditorModelTests`, `FeedbackModelTests`, `FeedbackStarterTests`, `HelpCenterModelTests`, `SupportCoordinatorTests`, `HelpTipsConfigurationTests` sowie allen vorhandenen; „Build macOS“ grün (prüft `MacMarkupCanvas`, `MacMailComposer`, `HelpCommands`). Implementierer pushen nicht und starten keinen Lauf.
 
 - [ ] **Step 5: Bei Rot** – erst `TestResults.xcresult` und `gh run view <run-id> --log-failed` lesen, Ursache mit superpowers:systematic-debugging klären, alle Korrekturen sammeln, Diff prüfen, **ein** neuer Lauf.
 - [ ] **Step 6: Rückfluss** – Abweichungen vom Plan (z. B. Tip-Parameter, Aufnahme am Mac) in `docs/ARCHITECTURE.md` (Abschnitt „Hilfe und Rückmeldung“, Changes-Zeile) und als Nachtrag in `docs/sessions/2026-11-16.md`.
@@ -871,7 +962,8 @@ Erwartet: „Core tests“ grün inkl. `Help Topics`, `Help Body`, `Help Text`, 
 | 3 | **AK-57:** Mac | Hilfe › Frontstage-Hilfe (⌘?); „AirPlay“, „ferien“, „ubernehmen“, „xyz“ | Center öffnet; Treffer wie AK-57; „Keine Treffer“ | ☐ Mac ☐ iPad mit Tastatur |
 | 4 | **AK-59 / Review 1:** Heute mit „8b Englisch“, Apple TV verbunden | Fragezeichen › Rückmeldung geben; Bild öffnen, „8b“ schwärzen, Pfeil zeichnen; Fotos bis zur Grenze; eines entfernen | erstes Bild = Tagesansicht ohne Hilfeblatt und nicht das Smartboard-Bild; „8b“ im gesendeten Bild schwarz; höchstens 5 | ☐ iPad ☐ Mac |
 | 5 | **AK-58:** Mail-Konto, Adresse aus Secret | Hinweis „Tafel speichert nicht“; App beenden; erneut öffnen; Geräteangaben an; Senden | Entwurf nach Neustart da; Mail mit Adresse, Betreff wie AK-58, Geräteangaben ohne Gerätenamen; danach Entwurf leer | ☐ iPad ☐ Mac |
-| 6 | **AK-58:** ohne Mail-Konto | Rückmeldung öffnen | „Teilen“ und „Text kopieren“ statt „Senden“, Hinweiszeile | ☐ |
+| 6 | **AK-58:** ohne Mail-Konto, ohne Dienst-Secret | Rückmeldung öffnen | „Teilen“ und „Text kopieren“ statt „Senden“, Hinweiszeile | ☐ |
+| 6a | **AK-58 (geändert), AK-65:** Dienst aus Teilplan 12 läuft, Secrets gesetzt | Rückmeldung mit Bild senden; Zustimmung lesen, „Datenschutz“ antippen, zurück, „Zustimmen und senden“; danach Dienst stoppen und erneut senden | Datenschutzseite öffnet; Fortschritt, Kennung; Rückmeldung samt Bild auf der Verwaltungsseite; bei gestopptem Dienst Hinweis, Entwurf bleibt, „Per Mail senden“ angeboten | ☐ iPad ☐ Mac |
 | 7 | **AK-60:** frische Installation | Tipp schließen, Neustart; „Kurz-Tipps erneut zeigen“, Neustart; ausschalten | einmal; nach Zurücksetzen wieder; aus = keiner | ☐ |
 | 8 | Mac-Aufnahme | Rückmeldung aus dem Menü bei offener Vorbereiten-Ansicht | Bild zeigt den Fensterinhalt vollständig (keine leeren Flächen) | ☐ |
 | 9 | Zeichnen am iPad mit Finger und Stift | Stift, Marker, Radierer aus der Werkzeugleiste | alle drei wirken; Zeichnung bleibt nach „Fertig“ und Neustart | ☐ |
@@ -886,22 +978,26 @@ Erwartet: „Core tests“ grün inkl. `Help Topics`, `Help Body`, `Help Text`, 
 | FR-17 – Hilfe in der App, ohne Netz, kostenlos, ohne Server | 1, 2, 4, 5, 9; Checkliste 1 |
 | FR-17.1 – Hilfeknöpfe, VoiceOver, Textgröße | 1, 9, 10; Checkliste 2, 10 |
 | FR-17.2 – Hilfecenter, Suche ohne Umlaute, Menü ⌘? | 2, 4, 9, 10; Checkliste 3 |
-| FR-17.3 – Idee/Hinweis per E-Mail, Geräteangaben aus, Entwurf lokal, Teilen/Kopieren | 3, 5, 6, 8; Checkliste 5, 6 |
+| FR-17.3 – Idee/Hinweis zum Rückmeldedienst mit Zustimmung (geändert 2026-11-16), Rückfall Mail/Teilen/Kopieren, Geräteangaben aus, Entwurf lokal | 3, 5, 6, 8; Checkliste 5, 6, 6a |
+| NFR-2 (geändert) – nur ausdrücklich gesendete Rückmeldung verlässt das Gerät | 6, 8 (Upload nur nach Zustimmung und Tipp) |
+| FR-19.1 / AK-65 – Link zur Datenschutzseite vor dem ersten Senden | 3, 8; Checkliste 6a |
 | FR-17.4 – Aufnahme ohne Hilfeblatt und ohne Zweitbildschirm, Mediathek bis 5, Zeichnen, Schwärzen, Hinweis | 3, 6, 7, 8, 10; Checkliste 4, 8, 9 |
 | FR-17.5 – Kurz-Tipps, abschaltbar, zurücksetzbar ab Neustart | 11; Checkliste 7 |
 | FR-13 (geändert 2026-11-16) – Hilfe und Rückmeldung kostenlos | 9, 10 (kein `PaidGate`); Checkliste 1 |
 | AK-55 … AK-60 | 4, 8, 9, 10, 11 (Logik); Checkliste 1–7 |
 | RISK-11 – Schwärzen deckend, Hinweis, Geräteangaben ohne Namen | 3, 6, 7, 8 |
 | ADR-0014 – Mail über das System, Adresse aus Build-Einstellung, Rückfall | 3, 5, 8, 12 |
+| ADR-0015 – Upload zum Dienst, Vertrag mit Teilplan 12, `FEEDBACK_URL`/`FEEDBACK_APP_KEY` | 3, 5, 6, 8, 12 |
 
 ## Produziert für spätere Teilpläne (Zusammenfassung)
 
-- **Kern:** `HelpTopic`, `HelpGroup`, `HelpBlock`, `HelpBodyParser`, `HelpBodyError`, `HelpText`, `HelpArticle`, `HelpCatalog`, `HelpCatalogIssue`, `HelpSearch`, `FeedbackKind`, `NormalizedRect`, `FeedbackAttachmentOrigin`, `FeedbackAttachment`, `FeedbackDraft`, `DeviceInfo`, `FeedbackMessage`, `FeedbackComposer`, `FeedbackRecipient`, `FeedbackAttachmentPolicy`, `FeedbackShareReason`, `FeedbackRoute`.
-- **App:** `HelpLibrary`, `FeedbackConfiguration`, `FeedbackDraftStore`, `FeedbackImageEncoder`, `WindowCapture`, `DeviceInfoCollector`, `MarkupEditorModel`, `MarkupEditorView`, `FeedbackContext`/`EnvironmentValues.feedbackContext`, `FeedbackModel`, `FeedbackSession`, `FeedbackStarter`, `feedbackSheet(_:)`, `HelpButton`, `HelpSheet`, `HelpArticleView`, `HelpCenterView`, `HelpCenterModel`, `SupportCoordinator`, `HelpCommands`, `HelpTips` und vier Tips, `HelpTipsConfiguration`.
+- **Kern:** `FeedbackServiceEndpoint`, `FeedbackUploadPayload`, `FeedbackUploadReceipt`, `FeedbackRetryPolicy`, `HelpTopic`, `HelpGroup`, `HelpBlock`, `HelpBodyParser`, `HelpBodyError`, `HelpText`, `HelpArticle`, `HelpCatalog`, `HelpCatalogIssue`, `HelpSearch`, `FeedbackKind`, `NormalizedRect`, `FeedbackAttachmentOrigin`, `FeedbackAttachment`, `FeedbackDraft`, `DeviceInfo`, `FeedbackMessage`, `FeedbackComposer`, `FeedbackRecipient`, `FeedbackAttachmentPolicy`, `FeedbackShareReason`, `FeedbackRoute`.
+- **App:** `FeedbackUploader`, `FeedbackUploadError`, `FeedbackConsent`, `HelpLibrary`, `FeedbackConfiguration`, `FeedbackDraftStore`, `FeedbackImageEncoder`, `WindowCapture`, `DeviceInfoCollector`, `MarkupEditorModel`, `MarkupEditorView`, `FeedbackContext`/`EnvironmentValues.feedbackContext`, `FeedbackModel`, `FeedbackSession`, `FeedbackStarter`, `feedbackSheet(_:)`, `HelpButton`, `HelpSheet`, `HelpArticleView`, `HelpCenterView`, `HelpCenterModel`, `SupportCoordinator`, `HelpCommands`, `HelpTips` und vier Tips, `HelpTipsConfiguration`.
 - **Regel für spätere Bildschirme:** Jeder neue Hauptbildschirm und jeder schwierige Bereich bekommt einen `HelpButton` mit eigenem `HelpTopic` (Fall **hinten** anhängen, Gruppe und `related` setzen, vier Texte schreiben; `HelpContentTests` erzwingt die Texte).
 
 ## Abstimmungsbedarf
 
+- **Q-43 (PRD):** Domain des Rückmeldedienstes; bis dahin Platzhalter, ohne Secret kein Upload.
 - **Q-42 (PRD):** Empfangsadresse und Datenschutzerklärung; bis dahin Platzhalter, Rückmeldung nur per Teilen/Kopieren in Builds ohne Secret.
 - **Gestaltungslücken (keine neuen Beschlüsse, nächstliegende Regel):** Aussehen des Hilfeartikels (Zwischentitel über Größe nach UI-6, Hinweis-Block mit Symbol in Textfarbe nach UI-11), Vorschaubilder der Rückmeldung (Ecken nach UI-10 „Kacheln 16“), Schwärzungs-Rechteck beim Ziehen (gestrichelter Rand in Textfarbe), Kurz-Tipps (Systemdarstellung von TipKit). Jede wird im Abschlussbericht genannt; eine Design-Runde ist nicht nötig, solange Andreas nichts anderes wünscht.
 - **Barrierefreiheit:** Zeichnen und Schwärzen gehen nur mit Ziehen; ein Bild ohne Zeichnung oder das Entfernen des Bildes ist immer möglich.
@@ -914,3 +1010,4 @@ Erwartet: „Core tests“ grün inkl. `Help Topics`, `Help Body`, `Help Text`, 
 4. **`NSSharingService.composeEmail`** meldet nur die Übergabe; schlägt das Senden in Mail später fehl, ist der Entwurf schon leer (ADR-0014).
 5. **TipKit-Parameter außerhalb eines Tips** ist laut Doku zulässig, aber nur für einen Tip belegt; Rückfall in Task 11 beschrieben.
 6. **Lange Werte in `Localizable.xcstrings`:** Xcode kann beim Öffnen der Tabelle nicht referenzierte Schlüssel als „stale“ markieren, wenn `extractionState` fehlt; Task 4 setzt ihn, Task 12 prüft ihn.
+7. **Vertrag mit Teilplan 12:** Ändert einer der beiden Pläne Feldnamen oder Statuscodes, bricht der Upload still in den Rückfallweg. Beide Pläne zitieren denselben Vertrag (Entscheidung 16 hier, Task 3 dort); Checkliste 6a prüft ihn Ende zu Ende.
