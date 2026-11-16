@@ -1,5 +1,8 @@
 """App-Fabrik."""
 
+import asyncio
+import contextlib
+import logging
 import sqlite3
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
@@ -13,8 +16,13 @@ from .attachments import AttachmentStore
 from .db import connect
 from .ratelimit import SlidingWindowLimiter
 from .repository import FeedbackRepository
+from .retention import purge_expired
 from .security_headers import SecurityHeadersMiddleware
 from .settings import Settings
+
+logger = logging.getLogger(__name__)
+
+PURGE_INTERVAL_SECONDS = 24 * 60 * 60
 
 
 def utc_now() -> datetime:
@@ -24,10 +32,35 @@ def utc_now() -> datetime:
 def create_app(settings: Settings, *, clock: Callable[[], datetime] = utc_now) -> FastAPI:
     connection = connect(settings.data_dir)
 
+    def run_purge() -> None:
+        count = purge_expired(
+            app.state.repository,
+            app.state.attachment_store,
+            now=clock(),
+            retention_days=settings.retention_days,
+        )
+        if count:
+            logger.info("%d abgelaufene Rückmeldungen gelöscht", count)
+
+    async def purge_daily() -> None:
+        while True:
+            await asyncio.sleep(PURGE_INTERVAL_SECONDS)
+            try:
+                run_purge()
+            except Exception:  # noqa: BLE001 - ein Fehlschlag darf die Schleife nicht beenden
+                logger.exception("Aufräumen fehlgeschlagen")
+
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
-        yield
-        connection.close()
+        run_purge()  # einmal beim Start, bevor Anfragen kommen
+        task = asyncio.create_task(purge_daily())
+        try:
+            yield
+        finally:
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
+            connection.close()
 
     # Kein öffentlicher Schnittstellenkatalog: Docs und OpenAPI aus.
     app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
