@@ -5632,6 +5632,468 @@
           }
         }
       }
+    },
+    "feedback.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rückmeldung"
+          }
+        }
+      }
+    },
+    "feedback.kind.idea" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idee"
+          }
+        }
+      }
+    },
+    "feedback.kind.issue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hinweis"
+          }
+        }
+      }
+    },
+    "feedback.text.placeholder.idea" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Was wünschst du dir?"
+          }
+        }
+      }
+    },
+    "feedback.text.placeholder.issue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Was ist passiert, und was hast du erwartet?"
+          }
+        }
+      }
+    },
+    "feedback.aboutTopic %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zu: %@"
+          }
+        }
+      }
+    },
+    "feedback.attachments.title %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirmfotos (%lld von 5)"
+          }
+        }
+      }
+    },
+    "feedback.attachments.add" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Foto hinzufügen"
+          }
+        }
+      }
+    },
+    "feedback.attachments.remove" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entfernen"
+          }
+        }
+      }
+    },
+    "feedback.attachments.label %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirmfoto %lld"
+          }
+        }
+      }
+    },
+    "feedback.attachments.labelMarked %lld" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirmfoto %lld, bearbeitet"
+          }
+        }
+      }
+    },
+    "feedback.attachments.privacyHint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bildschirmfotos können Klassen-, Datei- und Personennamen zeigen. Schwärze sie vor dem Senden."
+          }
+        }
+      }
+    },
+    "feedback.deviceInfo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geräteangaben anhängen"
+          }
+        }
+      }
+    },
+    "feedback.deviceInfo.what" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Was wird angehängt?"
+          }
+        }
+      }
+    },
+    "feedback.deviceInfo.note" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ohne Gerätenamen und ohne Inhalte."
+          }
+        }
+      }
+    },
+    "feedback.close" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schließen"
+          }
+        }
+      }
+    },
+    "feedback.send" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Senden"
+          }
+        }
+      }
+    },
+    "feedback.share" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Teilen"
+          }
+        }
+      }
+    },
+    "feedback.more" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mehr"
+          }
+        }
+      }
+    },
+    "feedback.copy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text kopieren"
+          }
+        }
+      }
+    },
+    "feedback.copied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text kopiert"
+          }
+        }
+      }
+    },
+    "feedback.discard" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entwurf verwerfen"
+          }
+        }
+      }
+    },
+    "feedback.discard.confirm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entwurf und Bilder löschen?"
+          }
+        }
+      }
+    },
+    "feedback.share.noRecipient" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In dieser Fassung ist keine Empfangsadresse hinterlegt. Teile die Rückmeldung oder kopiere den Text."
+          }
+        }
+      }
+    },
+    "feedback.share.noMailAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Auf diesem Gerät ist kein Mail-Konto eingerichtet. Teile die Rückmeldung über eine andere App oder kopiere den Text."
+          }
+        }
+      }
+    },
+    "feedback.sent" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Danke! Deine Rückmeldung ist unterwegs."
+          }
+        }
+      }
+    },
+    "feedback.sendFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nicht gesendet. Dein Entwurf bleibt erhalten."
+          }
+        }
+      }
+    },
+    "feedback.saveFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entwurf nicht gespeichert."
+          }
+        }
+      }
+    },
+    "feedback.consent.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bevor du sendest"
+          }
+        }
+      }
+    },
+    "feedback.consent.body %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Rückmeldung geht an den Rückmeldedienst der Entwickler (%@): Art, Text, Bildschirmfotos und – nur wenn eingeschaltet – Geräteangaben. Sie wird zwölf Monate aufbewahrt und dann gelöscht. Mit der Kennung, die du nach dem Senden siehst, kannst du die Löschung früher verlangen."
+          }
+        }
+      }
+    },
+    "feedback.consent.privacy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datenschutz"
+          }
+        }
+      }
+    },
+    "feedback.consent.agree" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zustimmen und senden"
+          }
+        }
+      }
+    },
+    "feedback.consent.mailInstead" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lieber per Mail"
+          }
+        }
+      }
+    },
+    "feedback.upload.progress" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wird gesendet …"
+          }
+        }
+      }
+    },
+    "feedback.upload.unavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Rückmeldedienst ist gerade nicht erreichbar. Dein Entwurf bleibt erhalten."
+          }
+        }
+      }
+    },
+    "feedback.upload.rateLimited" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gerade kommen zu viele Rückmeldungen an. Versuch es später erneut."
+          }
+        }
+      }
+    },
+    "feedback.upload.rejected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Rückmeldedienst hat die Rückmeldung abgelehnt. Schick sie per Mail."
+          }
+        }
+      }
+    },
+    "feedback.upload.retry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erneut versuchen"
+          }
+        }
+      }
+    },
+    "feedback.upload.viaMail" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Per Mail senden"
+          }
+        }
+      }
+    },
+    "feedback.sent.reference %@" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Danke! Kennung für Löschanfragen: %@"
+          }
+        }
+      }
+    },
+    "feedback.sent.copyReference" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kennung kopieren"
+          }
+        }
+      }
+    },
+    "feedback.ok" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
