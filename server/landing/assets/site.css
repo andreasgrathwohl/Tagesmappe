@@ -601,3 +601,249 @@ figcaption {
     align-items: end;
   }
 }
+
+/* ---------- Nachmittag, Vorplanen, Farben, Preise, Daten, Fragen, Testen (Task 3) ---------- */
+
+.time--word {
+  font-size: clamp(3rem, 1.5rem + 7vw, 8rem);
+  max-width: none;
+}
+
+.st-prep .wrap,
+.st-plan .wrap,
+.st-look .wrap {
+  display: grid;
+  gap: clamp(32px, 5vw, 72px);
+}
+
+@media (min-width: 1000px) {
+  .st-prep .wrap {
+    grid-template-columns: 5fr 7fr;
+    align-items: center;
+  }
+
+  .st-plan .wrap {
+    grid-template-columns: 7fr 5fr;
+    align-items: center;
+  }
+
+  .st-plan .wrap > figure {
+    grid-column: 1;
+    grid-row: 1;
+  }
+}
+
+.st-plan .app-frame--plan {
+  aspect-ratio: 16 / 8;
+}
+
+.st-look .duo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(16px, 3vw, 40px);
+  align-items: start;
+  max-width: 900px;
+}
+
+@media (min-width: 1000px) {
+  .st-look .wrap {
+    grid-template-columns: 5fr 7fr;
+    align-items: center;
+  }
+}
+
+.st-look .app-frame--mini > .app-screen {
+  height: 100%;
+}
+
+.st-price h2,
+.st-data h2,
+.st-faq h2 {
+  max-width: 20ch;
+}
+
+.plans {
+  display: grid;
+  gap: clamp(16px, 3vw, 32px);
+  margin-top: clamp(32px, 5vw, 64px);
+}
+
+@media (min-width: 800px) {
+  .plans {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.plan-card {
+  padding: clamp(24px, 3vw, 44px);
+  border-radius: var(--radius-tile);
+  background: var(--page-bg);
+}
+
+.plan-card--paid {
+  background: var(--page-stage);
+  color: var(--page-stage-ink);
+}
+
+.plan-card h3 {
+  font-size: clamp(1.6rem, 1.2rem + 1.4vw, 2.4rem);
+  margin-bottom: 20px;
+}
+
+.plan-card ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.plan-card li {
+  display: flex;
+  gap: 14px;
+  align-items: baseline;
+}
+
+.plan-card li::before {
+  content: "";
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--page-accent);
+}
+
+.plan-card--paid li::before {
+  background: var(--page-stage-ink);
+}
+
+.plan-card p {
+  margin-top: 24px;
+  font-size: var(--step-small);
+}
+
+.facts {
+  display: grid;
+  gap: clamp(24px, 3vw, 40px);
+  margin: clamp(32px, 5vw, 64px) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 800px) {
+  .facts {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.facts svg {
+  width: 56px;
+  height: 56px;
+  margin-bottom: 16px;
+  fill: var(--page-accent);
+}
+
+.facts .halo,
+.facts .cut {
+  fill: none;
+  stroke: var(--page-bg);
+  stroke-width: 9;
+  stroke-linecap: round;
+}
+
+.facts .cut {
+  stroke: var(--page-ink);
+  stroke-width: 4;
+}
+
+.more {
+  margin-top: 40px;
+}
+
+.faq {
+  margin-top: clamp(24px, 4vw, 48px);
+  display: grid;
+  gap: 12px;
+  max-width: 860px;
+}
+
+.faq details {
+  background: var(--page-bg);
+  border-radius: var(--radius-select);
+  padding: 0 24px;
+}
+
+.faq summary {
+  cursor: pointer;
+  min-height: 56px;
+  padding-block: 12px;
+  display: flex;
+  align-items: center;
+  font-size: var(--step-lead);
+  letter-spacing: -0.01em;
+}
+
+.faq details p {
+  padding-bottom: 20px;
+}
+
+.st-test .wrap {
+  display: grid;
+  gap: 32px;
+  justify-items: start;
+}
+
+.st-test img {
+  border-radius: 32px;
+}
+
+@media (min-width: 800px) {
+  .st-test .wrap {
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 56px;
+  }
+}
+
+.st-test h2 {
+  font-size: clamp(2.6rem, 1.2rem + 4.6vw, 5.6rem);
+  max-width: none;
+}
+
+/* Bewegung: nur wenn das Skript .js-motion setzt; ohne Skript ist alles sichtbar. */
+@media (prefers-reduced-motion: no-preference) {
+  .js-motion .station:not(.is-visible) .text,
+  .js-motion .station:not(.is-visible) figure,
+  .js-motion .station:not(.is-visible) .head,
+  .js-motion .station:not(.is-visible) .plans,
+  .js-motion .station:not(.is-visible) .facts,
+  .js-motion .station:not(.is-visible) .faq,
+  .js-motion .station:not(.is-visible) > .wrap > h2,
+  .js-motion .station:not(.is-visible) .wrap > img {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  .station .text,
+  .station figure,
+  .station .head,
+  .station .plans,
+  .station .facts,
+  .station .faq,
+  .station > .wrap > h2,
+  .station .wrap > img {
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .station figure,
+  .station .plans,
+  .station .facts {
+    transition-delay: 0.12s;
+  }
+}
+
+@media (max-width: 700px) {
+  .st-plan .app-frame--plan {
+    aspect-ratio: auto;
+  }
+}

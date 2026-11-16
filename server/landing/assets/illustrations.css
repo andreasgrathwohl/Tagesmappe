@@ -377,3 +377,138 @@
   margin: 0 -9.5%;
   padding: 0 9.5%;
 }
+
+/* ---------- Vorbereiten am Mac (Task 3) ---------- */
+
+.prep {
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  height: 100%;
+}
+
+.prep__week {
+  padding: 1.4em 0.8em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+}
+
+.prep__week .period {
+  width: 1.8em;
+  font-size: 1.05em;
+}
+
+.prep__lesson {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1em;
+  padding: 1.6em;
+  background: var(--app-selection);
+}
+
+.app-tile--drop {
+  transform: rotate(-3deg) translate(0.6em, 0.4em);
+  box-shadow: 0 0.5em 1.2em rgba(31, 26, 20, 0.25); /* schwebt: wird gerade gezogen */
+}
+
+.prep__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6em;
+  margin-top: auto;
+}
+
+.prep__actions .app-capsule {
+  font-size: 0.95em;
+  padding: 0.5em 1.1em;
+  background: var(--app-bg);
+}
+
+.prep__actions .app-capsule--action {
+  background: var(--app-accent);
+  color: var(--app-bg);
+}
+
+/* ---------- Jahresplan ---------- */
+
+.plan {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  height: 100%;
+  padding: 1.8em 2em;
+}
+
+.plan__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.05em;
+}
+
+.plan__table th,
+.plan__table td {
+  padding: 0.7em 0.8em;
+  text-align: left;
+  font-weight: 500;
+}
+
+.plan__table thead th {
+  font-weight: 800;
+  color: var(--app-accent);
+}
+
+.plan__table tbody th {
+  width: 3.5em;
+  font-weight: 800;
+}
+
+.plan__table tr.hot {
+  background: var(--app-tint);
+}
+
+.plan__table .old {
+  opacity: 0.45;
+}
+
+.plan__table .app-capsule {
+  margin-left: 0.6em;
+  background: var(--app-bg);
+}
+
+/* ---------- Grundtöne: zwei kleine iPads ---------- */
+
+.theme-warm {
+  --app-bg: #fbf8f2;
+  --app-selection: #ece5d8;
+  --app-text: #1f1a14;
+  --app-accent: #0e6b7a;
+  --app-tint: #dae4e1;
+}
+
+.theme-petrol {
+  --app-bg: #061416;
+  --app-selection: #15292c;
+  --app-text: #ecf4f4;
+  --app-accent: #5fc2cf;
+  --app-tint: #1b3a3e;
+}
+
+.app-frame--mini {
+  aspect-ratio: 1 / 1;
+}
+
+.mini {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  padding: 1.4em 1em;
+  height: 100%;
+}
+
+.app-frame--mini > .app-screen {
+  font-size: clamp(11px, 3.4cqw, 20px);
+}
+
+.mini .app-row {
+  padding: 0.7em 0.8em;
+}

@@ -171,3 +171,13 @@ def test_index_has_meta_and_icon():
     assert sum(1 for t, a in tags if t == "meta" and a.get("name") == "theme-color") == 2
     assert any(t == "link" and a.get("rel") == "icon" for t, a in tags)
     assert "Frontstage – Dein Unterricht, vorbereitet" in (LANDING / "index.html").read_text(encoding="utf-8")
+
+
+def test_required_sections():
+    page = LANDING / "index.html"
+    ids = {a.get("id") for _, a in parse(page).tags if a.get("id")}
+    required = {"tag", "morgen", "smartboard", "tafel", "vorbereiten", "vorplanen", "farben", "preise", "daten", "fragen", "testen"}
+    assert required <= ids, f"Abschnitte fehlen: {required - ids}"
+    text = _visible_text(page)
+    assert "kein Abo" in text
+    assert not re.search(r"\d+,\d{2}\s?€", text), "Eurobetrag auf der Startseite"
