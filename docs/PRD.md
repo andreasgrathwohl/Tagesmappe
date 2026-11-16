@@ -97,7 +97,7 @@ Person (Q-13).
 | Hilfeartikel | der Erklärtext zu einem Hilfethema – kurz, mit Schritten und verwandten Themen; liegt in der App und ist ohne Netz lesbar | Rückmeldung | `HelpArticle` |
 | Hilfeknopf | das Fragezeichen an einem Bildschirm oder Bereich; öffnet den Hilfeartikel genau dazu | Kurz-Tipp | `HelpButton` |
 | Hilfecenter | alle Hilfeartikel mit Suche, in Einrichten und am Mac im Menü „Hilfe“; von dort geht es auch zur Rückmeldung | Hilfeknopf (führt zu einem Artikel) | `HelpCenter` |
-| Rückmeldung | eine Idee oder ein Hinweis der Lehrkraft an die Entwickler, verschickt als E-Mail aus ihrem eigenen Mail-Konto | Bewertung im App Store (öffentlich); Hinweis der Stunde (FR-11.1) | `Feedback` (`kind`: `idea`, `issue`) |
+| Rückmeldung | eine Idee oder ein Hinweis der Lehrkraft an die Entwickler, nach Zustimmung zum Rückmeldedienst hochgeladen; ist er nicht erreichbar oder nicht eingerichtet, als E-Mail aus ihrem eigenen Mail-Konto oder über Teilen (ADR-0015) | Bewertung im App Store (öffentlich); Hinweis der Stunde (FR-11.1) | `Feedback` (`kind`: `idea`, `issue`) |
 | Bildschirmfoto | Bild in einer Rückmeldung: Aufnahme des App-Fensters oder Foto aus der Mediathek, wahlweise mit Zeichnung und geschwärzten Stellen | Standbild (Tafel), Stiftnotiz | `FeedbackAttachment` (Zeichnung `markup`, Schwärzung `redactions`) |
 | Rückmeldedienst | der Dienst der Entwickler, der Rückmeldungen aus der App entgegennimmt und aufbewahrt; läuft als Container beim Betreiber | Datenort (dort liegen die App-Daten der Lehrkraft) | `FeedbackService` (Paket `frontstage_service`, Ordner `server/`) |
 | Verwaltungsseite | die passwortgeschützte Webseite des Rückmeldedienstes, auf der die Entwickler Rückmeldungen lesen, bearbeiten, ausführen und löschen | Einrichten (in der App) | `admin` |
@@ -925,6 +925,7 @@ des Volumes; App Attest als spätere Stufe (ADR-0015). Domain `teach.grathwohl.d
 - 2026-11-16: Verworfen (NFR-2, FR-18): fremder Dienst für Rückmeldungen (Sentry, UserVoice – Auftragsverarbeiter außerhalb der Kontrolle), nur E-Mail (keine Übersicht); Node/TypeScript statt Python, je Teil ein eigener Container, Postgres statt SQLite – siehe ADR-0015
 - 2026-11-16: Verworfen (FR-17.3): eigenes Web-Formular bzw. eigener Endpunkt (Server, widerspricht NFR-2), GitHub-Issues (Zugangsschlüssel in der App), nur TestFlight-Feedback (gibt es im App Store nicht), App-Store-Bewertungen (öffentlich, ohne Bildschirmfotos) – siehe ADR-0014
 - 2026-11-16: Q-43 answered — teach.grathwohl.dev, Dockhand-Git-Stack, Cloudflare Tunnel
+- 2026-11-16: Glossar „Rückmeldung“ changed — Hochladen zum Rückmeldedienst zuerst, Mail/Teilen als Rückfall (ADR-0015)
 
 ## Anhang A — Abdeckung
 

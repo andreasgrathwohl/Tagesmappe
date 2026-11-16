@@ -437,10 +437,12 @@ ihn vollständig.
 
 ### Annahme
 
-- `POST /api/v1/feedback`, Multipart: Teil `feedback` (JSON: `kind` `idea|issue`, `text` 1–10 000 Zeichen, `topic`
+- `POST /api/v1/feedback`, Multipart: Teil `feedback` (JSON: `clientDraftId` (UUID des Entwurfs), `kind` `idea|issue`, `text` 1–10 000 Zeichen, `topic`
   optional aus der Liste der Hilfethemen, `deviceInfo` optional, `appVersion`), Teile `attachment` 0–5 (PNG oder JPEG,
   am Inhalt erkannt, je ≤ 8 MB, zusammen ≤ 25 MB). Header `X-Frontstage-App-Key` muss `APP_KEY` gleichen (Vergleich in
-  konstanter Zeit). Antwort 201 mit `id` (UUID) und `reference` (acht Zeichen, für Löschanfragen).
+  konstanter Zeit). Antwort 201 mit `id` (UUID) und `reference` (acht Zeichen, für Löschanfragen); kommt dieselbe
+  `clientDraftId` erneut (Wiederholung nach verlorener Antwort), 200 mit derselben Antwort, ohne Doppel. Vertrag wörtlich wie
+  Teilplan 11 (Entscheidung 16) und Teilplan 12 (Global Constraints).
 - Fehler: 401 ohne/mit falschem Schlüssel, 411 ohne `Content-Length` (sonst wäre die Größengrenze per chunked
   Übertragung umgehbar; die App sendet die Länge immer), 413 bei zu großen oder zu vielen Teilen, 415 bei anderen Bildformaten, 422
   bei ungültigem JSON, 429 bei Überschreitung der Begrenzung (10 je Minute, 30 je Stunde je Absenderadresse, gelesen aus
@@ -672,3 +674,4 @@ gehören sie zur Unterrichtsstunde. Das Original wird nie verändert.
 - 2026-11-16: plattform changed — Abschnitt „Hilfe und Rückmeldung“ (FR-17, ADR-0014): Hilfeartikel in der Übersetzungstabelle, Aufbau und Suche im Kern, Rückmeldung per E-Mail über das System, Bildschirmfotos mit PencilKit und Schwärzung, Entwurf nur auf dem Gerät, Kurz-Tipps über TipKit; Überblick: Rückmeldung als einziger weiterer Weg nach außen
 - 2026-11-16: dienst changed — Annahme: 411 ohne `Content-Length` ergänzt (Abschlussreview Teilplan 12); für die App endgültig wie die übrigen 4xx
 - 2026-11-16: dienst changed — Betrieb als git-verwalteter Dockhand-Stack (`server/deploy/docker-compose.yml`) hinter einem Cloudflare Tunnel (teach.grathwohl.dev, Q-43): Dienst nur im internen Netz, Tunnel-Container mit fester Adresse als einziger vertrauter Proxy, `NOINDEX`; Sitzungscookie `SameSite=Lax` statt Strict
+- 2026-11-16: dienst changed — Annahme: `clientDraftId` und Antwort 200 bei Wiederholung nachgetragen, damit der Vertrag in allen drei Quellen gleich ist
