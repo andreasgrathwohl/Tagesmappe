@@ -55,3 +55,24 @@ class AttachmentStore:
     def delete_all(self, feedback_id: UUID) -> None:
         shutil.rmtree(self._final_dir(feedback_id), ignore_errors=True)
         self.discard(feedback_id)
+
+    def _ids_in(self, folder: Path) -> list[tuple[UUID, Path]]:
+        """Unterordner mit Rückmeldungs-Kennung als Namen; alles andere bleibt unberührt."""
+        if not folder.is_dir():
+            return []
+        found: list[tuple[UUID, Path]] = []
+        for entry in folder.iterdir():
+            if not entry.is_dir():
+                continue
+            try:
+                found.append((UUID(entry.name), entry))
+            except ValueError:
+                continue
+        return found
+
+    def stale_staging_ids(self, older_than: float) -> list[UUID]:
+        """Staging-Ordner, die seit ``older_than`` (Unix-Zeit) unverändert sind: Reste eines Absturzes."""
+        return [fid for fid, path in self._ids_in(self._root / _STAGING) if path.stat().st_mtime < older_than]
+
+    def published_ids(self) -> list[UUID]:
+        return [fid for fid, _ in self._ids_in(self._root)]

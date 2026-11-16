@@ -37,18 +37,30 @@ def _migrate(connection: sqlite3.Connection) -> None:
         connection.executescript(f"BEGIN;\n{script}\nPRAGMA user_version = {target};\nCOMMIT;")
 
 
-def connect(data_dir: Path) -> sqlite3.Connection:
-    """Öffnet (und migriert) die Datenbank unter ``data_dir``.
+DATABASE_NAME = "frontstage.db"
 
-    ``check_same_thread=False``, weil def-Endpunkte und ``run_in_threadpool`` in anderen Threads
-    laufen; ``isolation_level=None`` (Autocommit), Transaktionen steuert das Repository selbst.
+
+def open_connection(data_dir: Path) -> sqlite3.Connection:
+    """Öffnet eine Verbindung zur bereits migrierten Datenbank (je Anfrage eine, siehe ``deps``).
+
+    ``check_same_thread=False``, weil FastAPI eine sync-Abhängigkeit und den Endpunkt in verschiedenen
+    Threads des Threadpools ausführen kann; die Verbindung gehört trotzdem nur einer Anfrage.
+    ``isolation_level=None`` (Autocommit): Transaktionen steuert das Repository selbst.
+    ``timeout``: so lange wartet ein Schreiber, bis eine fremde Transaktion ihre Sperre freigibt.
     """
-    data_dir.mkdir(parents=True, exist_ok=True)
     connection = sqlite3.connect(
-        data_dir / "frontstage.db", check_same_thread=False, isolation_level=None, timeout=10
+        data_dir / DATABASE_NAME, check_same_thread=False, isolation_level=None, timeout=10
     )
     connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA journal_mode = WAL")
     connection.execute("PRAGMA foreign_keys = ON")
+    return connection
+
+
+def connect(data_dir: Path) -> sqlite3.Connection:
+    """Legt die Datenbank unter ``data_dir`` an, schaltet WAL ein und migriert (einmal beim Start)."""
+    data_dir.mkdir(parents=True, exist_ok=True)
+    connection = open_connection(data_dir)
+    # WAL bleibt in der Datei gespeichert; gilt damit auch für alle späteren Verbindungen
+    connection.execute("PRAGMA journal_mode = WAL")
     _migrate(connection)
     return connection

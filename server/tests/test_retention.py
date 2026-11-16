@@ -1,3 +1,5 @@
+import os
+import sqlite3
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from uuid import uuid4
@@ -107,3 +109,54 @@ def test_purge_command_prints_count(capsys, monkeypatch, settings, clock):
     purge.main()
 
     assert capsys.readouterr().out.strip() == "2 Rückmeldungen gelöscht"
+
+
+def test_purge_sweeps_stale_staging_and_orphan_folders(env):
+    """Reste nach einem Absturz: alter Staging-Ordner und Bilderordner ohne Datensatz (FR-18.2)."""
+    repo, store, clock = env
+    clock.now = NOW
+    kept = add(repo, store, clock, NOW - timedelta(days=1))
+    root = store._root  # noqa: SLF001
+    stale = root / ".staging" / str(uuid4())
+    stale.mkdir(parents=True)
+    (stale / "0.png").write_bytes(b"x")
+    old_time = (NOW - timedelta(hours=2)).timestamp()
+    os.utime(stale, (old_time, old_time))
+    fresh = root / ".staging" / str(uuid4())  # gerade in Arbeit: bleibt
+    fresh.mkdir(parents=True)
+    fresh_time = (NOW - timedelta(minutes=5)).timestamp()
+    os.utime(fresh, (fresh_time, fresh_time))
+    orphan = root / str(uuid4())
+    orphan.mkdir()
+    (orphan / "0.png").write_bytes(b"x")
+    stray = root / "notiz.txt"  # fremde Dateien fasst der Dienst nicht an
+    stray.write_text("x")
+
+    assert purge_expired(repo, store, now=NOW, retention_days=365) == 0
+
+    assert not stale.exists()
+    assert fresh.exists()
+    assert not orphan.exists()
+    assert stray.exists()
+    assert store.paths(kept.id)
+
+
+def test_startup_survives_failing_purge(settings, clock, monkeypatch, caplog):
+    import frontstage_service.main as main
+
+    def locked(*args, **kwargs):
+        raise sqlite3.OperationalError("database is locked")
+
+    monkeypatch.setattr(main, "purge_expired", locked)
+    with TestClient(create_app(settings, clock=clock)) as c:
+        assert c.get("/healthz").status_code == 200
+    assert any("Aufräumen fehlgeschlagen" in m for m in caplog.messages)
+
+
+def test_purge_sweeps_idle_limiter_keys(settings, clock):
+    with TestClient(create_app(settings, clock=clock)) as c:
+        limiter = c.app.state.limiter
+        limiter.check("198.51.100.7")
+        clock.now += timedelta(hours=2)
+        c.app.state.run_purge()
+        assert limiter.tracked_keys() == 0

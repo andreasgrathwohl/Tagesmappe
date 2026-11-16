@@ -11,8 +11,8 @@ from fastapi import APIRouter, Depends, Form, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse, Response
 
 from ..deps import AttachmentStoreDep, RepositoryDep
-from ..models import FeedbackKind, FeedbackRecord, FeedbackStatus
-from ..repository import MAX_NOTE_LENGTH
+from ..models import FeedbackFilter, FeedbackKind, FeedbackRecord, FeedbackStatus
+from ..repository import MAX_NOTE_LENGTH, FeedbackRepository
 from .auth import AdminSessionDep
 from .csrf import csrf_token, require_csrf
 from .export import to_csv, to_json
@@ -135,9 +135,11 @@ def feedback_list(
     return templates.TemplateResponse(request, template, context, headers=NO_STORE)
 
 
-def _export_response(request: Request, feedback_filter, extension: str) -> Response:
+def _export_response(
+    request: Request, repository: FeedbackRepository, feedback_filter: FeedbackFilter, extension: str
+) -> Response:
     # limit=-1: in SQLite „ohne Grenze“; die Ausfuhr kennt keine Seiten.
-    records, _ = request.app.state.repository.list(feedback_filter, limit=-1, offset=0)
+    records, _ = repository.list(feedback_filter, limit=-1, offset=0)
     if extension == "csv":
         body, media_type = to_csv(records), "text/csv; charset=utf-8"
     else:
@@ -154,24 +156,26 @@ def _export_response(request: Request, feedback_filter, extension: str) -> Respo
 def export_csv(
     request: Request,
     _: AdminSessionDep,
+    repository: RepositoryDep,
     kind: str | None = None,
     status: str | None = None,
     since: str | None = None,
     until: str | None = None,
 ) -> Response:
-    return _export_response(request, parse_filter(kind, status, since, until), "csv")
+    return _export_response(request, repository, parse_filter(kind, status, since, until), "csv")
 
 
 @router.get("/export.json")
 def export_json(
     request: Request,
     _: AdminSessionDep,
+    repository: RepositoryDep,
     kind: str | None = None,
     status: str | None = None,
     since: str | None = None,
     until: str | None = None,
 ) -> Response:
-    return _export_response(request, parse_filter(kind, status, since, until), "json")
+    return _export_response(request, repository, parse_filter(kind, status, since, until), "json")
 
 
 def _record_or_404(repository: RepositoryDep, feedback_id: str) -> FeedbackRecord:

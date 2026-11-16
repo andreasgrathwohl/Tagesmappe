@@ -51,3 +51,15 @@ def test_limiter_blocked_for_does_not_count():
         limiter2.record("a")
     wait = limiter2.blocked_for("a")
     assert wait is not None and wait > 0
+
+
+def test_sweep_drops_idle_keys_only():
+    clock = Clock()
+    limiter = SlidingWindowLimiter(RULES, clock)
+    limiter.check("idle")
+    clock.now += timedelta(minutes=59)
+    limiter.check("active")
+    clock.now += timedelta(minutes=2)
+    limiter.sweep()
+    assert limiter.tracked_keys() == 1
+    assert limiter.check("active") is None

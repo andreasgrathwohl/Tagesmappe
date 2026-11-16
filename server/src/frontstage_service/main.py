@@ -18,7 +18,7 @@ from .admin.routes_feedback import router as admin_feedback_router
 from .admin.templating import STATIC_DIR
 from .api import router as feedback_router
 from .attachments import AttachmentStore
-from .db import connect
+from .db import connect, open_connection
 from .ratelimit import SlidingWindowLimiter
 from .repository import FeedbackRepository
 from .retention import purge_expired
@@ -35,9 +35,11 @@ def utc_now() -> datetime:
 
 
 def create_app(settings: Settings, *, clock: Callable[[], datetime] = utc_now) -> FastAPI:
+    # Eigene Verbindung nur für Migration und Aufräumen; Anfragen öffnen je ihre eigene (deps.get_repository).
     connection = connect(settings.data_dir)
 
     def run_purge() -> None:
+        """Blockierend: läuft im Thread, nie in der Ereignisschleife."""
         count = purge_expired(
             app.state.repository,
             app.state.attachment_store,
@@ -46,18 +48,25 @@ def create_app(settings: Settings, *, clock: Callable[[], datetime] = utc_now) -
         )
         if count:
             logger.info("%d abgelaufene Rückmeldungen gelöscht", count)
+        app.state.limiter.sweep()
+        app.state.login_limiter.sweep()
+
+    async def run_purge_safely() -> None:
+        # Ein Fehlschlag (etwa gesperrte Datenbank, weil das Aufräumkommando gleichzeitig läuft)
+        # darf weder den Start verhindern noch die tägliche Schleife beenden.
+        try:
+            await asyncio.to_thread(run_purge)
+        except Exception:  # noqa: BLE001
+            logger.exception("Aufräumen fehlgeschlagen")
 
     async def purge_daily() -> None:
         while True:
             await asyncio.sleep(PURGE_INTERVAL_SECONDS)
-            try:
-                run_purge()
-            except Exception:  # noqa: BLE001 - ein Fehlschlag darf die Schleife nicht beenden
-                logger.exception("Aufräumen fehlgeschlagen")
+            await run_purge_safely()
 
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
-        run_purge()  # einmal beim Start, bevor Anfragen kommen
+        await run_purge_safely()  # einmal beim Start, bevor Anfragen kommen
         task = asyncio.create_task(purge_daily())
         try:
             yield
@@ -71,8 +80,10 @@ def create_app(settings: Settings, *, clock: Callable[[], datetime] = utc_now) -
     app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None, lifespan=lifespan)
     app.state.settings = settings
     app.state.clock = clock
+    # Nur Aufräumlauf (und Tests); Routen nutzen RepositoryDep mit eigener Verbindung je Anfrage
     app.state.connection = connection
     app.state.repository = FeedbackRepository(connection, clock)
+    app.state.run_purge = run_purge
     app.state.attachment_store = AttachmentStore(settings.data_dir / "attachments")
     # 10 je Minute, 30 je Stunde (AK-61); nur im Speicher, je App
     app.state.limiter = SlidingWindowLimiter([(10, timedelta(minutes=1)), (30, timedelta(hours=1))], clock)
@@ -95,9 +106,13 @@ def create_app(settings: Settings, *, clock: Callable[[], datetime] = utc_now) -
 
     @app.get("/healthz")
     def healthz() -> JSONResponse:
-        # Lesbarkeit der Datenbank prüfen, nicht nur dass der Prozess lebt
+        # Lesbarkeit der Datenbank prüfen, nicht nur dass der Prozess lebt (eigene Verbindung)
         try:
-            connection.execute("SELECT 1").fetchone()
+            probe = open_connection(settings.data_dir)
+            try:
+                probe.execute("SELECT COUNT(*) FROM feedback").fetchone()
+            finally:
+                probe.close()
         except sqlite3.Error:
             return JSONResponse({"status": "unavailable"}, status_code=503)
         return JSONResponse({"status": "ok"})

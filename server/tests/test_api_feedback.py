@@ -11,6 +11,7 @@ from PIL import Image
 
 from frontstage_service.attachments import AttachmentStore
 from frontstage_service.main import create_app
+from frontstage_service.repository import FeedbackRepository
 
 KEY = "test-app-key-" + "x" * 20
 MIB = 1024 * 1024
@@ -170,16 +171,17 @@ def test_concurrent_duplicate_draft_id_returns_existing(client, settings, monkey
     """Die Vorabprüfung übersieht die Wiederholung (Wettlauf); der UNIQUE-Fall liefert trotzdem 200."""
     body = feedback_json()
     first = post_feedback(client, body)
-    repository = client.app.state.repository
-    original = repository.find_by_client_draft_id
+    original = FeedbackRepository.find_by_client_draft_id
     calls = {"n": 0}
 
-    def late_lookup(draft_id):
+    def late_lookup(self, draft_id):
         calls["n"] += 1
-        return None if calls["n"] == 1 else original(draft_id)
+        return None if calls["n"] == 1 else original(self, draft_id)
 
-    monkeypatch.setattr(repository, "find_by_client_draft_id", late_lookup)
+    # Am Typ, nicht an einer Instanz: Jede Anfrage hat ihr eigenes Repository
+    monkeypatch.setattr(FeedbackRepository, "find_by_client_draft_id", late_lookup)
     second = post_feedback(client, body, images=[make_png()])
+    assert calls["n"] == 2  # Vorabprüfung übersehen, nach dem UNIQUE-Fehler gefunden
     assert second.status_code == 200
     assert second.json() == first.json()
     assert count_rows(settings) == 1
@@ -228,8 +230,13 @@ def test_record_survives_app_restart(settings, clock):
     assert record.reference == receipt["reference"]
 
 
-def test_healthz_returns_503_when_database_unreadable(client):
-    client.app.state.connection.close()
+def test_healthz_returns_503_when_database_unreadable(client, monkeypatch):
+    import frontstage_service.main as main
+
+    def unreadable(data_dir):
+        raise sqlite3.OperationalError("unable to open database file")
+
+    monkeypatch.setattr(main, "open_connection", unreadable)
     assert client.get("/healthz").status_code == 503
 
 

@@ -49,6 +49,8 @@ def _record(row: sqlite3.Row) -> FeedbackRecord:
 
 
 class FeedbackRepository:
+    """Gehört genau einer Verbindung, ihr Transaktionszähler nur ihr. Nie zwischen Anfragen teilen."""
+
     def __init__(self, connection: sqlite3.Connection, clock: Callable[[], datetime]) -> None:
         self._db = connection
         self._clock = clock
