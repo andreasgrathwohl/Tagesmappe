@@ -1,0 +1,373 @@
+/*
+ * Frontstage – Startseite: Grundgerüst, Tokens, Schriften.
+ *
+ * Schriften (selbst ausgeliefert, SIL OFL 1.1, Lizenztext in fonts/OFL.txt; Latin-1-Teilmengen, variable Achse):
+ *  - STIX Two Text: Seitenschrift (github.com/google/fonts, ofl/stixtwotext, Commit 718c7ee)
+ *  - Nunito: Ersatz für SF Rounded in den App-Illustrationen, UI-7 (github.com/googlefonts/nunito, Commit 8c6a9bb)
+ *
+ * Richtung (Skill design-taste-frontend): "Die geteilte Bühne" – links bleibt das Gerät stehen, rechts läuft der Tag
+ * vorbei; die Uhrzeit ist die Kapitelmarke. Farben: Seite und App folgen DESIGN.md (warm UI-8, Petrol UI-9);
+ * Gelb nur für "jetzt, gezeigt".
+ */
+
+@font-face {
+  font-family: "STIX Two Text";
+  src: url("fonts/STIXTwoText.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Nunito";
+  src: url("fonts/Nunito.woff2") format("woff2");
+  font-weight: 200 1000;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: light dark;
+
+  /* Seite */
+  --page-bg: #f4eee3;
+  --page-ink: #1f1a14;
+  --page-muted: #5a4e40;
+  --page-accent: #0e6b7a;
+  --page-on-accent: #fbf8f2;
+  --page-stage: #0e4b57;
+  --page-stage-ink: #fbf8f2;
+  --page-focus: #0e6b7a;
+
+  /* App-Illustrationen (DESIGN.md UI-8 bis UI-11) */
+  --app-bg: #fbf8f2;
+  --app-selection: #ece5d8;
+  --app-text: #1f1a14;
+  --app-hairline: rgba(92, 72, 48, 0.22);
+  --app-accent: #0e6b7a;
+  --app-tint: #dae4e1;
+  --app-now: #ffc94a;
+  --app-now-text: #1f1a14;
+  --app-cancel: #ed372d;
+  --app-unavailable: #b86b00;
+
+  /* Schrift und Maße */
+  --font-page: "STIX Two Text", "Times New Roman", Times, serif;
+  --font-app: "Nunito", ui-rounded, "SF Pro Rounded", system-ui, sans-serif;
+  --step-small: clamp(0.875rem, 0.85rem + 0.1vw, 0.9375rem);
+  --step-body: clamp(1.125rem, 1.05rem + 0.3vw, 1.3125rem);
+  --step-lead: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
+  --step-head: clamp(2.25rem, 1.3rem + 3.2vw, 4rem);
+  --margin: clamp(16px, 4vw, 32px);
+  --radius-button: 999px;
+  --radius-tile: 16px;
+  --radius-select: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page-bg: #110e0a;
+    --page-ink: #f5efe5;
+    --page-muted: #c2b6a4;
+    --page-accent: #5fc2cf;
+    --page-on-accent: #110e0a;
+    --page-stage: #1c2b2c;
+    --page-stage-ink: #f5efe5;
+    --page-focus: #5fc2cf;
+
+    --app-bg: #17130e;
+    --app-selection: #2f2921;
+    --app-text: #f5efe5;
+    --app-hairline: rgba(125, 108, 86, 0.55);
+    --app-accent: #5fc2cf;
+    --app-tint: #273a38;
+    --app-cancel: #ff453a;
+    --app-unavailable: #ff9f0a;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--page-bg);
+  color: var(--page-ink);
+  font-family: var(--font-page);
+  font-size: var(--step-body);
+  line-height: 1.5;
+  font-kerning: normal;
+  overflow-wrap: break-word;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: 400;
+  letter-spacing: -0.026em;
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--step-head);
+}
+
+h2 {
+  font-size: clamp(1.75rem, 1.2rem + 2vw, 2.75rem);
+}
+
+p {
+  margin: 0;
+  max-width: 46ch;
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--page-accent);
+  text-underline-offset: 0.18em;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+:focus-visible {
+  outline: 3px solid var(--page-focus);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+::selection {
+  background: var(--page-accent);
+  color: var(--page-on-accent);
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* Sprunglink: nur bei Tastaturfokus sichtbar */
+.skip-link {
+  position: absolute;
+  left: var(--margin);
+  top: 0;
+  z-index: 10;
+  padding: 12px 20px;
+  background: var(--page-ink);
+  color: var(--page-bg);
+  border-radius: 0 0 var(--radius-select) var(--radius-select);
+  transform: translateY(-120%);
+}
+
+.skip-link:focus-visible {
+  transform: none;
+}
+
+/* Kopf: Wortmarke, wenige Links, eine Handlung */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px var(--margin);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--page-ink);
+  font-size: var(--step-lead);
+  letter-spacing: -0.02em;
+  text-decoration: none;
+}
+
+.brand img {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: clamp(12px, 3vw, 28px);
+  font-size: var(--step-small);
+}
+
+.site-nav a {
+  color: var(--page-ink);
+}
+
+/* Schmal: nur Wortmarke und die eine Handlung; die Abschnittslinks stehen dort im Inhalt */
+@media (max-width: 640px) {
+  .site-nav a:not(.button) {
+    display: none;
+  }
+}
+
+/* Handlung: ein Knopf, eine Form (Kapsel, UI-10) */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 26px;
+  border-radius: var(--radius-button);
+  background: var(--page-accent);
+  color: var(--page-on-accent);
+  font-size: var(--step-small);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.site-nav a.button {
+  color: var(--page-on-accent);
+}
+
+.button:hover {
+  text-decoration: underline;
+}
+
+.button--quiet {
+  background: transparent;
+  color: var(--page-ink);
+  text-decoration: underline;
+}
+
+main {
+  padding: clamp(32px, 6vw, 72px) var(--margin) 0;
+}
+
+.lead {
+  font-size: var(--step-lead);
+  line-height: 1.4;
+}
+
+.site-footer {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 16px;
+  align-items: baseline;
+  padding: 120px var(--margin) 30px;
+  font-size: var(--step-small);
+  color: var(--page-muted);
+}
+
+.site-footer nav {
+  display: flex;
+  gap: 24px;
+}
+
+.site-footer nav a {
+  color: var(--page-ink);
+}
+
+.site-footer p:last-child {
+  justify-self: end;
+}
+
+@media (max-width: 640px) {
+  .site-footer {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    padding-top: 80px;
+  }
+
+  .site-footer p:last-child {
+    justify-self: start;
+  }
+}
+
+/*
+ * App-Illustrationen (Nutzung in Teilplan 13 Task 2 und 3).
+ * Der Rahmen ist ein Container: alle Maße im Inneren hängen an cqw und skalieren mit dem Rahmen.
+ * Auf schmalen Schirmen schneidet Task 2 den Rahmen auf den aktiven Bereich zu, statt die Schrift zu verkleinern.
+ */
+.app-frame {
+  --u: 1cqw;
+  position: relative;
+  container-type: inline-size;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 24px;
+  background: var(--app-bg);
+  color: var(--app-text);
+  font-family: var(--font-app);
+  font-size: clamp(10px, 2cqw, 22px);
+  line-height: 1.25;
+}
+
+.app-frame--mac {
+  aspect-ratio: 16 / 10;
+  border-radius: 12px;
+}
+
+.app-frame--board {
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+}
+
+.app-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.app-row {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  padding: 0.8em 1em;
+  border-radius: var(--radius-select);
+}
+
+.app-row--selected {
+  background: var(--app-selection);
+}
+
+.app-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  padding: 1em;
+  border-radius: var(--radius-tile);
+  background: var(--app-tint);
+  color: var(--app-text);
+}
+
+.app-capsule {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25em 0.9em;
+  border-radius: 999px;
+  background: var(--app-tint);
+  color: var(--app-text);
+  font-size: 0.85em;
+  font-weight: 700;
+}
+
+.app-capsule--now {
+  background: var(--app-now);
+  color: var(--app-now-text);
+}
