@@ -163,6 +163,16 @@ def test_detail_shows_text_device_info_and_images(logged_in_client, records):
     assert "Hilfethema" in r.text
 
 
+def test_detail_labels_device_info_in_german(logged_in_client, records):
+    r = logged_in_client.get(f"/admin/feedback/{records[2].id}")
+    for label in ("Gerätemodell", "Datenort", "Grundton", "Akzentfarbe", "Hell/Dunkel", "Freigeschaltet"):
+        assert f"<dt>{label}</dt>" in r.text
+    assert "<dt>appearanceMode</dt>" not in r.text and "<dt>isUnlocked</dt>" not in r.text
+    assert "<dd>Nein</dd>" in r.text and "<dd>False</dd>" not in r.text
+    # Reihenfolge wie im Vertrag, nicht alphabetisch nach Schlüssel
+    assert r.text.index("<dt>Gerätemodell</dt>") < r.text.index("<dt>Datenort</dt>")
+
+
 def test_text_is_escaped(logged_in_client, clock):
     rec = seed(logged_in_client.app, clock, "issue", "<script>alert(1)</script>\nzweite Zeile")
     r = logged_in_client.get(f"/admin/feedback/{rec.id}")

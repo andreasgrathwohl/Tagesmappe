@@ -34,10 +34,43 @@ STATUS_LABELS = {
     FeedbackStatus.rejected: "Verworfen",
 }
 MEDIA_TYPES = {".png": "image/png", ".jpg": "image/jpeg"}
+# Geräteangaben in der Reihenfolge des Vertrags (DeviceInfoIn), Begriffe nach dem Glossar im PRD
+DEVICE_INFO_LABELS = {
+    "appVersion": "App-Version",
+    "build": "Build",
+    "systemName": "System",
+    "systemVersion": "Systemversion",
+    "modelIdentifier": "Gerätemodell",
+    "dataLocation": "Datenort",
+    "baseTone": "Grundton",
+    "accent": "Akzentfarbe",
+    "appearanceMode": "Hell/Dunkel",
+    "isUnlocked": "Freigeschaltet",
+    "languageCode": "Sprache",
+}
 
 
 def _local(value: datetime) -> datetime:
     return value.astimezone(BERLIN)
+
+
+def _device_rows(device_info: dict | None) -> list[tuple[str, object]] | None:
+    """Beschriftete Zeilen; Wahrheitswerte als Ja/Nein, unbekannte Schlüssel unverändert am Ende."""
+    if not device_info:
+        return None
+
+    def shown(value: object) -> object:
+        if isinstance(value, bool):
+            return "Ja" if value else "Nein"
+        return value
+
+    known = [
+        (label, shown(device_info[key])) for key, label in DEVICE_INFO_LABELS.items() if key in device_info
+    ]
+    unknown = [
+        (key, shown(value)) for key, value in sorted(device_info.items()) if key not in DEVICE_INFO_LABELS
+    ]
+    return known + unknown
 
 
 def _preview(text: str) -> str:
@@ -203,7 +236,7 @@ def feedback_detail(
         "kind": KIND_LABELS[record.kind],
         "status_labels": {k.value: v for k, v in STATUS_LABELS.items()},
         "positions": [int(p.stem) for p in store.paths(record.id)],
-        "device_info": sorted(record.device_info.items()) if record.device_info else None,
+        "device_info": _device_rows(record.device_info),
         "max_note": MAX_NOTE_LENGTH,
         "saved": saved if saved in ("status", "note") else None,
     }
