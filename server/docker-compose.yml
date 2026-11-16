@@ -1,0 +1,17 @@
+services:
+  frontstage:
+    image: frontstage-service:latest
+    build: .
+    env_file: .env
+    volumes:
+      - frontstage-data:/data
+    # Nur lokal erreichbar: der Reverse-Proxy (TLS) steht davor.
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+
+volumes:
+  frontstage-data:

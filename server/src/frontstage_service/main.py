@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 
 from fastapi import FastAPI
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -101,5 +101,21 @@ def create_app(settings: Settings, *, clock: Callable[[], datetime] = utc_now) -
         except sqlite3.Error:
             return JSONResponse({"status": "unavailable"}, status_code=503)
         return JSONResponse({"status": "ok"})
+
+    # 308 statt der 307 des Frontends, über eigene Routen. Die Seite mit Schrägstrich wird ebenfalls explizit
+    # ausgeliefert: sonst leitet der Router `/impressum/` zurück (redirect_slashes).
+    for page in ("impressum", "datenschutz"):
+
+        def redirect(page: str = page) -> RedirectResponse:
+            return RedirectResponse(f"/{page}/", status_code=308)
+
+        def serve(page: str = page) -> FileResponse:
+            return FileResponse(settings.landing_dir / page / "index.html")
+
+        app.add_api_route(f"/{page}", redirect, methods=["GET", "HEAD"], include_in_schema=False)
+        app.add_api_route(f"/{page}/", serve, methods=["GET", "HEAD"], include_in_schema=False)
+
+    # Entscheidung 13: Startseite als Frontend mit niedriger Priorität – /api, /admin und /healthz gehen vor.
+    app.frontend("/", directory=settings.landing_dir)
 
     return app

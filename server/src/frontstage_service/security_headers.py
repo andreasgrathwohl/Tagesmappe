@@ -16,6 +16,12 @@ ADMIN_CSP = (
     "frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
 )
 
+# Startseite (Teilplan 13): dieselbe Richtlinie plus Schriften vom eigenen Server
+LANDING_CSP = (
+    "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'; "
+    "frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+)
+
 
 class SecurityHeadersMiddleware:
     """Reine ASGI-Middleware (kein BaseHTTPMiddleware), damit Streaming unberührt bleibt."""
@@ -28,7 +34,9 @@ class SecurityHeadersMiddleware:
             await self.app(scope, receive, send)
             return
 
-        is_admin = scope["path"] == "/admin" or scope["path"].startswith("/admin/")
+        path = scope["path"]
+        is_admin = path == "/admin" or path.startswith("/admin/")
+        is_landing = not is_admin and not path.startswith("/api/") and path != "/healthz"
 
         async def send_with_headers(message: Message) -> None:
             if message["type"] == "http.response.start":
@@ -37,6 +45,8 @@ class SecurityHeadersMiddleware:
                     headers[name] = value
                 if is_admin:
                     headers["Content-Security-Policy"] = ADMIN_CSP
+                elif is_landing:
+                    headers["Content-Security-Policy"] = LANDING_CSP
             await send(message)
 
         await self.app(scope, receive, send_with_headers)
