@@ -83,7 +83,7 @@ struct MarkupEditorView: View {
       } label: {
         Text("feedback.markup.clear")
       }
-      .disabled(!model.canUndo)
+      .disabled(model.drawing.strokes.isEmpty && model.redactions.isEmpty)
 
       Button {
         onDone(model)
