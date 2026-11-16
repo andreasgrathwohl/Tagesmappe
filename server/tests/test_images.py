@@ -1,7 +1,7 @@
 import io
 
 import pytest
-from PIL import Image
+from PIL import Image, ImageCms, PngImagePlugin
 
 from frontstage_service.images import MAX_IMAGE_BYTES, ImageRejected, clean_image
 
@@ -30,6 +30,41 @@ def test_strips_exif_gps():
     cleaned, _ = clean_image(data)
     assert len(Image.open(io.BytesIO(cleaned)).getexif()) == 0
 
+
+
+def _icc_bytes() -> bytes:
+    return ImageCms.ImageCmsProfile(ImageCms.createProfile("sRGB")).tobytes()
+
+
+@pytest.mark.parametrize("fmt", ["PNG", "JPEG"])
+def test_strips_icc_profile(fmt):
+    buf = io.BytesIO()
+    Image.new("RGB", (40, 20), (200, 30, 30)).save(buf, format=fmt, icc_profile=_icc_bytes())
+    assert Image.open(io.BytesIO(buf.getvalue())).info.get("icc_profile")
+    cleaned, _ = clean_image(buf.getvalue())
+    assert not Image.open(io.BytesIO(cleaned)).info.get("icc_profile")
+
+
+def test_strips_jpeg_comment():
+    buf = io.BytesIO()
+    Image.new("RGB", (40, 20), (200, 30, 30)).save(buf, format="JPEG", comment=b"Klasse 8b, Raum 12")
+    assert Image.open(io.BytesIO(buf.getvalue())).info.get("comment")
+    cleaned, _ = clean_image(buf.getvalue())
+    assert b"Klasse 8b" not in cleaned
+    assert not Image.open(io.BytesIO(cleaned)).info.get("comment")
+
+
+def test_strips_png_text_chunks_but_keeps_palette_transparency():
+    info = PngImagePlugin.PngInfo()
+    info.add_text("Comment", "Klasse 8b")
+    image = Image.new("P", (8, 8), 0)
+    image.putpalette([255, 0, 0, 0, 255, 0] + [0] * 762)
+    buf = io.BytesIO()
+    image.save(buf, format="PNG", pnginfo=info, transparency=0)
+    cleaned, _ = clean_image(buf.getvalue())
+    assert b"Klasse 8b" not in cleaned
+    result = Image.open(io.BytesIO(cleaned))
+    assert result.info.get("transparency") == 0
 
 def test_applies_orientation():
     exif = Image.Exif()

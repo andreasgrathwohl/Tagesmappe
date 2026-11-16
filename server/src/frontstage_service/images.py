@@ -25,7 +25,7 @@ class ImageRejected(Exception):
 
 
 def clean_image(data: bytes) -> tuple[bytes, Literal["png", "jpg"]]:
-    """Prüft und kodiert neu (ohne EXIF/ICC). 413: zu groß oder Bombe; 415: falsches Format oder defekt."""
+    """Prüft und kodiert neu (ohne EXIF, ICC, Text und Kommentar). 413: zu groß oder Bombe; 415: falsches Format oder defekt."""
     if len(data) > MAX_IMAGE_BYTES:
         raise ImageRejected(413, "Das Bild ist größer als 8 MiB.")
     try:
@@ -48,12 +48,18 @@ def clean_image(data: bytes) -> tuple[bytes, Literal["png", "jpg"]]:
         raise ImageRejected(415, "Das Bild ist kein gültiges PNG oder JPEG.") from exc
 
     image = ImageOps.exif_transpose(image)  # Drehung einrechnen, bevor die Metadaten wegfallen
+    # exif_transpose liefert eine Kopie, die ``info`` behält; Pillows Speichern greift darauf zurück
+    # (PNG: ICC-Profil, JPEG: Kommentar). Daher leeren – nur die Transparenz einer Palette bleibt,
+    # sonst würde ein transparentes Bild deckend. Zusätzlich ausdrücklich leere Werte beim Speichern.
+    transparency = image.info.get("transparency")
+    image.info.clear()
+    if transparency is not None and fmt == "PNG":
+        image.info["transparency"] = transparency
     out = io.BytesIO()
     if fmt == "PNG":
-        # Neues Bildobjekt ohne info-Einträge: keine Textchunks, kein Profil
-        image.save(out, format="PNG", optimize=True)
+        image.save(out, format="PNG", optimize=True, icc_profile=None, exif=b"")
         return out.getvalue(), "png"
     if image.mode not in ("RGB", "L"):
         image = image.convert("RGB")
-    image.save(out, format="JPEG", quality=90)
+    image.save(out, format="JPEG", quality=90, icc_profile=None, exif=b"", comment=b"")
     return out.getvalue(), "jpg"
