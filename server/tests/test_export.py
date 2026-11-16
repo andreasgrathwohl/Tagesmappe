@@ -38,8 +38,15 @@ def test_csv_has_bom_header_and_rows(logged_in_client, records):  # noqa: F811  
     assert r.content.startswith(b"\xef\xbb\xbf")
     rows = parse(r.content)
     assert rows[0] == [
-        "reference", "received_at", "kind", "status", "topic",
-        "app_version", "attachment_count", "text", "note",
+        "reference",
+        "received_at",
+        "kind",
+        "status",
+        "topic",
+        "app_version",
+        "attachment_count",
+        "text",
+        "note",
     ]
     assert len(rows) == 6
 
@@ -55,8 +62,8 @@ def test_csv_neutralises_formulas():  # Review 3
 
 
 def test_csv_keeps_semicolons_and_newlines_quoted():
-    rows = parse(to_csv([make("a;b\nzweite \"Zeile\"")]))
-    assert rows[1][7] == "a;b\nzweite \"Zeile\""
+    rows = parse(to_csv([make('a;b\nzweite "Zeile"')]))
+    assert rows[1][7] == 'a;b\nzweite "Zeile"'
     assert len(rows[1]) == 9
 
 

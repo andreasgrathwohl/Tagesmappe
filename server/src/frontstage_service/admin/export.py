@@ -48,9 +48,7 @@ def to_csv(records: Iterable[FeedbackRecord]) -> bytes:
     writer.writerow(COLUMNS)
     for record in records:
         fields = _fields(record)
-        writer.writerow(
-            [_neutralise(v) if isinstance(v, str) else v for v in (fields[c] for c in COLUMNS)]
-        )
+        writer.writerow([_neutralise(v) if isinstance(v, str) else v for v in (fields[c] for c in COLUMNS)])
     return UTF8_BOM + buffer.getvalue().encode("utf-8")
 
 
