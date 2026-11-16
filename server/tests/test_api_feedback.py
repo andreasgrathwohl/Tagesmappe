@@ -10,6 +10,7 @@ from fastapi.testclient import TestClient
 from PIL import Image
 
 from frontstage_service.attachments import AttachmentStore
+from frontstage_service.db import DATABASE_NAME
 from frontstage_service.main import create_app
 from frontstage_service.repository import FeedbackRepository
 
@@ -48,7 +49,7 @@ def post_feedback(client, json_body=None, images=(), key=KEY, raw_json=None):
 
 
 def count_rows(settings) -> int:
-    with sqlite3.connect(settings.data_dir / "frontstage.db") as db:
+    with sqlite3.connect(settings.data_dir / DATABASE_NAME) as db:
         return db.execute("SELECT COUNT(*) FROM feedback").fetchone()[0]
 
 
@@ -211,7 +212,7 @@ def test_storage_failure_leaves_no_partial_record(client, settings, monkeypatch)
 
 def test_no_ip_address_persisted(client, settings):
     assert post_feedback(client, images=[make_png()]).status_code == 201
-    with sqlite3.connect(settings.data_dir / "frontstage.db") as db:
+    with sqlite3.connect(settings.data_dir / DATABASE_NAME) as db:
         db.row_factory = sqlite3.Row
         for row in db.execute("SELECT * FROM feedback"):
             for value in dict(row).values():

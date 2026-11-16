@@ -37,7 +37,8 @@ def _migrate(connection: sqlite3.Connection) -> None:
         connection.executescript(f"BEGIN;\n{script}\nPRAGMA user_version = {target};\nCOMMIT;")
 
 
-DATABASE_NAME = "frontstage.db"
+# Name laut docs/ARCHITECTURE.md (Area dienst)
+DATABASE_NAME = "frontstage.sqlite3"
 
 
 def open_connection(data_dir: Path) -> sqlite3.Connection:

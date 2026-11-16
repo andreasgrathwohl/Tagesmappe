@@ -156,6 +156,12 @@ def test_wal_mode_and_version(conn):
     assert conn.execute("PRAGMA user_version").fetchone()[0] == 1
 
 
+def test_database_file_name_matches_architecture(tmp_path):
+    # docs/ARCHITECTURE.md, Area dienst: Volume /data mit frontstage.sqlite3
+    connect(tmp_path).close()
+    assert (tmp_path / "frontstage.sqlite3").is_file()
+
+
 def test_reconnect_keeps_data_and_migrates_once(tmp_path):
     first = connect(tmp_path)
     FeedbackRepository(first, lambda: datetime.now(UTC)).insert(make(), 0)
