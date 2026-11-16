@@ -21,7 +21,7 @@
 - **Grenzen (FR-18, ARCHITECTURE Area dienst):** Text 1–10 000 Zeichen; ≤ 5 Bilder; PNG oder JPEG am Inhalt erkannt; je ≤ 8 MiB, zusammen ≤ 25 MiB, Anfrage ≤ 26 MiB (`Content-Length`); JSON-Teil ≤ 64 KiB; Begrenzung 10 je Minute und 30 je Stunde je Absenderadresse; Anmeldung: 5 Fehlversuche je Adresse sperren 10 Minuten.
 - **Statuscodes:** 201/200 wie oben; 401 Schlüssel fehlt/falsch; 413 zu groß oder zu viele Bilder; 415 anderes Bildformat; 422 ungültiges JSON oder Feld; 429 Begrenzung (Header `Retry-After` in Sekunden).
 - **Datenhygiene:** keine IP-Adresse in Datenbank oder Log (Uvicorn-Zugriffslog aus: `--no-access-log`; eigenes Log nur mit Kennung); Bilder ohne Metadaten neu geschrieben; Testdaten nur mit `8b`, `9c`, erfundenen Texten, Adressen `example.com`; keine echte Domain, kein echtes Passwort, kein echter Schlüssel im Repo (`.env.example` mit Platzhaltern, `.env` in `server/.gitignore`).
-- **Einstellungen nur aus der Umgebung:** `APP_KEY` (≥ 32 Zeichen), `ADMIN_PASSWORD_HASH` (Argon2-Hash), `SESSION_SECRET` (≥ 32 Zeichen), `RETENTION_DAYS` (Vorgabe 365, ≥ 1), `DATA_DIR` (Vorgabe `/data`), `PUBLIC_BASE_URL` (Vorgabe `https://frontstage.example.com`), `COOKIE_SECURE` (Vorgabe `true`), `TRUSTED_PROXIES` (Vorgabe `127.0.0.1`, an Uvicorns `--forwarded-allow-ips`). Fehlt eine Pflichtangabe oder ist sie zu kurz, bricht der Start mit einer deutschen Meldung ab.
+- **Einstellungen nur aus der Umgebung:** `APP_KEY` (≥ 32 Zeichen), `ADMIN_PASSWORD_HASH` (Argon2-Hash), `SESSION_SECRET` (≥ 32 Zeichen), `RETENTION_DAYS` (Vorgabe 365, ≥ 1), `DATA_DIR` (Vorgabe `/data`), `PUBLIC_BASE_URL` (Vorgabe `https://frontstage.example.com`), `COOKIE_SECURE` (Vorgabe `true`), `TRUSTED_PROXIES` (Vorgabe `127.0.0.1`, an Uvicorns `--forwarded-allow-ips`; liest nur der Startbefehl, kein Feld in `Settings`), `LANDING_DIR` (Vorgabe `/app/landing`, Ordner der Startseite). Fehlt eine Pflichtangabe oder ist sie zu kurz, bricht der Start mit einer deutschen Meldung ab.
 - **Design-Takt:** Tasks mit Oberfläche tragen `Design-Takt: Hauptstufe` – vor dem Editieren den Skill `design:enterprise-ux-patterns` laden (Verhalten: Liste, Filter, Zustände, Löschen mit Rückfrage, Tastatur) und danach mit ihm prüfen. Aussehen: schlicht, Systemschrift des Browsers, Grundtöne aus UI-8 warm (`#FBF8F2` Grund, `#ECE5D8` Auswahl, `#1F1A14` Text, Akzent `#0E6B7A`), keine eigene Gestaltungsrunde (DESIGN.md Q-47). Lücken in einer Zeile im Abschlussbericht.
 - **Commits** englisch mit `Co-Authored-By`-Zeile; kein Push durch Implementierer.
 
@@ -33,13 +33,13 @@
 4. **Idempotenz über `clientDraftId`** (eindeutige Spalte): Eine Wiederholung nach verlorener Antwort legt nichts doppelt an und bekommt 200 mit derselben Kennung.
 5. **`reference`**: acht Zeichen aus `ABCDEFGHJKLMNPQRSTUVWXYZ23456789` (ohne 0/O/1/I), `secrets.choice`, eindeutig (bei Kollision neu ziehen).
 6. **Begrenzung im Speicher** (`SlidingWindowLimiter` mit eingespeister Uhr), Schlüssel = `request.client.host` nach Uvicorns Proxy-Auswertung (`--proxy-headers --forwarded-allow-ips $TRUSTED_PROXIES`). *Kosten:* gilt je Prozess, vergisst sich beim Neustart (ADR-0015).
-7. **Multipart-Grenzen:** zuerst `Content-Length` > 26 MiB → 413 ohne Lesen; dann `await request.form(max_files=5, max_fields=1, max_part_size=65_536)`; Starlette meldet Überschreitungen als `HTTPException(400)` – „Too many files“ wird zu 413, andere Formfehler zu 422. Je Datei Größe prüfen (`len(await file.read())`).
+7. **Multipart-Grenzen:** zuerst `Content-Length` > 26 MiB → 413 ohne Lesen; dann `await request.form(max_files=5, max_fields=1, max_part_size=65_536)` (der Teil `feedback` kommt laut Teilplan 11 ohne Dateinamen und zählt für Starlette deshalb als Feld – `max_fields`, `max_part_size` –, die `attachment`-Teile mit Dateinamen als Dateien – `max_files`; der Test-Helfer sendet ihn ebenso als Feld); Starlette meldet Überschreitungen als `HTTPException(400)` – „Too many files“ wird zu 413, andere Formfehler zu 422. Je Datei Größe prüfen (`len(await file.read())`).
 8. **Sitzung:** Starlette `SessionMiddleware(secret_key=SESSION_SECRET, same_site="strict", https_only=COOKIE_SECURE, max_age=28_800, session_cookie="frontstage_admin")` (setzt `HttpOnly` immer). Sitzung trägt `admin: true`, `csrf: <token>`, `login_at`. Nach Anmeldung neue Sitzung (alte Werte löschen), Abmelden leert sie. *Verworfen:* eigene Sitzungstabelle – ein Betreiber, kein Bedarf an serverseitigem Widerruf über das Abmelden hinaus.
 9. **CSRF:** Token (`secrets.token_urlsafe(32)`) in der Sitzung; jede POST-Route der Verwaltung prüft Formfeld `csrf_token` oder Header `X-CSRF-Token` (htmx setzt ihn über `hx-headers` am `<body>`) in konstanter Zeit; Fehler → 403. Anmeldeseite hat ein Vor-Anmelde-Token.
 10. **htmx 2 lokal** unter `static/admin/htmx.min.js` (Version gesperrt, Prüfsumme im Kommentar der Vorlage), keine Inline-Skripte; CSP `default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'` für `/admin`. Für die Startseite (Teilplan 13) dieselbe Richtlinie plus `font-src 'self'` (Schriften liegen auf dem eigenen Server, keine Google Fonts – siehe PRD Changes 2026-11-16 zu FR-19).
 11. **CSV-Ausfuhr:** UTF-8 mit BOM, Trennzeichen `;`, Spalten `reference;received_at;kind;status;topic;app_version;attachment_count;text;note`; Zellen, die mit `=`, `+`, `-`, `@`, Tab oder CR beginnen, bekommen ein führendes `'` (Formel-Einschleusung in Tabellenprogrammen). JSON: Liste der Objekte mit denselben Feldern plus `device_info`. Ausfuhr folgt den aktuellen Filtern.
 12. **Aufräumen** `purge_expired(now)` löscht Datensätze mit `received_at < now − RETENTION_DAYS` und ihre Bildordner; Aufruf beim Start, dann alle 24 h als `asyncio`-Aufgabe im `lifespan`; zusätzlich Befehl `uv run python -m frontstage_service.purge` für den Betreiber.
-13. **Startseite und Verwaltung im selben Prozess:** `/api/v1/*`, `/admin/*`, `/healthz` zuerst, danach die Startseite. Laut Skill `fastapi` `app.frontend("/", directory=…)`; kennt die gesperrte Version das nicht, `app.mount("/", StaticFiles(directory=…, html=True))` als letzte Route. Seiten als Ordner mit `index.html` (`/impressum/`, `/datenschutz/`), `/impressum` und `/datenschutz` leiten mit 308 auf die Form mit Schrägstrich.
+13. **Startseite und Verwaltung im selben Prozess:** `/api/v1/*`, `/admin/*`, `/healthz` zuerst, danach die Startseite. Laut Skill `fastapi` `app.frontend("/", directory=…)`; kennt die gesperrte Version das nicht, `app.mount("/", StaticFiles(directory=…, html=True))` als letzte Route. Seiten als Ordner mit `index.html` (`/impressum/`, `/datenschutz/`), `/impressum` und `/datenschutz` leiten mit 308 auf die Form mit Schrägstrich – über eigene Routen vor dem Mount, denn `StaticFiles(html=True)` leitet selbst mit 307 um.
 14. **Passwort-Hash erzeugen:** `uv run python -m frontstage_service.hash_password` fragt zweimal verdeckt (`getpass`) und gibt den Argon2-Hash aus; der Betreiber trägt ihn in `.env` ein. Kein Klartext-Passwort in der Umgebung.
 
 ## Review Focus
@@ -91,6 +91,7 @@ class Settings:
     data_dir: Path = Path("/data")
     public_base_url: str = "https://frontstage.example.com"
     cookie_secure: bool = True
+    landing_dir: Path = Path("/app/landing")   # LANDING_DIR; ein aus __file__ abgeleiteter Pfad trägt im Image nicht (nicht-editierbare Installation)
     @classmethod
     def from_env(cls, environ: Mapping[str, str]) -> "Settings": ...   # wirft SettingsError mit deutscher Meldung
 class SettingsError(Exception): ...
@@ -98,7 +99,7 @@ def create_app(settings: Settings, *, clock: Callable[[], datetime] = utc_now) -
 # asgi.py: app = create_app(Settings.from_env(os.environ)) – nur für Uvicorn; Tests importieren asgi nie, sondern main.create_app
 ```
 
-`pyproject.toml`: `requires-python = ">=3.12,<3.13"`; Abhängigkeiten `fastapi[standard]`, `jinja2`, `python-multipart`, `pillow`, `argon2-cffi`, `itsdangerous`; Gruppe `dev`: `pytest`, `httpx`, `ruff`; `[tool.fastapi] entrypoint = "frontstage_service.asgi:app"`; Ruff `line-length = 110`, Regeln `E,F,I,UP,B,S` (Bandit für Sicherheitsmuster). `conftest.py`: Fixture `settings(tmp_path)` mit Testwerten (`app_key="test-app-key-" + "x"*20`, Hash von `"richtiges-passwort"` aus `argon2.PasswordHasher()`), `clock` (feste Zeit 2026-11-16T09:00:00Z, verstellbar), `client` = `TestClient(create_app(...), base_url="https://testserver")`.
+`pyproject.toml`: `requires-python = ">=3.12,<3.13"`; `[build-system]` (z. B. `uv_build`), damit `uv sync` das Paket aus `src/` installiert und Tests `frontstage_service` importieren können (ohne Build-System installiert uv das Projekt nicht); Abhängigkeiten `fastapi[standard]`, `jinja2`, `python-multipart`, `pillow`, `argon2-cffi`, `itsdangerous`; Gruppe `dev`: `pytest`, `httpx`, `ruff`; `[tool.fastapi] entrypoint = "frontstage_service.asgi:app"`; Ruff `line-length = 110`, Regeln `E,F,I,UP,B,S` (Bandit für Sicherheitsmuster), `per-file-ignores` für `tests/**`: `S101` (`assert`), `S105`, `S106` (Testpasswörter) – sonst schlägt `ruff check` an jedem Test fehl. `conftest.py`: Fixture `settings(tmp_path)` mit Testwerten (`app_key="test-app-key-" + "x"*20`, Hash von `"richtiges-passwort"` aus `argon2.PasswordHasher()`, `landing_dir` = `server/landing` im Repo), `clock` (feste Zeit 2026-11-16T09:00:00Z, verstellbar), `client` = `with TestClient(create_app(...), base_url="https://testserver", follow_redirects=False) as c: yield c` (nur als Kontextmanager läuft der `lifespan`; ohne `follow_redirects=False` folgt der Client 303/308 selbst und die Tests auf Umleitungen sehen sie nie).
 
 - [ ] **Step 1: Failing Tests schreiben**
 
@@ -139,10 +140,10 @@ class DeviceInfoIn(BaseModel):  # Felder und Werte wie Vertrag; extra="forbid"
     dataLocation: Literal["iCloud", "oneDrive"]; baseTone: Literal["warm", "system", "cool", "petrol"]
     accent: Annotated[str, Field(pattern=r"^#[0-9A-F]{6}$")] | None; appearanceMode: Literal["system", "light", "dark"]
     isUnlocked: bool; languageCode: Annotated[str, Field(max_length=8)]
+HelpTopic = Literal[...21 Rohwerte...]   # vor FeedbackIn definieren
 class FeedbackIn(BaseModel):    # extra="forbid"
     clientDraftId: UUID; kind: FeedbackKind; text: Annotated[str, Field(min_length=1, max_length=10_000)]
     topic: HelpTopic | None; appVersion: Annotated[str, Field(max_length=32)]; deviceInfo: DeviceInfoIn | None
-HelpTopic = Literal[...21 Rohwerte...]
 class Receipt(BaseModel): id: UUID; reference: str
 @dataclass(frozen=True)
 class FeedbackRecord:
@@ -151,11 +152,15 @@ class FeedbackRecord:
     attachment_count: int; updated_at: datetime
 @dataclass(frozen=True)
 class FeedbackFilter: kind: FeedbackKind | None = None; status: FeedbackStatus | None = None; since: date | None = None; until: date | None = None
-def connect(data_dir: Path) -> sqlite3.Connection   # WAL, foreign_keys on, migriert (user_version)
+def connect(data_dir: Path) -> sqlite3.Connection   # WAL, foreign_keys on, migriert (user_version); check_same_thread=False
+# (def-Endpunkte und run_in_threadpool laufen in anderen Threads); die App öffnet je Anfrage eine Verbindung
+# (Abhängigkeit mit yield, schließt danach), der lifespan eine eigene fürs Aufräumen
 class FeedbackRepository:
     def __init__(self, connection: sqlite3.Connection, clock: Callable[[], datetime]) -> None
+    def transaction(self) -> AbstractContextManager[None]   # COMMIT am Ende, ROLLBACK bei Ausnahme (Task 4)
     def find_by_client_draft_id(self, client_draft_id: UUID) -> FeedbackRecord | None
-    def insert(self, feedback: FeedbackIn, attachment_count: int) -> FeedbackRecord   # erzeugt id, reference (Entscheidung 5)
+    def insert(self, feedback: FeedbackIn, attachment_count: int) -> FeedbackRecord   # erzeugt id, reference (Entscheidung 5);
+    # committet innerhalb von transaction() nicht selbst; doppelte clientDraftId → sqlite3.IntegrityError
     def get(self, id: UUID) -> FeedbackRecord | None
     def list(self, filter: FeedbackFilter, *, limit: int, offset: int) -> tuple[list[FeedbackRecord], int]   # neueste zuerst, Gesamtzahl
     def set_status(self, id: UUID, status: FeedbackStatus) -> bool
@@ -165,7 +170,10 @@ class FeedbackRepository:
 class AttachmentStore:
     def __init__(self, root: Path) -> None              # root = data_dir / "attachments"
     def save(self, feedback_id: UUID, position: int, data: bytes, extension: Literal["png", "jpg"]) -> Path
-    def paths(self, feedback_id: UUID) -> list[Path]     # nach Position sortiert
+    # schreibt nach root/.staging/<id>/<position>.<ext> (Task 4: erst nach COMMIT veröffentlichen)
+    def publish(self, feedback_id: UUID) -> None        # benennt root/.staging/<id> nach root/<id> um; ohne Bilder nichts
+    def discard(self, feedback_id: UUID) -> None        # löscht root/.staging/<id> (Fehlerfall)
+    def paths(self, feedback_id: UUID) -> list[Path]     # veröffentlichte Bilder, nach Position sortiert
     def path(self, feedback_id: UUID, position: int) -> Path | None
     def delete_all(self, feedback_id: UUID) -> None
 ```
@@ -183,7 +191,9 @@ def test_set_status_and_note_persist(repo):
 def test_delete_removes_row(repo):
 def test_schema_has_no_address_column(conn):   # PRAGMA table_info: kein Name mit "ip" oder "addr"
 def test_wal_mode(conn):                        # PRAGMA journal_mode == "wal"
-def test_attachment_paths_sorted_and_deleted(tmp_path):
+def test_attachment_paths_sorted_and_deleted(tmp_path):   # save → publish → paths sortiert → delete_all
+def test_attachment_discard_removes_staging(tmp_path):    # save → discard → kein Ordner, paths leer
+def test_transaction_rolls_back_on_error(repo):          # insert in transaction(), Ausnahme → keine Zeile
 def test_feedback_in_rejects_unknown_fields():  # extra="forbid" → ValidationError
 def test_feedback_in_accepts_contract_example():   # JSON aus Teilplan 11, Task 3 encodesContract
 ```
@@ -212,7 +222,11 @@ def clean_image(data: bytes) -> tuple[bytes, Literal["png", "jpg"]]   # Entschei
 class SlidingWindowLimiter:
     def __init__(self, rules: Sequence[tuple[int, timedelta]], clock: Callable[[], datetime]) -> None   # [(10, 1 min), (30, 1 h)]
     def check(self, key: str) -> int | None   # None = erlaubt (und gezählt); sonst Sekunden bis zur nächsten Erlaubnis
+    def blocked_for(self, key: str) -> int | None   # wie check, zählt aber nicht (Task 6: Sperre prüfen vor dem Passwort)
+    def record(self, key: str) -> None              # zählt ohne zu prüfen (Task 6: nur Fehlversuche)
 ```
+
+Jede App legt ihre Begrenzer in `create_app` an (`app.state`), nie auf Modulebene – sonst teilen sich Tests und App-Neustarts im Test den Zähler.
 
 - [ ] **Step 1: Failing Tests schreiben** (Bilder mit Pillow im Test erzeugen)
 
@@ -227,6 +241,7 @@ def test_rejects_decompression_bomb():     # PNG 10000×10000 einfarbig (klein k
 def test_limiter_minute_rule():            # 10 erlaubt, 11. → Sekunden > 0
 def test_limiter_hour_rule_and_window_slides():   # Uhr vorstellen
 def test_limiter_keys_independent():
+def test_limiter_blocked_for_does_not_count():   # 5× blocked_for → None; 5× record → blocked_for > 0
 ```
 
 - [ ] **Step 2–4:** rot, implementieren, grün.
@@ -240,14 +255,14 @@ Design-Takt: keiner
 
 **Files:**
 - Create: `server/src/frontstage_service/api.py`
-- Modify: `server/src/frontstage_service/main.py` (Router einhängen, Abhängigkeiten `RepositoryDep`, `AttachmentStoreDep`, `LimiterDep`)
+- Modify: `server/src/frontstage_service/main.py` (Router einhängen, Abhängigkeiten `RepositoryDep`, `AttachmentStoreDep`, `LimiterDep`; `/healthz` prüft jetzt mit `SELECT 1`, dass die Datenbank lesbar ist, sonst 503 – ARCHITECTURE Area dienst)
 - Test: `server/tests/test_api_feedback.py`
 
 **Interfaces:**
 - Consumes: Tasks 1–3
 - Produces: `router = APIRouter(prefix="/api/v1", tags=["feedback"])`; `async def receive_feedback(request: Request, settings: SettingsDep, ...) -> JSONResponse` (201/200 mit `Receipt`).
 
-Ablauf (Reihenfolge fest): Schlüssel prüfen (`hmac.compare_digest`) → 401; Begrenzung (`request.client.host`) → 429 mit `Retry-After`; `Content-Length` → 413; Form lesen (Entscheidung 7); Teil `feedback` als `FeedbackIn` (`model_validate_json`) → 422; bekannte `clientDraftId` → 200 mit vorhandener Quittung (Bilder werden dann ignoriert); jedes `attachment` durch `clean_image` (413/415), Summe ≤ 25 MiB → 413; in **einer** Transaktion: Datensatz einfügen, Bilder in einen temporären Ordner schreiben und erst nach erfolgreichem `COMMIT` an den endgültigen Ort umbenennen; bei Fehler Ordner löschen, Rollback → 503. Log-Zeile nur `feedback received reference=<ref> attachments=<n>`.
+Ablauf (Reihenfolge fest): Schlüssel prüfen (`hmac.compare_digest`) → 401; Begrenzung (`request.client.host`) → 429 mit `Retry-After`; `Content-Length` → 413; Form lesen (Entscheidung 7); Teil `feedback` als `FeedbackIn` (`model_validate_json`) → 422; bekannte `clientDraftId` → 200 mit vorhandener Quittung (Bilder werden dann ignoriert); jedes `attachment` durch `clean_image` (413/415), Summe ≤ 25 MiB → 413; in **einer** Transaktion (`with repository.transaction():`): Datensatz einfügen, Bilder mit `AttachmentStore.save` in den Bereitstellungsordner schreiben und erst nach erfolgreichem `COMMIT` mit `publish` an den endgültigen Ort umbenennen; bei Fehler (`OSError`, `sqlite3.OperationalError`) `discard`, Rollback → 503; `sqlite3.IntegrityError` auf `client_draft_id` (gleichzeitige Wiederholung) → `discard`, vorhandene Quittung mit 200. Log-Zeile nur `feedback received reference=<ref> attachments=<n>`.
 
 - [ ] **Step 1: Failing Tests schreiben** (Hilfsfunktion `post_feedback(client, json=…, images=[…], key=…)`)
 
@@ -316,8 +331,10 @@ def verify_password(password_hash: str, password: str) -> bool        # argon2, 
 def require_admin(request: Request) -> None                            # nicht angemeldet: HTML-Anfrage → 303 /admin/login?next=…, htmx-Anfrage (Header HX-Request) → 401 mit HX-Redirect
 AdminSessionDep = Annotated[None, Depends(require_admin)]
 def csrf_token(request: Request) -> str                                # legt bei Bedarf an
-def require_csrf(request: Request) -> None                             # Entscheidung 9; Fehler 403
-login_limiter = SlidingWindowLimiter([(5, timedelta(minutes=10))], clock)   # aus Task 3; zählt nur Fehlversuche, Schlüssel = request.client.host
+async def require_csrf(request: Request) -> None                       # Entscheidung 9; Fehler 403; async, weil das Formfeld
+                                                                       # nur über await request.form() lesbar ist (Starlette speichert das Formular, Form-Parameter danach gehen weiter)
+# in create_app: app.state.login_limiter = SlidingWindowLimiter([(5, timedelta(minutes=10))], clock)   # aus Task 3;
+# vor der Passwortprüfung blocked_for(host) → Sperrhinweis; nur Fehlversuche record(host); Schlüssel = request.client.host
 # Routen: GET /admin/login, POST /admin/login (Formular password, csrf_token, next), POST /admin/logout
 ```
 
@@ -329,7 +346,7 @@ Anmeldeseite: ein Passwortfeld (`autocomplete="current-password"`, Fokus beim La
 def test_admin_requires_login_redirects(client): ...             # GET /admin/ → 303 /admin/login?next=%2Fadmin%2F
 def test_wrong_password_rejected(client):                        # 200 Anmeldeseite mit Fehlermeldung, keine Sitzung
 def test_correct_password_logs_in_and_rotates_session(client):
-def test_session_cookie_flags(client):                           # Review 4: Set-Cookie enthält Secure, HttpOnly, SameSite=strict, Max-Age=28800
+def test_session_cookie_flags(client):                           # Review 4: Set-Cookie enthält Secure, HttpOnly, SameSite=strict, Max-Age=28800 (ohne Groß-/Kleinschreibung vergleichen: Starlette schreibt `httponly; samesite=strict; secure`)
 def test_post_without_csrf_is_403(client):                       # Review 4
 def test_login_locks_after_five_failures(client):                # Review 4: 6. Versuch mit richtigem Passwort → Sperrhinweis
 def test_logout_clears_session(client):
@@ -430,7 +447,7 @@ Design-Takt: keiner
 - Modify: `server/src/frontstage_service/main.py` (Startseite nach Entscheidung 13, CSP der Startseite nach Entscheidung 10, 308 für `/impressum`, `/datenschutz`)
 - Test: `server/tests/test_landing_served.py`
 
-Dockerfile (Regeln, nicht Wortlaut): Basis `python:3.12-slim` mit fester Digest-Zeile als Kommentar-Hinweis; uv aus `ghcr.io/astral-sh/uv` per `COPY --from` mit fester Version; `uv sync --frozen --no-dev` in einer Build-Stufe; Laufzeit-Stufe ohne Build-Werkzeuge; Nutzer `frontstage` (UID 10001); `VOLUME /data`; `EXPOSE 8000`; `HEALTHCHECK` mit `python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/healthz').status==200 else 1)"`; `CMD ["uvicorn", "frontstage_service.asgi:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "${TRUSTED_PROXIES}", "--no-access-log"]` über ein kleines `sh -c`, damit die Variable greift. Compose: Dienst `frontstage`, `image: frontstage-service:latest`, `build: .`, `env_file: .env`, `volumes: [frontstage-data:/data]`, `ports: ["127.0.0.1:8000:8000"]` (nur lokal, der Proxy davor), `restart: unless-stopped`, `read_only: true` mit `tmpfs: [/tmp]`. README (deutsch): Voraussetzungen; `.env` aus `.env.example` füllen (`openssl rand -base64 48` für Geheimnisse, `hash_password` für das Passwort); `docker compose up -d --build`; Beispiel-Konfiguration für Caddy (`frontstage.example.com { reverse_proxy 127.0.0.1:8000 }`) und den Hinweis auf `TRUSTED_PROXIES`; Sicherung (`docker compose exec frontstage python -c "…VACUUM INTO…"` täglich, Volume kopieren); Update (`git pull`, `docker compose build --pull`, `up -d`); Löschung auf Anfrage (Kennung suchen, löschen); Aufräumen von Hand (`docker compose exec frontstage python -m frontstage_service.purge`); Bezug zu RISK-12 und Q-43–Q-45.
+Dockerfile (Regeln, nicht Wortlaut): Basis `python:3.12-slim` mit fester Digest-Zeile als Kommentar-Hinweis; uv aus `ghcr.io/astral-sh/uv` per `COPY --from` mit fester Version; `uv sync --frozen --no-dev --no-editable` in einer Build-Stufe (die Laufzeit-Stufe kopiert nur `.venv`; eine editierbare Installation zeigte auf fehlende Quellen); Laufzeit-Stufe ohne Build-Werkzeuge; `landing/` nach `/app/landing` (`LANDING_DIR`); Nutzer `frontstage` (UID 10001); `/data` im Image anlegen und `frontstage` übereignen, **vor** `VOLUME /data` (ein neues Volume übernimmt Eigentümer aus dem Image, sonst kann UID 10001 nicht schreiben); `EXPOSE 8000`; `HEALTHCHECK` mit `python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/healthz').status==200 else 1)"`; `CMD ["uvicorn", "frontstage_service.asgi:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips", "${TRUSTED_PROXIES}", "--no-access-log"]` über ein kleines `sh -c`, damit die Variable greift. Compose: Dienst `frontstage`, `image: frontstage-service:latest`, `build: .`, `env_file: .env`, `volumes: [frontstage-data:/data]`, `ports: ["127.0.0.1:8000:8000"]` (nur lokal, der Proxy davor), `restart: unless-stopped`, `read_only: true` mit `tmpfs: [/tmp]`. README (deutsch): Voraussetzungen; `.env` aus `.env.example` füllen (`openssl rand -base64 48` für Geheimnisse, `hash_password` für das Passwort; den Argon2-Hash in **einfache** Anführungszeichen setzen – Compose ersetzt `$…` in `env_file`-Werten ohne Anführung oder in doppelten, und der Hash besteht aus `$`-Abschnitten; `.env.example` zeigt es so); `docker compose up -d --build`; Beispiel-Konfiguration für Caddy (`frontstage.example.com { reverse_proxy 127.0.0.1:8000 }`) und den Hinweis auf `TRUSTED_PROXIES`; Sicherung (`docker compose exec frontstage python -c "…VACUUM INTO…"` täglich, Volume kopieren); Update (`git pull`, `docker compose build --pull`, `up -d`); Löschung auf Anfrage (Kennung suchen, löschen); Aufräumen von Hand (`docker compose exec frontstage python -m frontstage_service.purge`); Bezug zu RISK-12 und Q-43–Q-45.
 
 - [ ] **Step 1: Failing Tests schreiben**
 
@@ -455,7 +472,7 @@ Design-Takt: keiner
 **Files:**
 - Create: `.github/workflows/server.yml`
 
-Inhalt: `on: workflow_dispatch` und `pull_request` mit `paths: ["server/**", ".github/workflows/server.yml"]`; `concurrency` wie `ci.yml`; Job `test` auf `ubuntu-latest`, `timeout-minutes: 10`, `defaults.run.working-directory: server`; Schritte: `actions/checkout@v4`, `astral-sh/setup-uv` (feste Hauptversion) mit `python-version: "3.12"`, `uv sync --frozen`, `uv run ruff check .`, `uv run ruff format --check .`, `uv run pytest -q`, `docker build -t frontstage-service:ci .`, Rauchtest wie Task 9 Step 5 (Container starten, `/healthz` mit Wiederholung bis 30 s, stoppen). Keine Secrets nötig (Testwerte im Lauf erzeugt). Berührt `ci.yml` nicht.
+Inhalt: `on: workflow_dispatch` und `pull_request` mit `paths: ["server/**", ".github/workflows/server.yml"]`; `concurrency` nach dem Muster von `ci.yml`, aber mit eigener Gruppe `server-${{ github.ref }}` (dieselbe Gruppe `ci-…` würde mit `cancel-in-progress` den macOS-Lauf auf demselben Ref abbrechen); Job `test` auf `ubuntu-latest`, `timeout-minutes: 10`, `defaults.run.working-directory: server`; Schritte: `actions/checkout@v4`, `astral-sh/setup-uv` (feste Hauptversion) mit `python-version: "3.12"`, `uv sync --frozen`, `uv run ruff check .`, `uv run ruff format --check .`, `uv run pytest -q`, `docker build -t frontstage-service:ci .`, Rauchtest wie Task 9 Step 5 (Container starten, `/healthz` mit Wiederholung bis 30 s, stoppen). Keine Secrets nötig (Testwerte im Lauf erzeugt). Berührt `ci.yml` nicht.
 
 - [ ] **Step 1: Gesamtdiff durchsehen** – `git diff main...HEAD -- server .github/workflows/server.yml`: keine echte Domain, kein echter Schlüssel, `.env` nicht im Repo, keine IP-Spalte, keine Inline-Skripte in Vorlagen, `htmx.min.js` mit gesperrter Version.
 - [ ] **Step 2: Lokal** – `cd server; uv run ruff check . ; uv run pytest -q` → grün.
