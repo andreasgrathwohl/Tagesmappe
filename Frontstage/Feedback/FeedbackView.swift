@@ -82,6 +82,8 @@ struct FeedbackView: View {
       do { try await Task.sleep(for: .milliseconds(400)) } catch { return }
       model.persist()
     }
+    // Schließen oder Wegwischen bricht die entprellte Aufgabe ab; hier wird der letzte Stand trotzdem gesichert (AK-58).
+    .onDisappear { model.persist() }
     .task(id: model.draft.attachments) { refreshShareFiles() }
     .onChange(of: photoSelection) { _, items in loadPhotos(items) }
     .onChange(of: useFallback) { refreshShareFiles() }

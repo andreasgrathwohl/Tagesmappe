@@ -42,6 +42,16 @@ import Testing
     #expect(second.model.draft.attachments.last?.origin == .windowCapture)
   }
 
+  @Test("AK-58: persist() direkt nach setText ist für den nächsten Start lesbar")
+  func persistRightAfterSetTextSurvivesRestart() {
+    let context = Support.makeContext()
+    let first = FeedbackStarter.start(kind: .idea, topic: nil, context: context)
+    first.model.setText("Letzte 400 ms")
+    first.model.persist()  // Wie onDisappear beim Schließen
+    let second = FeedbackStarter.start(kind: .idea, topic: nil, context: context)
+    #expect(second.model.draft.text == "Letzte 400 ms")
+  }
+
   @Test("Aufnahme scheitert → Rückmeldung ohne Bild")
   func nilCaptureStartsWithoutImage() {
     let context = Support.makeContext(capture: { nil })
