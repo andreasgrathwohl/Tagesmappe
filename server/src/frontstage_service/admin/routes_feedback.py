@@ -74,6 +74,10 @@ def _page_number(value: str | None) -> int:
 
 
 def _is_htmx(request: Request) -> bool:
+    # Bei Verlaufswiederherstellung (Zurück-Taste ohne Snapshot) sendet htmx 2
+    # zusätzlich HX-Request, erwartet aber eine vollständige Seite.
+    if request.headers.get("HX-History-Restore-Request") == "true":
+        return False
     return request.headers.get("HX-Request") == "true"
 
 

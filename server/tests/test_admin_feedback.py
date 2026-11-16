@@ -104,6 +104,15 @@ def test_htmx_filter_returns_table_partial_only(logged_in_client, records):
     assert "<html" in full.text and 'id="table"' in full.text and 'hx-push-url="true"' in full.text
 
 
+def test_htmx_history_restore_returns_full_page(logged_in_client, records):
+    r = logged_in_client.get(
+        "/admin/",
+        params={"kind": "idea"},
+        headers={"HX-Request": "true", "HX-History-Restore-Request": "true"},
+    )
+    assert r.status_code == 200 and "<html" in r.text and 'id="table"' in r.text
+
+
 def test_invalid_filter_values_are_ignored(logged_in_client, records):
     r = logged_in_client.get(
         "/admin/", params={"kind": "xyz", "status": "foo", "since": "2026-13-40", "until": "x", "page": "abc"}
