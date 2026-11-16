@@ -1,3 +1,6 @@
+<p class="export">Ausfuhr der aktuellen Auswahl:
+  <a href="/admin/export.csv{% if export_query %}?{{ export_query }}{% endif %}" download>Als CSV</a> ·
+  <a href="/admin/export.json{% if export_query %}?{{ export_query }}{% endif %}" download>Als JSON</a></p>
 <p class="count">{{ total }} {{ "Rückmeldung" if total == 1 else "Rückmeldungen" }}</p>
 {% if not rows %}
 <div class="empty">

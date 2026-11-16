@@ -15,6 +15,7 @@ from ..models import FeedbackKind, FeedbackRecord, FeedbackStatus
 from ..repository import MAX_NOTE_LENGTH
 from .auth import AdminSessionDep
 from .csrf import csrf_token, require_csrf
+from .export import to_csv, to_json
 from .filters import parse_filter
 from .templating import templates
 
@@ -125,12 +126,52 @@ def feedback_list(
         "pages": pages,
         "prev_url": page_url(wanted - 1) if wanted > 1 else None,
         "next_url": page_url(wanted + 1) if wanted < pages else None,
+        "export_query": urlencode({k: v for k, v in active.items() if v}),
         "kind_labels": {k.value: v for k, v in KIND_LABELS.items()},
         "status_labels": {k.value: v for k, v in STATUS_LABELS.items()},
         "deleted": deleted if deleted and len(deleted) <= 16 and deleted.isalnum() else None,
     }
     template = "admin/_table.html" if _is_htmx(request) else "admin/list.html"
     return templates.TemplateResponse(request, template, context, headers=NO_STORE)
+
+
+def _export_response(request: Request, feedback_filter, extension: str) -> Response:
+    # limit=-1: in SQLite „ohne Grenze“; die Ausfuhr kennt keine Seiten.
+    records, _ = request.app.state.repository.list(feedback_filter, limit=-1, offset=0)
+    if extension == "csv":
+        body, media_type = to_csv(records), "text/csv; charset=utf-8"
+    else:
+        body, media_type = to_json(records), "application/json"
+    day = _local(request.app.state.clock()).strftime("%Y-%m-%d")
+    headers = {
+        **NO_STORE,
+        "Content-Disposition": f'attachment; filename="frontstage-rueckmeldungen-{day}.{extension}"',
+    }
+    return Response(body, media_type=media_type, headers=headers)
+
+
+@router.get("/export.csv")
+def export_csv(
+    request: Request,
+    _: AdminSessionDep,
+    kind: str | None = None,
+    status: str | None = None,
+    since: str | None = None,
+    until: str | None = None,
+) -> Response:
+    return _export_response(request, parse_filter(kind, status, since, until), "csv")
+
+
+@router.get("/export.json")
+def export_json(
+    request: Request,
+    _: AdminSessionDep,
+    kind: str | None = None,
+    status: str | None = None,
+    since: str | None = None,
+    until: str | None = None,
+) -> Response:
+    return _export_response(request, parse_filter(kind, status, since, until), "json")
 
 
 def _record_or_404(repository: RepositoryDep, feedback_id: str) -> FeedbackRecord:
