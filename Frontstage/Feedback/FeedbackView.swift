@@ -201,7 +201,9 @@ struct FeedbackView: View {
   private var attachmentsSection: some View {
     Section {
       if !model.draft.attachments.isEmpty {
-        AttachmentStrip(model: model, onEdit: openEditor)
+        // Abschluss statt Methodenverweis: ein Verweis auf eine `@MainActor`-Methode ist selbst `@MainActor`
+        // und passt nicht sicher auf den nicht isolierten Funktionstyp von `onEdit` (Swift 6).
+        AttachmentStrip(model: model, onEdit: { openEditor($0) })
           .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
       }
       if model.remainingSlots > 0 {

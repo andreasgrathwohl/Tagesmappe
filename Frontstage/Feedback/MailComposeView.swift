@@ -1,4 +1,5 @@
 #if os(iOS)
+  import FrontstageCore
   import MessageUI
   import SwiftUI
 

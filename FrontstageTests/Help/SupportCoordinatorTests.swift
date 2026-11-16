@@ -54,7 +54,8 @@ import Testing
     coordinator.showHelpCenter()
     coordinator.requestFeedbackFromHelpCenter(kind: .idea)
     #expect(!coordinator.showsHelpCenter)
-    #expect(coordinator.feedbackSession == nil)
+    // Über `id`: `FeedbackSession` ist nicht `Equatable`, `#expect` zerlegt den Vergleich mit `nil` sonst generisch.
+    #expect(coordinator.feedbackSession?.id == nil)
     coordinator.helpCenterDidDismiss()
     #expect(coordinator.feedbackSession?.model.draft.kind == .idea)
   }

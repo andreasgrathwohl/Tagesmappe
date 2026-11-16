@@ -1,6 +1,7 @@
 #if os(macOS)
   import AppKit
   import Foundation
+  import FrontstageCore
 
   /// Öffnet auf dem Mac den Mail-Entwurf des Systems (`NSSharingService .composeEmail`).
   ///

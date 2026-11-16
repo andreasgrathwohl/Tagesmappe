@@ -19,7 +19,9 @@ struct FeedbackContext: Sendable {
   var service: FeedbackServiceEndpoint?
   var appKey: String?
   var uploader: FeedbackUploader
-  var consentDefaults: UserDefaults
+  /// Swift-Hinweis: `UserDefaults` ist im SDK nicht `Sendable`, laut Apple aber threadsicher;
+  /// `nonisolated(unsafe)` nimmt nur dieses Feld aus der `Sendable`-Prüfung.
+  nonisolated(unsafe) var consentDefaults: UserDefaults
   var recipient: String?
   var canSendMail: @MainActor () -> Bool
   var deviceInfo: @MainActor () -> DeviceInfo

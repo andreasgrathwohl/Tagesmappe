@@ -49,8 +49,10 @@ struct RedactionOverlay: View {
               dragCurrent = nil
             }
             if let rect = NormalizedRect.spanning(
-              from: (value.startLocation.x, value.startLocation.y), to: (value.location.x, value.location.y),
-              in: (size.width, size.height))
+              // Ausdrücklich `Double`: `CGFloat` wird in Tupeln nicht verlässlich still umgewandelt.
+              from: (Double(value.startLocation.x), Double(value.startLocation.y)),
+              to: (Double(value.location.x), Double(value.location.y)),
+              in: (Double(size.width), Double(size.height)))
             {
               onAdd(rect)
             }
