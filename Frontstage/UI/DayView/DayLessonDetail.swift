@@ -1,5 +1,6 @@
 import FrontstageCore
 import SwiftUI
+import TipKit
 
 /// Was die Ansichten der Tagesansicht auslösen können. Die Ansicht `DayView` besitzt den Zustand
 /// (Dialoge, Dateiauswahl) und reicht diese Closures nach unten – Liste und Detail selbst halten keinen.
@@ -141,7 +142,10 @@ struct DayLessonDetail: View {
   @ViewBuilder private func tile(for material: MaterialRow) -> some View {
     let view = MaterialTile(
       row: material, isOpening: openingIDs.contains(material.id), isShown: shownLinkID == material.id,
-      inLesson: true, actions: actions)
+      inLesson: true, actions: actions
+    )
+    // Nur an der ersten Kachel, sonst stünden mehrere Hinweise übereinander.
+    .popoverTip(material.id == row.materials.first?.id ? MaterialTileTip() : nil)
     #if os(iOS)
       view.matchedTransitionSource(id: material.id, in: zoomNamespace)
     #else

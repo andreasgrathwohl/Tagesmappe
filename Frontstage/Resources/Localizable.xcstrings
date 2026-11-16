@@ -6291,6 +6291,126 @@
         }
       }
     },
+    "tips.daySelection.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die laufende Stunde ist schon gewählt"
+          }
+        }
+      }
+    },
+    "tips.daySelection.message" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tipp eine andere Stunde an, um sie anzusehen. „Heute“ bringt dich zurück."
+          }
+        }
+      }
+    },
+    "tips.materialTile.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mehr mit Gedrückthalten"
+          }
+        }
+      }
+    },
+    "tips.materialTile.message" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Halt eine Kachel gedrückt, um Material in die nächste Stunde zu schieben oder neu zu verknüpfen."
+          }
+        }
+      }
+    },
+    "tips.smartboardBar.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das sieht die Klasse"
+          }
+        }
+      }
+    },
+    "tips.smartboardBar.message" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hier wählst du, was das Smartboard zeigt."
+          }
+        }
+      }
+    },
+    "tips.helpButton.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hilfe zu jedem Bildschirm"
+          }
+        }
+      }
+    },
+    "tips.helpButton.message" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Fragezeichen erklärt, was du hier tun kannst – auch ohne Netz."
+          }
+        }
+      }
+    },
+    "tips.section" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kurz-Tipps"
+          }
+        }
+      }
+    },
+    "tips.enabled" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kurz-Tipps zeigen"
+          }
+        }
+      }
+    },
+    "tips.reset" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kurz-Tipps erneut zeigen"
+          }
+        }
+      }
+    },
+    "tips.reset.note" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gilt ab dem nächsten Start der App."
+          }
+        }
+      }
+    },
     "help.center.feedbackNote" : {
       "localizations" : {
         "de" : {

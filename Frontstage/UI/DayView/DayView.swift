@@ -1,5 +1,6 @@
 import FrontstageCore
 import SwiftUI
+import TipKit
 import UniformTypeIdentifiers
 
 extension EnvironmentValues {
@@ -197,12 +198,17 @@ struct DayView: View {
       Button("dayView.today") { model.showToday() }
       Button("dayView.next", systemImage: "chevron.right") { model.showNextDay() }
     }
-    ToolbarItem { HelpButton(topic: .dayView) }
+    ToolbarItem { HelpButton(topic: .dayView).popoverTip(HelpButtonTip()) }
   }
 
   /// Die Stunden des Tages (UI-3, UI-4); darunter nur „Material ohne Stunde“, wenn es welches gibt (UI-13).
   private var list: some View {
     List(selection: $model.selection) {
+      if case .rows = model.content {
+        TipView(DaySelectionTip())
+          .selectionDisabled()
+          .listRowSeparator(.hidden)
+      }
       if case .rows(let rows) = model.content {
         ForEach(rows) { row in
           switch row {

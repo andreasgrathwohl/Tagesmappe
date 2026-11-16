@@ -28,6 +28,7 @@ struct HelpCenterView: View {
             Text(LocalizedStringKey(key))
           }
         }
+        tipsSection
         feedbackSection
       }
     }
@@ -55,6 +56,19 @@ struct HelpCenterView: View {
           .foregroundStyle(.secondary)
       }
       .frame(minHeight: 44, alignment: .leading)
+    }
+  }
+
+  private var tipsSection: some View {
+    Section {
+      Toggle(
+        "tips.enabled",
+        isOn: Binding(get: { HelpTips.isEnabled }, set: { HelpTips.isEnabled = $0 }))
+      Button("tips.reset") { HelpTipsConfiguration.requestReset() }
+    } header: {
+      Text("tips.section")
+    } footer: {
+      Text("tips.reset.note")
     }
   }
 

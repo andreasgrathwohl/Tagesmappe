@@ -27,6 +27,8 @@ struct FrontstageApp: App {
 
   /// `App.init` läuft auf dem Hauptakteur (`App` ist `@MainActor`), daher darf hier `mainContext` gelesen werden.
   init() {
+    // Als Erstes: TipKit muss vor der ersten Tip-Ansicht konfiguriert sein (Zurücksetzen davor).
+    HelpTipsConfiguration.configureAtLaunch()
     // Die Anmeldung hängt nicht am Datenort und entsteht deshalb einmal, vor dem Controller.
     let account = MicrosoftAccount()
     let network = NetworkMonitor()
