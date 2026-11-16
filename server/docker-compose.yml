@@ -7,7 +7,7 @@ services:
       # Der Proxy auf dem Host erreicht den Container nie von 127.0.0.1, sondern über docker-proxy bzw.
       # NAT vom Gateway des Compose-Netzes. Nur dieser Adresse wird X-Forwarded-For geglaubt;
       # ändert sich das Netz unten, diese Zeile mit ändern.
-      TRUSTED_PROXIES: "172.31.250.1"
+      TRUSTED_PROXIES: "10.89.250.1"
     networks:
       - frontstage
     volumes:
@@ -26,8 +26,8 @@ networks:
   frontstage:
     ipam:
       config:
-        - subnet: 172.31.250.0/24
-          gateway: 172.31.250.1
+        - subnet: 10.89.250.0/24
+          gateway: 10.89.250.1
 
 volumes:
   frontstage-data:
