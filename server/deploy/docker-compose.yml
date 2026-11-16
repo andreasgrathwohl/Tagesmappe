@@ -41,7 +41,7 @@ services:
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET fehlt}
       ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:?ADMIN_PASSWORD_HASH fehlt}
       # X-Forwarded-For wird nur dem Tunnel-Container geglaubt (feste Adresse unten)
-      TRUSTED_PROXIES: 172.31.251.10
+      TRUSTED_PROXIES: 10.89.251.10
     # Nur das interne Netz: der Dienst selbst hat keinen Zugang nach außen
     networks:
       edge: {}
@@ -60,7 +60,7 @@ services:
       - frontstage-service
     networks:
       edge:
-        ipv4_address: 172.31.251.10
+        ipv4_address: 10.89.251.10
       egress: {}
     mem_limit: 256m
     pids_limit: 128
@@ -72,9 +72,13 @@ networks:
     internal: true
     ipam:
       config:
-        - subnet: 172.31.251.0/24
-  # Ausgehende Verbindung des Tunnels zu Cloudflare
-  egress: {}
+        - subnet: 10.89.251.0/24
+  # Ausgehende Verbindung des Tunnels zu Cloudflare. Fest, damit Docker nicht aus seinem Vorgabe-Pool
+  # (auf dem Server sind 172.17–31 schon belegt) auf 192.168.x ausweicht.
+  egress:
+    ipam:
+      config:
+        - subnet: 10.89.252.0/24
 
 volumes:
   frontstage-data:

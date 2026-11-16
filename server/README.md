@@ -39,7 +39,7 @@ Der Dienst glaubt `X-Forwarded-For` nur der Adresse in `TRUSTED_PROXIES`, sonst 
 Adresse: Die Begrenzung (10 je Minute, 30 je Stunde je Absender) und die Anmeldesperre gälten dann für alle
 gemeinsam. Ein Caddy auf demselben Host kommt **nicht** von `127.0.0.1` beim Container an, sondern über
 `docker-proxy` bzw. NAT vom Gateway des Compose-Netzes. `docker-compose.yml` legt dafür ein eigenes Netz mit
-festem Teilnetz an (`172.31.250.0/24`, Gateway `172.31.250.1`) und setzt `TRUSTED_PROXIES` auf genau diese
+festem Teilnetz an (`10.89.250.0/24`, Gateway `10.89.250.1`) und setzt `TRUSTED_PROXIES` auf genau diese
 Gateway-Adresse; ein Wert in `.env` wird dort überschrieben. Kollidiert das Teilnetz mit einem vorhandenen Netz,
 Teilnetz, Gateway und `TRUSTED_PROXIES` in `docker-compose.yml` gemeinsam ändern. Die Adresse ist nur von diesem
 Host aus erreichbar (Port nur auf `127.0.0.1`), daher ist ihr zu vertrauen unbedenklich. Uvicorn nimmt auch
@@ -56,8 +56,8 @@ Prüfen: Elf Anfragen mit unterschiedlichen Adressen in `X-Forwarded-For` (über
 Die Datei `docker-compose.yml` in diesem Ordner bleibt für lokalen Betrieb oder anderes Hosting.
 
 **Aufbau:** Zwei Container. `frontstage-service` hängt nur im internen Netz `edge` (`internal: true`, Teilnetz
-`172.31.251.0/24`) und hat keinen Zugang nach außen. `frontstage-tunnel` (cloudflared) hängt in `edge` mit der festen
-Adresse `172.31.251.10` und zusätzlich in `egress` für die ausgehende Verbindung zu Cloudflare. Der Tunnel ist lokal
+`10.89.251.0/24`) und hat keinen Zugang nach außen. `frontstage-tunnel` (cloudflared) hängt in `edge` mit der festen
+Adresse `10.89.251.10` und zusätzlich in `egress` für die ausgehende Verbindung zu Cloudflare. Der Tunnel ist lokal
 verwaltet und läuft mit Token, das Ziel steht deshalb als `--url http://frontstage-service:8000` im Befehl.
 Kollidiert das Teilnetz mit einem vorhandenen, Teilnetz, `ipv4_address` und `TRUSTED_PROXIES` gemeinsam ändern.
 
