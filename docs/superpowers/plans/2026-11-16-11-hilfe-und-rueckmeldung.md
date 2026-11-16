@@ -47,7 +47,7 @@ Alle Zeilen der Übersicht gelten (Abschnitt „Global Constraints“, Abstimmun
 13. **Kurz-Tipps:** vier Tipps (`DaySelectionTip`, `MaterialTileTip`, `SmartboardBarTip` nur iPad, `HelpButtonTip`), `Tips.configure([.displayFrequency(.daily)])`; gemeinsamer Schalter `HelpTips.$isEnabled` (`@Parameter static var isEnabled: Bool = true` in `struct HelpTips`, laut Apple-Doku als statischer Parameter außerhalb eines Tips zulässig) in jeder Regel. Zurücksetzen setzt `UserDefaults`-Schlüssel `help.tips.resetOnNextLaunch`; beim Start ruft `HelpTipsConfiguration` dann `Tips.resetDatastore()` **vor** `Tips.configure` (Apple: muss davor stehen). Im Testlauf (`XCTestConfigurationFilePath` gesetzt) wird TipKit nicht konfiguriert – Tests hängen nie am Tip-Zustand.
 14. **Verworfene Wege für die Rückmeldung** (ADR-0014): eigener Endpunkt/Web-Formular (Server, NFR-2), GitHub-Issues (Schlüssel in der App), nur TestFlight-Feedback (fehlt im App Store), App-Store-Bewertungen (öffentlich, ohne Bilder). Kein Task baut einen davon nach.
 16. **Hochladen zuerst, Mail als Rückfall (ADR-0015).** `FeedbackRoute.choose` liefert `.upload(endpoint:)`, sobald `FeedbackServiceEndpoint.resolve` eine Adresse ergibt; sonst wie bisher Mail oder Teilen. Scheitert das Hochladen endgültig, bietet die Ansicht „Erneut versuchen“ und den Rückfallweg (`FeedbackRoute.fallback(recipient:canSendMail:)`) an. **Vertrag mit Teilplan 12 (verbindlich):** `POST <Basis>/api/v1/feedback`, Header `X-Frontstage-App-Key`, Multipart mit Teil `feedback` (`application/json`, Inhalt `FeedbackUploadPayload`, Schlüssel wie unten) und 0–5 Teilen `attachment` (`image/jpeg`, Dateiname `Bildschirmfoto-n.jpg`). JSON: `{"clientDraftId": "<UUID>", "kind": "idea|issue", "text": "…", "topic": "<HelpTopic>"|null, "appVersion": "0.1.0 (1)", "deviceInfo": null|{"appVersion","build","systemName","systemVersion","modelIdentifier","dataLocation":"iCloud|oneDrive","baseTone":"warm|system|cool|petrol","accent":"#RRGGBB"|null,"appearanceMode":"system|light|dark","isUnlocked":bool,"languageCode"}}`. Antwort 201 (neu) oder 200 (gleiche `clientDraftId` schon angenommen) mit `{"id": "<UUID>", "reference": "<8 Zeichen>"}`. *Grund:* `clientDraftId` macht Wiederholungen nach abgebrochener Antwort unschädlich.
-17. **Wiederholung:** höchstens 3 Versuche, Wartezeiten 1 s und 4 s, nur bei Netzfehlern (`URLError`) und 5xx; 401, 413, 415, 422, 429 sofort endgültig (429 mit Hinweis „Später erneut versuchen“). Zeitlimit je Versuch 60 s. *Verworfen:* Hintergrund-Upload (`URLSessionConfiguration.background`) – Rückmeldungen sind klein, und die Lehrkraft wartet ohnehin auf die Bestätigung.
+17. **Wiederholung:** höchstens 3 Versuche, Wartezeiten 1 s und 4 s, nur bei Netzfehlern (`URLError`) und 5xx; 401, 411, 413, 415, 422, 429 sofort endgültig (411: `Content-Length` fehlt, Teilplan 12; `upload(for:from:)` sendet sie immer) (429 mit Hinweis „Später erneut versuchen“). Zeitlimit je Versuch 60 s. *Verworfen:* Hintergrund-Upload (`URLSessionConfiguration.background`) – Rückmeldungen sind klein, und die Lehrkraft wartet ohnehin auf die Bestätigung.
 18. **Zustimmung einmal je Gerät** (`UserDefaults`-Schlüssel `feedback.consent.v1`, nicht abgeglichen), Version im Schlüssel: Ändert sich die Datenschutzerklärung wesentlich, fragt `v2` neu. Ohne Zustimmung wird nicht hochgeladen; „Lieber per Mail“ wählt den Rückfallweg. Nach dem Senden zeigt die App die `reference` („Kennung für Löschanfragen“), kopierbar.
 19. **Platzierung der Hilfeknöpfe** (FR-17.1): eigenes `ToolbarItem(placement: .automatic)` bzw. im Section-Header; Thema je Ort siehe Task 10. Einrichten bekommt unten die Section „Hilfe und Rückmeldung“ (iPad-Einstellungen-Muster: Hilfe zuletzt).
 
@@ -360,7 +360,7 @@ Wortlaut (Entscheidung 6, wörtlich):
 @Test("Geräteangaben aus → deviceInfo null, topic fehlt → null") func encodesNulls() throws
 @Test("Quittung lesen") func decodesReceipt() throws   // {"id":"…","reference":"AB12CD34"}
 // FeedbackRetryPolicyTests
-@Test("Netz und 5xx wiederholen, 4xx nicht") func retryRules()   // nil, 500, 503 → true; 401, 413, 415, 422, 429 → false
+@Test("Netz und 5xx wiederholen, 4xx nicht") func retryRules()   // nil, 500, 503 → true; 401, 411, 413, 415, 422, 429 → false
 ```
 
 - [ ] **Step 2: Rot belegen** – je Filter (sieben Suites).
@@ -521,7 +521,7 @@ enum FeedbackImageEncoder {
   static func modelIdentifier() -> String      // sysctlbyname "hw.machine" (iOS) / "hw.model" (macOS); Simulator: "SIMULATOR_MODEL_IDENTIFIER" aus der Umgebung
 }
 enum FeedbackUploadError: Error, Equatable {
-  case rejected(statusCode: Int)               // 401, 413, 415, 422 – endgültig
+  case rejected(statusCode: Int)               // 401, 411, 413, 415, 422 – endgültig
   case rateLimited                             // 429
   case unavailable                             // Netz oder 5xx nach allen Versuchen
   case invalidResponse
