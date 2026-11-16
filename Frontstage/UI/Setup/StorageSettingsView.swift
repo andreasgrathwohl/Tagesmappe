@@ -51,6 +51,7 @@ struct StorageSettingsView: View {
     }
     .themedBackground()
     .navigationTitle("setup.storage.title")
+    .toolbar { ToolbarItem { HelpButton(topic: .storage) } }
     .background(AnchorReader(holder: holder).frame(width: 0, height: 0))
     .task { model.reload() }
     .fileImporter(

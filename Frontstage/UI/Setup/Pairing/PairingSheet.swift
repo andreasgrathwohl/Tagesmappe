@@ -69,6 +69,7 @@ struct PairingSheet: View {
               dismiss()
             }
           }
+          ToolbarItem(placement: .primaryAction) { HelpButton(topic: .pairing) }
         }
     }
     .background(AnchorReader(holder: holder).frame(width: 0, height: 0))

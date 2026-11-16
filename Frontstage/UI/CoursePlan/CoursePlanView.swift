@@ -93,6 +93,7 @@ struct CoursePlanView: View {
           ToolbarItem {
             Button("coursePlan.new", systemImage: "plus") { showNewPlan = true }
           }
+          ToolbarItem { HelpButton(topic: .coursePlan) }
         }
     } detail: {
       if let planID = model.selection {

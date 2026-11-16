@@ -197,6 +197,7 @@ struct DayView: View {
       Button("dayView.today") { model.showToday() }
       Button("dayView.next", systemImage: "chevron.right") { model.showNextDay() }
     }
+    ToolbarItem { HelpButton(topic: .dayView) }
   }
 
   /// Die Stunden des Tages (UI-3, UI-4); darunter nur „Material ohne Stunde“, wenn es welches gibt (UI-13).

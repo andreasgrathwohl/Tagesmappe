@@ -96,6 +96,8 @@ struct FrontstageApp: App {
       default: break
       }
     }
+    // Menü „Hilfe“ (Mac) und Tastaturkürzel ⌘? (iPad mit Tastatur).
+    .commands { HelpCommands(support: .shared) }
     #if os(iOS)
       // Swift-Hinweis: SwiftUI ruft den Block auf, wenn das System die Aufgabe startet; die nächste Aufgabe muss
       // man selbst wieder anmelden. Die Closure läuft nicht auf dem Haupt-Actor – der Zugriff auf Halter und

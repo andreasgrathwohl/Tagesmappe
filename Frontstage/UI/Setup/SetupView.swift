@@ -15,6 +15,8 @@ struct SetupView: View {
   let account: MicrosoftAccount
   let services: ScopedServicesHolder
   @State private var restoreFailed = false
+  @State private var feedbackSession: FeedbackSession?
+  @Environment(\.feedbackContext) private var feedbackContext
 
   var body: some View {
     NavigationStack {
@@ -65,14 +67,36 @@ struct SetupView: View {
               .foregroundStyle(.red)
           }
         } header: {
-          Text("setup.purchase.title")
+          HStack {
+            Text("setup.purchase.title")
+            Spacer()
+            HelpButton(topic: .purchase)
+          }
         } footer: {
           Text("purchase.offer.note")
+        }
+        Section {
+          NavigationLink("help.center.title") {
+            HelpCenterView { kind in startFeedback(kind: kind, topic: nil) }
+          }
         }
       }
       .themedBackground()
       .navigationTitle(Text("app.section.setup"))
+      .toolbar { ToolbarItem { HelpButton(topic: .gettingStarted) } }
+      // Ziele der Hilfethemen (Hilfecenter und verwandte Themen) – der Stapel gehört hier.
+      .navigationDestination(for: HelpTopic.self) { topic in
+        if let article = HelpLibrary.shared.article(for: topic) {
+          HelpArticleView(article: article) { shown in startFeedback(kind: .issue, topic: shown) }
+        }
+      }
+      // Eigener Hintergrund: ein Blatt am selben View wie andere Blätter verträgt SwiftUI nicht.
+      .background { Color.clear.feedbackSheet($feedbackSession) }
     }
+  }
+
+  private func startFeedback(kind: FeedbackKind, topic: HelpTopic?) {
+    feedbackSession = FeedbackStarter.start(kind: kind, topic: topic, context: feedbackContext)
   }
 
   private func scoped<Content: View>(@ViewBuilder _ content: @escaping () -> Content) -> some View {

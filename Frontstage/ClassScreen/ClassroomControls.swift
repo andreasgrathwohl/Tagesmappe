@@ -22,7 +22,10 @@
     /// läuft außerhalb des Zeichnens und darf daher Zustand ändern.
     var body: some View {
       TimelineView(.everyMinute) { context in
-        controls
+        HStack(spacing: 16) {
+          controls
+          HelpButton(topic: .classScreen)
+        }
           .onChange(of: runningKey(at: context.date), initial: true) { _, key in
             session.lessonDidChange(to: key)
           }

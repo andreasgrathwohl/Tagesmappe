@@ -53,6 +53,7 @@ struct TimetableSourceSettingsView: View {
     }
     .themedBackground()
     .navigationTitle("timetableSource.title")
+    .toolbar { ToolbarItem { HelpButton(topic: .schulmanager) } }
     .task { reload() }
     .sheet(isPresented: $isShowingPreview) { previewSheet }
     // Fällt die Vorschau weg, während das Sheet offen ist (Abfrage ohne Unterschied, Datenort-Wechsel),

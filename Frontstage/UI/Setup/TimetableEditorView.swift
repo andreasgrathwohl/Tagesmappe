@@ -64,6 +64,7 @@ struct TimetableEditorView: View {
           target = EntryTarget(entry: nil, weekday: .monday, period: model.periodChoices.first ?? 1)
         }
       }
+      ToolbarItem { HelpButton(topic: .timetable) }
     }
     .sheet(item: $target) { target in
       TimetableEntrySheet(

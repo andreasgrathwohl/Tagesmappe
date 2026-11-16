@@ -62,6 +62,7 @@ struct SchoolYearSettingsView: View {
       ToolbarItem(placement: .primaryAction) {
         Button("setup.schoolYears.add", systemImage: "plus") { model.newYear() }
       }
+      ToolbarItem { HelpButton(topic: .schoolYears) }
     }
     .sheet(isPresented: isEditing) {
       SchoolYearEditSheet(model: model)

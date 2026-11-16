@@ -6115,6 +6115,26 @@
         }
       }
     },
+    "help.menu.helpCenter" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frontstage-Hilfe"
+          }
+        }
+      }
+    },
+    "help.menu.feedback" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rückmeldung geben …"
+          }
+        }
+      }
+    },
     "help.done" : {
       "localizations" : {
         "de" : {

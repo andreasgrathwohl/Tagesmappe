@@ -52,6 +52,7 @@ struct NonTeachingPeriodsView: View {
       ToolbarItem(placement: .primaryAction) {
         Button("setup.nonTeaching.add", systemImage: "plus") { isAdding = true }
       }
+      ToolbarItem { HelpButton(topic: .nonTeachingDays) }
     }
     .sheet(isPresented: $isAdding) {
       AddPeriodSheet(model: model)
