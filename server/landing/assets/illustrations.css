@@ -467,7 +467,8 @@
 }
 
 .plan__table .old {
-  opacity: 0.45;
+  /* abgeschwächt, aber mit ausreichendem Kontrast (Prüfung: axe, 4,5:1) */
+  color: color-mix(in srgb, var(--app-text) 70%, var(--app-bg));
 }
 
 .plan__table .app-capsule {

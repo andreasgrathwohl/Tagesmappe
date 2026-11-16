@@ -189,8 +189,9 @@ svg {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px 16px;
   padding: 20px var(--margin);
+  flex-wrap: wrap;
 }
 
 .brand {
@@ -233,14 +234,14 @@ svg {
   align-items: center;
   justify-content: center;
   min-height: 48px;
-  padding: 0 26px;
+  padding: 10px 26px;
+  text-align: center;
   border-radius: var(--radius-button);
   background: var(--page-accent);
   color: var(--page-on-accent);
   font-size: var(--step-small);
   font-weight: 600;
   text-decoration: none;
-  white-space: nowrap;
 }
 
 .site-nav a.button {
@@ -252,6 +253,7 @@ svg {
 }
 
 .button--quiet {
+  padding-inline: 0;
   background: transparent;
   color: var(--page-ink);
   text-decoration: underline;
@@ -398,6 +400,11 @@ main {
   display: grid;
   gap: clamp(32px, 5vw, 72px);
   align-items: center;
+}
+
+/* Grid-Kinder dürfen schrumpfen (sonst sprengt bei großer Schrift der min-content-Wert die Spalte) */
+.hero .wrap > * {
+  min-width: 0;
 }
 
 .hero h1 {
