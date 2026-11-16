@@ -38,6 +38,7 @@
   --page-stage: #0e4b57;
   --page-stage-ink: #fbf8f2;
   --page-focus: #0e6b7a;
+  --page-alt: #ebe3d3;
 
   /* App-Illustrationen (DESIGN.md UI-8 bis UI-11) */
   --app-bg: #fbf8f2;
@@ -74,6 +75,7 @@
     --page-stage: #1c2b2c;
     --page-stage-ink: #f5efe5;
     --page-focus: #5fc2cf;
+    --page-alt: #1a150f;
 
     --app-bg: #17130e;
     --app-selection: #2f2921;
@@ -256,7 +258,7 @@ svg {
 }
 
 main {
-  padding: clamp(32px, 6vw, 72px) var(--margin) 0;
+  padding: 0;
 }
 
 .lead {
@@ -377,4 +379,225 @@ main {
 .app-capsule--now {
   background: var(--app-now);
   color: var(--app-now-text);
+}
+
+/* ---------- Held und Stationen (Task 2) ---------- */
+
+.wrap {
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding-inline: var(--margin);
+}
+
+.hero {
+  padding-block: clamp(24px, 5vw, 64px) clamp(64px, 10vw, 140px);
+}
+
+.hero .wrap {
+  display: grid;
+  gap: clamp(32px, 5vw, 72px);
+  align-items: center;
+}
+
+.hero h1 {
+  font-size: clamp(2.6rem, 1.2rem + 4.6vw, 5.6rem);
+  line-height: 1.02;
+}
+
+.hero .lead {
+  margin-top: 24px;
+}
+
+.hero .fine {
+  margin-top: 16px;
+  font-size: var(--step-small);
+  color: var(--page-muted);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 28px;
+  margin-top: 32px;
+}
+
+@media (min-width: 1000px) {
+  .hero .wrap {
+    grid-template-columns: 5fr 7fr;
+  }
+}
+
+figure {
+  margin: 0;
+}
+
+figcaption {
+  margin-top: 14px;
+  font-size: var(--step-small);
+  color: var(--page-muted);
+  max-width: 60ch;
+}
+
+.station {
+  padding-block: clamp(72px, 11vw, 168px);
+  scroll-margin-top: 8px;
+}
+
+.station--stage {
+  background: var(--page-stage);
+  color: var(--page-stage-ink);
+}
+
+.station--stage figcaption,
+.station--stage .time {
+  color: var(--page-stage-ink);
+}
+
+.station--alt {
+  background: var(--page-alt);
+}
+
+.time {
+  display: block;
+  font-size: clamp(4rem, 2rem + 9vw, 10rem);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums lining-nums;
+  color: var(--page-accent);
+  margin-bottom: clamp(12px, 2vw, 28px);
+}
+
+.station h2 {
+  max-width: 16ch;
+}
+
+.station .text p {
+  margin-top: 20px;
+}
+
+.station .text {
+  align-self: start;
+}
+
+/* Station 1: Text links, Gerät rechts */
+.st-morning .wrap {
+  display: grid;
+  gap: clamp(32px, 5vw, 72px);
+}
+
+@media (min-width: 1000px) {
+  .st-morning .wrap {
+    grid-template-columns: 5fr 7fr;
+    align-items: end;
+  }
+}
+
+/* Station 2: Smartboard über die ganze Breite, iPad-Leiste daneben */
+.st-start .wrap {
+  display: grid;
+  gap: clamp(32px, 5vw, 64px);
+}
+
+.st-start .stage-pair {
+  display: grid;
+  gap: clamp(20px, 3vw, 40px);
+  align-items: end;
+}
+
+@media (min-width: 1000px) {
+  .st-start .head {
+    display: grid;
+    grid-template-columns: 5fr 7fr;
+    gap: clamp(32px, 5vw, 72px);
+    align-items: end;
+  }
+
+  .st-start .stage-pair {
+    grid-template-columns: 9fr 3fr;
+  }
+}
+
+/* Station 3: zwei Geräte nebeneinander, Text darüber rechts */
+.st-material .wrap {
+  display: grid;
+  gap: clamp(32px, 5vw, 64px);
+}
+
+.st-material .pair {
+  display: grid;
+  gap: clamp(20px, 3vw, 40px);
+  align-items: center;
+}
+
+@media (min-width: 1000px) {
+  .st-material .head {
+    display: grid;
+    grid-template-columns: 7fr 5fr;
+    gap: clamp(32px, 5vw, 72px);
+    align-items: end;
+  }
+
+  .st-material .head .text {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .st-material .head .time-wrap {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .st-material .pair {
+    grid-template-columns: 6fr 6fr;
+  }
+}
+
+/* Station 4: Tafel, Geräte gestaffelt */
+.st-board .wrap {
+  display: grid;
+  gap: clamp(32px, 5vw, 64px);
+}
+
+.st-board .pair {
+  display: grid;
+  gap: clamp(20px, 3vw, 40px);
+  align-items: start;
+}
+
+@media (min-width: 1000px) {
+  .st-board .wrap {
+    grid-template-columns: 4fr 8fr;
+    align-items: start;
+  }
+
+  .st-board .pair {
+    grid-template-columns: 1fr;
+  }
+
+  .st-board .pair .tablet-wide {
+    width: 100%;
+  }
+
+  .st-board .pair .board-small-wrap {
+    width: 62%;
+    justify-self: end;
+    margin-top: -6%;
+  }
+}
+
+/* Station 5: ein großes Smartboard, Text darunter */
+.st-end .wrap {
+  display: grid;
+  gap: clamp(28px, 4vw, 56px);
+}
+
+@media (min-width: 1000px) {
+  .st-end .foot {
+    display: grid;
+    grid-template-columns: 5fr 7fr;
+    gap: clamp(32px, 5vw, 72px);
+    align-items: end;
+  }
 }
