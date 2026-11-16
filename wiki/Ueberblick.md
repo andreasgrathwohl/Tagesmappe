@@ -53,6 +53,13 @@ Dingen – den Klassenbildschirm (Klasse, Fach, Uhrzeit, Thema, Timer, Arbeitsfo
 Material, die Tafel oder nichts (dunkel). Umgeschaltet wird am iPad, das immer zeigt, was die Klasse
 gerade sieht. Was an die Tafel geschrieben wird, bleibt als Tafelbild bei der Unterrichtsstunde.
 
+## Hilfe und Rückmeldung
+
+An jedem Bildschirm führt ein Fragezeichen zur passenden Erklärung, die in der App liegt und ohne Netz
+lesbar ist; das Hilfecenter in Einrichten durchsucht alle Artikel. Ideen und Hinweise schickt die Lehrkraft
+per E-Mail aus ihrem eigenen Mail-Programm, auf Wunsch mit Bildschirmfotos, auf die sie zeichnen und auf denen
+sie Namen schwärzen kann.
+
 ## Für wen
 
 Lehrkräfte mit eigenem iPad, mit oder ohne Mac, mit oder ohne Microsoft 365. Nicht für Schüler,

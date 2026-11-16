@@ -42,6 +42,7 @@ flowchart TB
     Office["PowerPoint, Word, …"]
     Graph["Microsoft Graph"]
     SM["Schulmanager Online<br/>(inoffiziell)"]
+    Mail["Mail-Programm des Systems<br/>(Rückmeldung, von der Lehrkraft gesendet)"]
 
     UI --> Kern
     Kern --> Daten
@@ -59,11 +60,13 @@ flowchart TB
     OD --> Graph
     OD -- "Office-Adresse, AutoSpeichern" --> Office
     Quel -- "ADR-0004" --> SM
+    UI -- "Rückmeldung, ADR-0014" --> Mail
 ```
 
 Drei Dinge, die das Bild festhält: Keine Oberfläche spricht ein Fremdsystem direkt an – dazwischen
 liegt immer ein Baustein. Es gibt keinen Server des Produkts (NFR-2); nach außen gehen nur Apple,
-der Ablage-Anbieter, Microsoft (nach Anmeldung) und Schulmanager (wenn gewählt). Ordnerfreigaben und
+der Ablage-Anbieter, Microsoft (nach Anmeldung) und Schulmanager (wenn gewählt) – dazu eine Rückmeldung, die
+die Lehrkraft selbst über ihr Mail-Programm verschickt (ADR-0014). Ordnerfreigaben und
 Zugangsdaten verlassen das Gerät nie.
 
 ## Area: plattform
@@ -107,6 +110,36 @@ den Oberflächen, nicht im Datenmodell. Mindestversion iPadOS 26 und macOS 26 ge
   einzige Quelle.
 - Die Schulversion (FR-13.2, später) wäre ein zweites Ziel im selben Xcode-Projekt, das die
   Freischaltung fest auf „gekauft“ setzt und als bezahlte App ohne In-App-Kauf erscheint.
+
+### Hilfe und Rückmeldung
+
+- Gemäß ADR-0014 liegen die Hilfeartikel (FR-17) in der App: Themen (`HelpTopic`), ihre Gruppen und verwandten
+  Themen sind Daten im Kern-Paket; Titel, Kurzfassung, Stichwörter und Text jedes Artikels stehen in der
+  Übersetzungstabelle (`help.<thema>.title|summary|keywords|body`, ADR-0009). Der Text ist eine kleine
+  Markdown-Teilmenge (Absatz, Zwischentitel, Aufzählung, nummerierte Schritte, Hinweis; fett und Links im
+  Absatz), die der Kern in Blöcke zerlegt; die Oberfläche setzt die Blöcke mit den Schriftgrößen aus DESIGN.md.
+  Suche und Rangfolge rechnet der Kern (Titel vor Stichwort vor Kurzfassung vor Text, Umlaute und
+  Groß-/Kleinschreibung gefaltet). Ein Test im Kern prüft, dass jedes Thema alle vier Texte hat und dass die
+  Artikel nur die neutralen Beispielklassen nennen.
+- Hilfeknöpfe öffnen den Artikel als Blatt an der Stelle, an der sie stehen – auch innerhalb anderer Blätter.
+  Das Hilfecenter steht in Einrichten; das Menü „Hilfe“ (Mac, iPad mit Tastatur) öffnet es als Blatt über
+  der Hauptansicht.
+- Gemäß ADR-0014 geht eine Rückmeldung als E-Mail über das Mail-Programm des Systems hinaus (iPad
+  `MFMailComposeViewController`, Mac `NSSharingService.composeEmail`), Rückfall Teilen-Dialog und Kopieren. Die
+  Empfangsadresse kommt aus der Build-Einstellung `FEEDBACK_EMAIL` (Info.plist `FrontstageFeedbackEmail`, in CI
+  aus einem Secret). Betreff, Text und Geräteangaben stellt der Kern zusammen; die Geräteangaben lesen nur
+  Version, System, Modellkennung, Art des Datenorts, Erscheinungsbild und Kaufstand – nie den Gerätenamen.
+- Bildschirmfotos: Beim Start einer Rückmeldung nimmt die App das Fenster der Hauptszene auf (nie die Szene des
+  Zweitbildschirms), nachdem ein offenes Hilfeblatt geschlossen ist. Bilder werden beim Hinzufügen auf höchstens
+  2048 Pixel Kantenlänge verkleinert. Gezeichnet wird mit PencilKit (`PKDrawing`): am iPad in `PKCanvasView` mit
+  `PKToolPicker` wie auf der Tafel, am Mac – wo es `PKCanvasView` nicht gibt – mit einer eigenen Zeichenfläche,
+  die Ziehbewegungen zu `PKStroke` macht. Schwärzen sind deckende Rechtecke über der Zeichnung, nicht
+  Marker-Striche (Marker sind durchscheinend). Beim Senden werden Bild, Zeichnung und Schwärzung zu einem JPEG
+  zusammengesetzt.
+- Der Entwurf einer Rückmeldung liegt nur auf dem Gerät im Ordner „Application Support“ der App, ohne Sicherung
+  und ohne Abgleich; er ist kein Datensatz des Datenorts.
+- Kurz-Tipps (FR-17.5) laufen über TipKit (`Tips.configure` beim Start; im Testlauf nicht). Zurücksetzen geht nur
+  vor `Tips.configure` und wirkt deshalb ab dem nächsten Start.
 
 ## Area: daten
 
@@ -558,3 +591,4 @@ gehören sie zur Unterrichtsstunde. Das Original wird nie verändert.
 - 2026-11-14: daten changed — Jahresplanung (FR-15, ADR-0013): Modelle Schuljahr, Jahresplan, Planwoche, Leistungsnachweis; Abschnitt Jahresplanung (Unterrichtswochen berechnet, Jahrgang aus dem Klassennamen, Zuordnung über den Montag, Vorjahresplan übernehmen, frühere Jahre, Hinweis zur Unterrichtsstunde, Abgleich); Nebenläufigkeit ergänzt; Bausteinbild um Jahresplan ergänzt
 - 2026-11-14: daten changed — Q-33, Q-34 mit Rechercheergebnis ergänzt (beide weiter offen, Prüfung im Schul-Testmandanten)
 - 2026-11-15: daten changed — Erscheinungsbild als abgeglichener Datensatz (FR-16), Modell, Nebenläufigkeit und Ordner `Theme/` ergänzt; plattform changed — Freischaltung um das Erscheinungsbild ergänzt (FR-13)
+- 2026-11-16: plattform changed — Abschnitt „Hilfe und Rückmeldung“ (FR-17, ADR-0014): Hilfeartikel in der Übersetzungstabelle, Aufbau und Suche im Kern, Rückmeldung per E-Mail über das System, Bildschirmfotos mit PencilKit und Schwärzung, Entwurf nur auf dem Gerät, Kurz-Tipps über TipKit; Überblick: Rückmeldung als einziger weiterer Weg nach außen

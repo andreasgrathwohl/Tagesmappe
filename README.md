@@ -7,7 +7,7 @@ bleibt in der eigenen Ablage (iCloud Drive, OneDrive, Google Drive, …) und ist
 Stand.
 
 > **Stand:** Umsetzung. Anforderungen und Architektur sind freigegeben (`docs/PRD.md`, `docs/ARCHITECTURE.md`);
-> dreizehn Architekturentscheidungen stehen in `docs/adr/`. Die Teilpläne 01–09 sind umgesetzt (`docs/superpowers/plans/`):
+> vierzehn Architekturentscheidungen stehen in `docs/adr/`. Die Teilpläne 01–10 sind umgesetzt, Teilplan 11 (Hilfe und Rückmeldung) ist geplant (`docs/superpowers/plans/`):
 > SwiftUI-App für iPad und Mac unter `Frontstage/`, Kernlogik im Paket `Packages/FrontstageCore`. Offen sind Prüfungen auf
 > echten Geräten, die Gestaltungsrunden und der Test der Schulmanager-Schnittstelle (Q-16). Unter `mockup/` liegen HTML-Mockups.
 > Der Name „Frontstage“ ist intern festgelegt, die Registerprüfung steht aus (Q-31). Das Repository
@@ -32,6 +32,10 @@ Stand.
   Wochenthema erscheint in Vorbereiten als Vorschlag, Leistungsnachweise an den Unterrichtsstunden.
 - **Erscheinungsbild**: warmer Standard; Grundton, Akzentfarbe (frei, mit Kontrastschutz) und Hell/Dunkel
   einstellbar, außerhalb des Standards per Einmalkauf.
+- **Hilfe und Rückmeldung**: ein Fragezeichen an jedem Bildschirm öffnet die passende Erklärung, auch ohne Netz;
+  das Hilfecenter durchsucht alle Artikel. Ideen und Hinweise gehen per E-Mail an die Entwickler, mit
+  Bildschirmfotos, auf die man zeichnen und Stellen schwärzen kann. Kurz-Tipps erklären das Wichtigste beim
+  ersten Gebrauch.
 - **Datenschutz**: keine eigenen Server – Stundenplan, Zuordnungen und Material bleiben bei der
   Lehrkraft.
 
@@ -42,7 +46,7 @@ Stand.
 | [docs/PRD.md](docs/PRD.md) | Was, für wen, warum: Glossar, Anforderungen, Lieferstufen, Risiken, offene Fragen, Abnahmekriterien |
 | [docs/adr/](docs/adr/) | Architekturentscheidungen, je Entscheidung eine Datei |
 | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Wie gebaut wird, je Bereich: Bausteinbild, Datenmodell, Abgleich, Dateizugriff, Stundenplan-Quellen, Anzeige |
-| [DESIGN.md](DESIGN.md) | Gestaltungsbeschlüsse – bisher das App-Icon (UI-1, Quelle in `design/icon/`); alle übrigen Kategorien offen |
+| [DESIGN.md](DESIGN.md) | Gestaltungsbeschlüsse UI-1 bis UI-15 (App-Icon, Tagesansicht, Farben, Schrift, Formen, Sprache); offen: Klassenbildschirm, Tafel, Kaufangebot |
 | [mockup/](mockup/LIESMICH.md) | HTML-Mockups von Tagesansicht, Vorbereiten und Einrichten – Veranschaulichung, kein Beschluss |
 | [CLAUDE.md](CLAUDE.md) | Projektregeln: Bauen, Skills, Dokument-Konvention |
 | [wiki/](wiki/Home.md) | Einstieg, Überblick und Wegweiser in die Dokumente |

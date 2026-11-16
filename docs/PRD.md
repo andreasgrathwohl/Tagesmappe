@@ -91,6 +91,13 @@ Person (Q-13).
 | Grundton | Färbung aller neutralen Flächen, Linien und Texte: warm (Standard), System, kühl oder Petrol | Akzentfarbe | `BaseTone` (`warm`, `system`, `cool`, `petrol`) |
 | Akzentfarbe | die eine Farbe für Bedienbares (Material-Ziele, Knöpfe, Auswahl); frei wählbar, mit Kontrastschutz | Signalfarbe (Ausfall, Warnung) | `ThemeAccent` |
 | Hell/Dunkel | ob die App hell, dunkel oder wie das System erscheint | Dunkel auf dem Zweitbildschirm (FR-11.4) | `AppearanceMode` (`system`, `light`, `dark`) |
+| Hilfethema | der Bildschirm oder Bereich, zu dem es einen Hilfeartikel gibt, z. B. „Datenort“ oder „Tafel“ | Thema der Stunde (FR-11.1) | `HelpTopic` |
+| Hilfeartikel | der Erklärtext zu einem Hilfethema – kurz, mit Schritten und verwandten Themen; liegt in der App und ist ohne Netz lesbar | Rückmeldung | `HelpArticle` |
+| Hilfeknopf | das Fragezeichen an einem Bildschirm oder Bereich; öffnet den Hilfeartikel genau dazu | Kurz-Tipp | `HelpButton` |
+| Hilfecenter | alle Hilfeartikel mit Suche, in Einrichten und am Mac im Menü „Hilfe“; von dort geht es auch zur Rückmeldung | Hilfeknopf (führt zu einem Artikel) | `HelpCenter` |
+| Rückmeldung | eine Idee oder ein Hinweis der Lehrkraft an die Entwickler, verschickt als E-Mail aus ihrem eigenen Mail-Konto | Bewertung im App Store (öffentlich); Hinweis der Stunde (FR-11.1) | `Feedback` (`kind`: `idea`, `issue`) |
+| Bildschirmfoto | Bild in einer Rückmeldung: Aufnahme des App-Fensters oder Foto aus der Mediathek, wahlweise mit Zeichnung und geschwärzten Stellen | Standbild (Tafel), Stiftnotiz | `FeedbackAttachment` (Zeichnung `markup`, Schwärzung `redactions`) |
+| Kurz-Tipp | kurzer Hinweis beim ersten Gebrauch eines Bildschirms, der nach dem Schließen nicht wiederkommt | Hilfeartikel | `HelpTips` (einzelne Tipps als TipKit-`Tip`, z. B. `DaySelectionTip`) |
 
 ## Constraints
 
@@ -375,6 +382,9 @@ Geändert 2026-11-15: Zum Kauf gehören zusätzlich die Anpassung des Erscheinun
 (FR-16): andere Grundtöne, eine eigene Akzentfarbe (FR-16.1) und Hell/Dunkel unabhängig vom iPad (FR-16.2).
 Kostenlos bleibt der Standard; Hell/Dunkel wie das System gilt immer.
 
+Geändert 2026-11-16: Hilfe, Hilfecenter, Kurz-Tipps und Rückmeldung (FR-17 bis FR-17.5) gehören immer zum
+kostenlosen Teil – auch die Hilfeartikel zu bezahlten Funktionen sind ohne Kauf lesbar.
+
 ### FR-13.1 — Schulmanager-Import ohne Bezahlung und ohne Gewähr [MVP]
 
 Der Import aus Schulmanager Online (FR-2, FR-2.2) gehört immer zum kostenlosen Teil und wird in der
@@ -494,6 +504,57 @@ angepasste Farbe in der Vorschau; die Lehrkraft sieht also immer, was tatsächli
 
 Die App kann hell, dunkel oder wie das System erscheinen, unabhängig von der Einstellung des Geräts.
 
+### FR-17 — In-App-Hilfe und Rückmeldung [MVP]
+
+Die App erklärt sich selbst: Zu jedem Bildschirm und jedem schwierigen Bereich gibt es einen Hilfeartikel auf
+Deutsch, der in der App liegt und ohne Netz lesbar ist. Aus der Hilfe heraus kann die Lehrkraft den Entwicklern
+eine Idee oder einen Hinweis schicken, mit Bildschirmfotos, auf die sie zeichnen kann. Hilfe und Rückmeldung
+sind kostenlos, auch für bezahlte Funktionen (FR-13), und brauchen keinen Server des Produkts (NFR-2,
+ADR-0014). Vom Nutzer am 2026-11-16: „implementiere eine in app hilfe. viele hilfe buttons und eine
+rückmeldungsmöglichkeit mit idee und hinweise. möglichkeit screenshots mit zeichnung“.
+
+### FR-17.1 — Hilfeknöpfe an jedem Hauptbildschirm und jedem schwierigen Bereich [MVP]
+
+Heute, Vorbereiten, Jahresplan und Einrichten tragen je einen Hilfeknopf (Fragezeichen); dazu jeder Bereich,
+der erfahrungsgemäß Fragen aufwirft: Datenort, Koppeln, Ablage und Ordner freigeben, Stundenplan-Quelle
+(Schulmanager), Stundenplan, Zeitraster, Ferien und Feiertage, Schuljahr, Erscheinungsbild, Tafel, Anzeige von
+PDF und Bild mit Stift, Smartboard verbinden, Klassenbildschirm und Kauf. Ein Hilfeknopf öffnet den Artikel
+genau zu diesem Bereich, mit verwandten Themen und „Rückmeldung geben“. VoiceOver nennt ihn „Hilfe zu
+<Thema>“; die Artikel folgen der Textgröße des Systems.
+
+### FR-17.2 — Hilfecenter: alle Artikel, durchsuchbar, ohne Netz [MVP]
+
+In Einrichten › Hilfe und Rückmeldung stehen alle Hilfeartikel nach Bereichen geordnet, mit einer Suche über
+Titel, Stichwörter und Text; die Suche findet auch ohne Umlaute („ubernehmen“ findet „übernehmen“) und
+ohne Groß-/Kleinschreibung. Am Mac öffnet das Menü „Hilfe“ das Hilfecenter (⌘?) und bietet „Rückmeldung
+geben …“; am iPad gilt dasselbe mit Tastatur.
+
+### FR-17.3 — Rückmeldung: Idee oder Hinweis, per E-Mail [MVP]
+
+Die Lehrkraft wählt „Idee“ oder „Hinweis“ (etwas klappt nicht oder ist unklar), schreibt einen Text und
+schickt ihn über das Mail-Programm des Systems an die Adresse der Entwickler; sie sieht die Mail vor dem
+Senden vollständig. Wahlweise hängt sie Geräteangaben an (App-Version, System, Gerätemodell, Art des
+Datenorts, Erscheinungsbild, Kaufstand) – voreingestellt aus, nie mit Gerätenamen, Klassen, Dateinamen oder
+anderen Inhalten. Ein angefangener Entwurf bleibt auf dem Gerät, bis er gesendet oder verworfen ist; er
+wird nicht abgeglichen. Ist kein Mail-Konto eingerichtet, teilt sie die Rückmeldung über den Teilen-Dialog
+oder kopiert den Text. Die Mail geht vom Mail-Konto der Lehrkraft aus, nicht über einen Server des Produkts
+(NFR-2, ADR-0014).
+
+### FR-17.4 — Bildschirmfotos mit Zeichnung [MVP]
+
+Beim Start einer Rückmeldung nimmt die App das aktuelle Fenster auf – ohne das Hilfe- oder
+Rückmeldungsfenster – und legt es als erstes Bildschirmfoto bei; die Lehrkraft kann es entfernen. Weitere
+Bilder kommen aus der Mediathek, höchstens fünf insgesamt. Auf jedes Bild kann sie zeichnen (Stift, Marker,
+Radierer) und Stellen schwärzen; Geschwärztes ist im gesendeten Bild vollständig verdeckt. Ein Hinweis
+erinnert daran, dass Bildschirmfotos Klassen-, Datei- und Personennamen zeigen können (RISK-11). Der
+Zweitbildschirm wird nie aufgenommen.
+
+### FR-17.5 — Kurz-Tipps beim ersten Gebrauch [MVP]
+
+Wenige Kurz-Tipps erklären beim ersten Öffnen eines Bildschirms das Wichtigste (z. B. dass die laufende
+Stunde schon gewählt ist) und erscheinen nach dem Schließen nicht wieder. Im Hilfecenter lassen sie sich
+abschalten und zurücksetzen; zurückgesetzte Tipps erscheinen ab dem nächsten Start der App erneut.
+
 ### NFR-1 — Material sofort und aktuell verfügbar [MVP]
 
 Im Unterricht öffnet das Material ohne spürbares Warten und ist der aktuelle Stand aus der Ablage
@@ -516,7 +577,7 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 ## Lieferstufen
 
 - **MVP:** FR-1, FR-1.1, FR-2, FR-2.2, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-7, FR-8,
-  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, FR-13.1, NFR-1 bis NFR-4, FR-1.2, FR-14, FR-14.1, FR-15, FR-15.1 bis FR-15.6, FR-16, FR-16.1, FR-16.2 (geprüfte Zahl: 53). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
+  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, FR-13.1, NFR-1 bis NFR-4, FR-1.2, FR-14, FR-14.1, FR-15, FR-15.1 bis FR-15.6, FR-16, FR-16.1, FR-16.2, FR-17, FR-17.1 bis FR-17.5 (geprüfte Zahl: 59). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
 - **Later:** FR-2.1, FR-7.1, FR-10, FR-13.2.
 
 ## Out of Scope
@@ -628,6 +689,17 @@ nur leere Planwochen gar nicht speichern; Zusammenführen der Jahrespläne getre
 beim ersten Abgleich den Fortschritt zeigen; vor dem Start beide Geräte auf dieselbe App-Version bringen.
 Ab etwa 5 000 Datensätzen messen, wie lange ein erster Abgleich dauert.
 
+### RISK-11 — Rückmeldungen tragen Schul- und Personendaten zu den Entwicklern
+
+Ein Bildschirmfoto der Tagesansicht zeigt Klassen, Fächer und Dateinamen, ein Foto aus der Mediathek kann
+Schülerinnen und Schüler zeigen, und der Text kann Namen enthalten. Mit der Rückmeldung (FR-17.3, FR-17.4)
+landen diese Daten im Postfach der Entwickler – außerhalb des Geräts der Lehrkraft. Umgang: Die App
+verschickt nichts von selbst; die Lehrkraft sieht die vollständige Mail vor dem Senden; das erste
+Bildschirmfoto ist entfernbar, Schwärzen deckt vollständig ab, ein Hinweis erinnert daran; Geräteangaben
+sind voreingestellt aus und enthalten nie Namen oder Inhalte. Eingehende Rückmeldungen sind
+personenbezogene Daten: Die Datenschutzerklärung muss den Weg nennen, das Postfach wird nur dafür genutzt
+und regelmäßig geleert (Q-42).
+
 ## Open Questions
 
 - ~~Q-1~~: Wie heißt das Produkt? „Tagesmappe“ ist Arbeitstitel. → answered 2026-11-13: „Pult“ – das Lehrerpult, an dem alles für die Stunde bereitliegt und von dem aus gesteuert wird, was die Klasse sieht. „Tagesmappe“ bleibt Name des Repositorys. Markenrecherche (DPMA, App Store) steht aus (Q-29). → changed 2026-11-13: „Frontstage“ – was vorne vor der Klasse passiert. „Pult“ verworfen, weil „PULT“ als Software-Marke in Gebrauch ist (RISK-8); dazwischen geprüft und verworfen: Stundenlicht, Klassenlicht, Katheder, Doppelstunde, Stundenbühne, Stundenregie, Klassenregie, Klassenblick, Tafelrand, Taktgeber, Lessonstage, Lectern, Teachdeck (Classcue und Classcast vergeben).
@@ -658,6 +730,7 @@ Ab etwa 5 000 Datensätzen messen, wie lange ein erster Abgleich dauert.
 - ~~Q-35~~: Gehört die Jahresplanung (FR-15 bis FR-15.6) zum kostenlosen Kern oder zum Einmalkauf (FR-13)? Bis zur Antwort ist sie kostenlos und hinter keiner Freischaltung gebaut; eine spätere Freischaltung braucht nur eine Abfrage an der Stelle „Freischaltung“. → answered 2026-11-14: kostenlos, Teil des Kerns; verkauft werden weiter Klassenbildschirm, Timer, Arbeitsform und Tafel (Andreas).
 - ~~Q-36~~: Reichen Notizen für Klassen, die vom Jahresplan abweichen (z. B. 8b eine Woche hinter 8a), oder soll eine Klasse ihren Stand im Jahresplan versetzen können, sodass ihr in Vorbereiten das Thema einer anderen Planwoche vorgeschlagen wird? Bis zur Antwort: nur Notizen (ADR-0013), vorgeschlagen wird immer das Thema der Kalenderwoche. → answered 2026-11-14: Notizen reichen; kein Versatz je Klasse (Andreas). Vorgeschlagen wird weiter das Thema der Kalenderwoche.
 - Q-40: Was passiert, wenn eine Lehrkraft eine Akzentfarbe wählt, die einer Signalfarbe gleicht (Rot wie „Entfällt“, Orange wie „nicht verfügbar“, Gelb wie „jetzt, gezeigt“)? Bis zur Antwort: zulässig, Signale bleiben über Symbol und Wort unterscheidbar (DESIGN.md, „Zustände nicht allein am Farbton“); ein Hinweis in der Vorschau wäre möglich.
+- Q-42: An welche E-Mail-Adresse gehen Rückmeldungen (FR-17.3), wer liest sie, und wie lange werden sie aufbewahrt (Datenschutzerklärung, RISK-11)? Bis zur Antwort: Die Adresse kommt aus der Build-Einstellung `FEEDBACK_EMAIL` (in CI aus einem Secret); im Repo steht nur der Platzhalter `feedback@example.com`, und ohne echte Adresse bietet die App nur Teilen und „Text kopieren“ (ADR-0014).
 
 ## Abnahmekriterien
 
@@ -715,6 +788,12 @@ Ab etwa 5 000 Datensätzen messen, wie lange ein erster Abgleich dauert.
 - AK-52 (FR-16): Aufbau: frische Installation, iPad im hellen Modus. Handlung: Einrichten › Erscheinungsbild öffnen, ohne Kauf „kühl“ wählen; nach dem Kauf „kühl“ wählen. Ergebnis: Voreingestellt ist warm mit Standardakzent; ohne Kauf erscheint statt der Auswahl das Kaufangebot und die App bleibt warm; nach dem Kauf ist die App kühl, auch auf dem zweiten Gerät nach dem Abgleich.
 - AK-53 (FR-16.1): Aufbau: Kauf vorhanden, Grundton warm. Handlung: als Akzentfarbe ein helles Gelb (#FFF3A0) wählen. Ergebnis: Die Vorschau zeigt eine abgedunkelte Fassung; Material-Namen auf ihrer Tönung haben hell und dunkel mindestens 4,5:1; „Entfällt“ und „Material nicht verfügbar“ behalten ihre Farbe.
 - AK-54 (FR-16.2): Aufbau: Kauf vorhanden, iPad im hellen Modus. Handlung: in der App „Dunkel“ wählen. Ergebnis: Die App erscheint dunkel, andere Apps bleiben hell; mit „Wie das System“ folgt sie wieder dem iPad.
+- AK-55 (FR-17): Aufbau: kein Kauf, iPad im Flugmodus. Handlung: in der Tagesansicht das Fragezeichen antippen; im Hilfecenter den Artikel „Tafel“ öffnen; „Rückmeldung geben“ antippen. Ergebnis: Beide Artikel erscheinen ohne Netz und ohne Kaufangebot; die Rückmeldung lässt sich ohne Kauf schreiben.
+- AK-56 (FR-17.1): Aufbau: frische Installation, VoiceOver an. Handlung: auf Heute, Vorbereiten, Jahresplan und Einrichten sowie in Einrichten › Datenort, Ablage und Stundenplan-Quelle jeweils das Fragezeichen ansteuern und antippen. Ergebnis: VoiceOver sagt jeweils „Hilfe zu <Thema>“; jeder Knopf öffnet den Artikel zu genau diesem Bereich, mit verwandten Themen und „Rückmeldung geben“.
+- AK-57 (FR-17.2): Aufbau: Mac. Handlung: Menü Hilfe › Frontstage-Hilfe (⌘?); nacheinander „AirPlay“, „ferien“, „ubernehmen“ und „xyz“ suchen. Ergebnis: Das Hilfecenter öffnet sich; „AirPlay“ zeigt „Smartboard verbinden“ als ersten Treffer, „ferien“ zeigt „Ferien und Feiertage“ als ersten Treffer, „ubernehmen“ findet „Vorbereiten“ (Für Klasse übernehmen) und „Jahresplan“ (Vorjahresplan übernehmen); „xyz“ zeigt „Keine Treffer“.
+- AK-58 (FR-17.3): Aufbau: Mail-Konto eingerichtet, Empfangsadresse hinterlegt. Handlung: Rückmeldung öffnen, „Hinweis“ wählen, „Tafel speichert nicht“ schreiben; App beenden und neu öffnen; Rückmeldung erneut öffnen, Geräteangaben einschalten, Senden. Ergebnis: Nach dem Neustart steht der Entwurf noch da; das Mail-Fenster zeigt die Empfangsadresse, den Betreff „Frontstage – Hinweis: Tafel speichert nicht“, den Text und Geräteangaben ohne Gerätenamen; nach dem Senden ist der Entwurf leer. Ohne Mail-Konto stehen „Teilen“ und „Text kopieren“ statt „Senden“ zur Wahl.
+- AK-59 (FR-17.4): Aufbau: Tagesansicht mit der Stunde „8b Englisch“. Handlung: Fragezeichen › „Rückmeldung geben“; das erste Bild öffnen, „8b“ schwärzen und einen Pfeil zeichnen; aus der Mediathek Fotos hinzufügen, bis es nicht mehr geht; eines entfernen. Ergebnis: Das erste Bild zeigt die Tagesansicht ohne Hilfefenster; im gesendeten Bild ist „8b“ vollständig schwarz und der Pfeil sichtbar; mehr als fünf Bilder lassen sich nicht hinzufügen; das entfernte Bild fehlt in der Mail.
+- AK-60 (FR-17.5): Aufbau: frische Installation. Handlung: Tagesansicht öffnen, den Kurz-Tipp schließen, App neu starten; im Hilfecenter „Kurz-Tipps erneut zeigen“, App neu starten; danach „Kurz-Tipps zeigen“ ausschalten und die Tagesansicht erneut öffnen. Ergebnis: Der Tipp erscheint beim ersten Öffnen, nach dem Schließen nicht wieder; nach dem Zurücksetzen und Neustart erscheint er erneut; ausgeschaltet erscheint kein Tipp.
 
 ## Changes
 
@@ -756,6 +835,8 @@ Ab etwa 5 000 Datensätzen messen, wie lange ein erster Abgleich dauert.
 - 2026-11-14: Verworfen (FR-15): ein Jahresplan je Klasse – feiner, aber doppelte Arbeit für Parallelklassen und kein Vergleich über die Jahre, weil Klassennamen jährlich wechseln
 - 2026-11-14: Q-35, Q-36 answered — Jahresplanung bleibt kostenlos, abweichende Klassen nur über Notizen (Andreas); Q-31 changed — Stand der Websuche, Prüfnotiz in docs/research/
 - 2026-11-15: FR-16, FR-16.1, FR-16.2 new — Erscheinungsbild anpassbar (Wunsch von Andreas): Grundton, freie Akzentfarbe mit Kontrastschutz, Hell/Dunkel in der App; FR-13 changed (Anpassung außerhalb des Standards im Kauf); Glossar um Erscheinungsbild, Grundton, Akzentfarbe, Hell/Dunkel ergänzt; AK-52 bis AK-54, Q-40, Lieferstufen (53) und Abdeckung angepasst
+- 2026-11-16: FR-17, FR-17.1 bis FR-17.5 new — In-App-Hilfe mit Hilfeknöpfen, Hilfecenter, Rückmeldung per E-Mail mit Bildschirmfotos und Zeichnung, Kurz-Tipps (Wunsch von Andreas, ADR-0014); FR-13 changed (Hilfe und Rückmeldung immer kostenlos); Glossar um Hilfethema, Hilfeartikel, Hilfeknopf, Hilfecenter, Rückmeldung, Bildschirmfoto, Kurz-Tipp ergänzt; AK-55 bis AK-60, RISK-11, Q-42, Lieferstufen (59) und Abdeckung angepasst
+- 2026-11-16: Verworfen (FR-17.3): eigenes Web-Formular bzw. eigener Endpunkt (Server, widerspricht NFR-2), GitHub-Issues (Zugangsschlüssel in der App), nur TestFlight-Feedback (gibt es im App Store nicht), App-Store-Bewertungen (öffentlich, ohne Bildschirmfotos) – siehe ADR-0014
 
 ## Anhang A — Abdeckung
 
@@ -772,7 +853,8 @@ Ab etwa 5 000 Datensätzen messen, wie lange ein erster Abgleich dauert.
 | 3 Tagesansicht (Leistungsnachweise) | FR-15.6 |
 
 FR-10 gehört zu keiner Ablaufphase (Ausgabe nach außen, neben dem Ablauf). FR-13 bis FR-13.2 ebenfalls
-nicht (Geschäftsmodell, quer zu allen Phasen).
+nicht (Geschäftsmodell, quer zu allen Phasen), ebenso FR-17 bis FR-17.5 (Hilfe und Rückmeldung, in jeder
+Phase erreichbar).
 
 | Anforderung | Abnahmekriterium |
 |---|---|
@@ -822,6 +904,12 @@ nicht (Geschäftsmodell, quer zu allen Phasen).
 | FR-16 | AK-52 |
 | FR-16.1 | AK-53 |
 | FR-16.2 | AK-54 |
+| FR-17 | AK-55 |
+| FR-17.1 | AK-56 |
+| FR-17.2 | AK-57 |
+| FR-17.3 | AK-58 |
+| FR-17.4 | AK-59 |
+| FR-17.5 | AK-60 |
 | FR-7 | AK-14 |
 | FR-8 | AK-15 |
 | FR-9 | AK-16 |
