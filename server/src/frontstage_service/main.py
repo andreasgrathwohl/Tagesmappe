@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from .admin.routes_auth import router as admin_auth_router
+from .admin.routes_feedback import router as admin_feedback_router
 from .admin.templating import STATIC_DIR
 from .api import router as feedback_router
 from .attachments import AttachmentStore
@@ -89,6 +90,7 @@ def create_app(settings: Settings, *, clock: Callable[[], datetime] = utc_now) -
     )
     app.include_router(feedback_router)
     app.include_router(admin_auth_router)
+    app.include_router(admin_feedback_router)
     app.mount("/admin/static", StaticFiles(directory=STATIC_DIR), name="admin-static")
 
     @app.get("/healthz")

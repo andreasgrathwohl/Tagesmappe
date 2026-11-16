@@ -1,0 +1,44 @@
+{% extends "admin/base.html" %}
+{% block title %}Rückmeldungen{% endblock %}
+{% block content %}
+<h1>Rückmeldungen</h1>
+{% if deleted %}
+<p class="notice" role="status">Rückmeldung {{ deleted }} wurde gelöscht.</p>
+{% endif %}
+<form class="filters" method="get" action="/admin/" role="search" aria-label="Rückmeldungen filtern"
+      hx-get="/admin/" hx-trigger="change, submit" hx-target="#table" hx-push-url="true">
+  <div class="field">
+    <label for="f-kind">Art</label>
+    <select id="f-kind" name="kind">
+      <option value="">Alle</option>
+      {% for key, label in kind_labels.items() %}
+      <option value="{{ key }}"{% if active.kind == key %} selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label for="f-status">Bearbeitungsstand</label>
+    <select id="f-status" name="status">
+      <option value="">Alle</option>
+      {% for key, label in status_labels.items() %}
+      <option value="{{ key }}"{% if active.status == key %} selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+  </div>
+  <div class="field">
+    <label for="f-since">Von</label>
+    <input id="f-since" name="since" type="date" value="{{ active.since }}">
+  </div>
+  <div class="field">
+    <label for="f-until">Bis</label>
+    <input id="f-until" name="until" type="date" value="{{ active.until }}">
+  </div>
+  <div class="filter-actions">
+    <button type="submit" class="secondary">Filtern</button>
+    <a href="/admin/">Filter zurücksetzen</a>
+  </div>
+</form>
+<div id="table">
+  {% include "admin/_table.html" %}
+</div>
+{% endblock %}

@@ -10,6 +10,7 @@ dependencies = [
     "pillow",
     "argon2-cffi",
     "itsdangerous",
+    "tzdata>=2026.6",
 ]
 
 [dependency-groups]

@@ -1,0 +1,46 @@
+<p class="count">{{ total }} {{ "Rückmeldung" if total == 1 else "Rückmeldungen" }}</p>
+{% if not rows %}
+<div class="empty">
+  {% if filtered %}
+  <p>Keine Rückmeldungen für diese Filter.</p>
+  <p><a href="/admin/">Filter zurücksetzen</a></p>
+  {% else %}
+  <p>Noch keine Rückmeldungen.</p>
+  {% endif %}
+</div>
+{% else %}
+<div class="table-wrap">
+<table class="data">
+  <caption class="visually-hidden">Eingegangene Rückmeldungen, neueste zuerst</caption>
+  <thead>
+    <tr>
+      <th scope="col">Eingang</th>
+      <th scope="col">Art</th>
+      <th scope="col">Stand</th>
+      <th scope="col">Hilfethema</th>
+      <th scope="col" class="num"><abbr title="Bildschirmfotos">Bilder</abbr><span class="visually-hidden"> (Bildschirmfotos)</span></th>
+      <th scope="col">Text</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+    <tr>
+      <td class="nowrap">{{ row.date }}, {{ row.time }}</td>
+      <td>{{ row.kind }}</td>
+      <td><span class="status status-{{ row.status_key }}">{{ row.status }}</span></td>
+      <td>{{ row.topic or "–" }}</td>
+      <td class="num">{{ row.images }}</td>
+      <td><a href="/admin/feedback/{{ row.id }}">{{ row.preview }}</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+{% if pages > 1 %}
+<nav class="pager" aria-label="Seiten">
+  {% if prev_url %}<a href="{{ prev_url }}" rel="prev">Zurück</a>{% else %}<span class="muted">Zurück</span>{% endif %}
+  <span>Seite {{ page }} von {{ pages }}</span>
+  {% if next_url %}<a href="{{ next_url }}" rel="next">Weiter</a>{% else %}<span class="muted">Weiter</span>{% endif %}
+</nav>
+{% endif %}
+{% endif %}

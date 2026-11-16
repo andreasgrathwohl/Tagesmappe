@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from ..deps import SettingsDep
-from .auth import LOGIN_PATH, AdminSessionDep, is_logged_in, safe_next, verify_password
+from .auth import LOGIN_PATH, is_logged_in, safe_next, verify_password
 from .csrf import csrf_token, require_csrf
 from .templating import templates
 
@@ -72,14 +72,3 @@ def login(
 def logout(request: Request) -> Response:
     request.session.clear()
     return RedirectResponse(LOGIN_PATH, status_code=303)
-
-
-@router.get("/", response_class=HTMLResponse)
-def admin_home(request: Request, _: AdminSessionDep) -> Response:
-    # Platzhalter bis zur Liste (Task 7)
-    return templates.TemplateResponse(
-        request,
-        "admin/home.html",
-        {"csrf_token": csrf_token(request), "logged_in": True},
-        headers=NO_STORE,
-    )
