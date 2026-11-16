@@ -451,7 +451,7 @@ ihn vollständig.
 ### Verwaltung
 
 - `/admin`: serverseitig gerendert (Jinja2), Teilaktualisierungen mit htmx, keine Fremd-Skripte. Anmeldung mit
-  Passwort gegen `ADMIN_PASSWORD_HASH`; Sitzung als signiertes Cookie (`Secure`, `HttpOnly`, `SameSite=Strict`,
+  Passwort gegen `ADMIN_PASSWORD_HASH`; Sitzung als signiertes Cookie (`Secure`, `HttpOnly`, `SameSite=Lax`,
   acht Stunden); jede ändernde Anfrage trägt ein CSRF-Token; fünf Fehlversuche je Adresse sperren zehn Minuten.
 - Liste mit Filtern (Art, Bearbeitungsstand, Zeitraum), Seiten zu 50; Detail mit Text, Hilfethema, Geräteangaben,
   Bildern; Bearbeitungsstand (`FeedbackStatus`), interne Notiz, Löschen mit Rückfrage; Ausfuhr der gefilterten Liste
@@ -671,3 +671,4 @@ gehören sie zur Unterrichtsstunde. Das Original wird nie verändert.
 - 2026-11-16: dienst new — Rückmeldedienst im Container mit Annahme, Verwaltungsseite, Startseite, Aufbewahrung und Betrieb (ADR-0015, FR-18 bis FR-19.1); plattform changed — Rückmeldung zuerst per Upload zum Dienst mit Zustimmung, Mail/Teilen als Rückfall; Überblick: Dienst und Volume beim Betreiber, Satz zu NFR-2 angepasst
 - 2026-11-16: plattform changed — Abschnitt „Hilfe und Rückmeldung“ (FR-17, ADR-0014): Hilfeartikel in der Übersetzungstabelle, Aufbau und Suche im Kern, Rückmeldung per E-Mail über das System, Bildschirmfotos mit PencilKit und Schwärzung, Entwurf nur auf dem Gerät, Kurz-Tipps über TipKit; Überblick: Rückmeldung als einziger weiterer Weg nach außen
 - 2026-11-16: dienst changed — Annahme: 411 ohne `Content-Length` ergänzt (Abschlussreview Teilplan 12); für die App endgültig wie die übrigen 4xx
+- 2026-11-16: dienst changed — Betrieb als git-verwalteter Dockhand-Stack (`server/deploy/docker-compose.yml`) hinter einem Cloudflare Tunnel (teach.grathwohl.dev, Q-43): Dienst nur im internen Netz, Tunnel-Container mit fester Adresse als einziger vertrauter Proxy, `NOINDEX`; Sitzungscookie `SameSite=Lax` statt Strict

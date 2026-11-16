@@ -487,7 +487,7 @@ Inhalt: `on: workflow_dispatch` und `pull_request` mit `paths: ["server/**", ".g
 |---|---|---|---|
 | 1 | Q-43 klären, Domain und Proxy einrichten, `.env` füllen, `docker compose up -d --build` | `https://<domain>/healthz` → ok, Zertifikat gültig | ☐ |
 | 2 | **AK-61** mit `curl`-Skript aus dem README gegen die echte Adresse | 201, 401, 413, 429 wie AK-61; Neustart behält Daten | ☐ |
-| 3 | **AK-62** im Browser | wie AK-62; Cookie mit `Secure`, `SameSite=Strict` (Entwicklerwerkzeuge) | ☐ |
+| 3 | **AK-62** im Browser | wie AK-62; Cookie mit `Secure`, `SameSite=Lax` (Entwicklerwerkzeuge) | ☐ |
 | 4 | **AK-63**: Rückmeldung mit altem Datum per SQL anlegen, `purge` ausführen | gelöscht samt Ordner | ☐ |
 | 5 | Sicherung einrichten und einmal zurückspielen | Daten nach Rückspielen vollständig | ☐ |
 | 6 | Secrets der App setzen (`FEEDBACK_URL`, `FEEDBACK_APP_KEY` = `APP_KEY`), Teilplan 11 Checkliste 6a | Ende-zu-Ende-Upload mit Bild | ☐ |

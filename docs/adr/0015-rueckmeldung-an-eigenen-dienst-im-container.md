@@ -50,7 +50,7 @@ Festgelegt:
     kurzer Kennung.
   - Verwaltungsseite unter `/admin`: serverseitig gerendert (Jinja2, wenig JavaScript, htmx), Anmeldung mit einem
     Passwort, dessen Hash in `ADMIN_PASSWORD_HASH` steht (Argon2), Sitzungscookie `Secure`, `HttpOnly`,
-    `SameSite=Strict`, CSRF-Schutz für jede ändernde Anfrage, Anmeldeversuche begrenzt.
+    `SameSite=Lax` (geändert 2026-11-16: mit Strict meldete ein Admin-Link aus einer Mail ab), CSRF-Schutz für jede ändernde Anfrage, Anmeldeversuche begrenzt.
   - Startseite, Impressum und Datenschutz als statische Dateien unter `/`.
   - `GET /healthz` für den Reverse-Proxy und Docker.
 - **Speicher:** SQLite im WAL-Modus und Bilder als Dateien auf einem Docker-Volume (`/data`); IP-Adressen nur
