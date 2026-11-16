@@ -1,0 +1,40 @@
+[project]
+name = "frontstage-service"
+version = "0.1.0"
+description = "Rückmeldedienst und Verwaltung für Frontstage"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "fastapi[standard]",
+    "jinja2",
+    "python-multipart",
+    "pillow",
+    "argon2-cffi",
+    "itsdangerous",
+    "tzdata>=2026.6",
+]
+
+[dependency-groups]
+dev = ["pytest", "httpx", "ruff"]
+
+[build-system]
+requires = ["uv_build>=0.9,<0.14"]
+build-backend = "uv_build"
+
+[tool.uv.build-backend]
+module-name = "frontstage_service"
+
+[tool.fastapi]
+entrypoint = "frontstage_service.asgi:app"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "S"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106"]

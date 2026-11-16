@@ -1,0 +1,522 @@
+/*
+ * Frontstage – App-Illustrationen der Stationen (Teilplan 13, Task 2).
+ * Nachgebaut in HTML/CSS/SVG nach DESIGN.md (UI-3 Liste und Detail, UI-6 Hierarchie nur über Größe,
+ * UI-8 warm, UI-9 Petrol, UI-10 Formen, UI-11 Signalsymbole, UI-12 Kapsel). Alle Daten sind erfunden.
+ * Die Rahmen sind Container: Maße hängen an em, die Schrift am inneren .app-screen.
+ */
+
+/* ---------- Tagesansicht: Liste links, Detail rechts ---------- */
+
+.day {
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  height: 100%;
+}
+
+.day__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+  padding: 1.2em 0.8em;
+  background: var(--app-bg);
+}
+
+.day__list .app-row {
+  padding: 0.7em 0.8em;
+}
+
+.period {
+  flex: none;
+  width: 1.4em;
+  font-size: 1.3em;
+  font-weight: 800;
+  color: var(--app-accent);
+}
+
+.row-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.row-main strong {
+  font-size: 1.05em;
+  font-weight: 700;
+}
+
+.row-sub {
+  font-size: 0.85em;
+  opacity: 0.8;
+}
+
+.row-free .row-main strong {
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+/* Signalwörter stehen in Textfarbe, das Symbol trägt die Signalfarbe (UI-11). Vertretung hat keine eigene
+   Farbe: Symbol und Wort in Textfarbe. Orange nur für „Material nicht verfügbar“, Rot für „Entfällt“. */
+.signal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  font-size: 0.85em;
+  font-weight: 700;
+}
+
+.signal::before {
+  content: "";
+  width: 0.7em;
+  height: 0.7em;
+  border-radius: 50%;
+  background: var(--app-text);
+}
+
+.signal--unavailable::before {
+  background: var(--app-unavailable);
+}
+
+.signal--cancel::before {
+  background: var(--app-cancel);
+}
+
+.day__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1em;
+  padding: 1.6em 1.6em 1.2em;
+  background: var(--app-selection);
+}
+
+.detail-class {
+  font-size: 2.1em;
+  font-weight: 800;
+  line-height: 1.05;
+}
+
+.detail-topic {
+  margin-top: -0.6em;
+  font-size: 1.15em;
+  max-width: none;
+  opacity: 0.85;
+}
+
+.tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8em;
+}
+
+.app-tile strong {
+  font-size: 1.05em;
+  line-height: 1.2;
+}
+
+.app-tile .kind {
+  font-size: 0.8em;
+  font-weight: 800;
+  color: var(--app-accent);
+}
+
+.app-tile--board {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.app-note {
+  margin-left: auto;
+  font-size: 0.8em;
+  font-weight: 700;
+  padding: 0.2em 0.7em;
+  border-radius: 999px;
+  background: var(--app-bg);
+}
+
+.stand {
+  margin-top: auto;
+  padding: 0.6em 0.8em 0;
+  font-size: 0.8em;
+  opacity: 0.75;
+  max-width: none;
+}
+
+/* Schmal: Liste über Detail, Schrift fest (statt zu schrumpfen) */
+@media (max-width: 700px) {
+  .app-frame--tablet:not(.app-frame--chalk):not(.app-frame--strip) {
+    aspect-ratio: auto;
+  }
+
+  .app-frame--strip {
+    aspect-ratio: auto;
+  }
+
+  .app-frame--tablet > .app-screen {
+    font-size: 13px;
+  }
+
+  .app-frame--tablet .day {
+    grid-template-columns: 1fr;
+  }
+
+  .app-frame--tablet .day__list {
+    padding: 0.8em 0.6em;
+  }
+}
+
+/* ---------- Smartboard und Klassenbildschirm ---------- */
+
+.app-frame--board > .app-screen {
+  font-size: 2.1cqw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1.2em;
+  padding: 0 7%;
+}
+
+.board-small {
+  font-size: 1.5em;
+  font-weight: 700;
+  color: var(--app-accent);
+  max-width: none;
+}
+
+.board-big {
+  font-size: 3.6em;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  max-width: none;
+}
+
+.board-line {
+  font-size: 1.8em;
+  max-width: none;
+}
+
+.board-timer {
+  position: absolute;
+  right: 5%;
+  bottom: 8%;
+  font-size: 4.4em;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--app-accent);
+  max-width: none;
+}
+
+/* Folie: weiße Fläche mit großer Überschrift */
+.slide {
+  background: #fbf8f2;
+  color: #1f1a14;
+}
+
+.slide .board-small {
+  color: #0e6b7a;
+}
+
+.slide ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 1.9em;
+  line-height: 1.5;
+}
+
+/* ---------- Leiste am iPad ---------- */
+
+.strip {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.9em;
+  height: 100%;
+  padding: 1.4em;
+  background: var(--app-selection);
+}
+
+.strip-title {
+  font-size: 1.6em;
+  font-weight: 800;
+  line-height: 1.1;
+  max-width: none;
+}
+
+.strip-preview {
+  padding: 0.9em 1em;
+  border-radius: var(--radius-tile);
+  background: var(--app-bg);
+  max-width: none;
+  font-size: 1.1em;
+  line-height: 1.35;
+}
+
+.strip-preview strong {
+  display: block;
+  font-size: 1.1em;
+}
+
+.strip-state {
+  display: flex;
+  gap: 0.6em;
+  flex-wrap: wrap;
+}
+
+.app-frame--strip {
+  aspect-ratio: 3 / 4;
+}
+
+.app-frame--strip > .app-screen {
+  font-size: clamp(11px, 4.2cqw, 20px);
+}
+
+/* ---------- Tafel (SVG) ---------- */
+
+.chalk-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.chalk-svg .bg {
+  fill: var(--app-bg);
+}
+
+.chalk-svg .grid {
+  stroke: var(--app-hairline);
+  stroke-width: 1;
+  fill: none;
+}
+
+.chalk-svg .ink {
+  fill: var(--app-text);
+  font-family: var(--font-app);
+  font-weight: 700;
+}
+
+.chalk-svg .stroke {
+  stroke: var(--app-accent);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+.chalk-svg .cover {
+  fill: var(--app-tint);
+}
+
+.chalk-svg .cover-edge {
+  fill: var(--app-accent);
+}
+
+.chalk-svg .cover-text {
+  fill: var(--app-text);
+  font-family: var(--font-app);
+  font-weight: 700;
+}
+
+.toolbar {
+  position: absolute;
+  left: 3%;
+  top: 3%;
+  display: flex;
+  z-index: 1;
+  gap: 0.6em;
+  font-size: clamp(10px, 1.8cqw, 18px);
+}
+
+.toolbar span {
+  padding: 0.3em 0.9em;
+  border-radius: 999px;
+  background: var(--app-selection);
+  color: var(--app-text);
+  font-family: var(--font-app);
+  font-weight: 700;
+}
+
+.toolbar .on {
+  background: var(--app-accent);
+  color: var(--app-bg);
+}
+
+/* Kapsel oben rechts am Rahmen */
+.corner-capsule {
+  position: absolute;
+  top: 3%;
+  right: 3%;
+  font-size: clamp(10px, 2cqw, 20px);
+  font-family: var(--font-app);
+  z-index: 1;
+}
+
+.corner-capsule.app-capsule {
+  font-size: clamp(11px, 2.2cqw, 20px);
+}
+
+/* Tafel auf dem Smartboard: SVG füllt den Rahmen */
+.board-chalk > .app-screen {
+  display: block;
+  padding: 0;
+}
+
+.chalk-wrap {
+  width: 100%;
+  height: 100%;
+}
+
+.app-frame--tablet .app-screen > .chalk-svg {
+  position: absolute;
+  inset: 0;
+}
+
+/* Folie füllt den Rahmen */
+.app-frame--board > .app-screen > .slide {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.8em;
+  height: 100%;
+  margin: 0 -9.5%;
+  padding: 0 9.5%;
+}
+
+/* ---------- Vorbereiten am Mac (Task 3) ---------- */
+
+.prep {
+  display: grid;
+  grid-template-columns: 2fr 3fr;
+  height: 100%;
+}
+
+.prep__week {
+  padding: 1.4em 0.8em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2em;
+}
+
+.prep__week .period {
+  width: 1.8em;
+  font-size: 1.05em;
+}
+
+.prep__lesson {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1em;
+  padding: 1.6em;
+  background: var(--app-selection);
+}
+
+.app-tile--drop {
+  transform: rotate(-3deg) translate(0.6em, 0.4em);
+  box-shadow: 0 0.5em 1.2em rgba(31, 26, 20, 0.25); /* schwebt: wird gerade gezogen */
+}
+
+.prep__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6em;
+  margin-top: auto;
+}
+
+.prep__actions .app-capsule {
+  font-size: 0.95em;
+  padding: 0.5em 1.1em;
+  background: var(--app-bg);
+}
+
+.prep__actions .app-capsule--action {
+  background: var(--app-accent);
+  color: var(--app-bg);
+}
+
+/* ---------- Jahresplan ---------- */
+
+.plan {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  height: 100%;
+  padding: 1.8em 2em;
+}
+
+.plan__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1.05em;
+}
+
+.plan__table th,
+.plan__table td {
+  padding: 0.7em 0.8em;
+  text-align: left;
+  font-weight: 500;
+}
+
+.plan__table thead th {
+  font-weight: 800;
+  color: var(--app-accent);
+}
+
+.plan__table tbody th {
+  width: 3.5em;
+  font-weight: 800;
+}
+
+.plan__table tr.hot {
+  background: var(--app-tint);
+}
+
+.plan__table .old {
+  /* abgeschwächt, aber mit ausreichendem Kontrast (Prüfung: axe, 4,5:1) */
+  color: color-mix(in srgb, var(--app-text) 70%, var(--app-bg));
+}
+
+.plan__table .app-capsule {
+  margin-left: 0.6em;
+  background: var(--app-bg);
+}
+
+/* ---------- Grundtöne: zwei kleine iPads ---------- */
+
+.theme-warm {
+  --app-bg: #fbf8f2;
+  --app-selection: #ece5d8;
+  --app-text: #1f1a14;
+  --app-hairline: rgba(92, 72, 48, 0.22);
+  --app-accent: #0e6b7a;
+  --app-tint: #dae4e1;
+}
+
+.theme-petrol {
+  --app-bg: #061416;
+  --app-selection: #15292c;
+  --app-text: #ecf4f4;
+  --app-hairline: rgba(125, 108, 86, 0.55);
+  --app-accent: #5fc2cf;
+  --app-tint: #1b3a3e;
+}
+
+.app-frame--mini {
+  aspect-ratio: 1 / 1;
+}
+
+.mini {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+  padding: 1.4em 1em;
+  height: 100%;
+}
+
+.app-frame--mini > .app-screen {
+  font-size: clamp(11px, 3.4cqw, 20px);
+}
+
+.mini .app-row {
+  padding: 0.7em 0.8em;
+}

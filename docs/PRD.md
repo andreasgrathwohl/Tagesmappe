@@ -774,7 +774,7 @@ Löschung, Datenschutzerklärung, Auftragsverarbeitung mit dem Hoster). Der App-
 schützt nur schwach. Umgang: Ein Ausfall bricht nichts – die App fällt auf Mail und Teilen zurück und behält den
 Entwurf; ein Container, keine weiteren Dienste; Begrenzung je Adresse und Größenlimits; Verwaltungsseite nur mit
 Passwort, sicheren Cookies, CSRF-Schutz und begrenzten Anmeldeversuchen; Image regelmäßig neu bauen; tägliche Sicherung
-des Volumes; App Attest als spätere Stufe (ADR-0015). Domain und Hoster sind offen (Q-43).
+des Volumes; App Attest als spätere Stufe (ADR-0015). Domain `teach.grathwohl.dev`, eigener Server mit Cloudflare Tunnel (Q-43).
 
 ## Open Questions
 
@@ -807,7 +807,7 @@ des Volumes; App Attest als spätere Stufe (ADR-0015). Domain und Hoster sind of
 - ~~Q-36~~: Reichen Notizen für Klassen, die vom Jahresplan abweichen (z. B. 8b eine Woche hinter 8a), oder soll eine Klasse ihren Stand im Jahresplan versetzen können, sodass ihr in Vorbereiten das Thema einer anderen Planwoche vorgeschlagen wird? Bis zur Antwort: nur Notizen (ADR-0013), vorgeschlagen wird immer das Thema der Kalenderwoche. → answered 2026-11-14: Notizen reichen; kein Versatz je Klasse (Andreas). Vorgeschlagen wird weiter das Thema der Kalenderwoche.
 - Q-40: Was passiert, wenn eine Lehrkraft eine Akzentfarbe wählt, die einer Signalfarbe gleicht (Rot wie „Entfällt“, Orange wie „nicht verfügbar“, Gelb wie „jetzt, gezeigt“)? Bis zur Antwort: zulässig, Signale bleiben über Symbol und Wort unterscheidbar (DESIGN.md, „Zustände nicht allein am Farbton“); ein Hinweis in der Vorschau wäre möglich.
 - Q-42: An welche E-Mail-Adresse gehen Rückmeldungen (FR-17.3), wer liest sie, und wie lange werden sie aufbewahrt (Datenschutzerklärung, RISK-11)? Bis zur Antwort: Die Adresse kommt aus der Build-Einstellung `FEEDBACK_EMAIL` (in CI aus einem Secret); im Repo steht nur der Platzhalter `feedback@example.com`, und ohne echte Adresse bietet die App nur Teilen und „Text kopieren“ (ADR-0014).
-- Q-43: Unter welcher Domain und bei welchem Hoster laufen Rückmeldedienst und Startseite (FR-18, FR-19), und wer betreibt den Reverse-Proxy mit TLS? Bis zur Antwort: Platzhalter `frontstage.example.com`; die App bekommt die Adresse über `FEEDBACK_URL` aus einem CI-Secret.
+- ~~Q-43~~: Unter welcher Domain und bei welchem Hoster laufen Rückmeldedienst und Startseite (FR-18, FR-19), und wer betreibt den Reverse-Proxy mit TLS? Bis zur Antwort: Platzhalter `frontstage.example.com`; die App bekommt die Adresse über `FEEDBACK_URL` aus einem CI-Secret. → answered 2026-11-16: `teach.grathwohl.dev` auf dem eigenen Server des Betreibers, als git-verwalteter Dockhand-Stack (Compose `server/deploy/docker-compose.yml`, Branch main), öffentlich nur über einen Cloudflare Tunnel (TLS bei Cloudflare, keine offenen Ports); `NOINDEX` bis Q-44.
 - Q-44: Wie lauten Impressum und Datenschutzerklärung (FR-19.1) – Anbieter, Anschrift, Verantwortlicher, Hoster als Auftragsverarbeiter? Bis zur Antwort: als Platzhalter erkennbare Texte, vor dem ersten öffentlichen Aufruf von einem Menschen zu ersetzen.
 - Q-45: Reichen zwölf Monate Aufbewahrung für Rückmeldungen (FR-18.2), oder kürzer (z. B. sechs Monate nach „erledigt“)? Bis zur Antwort: zwölf Monate ab Eingang, einstellbar über `RETENTION_DAYS` (Vorgabe 365).
 
@@ -924,6 +924,7 @@ des Volumes; App Attest als spätere Stufe (ADR-0015). Domain und Hoster sind of
 - 2026-11-16: Verworfen (FR-19): Schriften von Google Fonts laden – überträgt die IP-Adresse jedes Besuchers an Google ohne Einwilligung (LG München I, 20.01.2022, 3 O 17493/20); stattdessen Schriften mit freier Lizenz auf dem eigenen Server
 - 2026-11-16: Verworfen (NFR-2, FR-18): fremder Dienst für Rückmeldungen (Sentry, UserVoice – Auftragsverarbeiter außerhalb der Kontrolle), nur E-Mail (keine Übersicht); Node/TypeScript statt Python, je Teil ein eigener Container, Postgres statt SQLite – siehe ADR-0015
 - 2026-11-16: Verworfen (FR-17.3): eigenes Web-Formular bzw. eigener Endpunkt (Server, widerspricht NFR-2), GitHub-Issues (Zugangsschlüssel in der App), nur TestFlight-Feedback (gibt es im App Store nicht), App-Store-Bewertungen (öffentlich, ohne Bildschirmfotos) – siehe ADR-0014
+- 2026-11-16: Q-43 answered — teach.grathwohl.dev, Dockhand-Git-Stack, Cloudflare Tunnel
 
 ## Anhang A — Abdeckung
 

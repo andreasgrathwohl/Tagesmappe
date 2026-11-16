@@ -1,0 +1,33 @@
+services:
+  frontstage:
+    image: frontstage-service:latest
+    build: .
+    env_file: .env
+    environment:
+      # Der Proxy auf dem Host erreicht den Container nie von 127.0.0.1, sondern über docker-proxy bzw.
+      # NAT vom Gateway des Compose-Netzes. Nur dieser Adresse wird X-Forwarded-For geglaubt;
+      # ändert sich das Netz unten, diese Zeile mit ändern.
+      TRUSTED_PROXIES: "172.31.250.1"
+    networks:
+      - frontstage
+    volumes:
+      - frontstage-data:/data
+    # Nur lokal erreichbar: der Reverse-Proxy (TLS) steht davor.
+    ports:
+      - "127.0.0.1:8000:8000"
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp
+
+networks:
+  # Festes Teilnetz, damit die Gateway-Adresse (TRUSTED_PROXIES oben) vorab bekannt ist.
+  # Kollidiert es mit einem vorhandenen Netz des Hosts: Teilnetz, Gateway und TRUSTED_PROXIES gemeinsam ändern.
+  frontstage:
+    ipam:
+      config:
+        - subnet: 172.31.250.0/24
+          gateway: 172.31.250.1
+
+volumes:
+  frontstage-data:

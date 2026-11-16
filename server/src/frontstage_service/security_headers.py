@@ -1,0 +1,55 @@
+"""Sicherheitsheader für jede Antwort."""
+
+from starlette.datastructures import MutableHeaders
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
+
+HEADERS = {
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "no-referrer",
+    "X-Frame-Options": "DENY",
+}
+
+
+# Entscheidung 10: nur eigene Quellen, keine Inline-Skripte
+ADMIN_CSP = (
+    "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; "
+    "frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+)
+
+# Startseite (Teilplan 13): dieselbe Richtlinie plus Schriften vom eigenen Server
+LANDING_CSP = (
+    "default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; font-src 'self'; "
+    "frame-ancestors 'none'; base-uri 'none'; form-action 'self'"
+)
+
+
+class SecurityHeadersMiddleware:
+    """Reine ASGI-Middleware (kein BaseHTTPMiddleware), damit Streaming unberührt bleibt."""
+
+    def __init__(self, app: ASGIApp, *, noindex: bool = False) -> None:
+        self.app = app
+        self.noindex = noindex
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        path = scope["path"]
+        is_admin = path == "/admin" or path.startswith("/admin/")
+        is_landing = not is_admin and not path.startswith("/api/") and path != "/healthz"
+
+        async def send_with_headers(message: Message) -> None:
+            if message["type"] == "http.response.start":
+                headers = MutableHeaders(scope=message)
+                for name, value in HEADERS.items():
+                    headers[name] = value
+                if self.noindex:
+                    headers["X-Robots-Tag"] = "noindex, nofollow"
+                if is_admin:
+                    headers["Content-Security-Policy"] = ADMIN_CSP
+                elif is_landing:
+                    headers["Content-Security-Policy"] = LANDING_CSP
+            await send(message)
+
+        await self.app(scope, receive, send_with_headers)
