@@ -10,7 +10,11 @@ from datetime import UTC, datetime, timedelta
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from starlette.middleware.sessions import SessionMiddleware
 
+from .admin.routes_auth import router as admin_auth_router
+from .admin.templating import STATIC_DIR
 from .api import router as feedback_router
 from .attachments import AttachmentStore
 from .db import connect
@@ -71,8 +75,21 @@ def create_app(settings: Settings, *, clock: Callable[[], datetime] = utc_now) -
     app.state.attachment_store = AttachmentStore(settings.data_dir / "attachments")
     # 10 je Minute, 30 je Stunde (AK-61); nur im Speicher, je App
     app.state.limiter = SlidingWindowLimiter([(10, timedelta(minutes=1)), (30, timedelta(hours=1))], clock)
+    # Anmeldung: 5 Fehlversuche je Adresse sperren 10 Minuten (AK-62)
+    app.state.login_limiter = SlidingWindowLimiter([(5, timedelta(minutes=10))], clock)
     app.add_middleware(SecurityHeadersMiddleware)
+    # Sitzung der Verwaltung (Entscheidung 8); HttpOnly setzt Starlette immer
+    app.add_middleware(
+        SessionMiddleware,
+        secret_key=settings.session_secret,
+        session_cookie="frontstage_admin",
+        max_age=28_800,
+        same_site="strict",
+        https_only=settings.cookie_secure,
+    )
     app.include_router(feedback_router)
+    app.include_router(admin_auth_router)
+    app.mount("/admin/static", StaticFiles(directory=STATIC_DIR), name="admin-static")
 
     @app.get("/healthz")
     def healthz() -> JSONResponse:

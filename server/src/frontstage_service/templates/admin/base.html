@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>{% block title %}Verwaltung{% endblock %} · Frontstage</title>
+  <link rel="stylesheet" href="/admin/static/admin.css">
+  {# htmx 2.0.4, lokal ausgeliefert. SHA-256 der Datei: e209dda5c8235479f3166defc7750e1dbcd5a5c1808b7792fc2e6733768fb447 #}
+  <script src="/admin/static/htmx.min.js" defer></script>
+</head>
+<body hx-headers='{{ {"X-CSRF-Token": csrf_token}|tojson }}'>
+  <header class="topbar">
+    <span class="brand">Frontstage · Rückmeldungen</span>
+    {% if logged_in %}
+    <form method="post" action="/admin/logout">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <button type="submit" class="link-button">Abmelden</button>
+    </form>
+    {% endif %}
+  </header>
+  <main id="main">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
