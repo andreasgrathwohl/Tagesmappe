@@ -8,6 +8,8 @@ struct HelpCenterView: View {
 
   @State private var model = HelpCenterModel(catalog: HelpLibrary.shared)
   @Environment(\.themeStyle) private var style
+  /// Spiegel von `HelpTips.isEnabled`: SwiftUI beobachtet den statischen TipKit-Parameter nicht.
+  @State private var tipsEnabled = HelpTips.isEnabled
 
   init(onFeedback: @escaping (FeedbackKind) -> Void) {
     self.onFeedback = onFeedback
@@ -36,6 +38,8 @@ struct HelpCenterView: View {
     .fontDesign(.rounded)
     .navigationTitle("help.center.title")
     .searchable(text: $model.query, prompt: "help.center.search")
+    .onAppear { tipsEnabled = HelpTips.isEnabled }
+    .onChange(of: tipsEnabled) { _, newValue in HelpTips.isEnabled = newValue }
   }
 
   @ViewBuilder private var searchResults: some View {
@@ -63,7 +67,7 @@ struct HelpCenterView: View {
     Section {
       Toggle(
         "tips.enabled",
-        isOn: Binding(get: { HelpTips.isEnabled }, set: { HelpTips.isEnabled = $0 }))
+        isOn: $tipsEnabled)
       Button("tips.reset") { HelpTipsConfiguration.requestReset() }
     } header: {
       Text("tips.section")
