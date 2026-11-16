@@ -6094,6 +6094,192 @@
           }
         }
       }
+    },
+    "help.button" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hilfe"
+          }
+        }
+      }
+    },
+    "help.button.label %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hilfe zu %@"
+          }
+        }
+      }
+    },
+    "help.done" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fertig"
+          }
+        }
+      }
+    },
+    "help.related" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwandte Themen"
+          }
+        }
+      }
+    },
+    "help.giveFeedback" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rückmeldung geben"
+          }
+        }
+      }
+    },
+    "help.allTopics" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Alle Hilfethemen"
+          }
+        }
+      }
+    },
+    "help.center.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hilfe und Rückmeldung"
+          }
+        }
+      }
+    },
+    "help.center.search" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hilfe durchsuchen"
+          }
+        }
+      }
+    },
+    "help.group.start" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erste Schritte"
+          }
+        }
+      }
+    },
+    "help.group.teaching" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Im Unterricht"
+          }
+        }
+      }
+    },
+    "help.group.classroom" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smartboard und Tafel"
+          }
+        }
+      }
+    },
+    "help.group.planning" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorbereiten und Planen"
+          }
+        }
+      }
+    },
+    "help.group.setup" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einrichten"
+          }
+        }
+      }
+    },
+    "help.group.about" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kauf, Datenschutz, Rückmeldung"
+          }
+        }
+      }
+    },
+    "help.center.feedback" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rückmeldung"
+          }
+        }
+      }
+    },
+    "help.center.sendIdea" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idee senden"
+          }
+        }
+      }
+    },
+    "help.center.sendIssue" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hinweis senden"
+          }
+        }
+      }
+    },
+    "help.center.feedbackNote" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deine Rückmeldung geht als E-Mail aus deinem Mail-Programm an die Entwickler."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
