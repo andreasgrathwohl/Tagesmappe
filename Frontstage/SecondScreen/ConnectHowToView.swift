@@ -29,6 +29,7 @@
           ToolbarItem(placement: .confirmationAction) {
             Button("viewer.done") { dismiss() }
           }
+          ToolbarItem(placement: .primaryAction) { HelpButton(topic: .secondScreen) }
         }
       }
       // Verbindung hergestellt → Anleitung wird überflüssig.

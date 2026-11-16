@@ -52,6 +52,7 @@ struct BellScheduleEditorView: View {
     }
     .themedBackground()
     .navigationTitle(Text("setup.bellSchedule.title"))
+    .toolbar { ToolbarItem { HelpButton(topic: .bellSchedule) } }
     .alert(
       Text("setup.bellSchedule.error.title"), isPresented: errorBinding,
       presenting: inputError ?? model.lastFailure

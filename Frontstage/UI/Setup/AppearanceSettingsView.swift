@@ -90,6 +90,7 @@ struct AppearanceSettingsView: View {
     }
     .themedBackground()
     .navigationTitle(Text("setup.appearance.title"))
+    .toolbar { ToolbarItem { HelpButton(topic: .appearance) } }
     // Swift-Hinweis: `.task(id:)` startet neu, sobald sich der Wert ändert, und bricht den alten Lauf ab –
     // das ergibt das Entprellen: gespeichert wird erst, wenn der Farbwähler 300 ms Ruhe hat.
     .task(id: model.theme.accent) {

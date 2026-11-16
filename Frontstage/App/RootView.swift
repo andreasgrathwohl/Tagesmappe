@@ -13,6 +13,8 @@ struct RootView: View {
   private let network: NetworkMonitor
   @State private var services: ScopedServicesHolder
   @State private var selection: AppSection
+  // Hilfecenter und Rückmeldung: Zustand außerhalb der Ansicht, damit auch das Menü „Hilfe“ ihn erreicht.
+  @State private var support = SupportCoordinator.shared
   // Swift-Hinweis: `@Environment(\.scenePhase)` liefert den Lebenszyklus der Szene (aktiv, inaktiv, Hintergrund).
   @Environment(\.scenePhase) private var scenePhase
 
@@ -66,8 +68,18 @@ struct RootView: View {
     .tabViewStyle(.sidebarAdaptable)
     .environment(account)
     .environment(dataLocation)
+    // Rückmeldung (FR-17): Geräteangaben aus dem aktuellen Datenort, Erscheinungsbild und Kaufstand.
+    .environment(\.feedbackContext, feedbackContext)
+    .onAppear { support.context = feedbackContext }
     // Erscheinungsbild (FR-16): Farben, Akzent, Hell/Dunkel; ohne Kauf der Standard (FR-13).
     .appTheme(store: dataLocation.store, unlock: ClassroomServices.shared.unlock)
+    // Hilfecenter aus dem Menü „Hilfe“ (nach `appTheme`, damit das Blatt das Erscheinungsbild erbt); die
+    // Rückmeldung daraus beginnt erst nach dem Schließen des Blatts.
+    .sheet(isPresented: $support.showsHelpCenter, onDismiss: { support.helpCenterDidDismiss() }) {
+      HelpSheet(root: .center) { kind, _ in support.requestFeedbackFromHelpCenter(kind: kind) }
+    }
+    // Eigener Hintergrund: ein Blatt am selben View wie das Hilfecenter-Blatt verträgt SwiftUI nicht.
+    .background { Color.clear.feedbackSheet($support.feedbackSession) }
     // „Ordner freigeben“ aus der Tagesansicht führt hierher.
     .environment(\.showSetup, { selection = .setup })
     // `initial: true` ruft den Block auch beim ersten Erscheinen auf – sonst fehlt der Abruf, wenn die Szene
@@ -102,6 +114,29 @@ struct RootView: View {
       ClassroomServices.shared.bind(store: dataLocation.store)
     }
     // Das Szenen-Zubehör für den Zweitbildschirm hängt in `FrontstageApp` an dieser Ansicht (Teilplan 06).
+  }
+
+  /// Kontext der Rückmeldung. Die Geräteangaben werden erst beim Start einer Rückmeldung gelesen, also mit dem
+  /// dann gültigen Datenort, Erscheinungsbild und Kaufstand. Aufnahme und Mail-Prüfung bleiben die der Vorgabe.
+  private var feedbackContext: FeedbackContext {
+    let base = FeedbackContext.standard
+    let appKey = FeedbackConfiguration.appKey()
+    let dataLocation = dataLocation
+    return FeedbackContext(
+      store: .shared,
+      service: appKey == nil ? nil : FeedbackConfiguration.service(),
+      appKey: appKey,
+      uploader: FeedbackUploader(),
+      consentDefaults: .standard,
+      recipient: FeedbackConfiguration.recipient(),
+      canSendMail: base.canSendMail,
+      deviceInfo: {
+        DeviceInfoCollector.collect(
+          dataLocation: dataLocation.location,
+          theme: (try? dataLocation.store.theme()) ?? .standard,
+          isUnlocked: ClassroomServices.shared.unlock.isUnlocked)
+      },
+      capture: base.capture)
   }
 
   /// Datenabhängiger Inhalt eines Bereichs.

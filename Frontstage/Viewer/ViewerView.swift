@@ -170,6 +170,7 @@ struct ViewerView: View {
           .disabled(model.pageIndex >= count - 1)
       }
     }
+    ToolbarItem(placement: .primaryAction) { HelpButton(topic: .penNotes) }
   }
 
   private func go(to index: Int, _ model: ViewerModel) {

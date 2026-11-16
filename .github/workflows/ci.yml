@@ -20,7 +20,7 @@ jobs:
       - name: Build macOS
         id: mac
         continue-on-error: true
-        run: xcodebuild build -project Frontstage.xcodeproj -scheme Frontstage-macOS -destination 'generic/platform=macOS' CODE_SIGNING_ALLOWED=NO MSAL_CLIENT_ID="${{ secrets.MSAL_CLIENT_ID }}"
+        run: xcodebuild build -project Frontstage.xcodeproj -scheme Frontstage-macOS -destination 'generic/platform=macOS' CODE_SIGNING_ALLOWED=NO MSAL_CLIENT_ID="${{ secrets.MSAL_CLIENT_ID }}" FEEDBACK_EMAIL="${{ secrets.FEEDBACK_EMAIL }}" FEEDBACK_URL="${{ secrets.FEEDBACK_URL }}" FEEDBACK_APP_KEY="${{ secrets.FEEDBACK_APP_KEY }}"
       - name: Pick iPad simulator
         id: sim
         run: |
@@ -41,7 +41,7 @@ jobs:
       - name: App tests (iPad simulator)
         # Eigenes Limit unter dem Job-Limit: Hängt ein Test, bleiben Zeit für Diagnose und Upload des xcresult.
         timeout-minutes: 8
-        run: xcodebuild test -project Frontstage.xcodeproj -scheme Frontstage-iOS -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" -resultBundlePath TestResults.xcresult -test-timeouts-enabled YES -default-test-execution-time-allowance 60 -maximum-test-execution-time-allowance 120 CODE_SIGNING_ALLOWED=NO MSAL_CLIENT_ID="${{ secrets.MSAL_CLIENT_ID }}"
+        run: xcodebuild test -project Frontstage.xcodeproj -scheme Frontstage-iOS -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" -resultBundlePath TestResults.xcresult -test-timeouts-enabled YES -default-test-execution-time-allowance 60 -maximum-test-execution-time-allowance 120 CODE_SIGNING_ALLOWED=NO MSAL_CLIENT_ID="${{ secrets.MSAL_CLIENT_ID }}" FEEDBACK_EMAIL="${{ secrets.FEEDBACK_EMAIL }}" FEEDBACK_URL="${{ secrets.FEEDBACK_URL }}" FEEDBACK_APP_KEY="${{ secrets.FEEDBACK_APP_KEY }}"
       - name: Collect crash diagnostics
         if: failure() && steps.sim.outputs.udid != ''
         run: |

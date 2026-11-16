@@ -146,6 +146,7 @@ struct PreparationView: View {
       Button("preparation.nextWeek", systemImage: "chevron.right") { model.showNextWeek() }
       Button("preparation.substitute", systemImage: "plus") { showSubstitute = true }
     }
+    ToolbarItem { HelpButton(topic: .preparation) }
   }
 
   private var week: some View {

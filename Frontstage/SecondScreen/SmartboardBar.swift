@@ -1,6 +1,7 @@
 #if os(iOS)
   import FrontstageCore
   import SwiftUI
+  import TipKit
 
   /// Smartboard-Leiste am Tablet (FR-11.4, FR-11.5): Vorschaubild, Umschalter und Verbindungsstand in einer Zeile.
   ///
@@ -29,6 +30,7 @@
       .padding(.vertical, 8)
       .background(.bar)
       .sheet(isPresented: $showHowTo) { ConnectHowToView() }
+      .popoverTip(SmartboardBarTip())
     }
 
     // MARK: Vorschaubild

@@ -59,6 +59,7 @@ struct BoardScreen: View {
         ToolbarItem(placement: .confirmationAction) {
           Button("board.done") { finish() }
         }
+        ToolbarItem(placement: .primaryAction) { HelpButton(topic: .board) }
       }
     }
     .task { open() }

@@ -15,6 +15,9 @@ settings:
     PRODUCT_MODULE_NAME: Frontstage
     PRODUCT_BUNDLE_IDENTIFIER: com.example.frontstage
     MSAL_CLIENT_ID: ""  # Microsoft-App-Kennung; echte Kennung per CI-Secret oder lokal, nie im Repo
+    FEEDBACK_EMAIL: "feedback@example.com"  # Platzhalter; echte Adresse per CI-Secret (Q-42), nie im Repo
+    FEEDBACK_URL: "https://frontstage.example.com"  # Platzhalter (Q-43)
+    FEEDBACK_APP_KEY: "not-a-real-key"  # Platzhalter; echter Schlüssel per CI-Secret
 packages:
   FrontstageCore: { path: Packages/FrontstageCore }
   MSAL: { url: https://github.com/AzureAD/microsoft-authentication-library-for-objc, majorVersion: 2.0.0 }
@@ -48,6 +51,9 @@ targets:
         UIBackgroundModes: [remote-notification, fetch]
         BGTaskSchedulerPermittedIdentifiers: [frontstage.timetable-source.morning-refresh]
         MSALClientID: $(MSAL_CLIENT_ID)
+        FrontstageFeedbackEmail: $(FEEDBACK_EMAIL)
+        FrontstageFeedbackURL: $(FEEDBACK_URL)
+        FrontstageFeedbackAppKey: $(FEEDBACK_APP_KEY)
         NSCameraUsageDescription: "Die Kamera zeigt Heft, Buchseite oder Versuch an der Tafel und liest den QR-Code zum Koppeln eines zweiten Geräts."
         CFBundleURLTypes:
           - CFBundleURLSchemes: [msauth.$(PRODUCT_BUNDLE_IDENTIFIER)]
@@ -83,6 +89,9 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         FrontstageCloudKitContainer: $(CLOUDKIT_CONTAINER_ID)
         MSALClientID: $(MSAL_CLIENT_ID)
+        FrontstageFeedbackEmail: $(FEEDBACK_EMAIL)
+        FrontstageFeedbackURL: $(FEEDBACK_URL)
+        FrontstageFeedbackAppKey: $(FEEDBACK_APP_KEY)
         NSCameraUsageDescription: "Die Kamera liest den QR-Code zum Koppeln eines zweiten Geräts."
         CFBundleURLTypes:
           - CFBundleURLSchemes: [msauth.$(PRODUCT_BUNDLE_IDENTIFIER)]

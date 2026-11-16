@@ -64,7 +64,11 @@ struct DataLocationSettingsView: View {
         PairingSheet(controller: controller, accountUsername: accountUsername)
       }
     } header: {
-      Text("setup.dataLocation.title")
+      HStack {
+        Text("setup.dataLocation.title")
+        Spacer()
+        HelpButton(topic: .dataLocation)
+      }
     } footer: {
       VStack(alignment: .leading, spacing: 4) {
         Text("setup.dataLocation.footer")

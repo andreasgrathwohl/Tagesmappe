@@ -45,7 +45,7 @@ Alle Zeilen der Übersicht gelten (Abschnitt „Global Constraints“, Abstimmun
 11. **Voreinstellungen:** Art `issue` beim Start aus einem Hilfeartikel oder dem Menü, sonst die gewählte Taste im Hilfecenter („Idee senden“ / „Hinweis senden“); Geräteangaben **aus** (FR-17.3); Text Pflicht (mindestens ein Zeichen außer Leerraum), Bilder nicht.
 12. **Nach dem Senden:** iPad leert den Entwurf nur bei `MFMailComposeResult.sent`; `.saved` und `.cancelled` behalten ihn; `.failed` zeigt einen Hinweis. Mac leert ihn bei `sharingService(_:didShareItems:)` (Übergabe an Mail; ADR-0014 Kosten). Teilen und Kopieren leeren nie – dafür gibt es „Entwurf verwerfen“.
 13. **Kurz-Tipps:** vier Tipps (`DaySelectionTip`, `MaterialTileTip`, `SmartboardBarTip` nur iPad, `HelpButtonTip`), `Tips.configure([.displayFrequency(.daily)])`; gemeinsamer Schalter `HelpTips.$isEnabled` (`@Parameter static var isEnabled: Bool = true` in `struct HelpTips`, laut Apple-Doku als statischer Parameter außerhalb eines Tips zulässig) in jeder Regel. Zurücksetzen setzt `UserDefaults`-Schlüssel `help.tips.resetOnNextLaunch`; beim Start ruft `HelpTipsConfiguration` dann `Tips.resetDatastore()` **vor** `Tips.configure` (Apple: muss davor stehen). Im Testlauf (`XCTestConfigurationFilePath` gesetzt) wird TipKit nicht konfiguriert – Tests hängen nie am Tip-Zustand.
-14. **Verworfene Wege für die Rückmeldung** (ADR-0014): eigener Endpunkt/Web-Formular (Server, NFR-2), GitHub-Issues (Schlüssel in der App), nur TestFlight-Feedback (fehlt im App Store), App-Store-Bewertungen (öffentlich, ohne Bilder). Kein Task baut einen davon nach.
+14. **Verworfene Wege für die Rückmeldung** (ADR-0014, ergänzt durch ADR-0015): ~~eigener Endpunkt/Web-Formular (Server, NFR-2)~~ – überholt am 2026-11-16, der eigene Dienst ist jetzt der erste Weg (Entscheidung 16); weiter verworfen: GitHub-Issues (Schlüssel in der App), nur TestFlight-Feedback (fehlt im App Store), App-Store-Bewertungen (öffentlich, ohne Bilder). Kein Task baut einen der weiter verworfenen Wege nach.
 16. **Hochladen zuerst, Mail als Rückfall (ADR-0015).** `FeedbackRoute.choose` liefert `.upload(endpoint:)`, sobald `FeedbackServiceEndpoint.resolve` eine Adresse ergibt; sonst wie bisher Mail oder Teilen. Scheitert das Hochladen endgültig, bietet die Ansicht „Erneut versuchen“ und den Rückfallweg (`FeedbackRoute.fallback(recipient:canSendMail:)`) an. **Vertrag mit Teilplan 12 (verbindlich):** `POST <Basis>/api/v1/feedback`, Header `X-Frontstage-App-Key`, Multipart mit Teil `feedback` (`application/json`, Inhalt `FeedbackUploadPayload`, Schlüssel wie unten) und 0–5 Teilen `attachment` (`image/jpeg`, Dateiname `Bildschirmfoto-n.jpg`). JSON: `{"clientDraftId": "<UUID>", "kind": "idea|issue", "text": "…", "topic": "<HelpTopic>"|null, "appVersion": "0.1.0 (1)", "deviceInfo": null|{"appVersion","build","systemName","systemVersion","modelIdentifier","dataLocation":"iCloud|oneDrive","baseTone":"warm|system|cool|petrol","accent":"#RRGGBB"|null,"appearanceMode":"system|light|dark","isUnlocked":bool,"languageCode"}}`. Antwort 201 (neu) oder 200 (gleiche `clientDraftId` schon angenommen) mit `{"id": "<UUID>", "reference": "<8 Zeichen>"}`. *Grund:* `clientDraftId` macht Wiederholungen nach abgebrochener Antwort unschädlich.
 17. **Wiederholung:** höchstens 3 Versuche, Wartezeiten 1 s und 4 s, nur bei Netzfehlern (`URLError`) und 5xx; 401, 411, 413, 415, 422, 429 sofort endgültig (411: `Content-Length` fehlt, Teilplan 12; `upload(for:from:)` sendet sie immer) (429 mit Hinweis „Später erneut versuchen“). Zeitlimit je Versuch 60 s. *Verworfen:* Hintergrund-Upload (`URLSessionConfiguration.background`) – Rückmeldungen sind klein, und die Lehrkraft wartet ohnehin auf die Bestätigung.
 18. **Zustimmung einmal je Gerät** (`UserDefaults`-Schlüssel `feedback.consent.v1`, nicht abgeglichen), Version im Schlüssel: Ändert sich die Datenschutzerklärung wesentlich, fragt `v2` neu. Ohne Zustimmung wird nicht hochgeladen; „Lieber per Mail“ wählt den Rückfallweg. Nach dem Senden zeigt die App die `reference` („Kennung für Löschanfragen“), kopierbar.
@@ -67,17 +67,17 @@ Alle Zeilen der Übersicht gelten (Abschnitt „Global Constraints“, Abstimmun
 |---|---|---|
 | `Packages/FrontstageCore/Sources/FrontstageCore/Help/HelpTopic.swift`, `HelpBody.swift` | Themen, Gruppen, verwandte Themen; Blöcke und Parser | 1 |
 | `…/Help/HelpText.swift`, `HelpArticle.swift`, `HelpCatalog.swift`, `HelpSearch.swift` | Faltung, Artikel, Katalog mit Prüfung, Suche | 2 |
-| `…/Feedback/FeedbackKind.swift`, `FeedbackDraft.swift`, `NormalizedRect.swift`, `DeviceInfo.swift`, `FeedbackComposer.swift`, `FeedbackRecipient.swift`, `FeedbackAttachmentPolicy.swift`, `FeedbackRoute.swift` | Rückmeldung als Werte und Regeln | 3 |
+| `…/Feedback/FeedbackKind.swift`, `FeedbackDraft.swift`, `NormalizedRect.swift`, `DeviceInfo.swift`, `FeedbackComposer.swift`, `FeedbackRecipient.swift`, `FeedbackAttachmentPolicy.swift`, `FeedbackRoute.swift`, `FeedbackServiceEndpoint.swift`, `FeedbackUploadPayload.swift`, `FeedbackRetryPolicy.swift` | Rückmeldung als Werte und Regeln, Vertrag des Uploads | 3 |
 | `Frontstage/Resources/Localizable.xcstrings` (ändern); `Packages/FrontstageCore/Tests/FrontstageCoreTests/Help/HelpContentTests.swift` | 21 Hilfeartikel; Prüfung gegen die echte Tabelle | 4 |
 | `Packages/FrontstageCore/Tests/FrontstageCoreTests/Help/*Tests.swift`, `…/Feedback/*Tests.swift` | Kern-Tests | 1–4 |
 | `project.yml`, `.github/workflows/ci.yml` (ändern); `Frontstage/Help/HelpLibrary.swift`, `Frontstage/Feedback/FeedbackConfiguration.swift` | Build-Einstellung, Katalog aus dem Bundle, Adresse | 5 |
-| `Frontstage/Feedback/FeedbackDraftStore.swift`, `FeedbackImageEncoder.swift`, `WindowCapture.swift`, `DeviceInfoCollector.swift` | Entwurf auf dem Gerät, Bilder, Aufnahme, Geräteangaben | 6 |
+| `Frontstage/Feedback/FeedbackDraftStore.swift`, `FeedbackImageEncoder.swift`, `WindowCapture.swift`, `DeviceInfoCollector.swift`, `FeedbackUploader.swift`, `FeedbackConsent.swift` | Entwurf auf dem Gerät, Bilder, Aufnahme, Geräteangaben, Hochladen, Zustimmung | 6 |
 | `Frontstage/Feedback/Markup/MarkupEditorModel.swift`, `MarkupEditorView.swift`, `MarkupCanvas.swift` (iPad), `MacMarkupCanvas.swift` (Mac), `RedactionOverlay.swift` | Zeichnen und Schwärzen | 7 |
 | `Frontstage/Feedback/FeedbackModel.swift`, `FeedbackView.swift`, `FeedbackSession.swift`, `MailComposeView.swift` (iPad), `MacMailComposer.swift` (Mac), `AttachmentStrip.swift` | Rückmeldung schreiben und senden | 8 |
 | `Frontstage/Help/HelpButton.swift`, `HelpSheet.swift`, `HelpArticleView.swift`, `HelpBlockView.swift`, `HelpCenterView.swift`, `HelpCenterModel.swift` | Hilfe-Oberfläche | 9 |
 | `Frontstage/Help/SupportCoordinator.swift`, `HelpCommands.swift`; `App/FrontstageApp.swift`, `App/RootView.swift`, `UI/Setup/SetupView.swift` und die Bildschirme aus Task 10 (ändern) | Knöpfe einsetzen, Menü, Einrichten | 10 |
 | `Frontstage/Help/HelpTips.swift`, `HelpTipsConfiguration.swift`; `FrontstageApp.swift`, `HelpCenterView.swift`, `DayView.swift`, `DayLessonDetail.swift`, `SmartboardBar.swift` (ändern) | Kurz-Tipps | 11 |
-| `FrontstageTests/Help/HelpLibraryTests.swift`, `HelpCenterModelTests.swift`, `SupportCoordinatorTests.swift`, `HelpTipsConfigurationTests.swift`; `FrontstageTests/Feedback/FeedbackDraftStoreTests.swift`, `FeedbackImageEncoderTests.swift`, `DeviceInfoCollectorTests.swift`, `MarkupEditorModelTests.swift`, `FeedbackModelTests.swift`, `FeedbackStarterTests.swift` | App-Tests (Simulator) | 5–11 |
+| `FrontstageTests/Help/HelpLibraryTests.swift`, `HelpCenterModelTests.swift`, `SupportCoordinatorTests.swift`, `HelpTipsConfigurationTests.swift`; `FrontstageTests/Feedback/FeedbackDraftStoreTests.swift`, `FeedbackImageEncoderTests.swift`, `DeviceInfoCollectorTests.swift`, `FeedbackUploaderTests.swift`, `FeedbackConsentTests.swift`, `MarkupEditorModelTests.swift`, `FeedbackModelTests.swift`, `FeedbackStarterTests.swift` | App-Tests (Simulator) | 5–11 |
 
 ---
 
@@ -108,7 +108,7 @@ extension HelpGroup { public var topics: [HelpTopic] { get } }   // in allCases-
 public enum HelpBlock: Hashable, Sendable {
   case heading(String), paragraph(String), bullets([String]), steps([String]), note(String)
 }
-public enum HelpBodyError: Error, Equatable, Sendable { case empty, unsupportedHeading(line: Int) }
+public enum HelpBodyError: Error, Hashable, Sendable { case empty, unsupportedHeading(line: Int) }   // Hashable: steckt in HelpCatalogIssue (Task 2)
 public enum HelpBodyParser { public static func parse(_ text: String) throws -> [HelpBlock] }
 ```
 
@@ -245,6 +245,7 @@ public struct FeedbackAttachment: Hashable, Codable, Sendable, Identifiable {
               redactions: [NormalizedRect] = [], hasMarkup: Bool = false)
 }
 public struct FeedbackDraft: Hashable, Codable, Sendable {
+  public let id: UUID                                    // beim Anlegen neu; wird clientDraftId (Entscheidung 16)
   public var kind: FeedbackKind; public var text: String; public var topic: HelpTopic?
   public var includesDeviceInfo: Bool; public var attachments: [FeedbackAttachment]
   public init(kind: FeedbackKind, topic: HelpTopic?)    // text "", includesDeviceInfo false, attachments []
@@ -302,7 +303,7 @@ Wortlaut (Entscheidung 6, wörtlich):
 - Text: getrimmter Text, Leerzeile, `"—"`, dann `"Art: Idee"`|`"Art: Hinweis"`, `"Hilfethema: <rawValue>"` (nur mit Thema), `"Bildschirmfotos: <n>"` (nur bei n > 0); mit Geräteangaben (nur wenn `includesDeviceInfo` und `deviceInfo != nil`) Leerzeile, `"Geräteangaben:"` und `reportLines`. Zeilen mit `\n`.
 - `reportLines`: `"App: Frontstage <appVersion> (<build>)"`, `"System: <systemName> <systemVersion>"`, `"Gerät: <modelIdentifier>"`, `"Datenort: iCloud"`|`"Datenort: OneDrive"`, `"Erscheinungsbild: <Grundton>, <Akzent>, <Modus>"` mit Grundton `warm`|`System`|`kühl`|`Petrol`, Akzent `Standardakzent` oder `Akzent #RRGGBB`, Modus `wie das System`|`hell`|`dunkel`, `"Kauf: ja"`|`"Kauf: nein"`, `"Sprache: <languageCode>"`.
 - `FeedbackDraft` bekommt zusätzlich `public let id: UUID` (beim Anlegen neu; wird `clientDraftId`).
-- `resolve`: getrimmt; `nil`, wenn leer, Leerraum enthält, `"$("` enthält, nicht genau ein `@`, Teil vor/nach `@` leer, Domain ohne Punkt, Domain (klein) gleich `example.com`/`example.org`/`example.net`/`localhost` oder endet auf `.example`/`.invalid`/`.local`/`.test`.
+- `resolve`: getrimmt; `nil`, wenn leer, Leerraum enthält, `"$("` enthält, nicht genau ein `@`, Teil vor/nach `@` leer, Domain ohne Punkt, Domain (klein) gleich `example.com`/`example.org`/`example.net`/`localhost` oder endet auf `.example.com`/`.example.org`/`.example.net`/`.example`/`.invalid`/`.local`/`.test`. `FeedbackServiceEndpoint.resolve` prüft den Host mit denselben Regeln – nur so fällt der Platzhalter `frontstage.example.com` (Subdomain von `example.com`) heraus (Test `rejectsPlaceholders`).
 
 - [ ] **Step 1: Failing Tests schreiben** (Suite-Strukturen wie Dateinamen; Geräteangaben-Beispiel `DeviceInfo(appVersion: "0.1.0", build: "1", systemName: "iPadOS", systemVersion: "26.1", modelIdentifier: "iPad14,5", dataLocation: .iCloud, theme: .standard, isUnlocked: false, languageCode: "de")`)
 
@@ -363,7 +364,7 @@ Wortlaut (Entscheidung 6, wörtlich):
 @Test("Netz und 5xx wiederholen, 4xx nicht") func retryRules()   // nil, 500, 503 → true; 401, 411, 413, 415, 422, 429 → false
 ```
 
-- [ ] **Step 2: Rot belegen** – je Filter (sieben Suites).
+- [ ] **Step 2: Rot belegen** – je Filter (zehn Suites).
 - [ ] **Step 3: Implementieren** (`FeedbackDraft`, `FeedbackAttachment` mit synthetisiertem `Codable`; `scaledSize` rundet mit `.rounded()`).
 - [ ] **Step 4: Grün belegen** – alle Filter, danach ohne Filter.
 - [ ] **Step 5: Commit** – `git commit -m "core: add feedback draft, device info, mail composition and limits"`
@@ -380,7 +381,7 @@ Design-Takt: keiner (Text; Wortlaut nach UI-15)
 
 **Interfaces:**
 - Consumes: `HelpTopic`, `HelpCatalog.build(text:)`, `HelpSearch` (1, 2)
-- Produces: 84 Textschlüssel; `HelpContentTests` liest `Frontstage/Resources/Localizable.xcstrings` relativ zu `#filePath` (fünfmal `deletingLastPathComponent()` → Repo-Wurzel) mit `JSONSerialization`, Wert unter `strings[key].localizations.de.stringUnit.value`.
+- Produces: 84 Textschlüssel; `HelpContentTests` liest `Frontstage/Resources/Localizable.xcstrings` relativ zu `#filePath` (sechsmal `deletingLastPathComponent()`: `Help`, `FrontstageCoreTests`, `Tests`, `FrontstageCore`, `Packages` → Repo-Wurzel) mit `JSONSerialization`, Wert unter `strings[key].localizations.de.stringUnit.value`.
 
 Schreibregeln: du-Form, kurze Sätze, je Artikel 80–250 Wörter; Kurzfassung ein Satz; 3–8 Stichwörter (auch Wörter, die Lehrkräfte sagen: „AirPlay“, „Beamer“, „Sync“); Text in der Markdown-Teilmenge aus Task 1, Bedienwege mit den echten Bezeichnungen der Oberfläche (Werte aus `Localizable.xcstrings` nachschlagen, z. B. „Einrichten“, „Ordner freigeben“, „So verbinden“); kein `%` (Formatierung), kein `@`, keine echten Namen; Beispiele nur `7a`, `8a`, `8b`, `9c`, `6c`, Material „Arbeitsblatt Vokabeln“, „Unit 3 Präsentation“. Bezahlte Funktionen nennen den Kauf sachlich, ohne Werbung.
 
@@ -405,8 +406,8 @@ Schreibregeln: du-Form, kurze Sätze, je Artikel 80–250 Wörter; Kurzfassung e
 | `pairing` | Geräte koppeln | erstes Gerät zeigt QR-Code, zweites scannt; bei OneDrive dasselbe Konto; ohne Kamera andersherum; von Hand wählen geht immer | QR-Code, zweites Gerät, Mac |
 | `appearance` | Erscheinungsbild | Grundton, Akzentfarbe mit Kontrastschutz, Hell/Dunkel; Standard kostenlos, Rest im Kauf; gilt auf allen Geräten | Farbe, Dunkelmodus, Theme |
 | `purchase` | Kauf | kostenlos: Kern, Schulmanager, Hilfe, Rückmeldung; Einmalkauf: Klassenbildschirm, Timer, Arbeitsform, Tafel, Erscheinungsbild; kein Abo; gleiche Apple-ID; Käufe wiederherstellen | Preis, Einmalkauf, Abo |
-| `privacy` | Wo deine Daten liegen | keine Server von Frontstage; Daten im Datenort, Material in der Ablage; Zugangsdaten nur im Schlüsselbund; Rückmeldung verschickst du selbst | Datenschutz, DSGVO, Server |
-| `feedback` | Rückmeldung geben | Idee oder Hinweis; Bildschirmfoto, Zeichnen, Schwärzen; höchstens fünf Bilder; Geräteangaben freiwillig; ohne Mail-Konto Teilen oder Kopieren; Entwurf bleibt auf dem Gerät | Feedback, Fehler, Idee, Screenshot |
+| `privacy` | Wo deine Daten liegen | keine Server für deine Unterrichtsdaten; Daten im Datenort, Material in der Ablage; Zugangsdaten nur im Schlüsselbund; Rückmeldung nur auf dein Absenden: nach einmaliger Zustimmung an den Rückmeldedienst (zwölf Monate aufbewahrt, Kennung für Löschanfragen), sonst Mail oder Teilen (ADR-0015) | Datenschutz, DSGVO, Server |
+| `feedback` | Rückmeldung geben | Idee oder Hinweis; Bildschirmfoto, Zeichnen, Schwärzen; höchstens fünf Bilder; Geräteangaben freiwillig; Hochladen nach einmaliger Zustimmung, Kennung für Löschanfragen, zwölf Monate aufbewahrt; sonst E-Mail, ohne Mail-Konto Teilen oder Kopieren; Entwurf bleibt auf dem Gerät | Feedback, Fehler, Idee, Screenshot |
 
 - [ ] **Step 1: Failing Test schreiben** (`@Suite("Help Content") struct HelpContentTests`)
 
@@ -416,7 +417,7 @@ Schreibregeln: du-Form, kurze Sätze, je Artikel 80–250 Wörter; Kurzfassung e
   #expect(issues.isEmpty); #expect(catalog.articles.count == HelpTopic.allCases.count)
 }
 @Test("Datenhygiene: nur Beispielklassen, kein @, kein %") func onlyNeutralExamples() throws
-// alle help.*-Werte: jede Fundstelle von Regex \b\d{1,2}[a-z]\b (nach Kleinschreibung) ∈ {"7a","8a","8b","9c","6c"}; kein "@", kein "%"
+// alle Werte der 84 Artikelschlüssel (help.<topic>.title|summary|keywords|body je HelpTopic – nicht help.button.label %@ u. Ä. aus Task 9/10): jede Fundstelle von Regex \b\d{1,2}[a-z]\b (nach Kleinschreibung) ∈ {"7a","8a","8b","9c","6c"}; kein "@", kein "%"
 @Test("AK-57 mit echten Texten") func searchMatchesAcceptance() throws {
   #expect(HelpSearch.results(for: "AirPlay", in: catalog).first == .secondScreen)
   #expect(HelpSearch.results(for: "ferien", in: catalog).first == .nonTeachingDays)
@@ -489,7 +490,7 @@ Design-Takt: keiner
 
 **Files:**
 - Create: `Frontstage/Feedback/FeedbackDraftStore.swift`, `Frontstage/Feedback/FeedbackImageEncoder.swift`, `Frontstage/Feedback/WindowCapture.swift`, `Frontstage/Feedback/DeviceInfoCollector.swift`, `Frontstage/Feedback/FeedbackUploader.swift`, `Frontstage/Feedback/FeedbackConsent.swift`
-- Test: `FrontstageTests/Feedback/FeedbackDraftStoreTests.swift`, `FeedbackImageEncoderTests.swift`, `DeviceInfoCollectorTests.swift`, `FeedbackUploaderTests.swift` (mit dem vorhandenen `FrontstageTests/Storage/StubURLProtocol.swift`)
+- Test: `FrontstageTests/Feedback/FeedbackDraftStoreTests.swift`, `FeedbackImageEncoderTests.swift`, `DeviceInfoCollectorTests.swift`, `FeedbackUploaderTests.swift` (mit dem vorhandenen `FrontstageTests/Storage/StubURLProtocol.swift`), `FeedbackConsentTests.swift`
 
 **Interfaces:**
 - Consumes: `FeedbackDraft`, `FeedbackAttachment`, `NormalizedRect`, `FeedbackAttachmentPolicy`, `DeviceInfo`, `FeedbackServiceEndpoint`, `FeedbackUploadPayload`, `FeedbackUploadReceipt`, `FeedbackRetryPolicy` (3); `DrawingGeometry`, `PageSize` (06); `DataLocation`, `Theme`
@@ -541,7 +542,7 @@ enum FeedbackConsent {
 }
 ```
 
-Fortschritt über `URLSession.upload(for:from:delegate:)` mit einem `URLSessionTaskDelegate`, der `didSendBodyData` in `progress(Double(totalBytesSent) / Double(totalBytesExpectedToSend))` übersetzt; Zeitlimit 60 s je Versuch (`URLRequest.timeoutInterval`).
+Fortschritt über `URLSession.upload(for:from:delegate:)` mit einem `URLSessionTaskDelegate`, der `didSendBodyData` in `progress(Double(totalBytesSent) / Double(totalBytesExpectedToSend))` übersetzt; nach einer erfolgreichen Antwort zusätzlich `progress(1)` (die Attrappe `StubURLProtocol` meldet kein `didSendBodyData`, Test `reportsProgress`); Zeitlimit 60 s je Versuch (`URLRequest.timeoutInterval`).
 
 Aufnahme: iPad `UIApplication.shared.connectedScenes` → `UIWindowScene` mit `session.role == .windowApplication` und `activationState == .foregroundActive` → `keyWindow` → `UIGraphicsImageRenderer(bounds: window.bounds)` mit `drawHierarchy(in: window.bounds, afterScreenUpdates: true)` → `.cgImage`. Mac: `NSApp.mainWindow ?? NSApp.keyWindow` (ohne Blätter: `window.sheetParent == nil`), `contentView.bitmapImageRepForCachingDisplay(in: bounds)` + `cacheDisplay(in:to:)` → `cgImage`. Zusammensetzen mit `CGContext` (RGB, 8 Bit) in Pixelgröße; Zeichnung: iPad `markup.image(from: CGRect(origin: .zero, size: pixelSize), scale: 1)`, Mac dasselbe als `NSImage` → `cgImage(forProposedRect:context:hints:)`; Schwärzung `y_cg = height − (y + h) · height`.
 
@@ -565,7 +566,9 @@ Aufnahme: iPad `UIApplication.shared.connectedScenes` → `UIWindowScene` mit `s
 }
 @Suite struct FeedbackUploaderTests {   // URLSession mit StubURLProtocol, sleep als No-op
   @Test("Vertrag: Methode, Pfad, Header, Teile") func sendsContract() async throws
-  // POST …/api/v1/feedback; X-Frontstage-App-Key; Content-Type multipart/form-data; boundary; Teil "feedback" application/json; zwei Teile "attachment" image/jpeg mit Dateinamen
+  // an der aufgezeichneten Anfrage: POST …/api/v1/feedback; X-Frontstage-App-Key; Content-Type multipart/form-data; boundary
+  // Teile ("feedback" application/json; zwei "attachment" image/jpeg mit Dateinamen) über FeedbackUploader.multipartBody(boundary:json:attachments:) –
+  // StubURLProtocol sieht bei Upload-Tasks keinen httpBody
   @Test("201 → Quittung") func returnsReceipt() async throws
   @Test("Review 3: 503, 503, 503 → unavailable nach drei Versuchen") func retriesServerErrorsThenFails() async
   @Test("503 dann 201 → Erfolg") func retrySucceeds() async throws
@@ -651,7 +654,7 @@ Texte: `feedback.markup.title` Bild bearbeiten · `feedback.markup.draw` Zeichne
 Design-Takt: Hauptstufe
 
 **Files:**
-- Create: `Frontstage/Feedback/FeedbackModel.swift`, `FeedbackSession.swift`, `FeedbackView.swift`, `AttachmentStrip.swift`, `MailComposeView.swift` (`#if os(iOS)`), `MacMailComposer.swift` (`#if os(macOS)`)
+- Create: `Frontstage/Feedback/FeedbackModel.swift` (mit `FeedbackUploadState`), `FeedbackSession.swift` (mit `FeedbackContext`, `EnvironmentValues.feedbackContext`, `FeedbackStarter`, `feedbackSheet(_:)`), `FeedbackView.swift`, `AttachmentStrip.swift`, `MailComposeView.swift` (`#if os(iOS)`), `MacMailComposer.swift` (`#if os(macOS)`)
 - Modify: `Frontstage/Resources/Localizable.xcstrings`
 - Test: `FrontstageTests/Feedback/FeedbackModelTests.swift`, `FrontstageTests/Feedback/FeedbackStarterTests.swift`
 
@@ -673,7 +676,8 @@ struct FeedbackContext {
   var capture: @MainActor () -> CGImage?        // WindowCapture.captureMainWindow
   @MainActor static var standard: FeedbackContext { get }
 }
-extension EnvironmentValues { @Entry var feedbackContext: FeedbackContext = .standard }   // @MainActor-Vorgabe wie showSetup
+extension EnvironmentValues { @Entry var feedbackContext: FeedbackContext = MainActor.assumeIsolated { .standard } }
+// Der Vorgabewert von `@Entry` ist nicht isoliert, `.standard` aber `@MainActor` (Swift 6 strikt); SwiftUI liest die Umgebung auf dem Hauptthread.
 
 @MainActor @Observable final class FeedbackModel {
   init(draft: FeedbackDraft, context: FeedbackContext)
@@ -773,7 +777,7 @@ Design-Takt: Hauptstufe
 /// Hilfeknopf (Glossar): Fragezeichen; zeigt sein Blatt selbst (Entscheidung 4) und startet von dort eine Rückmeldung (Entscheidung 5).
 struct HelpButton: View { init(topic: HelpTopic) }
 enum HelpSheetRoot: Hashable { case center, article(HelpTopic) }
-/// `NavigationStack` mit `navigationDestination(for: HelpTopic.self)`, „Fertig“; `onFeedback`: Artikel → (`.issue`, gezeigtes Thema), Center → (gewählte Art, nil).
+/// `NavigationStack` mit `navigationDestination(for: HelpTopic.self)` und `navigationDestination(for: HelpSheetRoot.self)` (Link „Alle Hilfethemen“), „Fertig“; `onFeedback`: Artikel → (`.issue`, gezeigtes Thema), Center → (gewählte Art, nil).
 struct HelpSheet: View { init(root: HelpSheetRoot, onFeedback: @escaping (FeedbackKind, HelpTopic?) -> Void) }
 struct HelpArticleView: View { init(article: HelpArticle, onFeedback: @escaping (HelpTopic) -> Void) }   // HelpSheet reicht (.issue, topic) weiter
 struct HelpBlockView: View { let block: HelpBlock }
@@ -794,7 +798,7 @@ struct HelpCenterView: View { init(onFeedback: @escaping (FeedbackKind) -> Void)
 
 `HelpCenterView` (`List`, `.searchable(text:prompt: "help.center.search")`): ohne Suche Sections je `HelpGroup` (Titel `help.group.<rawValue>`) mit Zeilen (Titel, darunter Kurzfassung in `scaledFont(.detailMeta)`); mit Suche flache Trefferliste, leer → `ContentUnavailableView.search(text:)`. Letzte Section „Rückmeldung“: Kapselknöpfe „Idee senden“ / „Hinweis senden“ → `onFeedback(.idea / .issue)`. (Kurz-Tipps-Zeilen ergänzt Task 11.)
 
-Texte: `help.button` Hilfe · `help.button.label %@` Hilfe zu %@ · `help.done` Fertig · `help.related` Verwandte Themen · `help.giveFeedback` Rückmeldung geben · `help.allTopics` Alle Hilfethemen · `help.center.title` Hilfe und Rückmeldung · `help.center.search` Hilfe durchsuchen · `help.group.start` Erste Schritte · `help.group.teaching` Im Unterricht · `help.group.classroom` Smartboard und Tafel · `help.group.planning` Vorbereiten und Planen · `help.group.setup` Einrichten · `help.group.about` Kauf, Datenschutz, Rückmeldung · `help.center.feedback` Rückmeldung · `help.center.sendIdea` Idee senden · `help.center.sendIssue` Hinweis senden · `help.center.feedbackNote` Deine Rückmeldung geht als E-Mail aus deinem Mail-Programm an die Entwickler.
+Texte: `help.button` Hilfe · `help.button.label %@` Hilfe zu %@ · `help.done` Fertig · `help.related` Verwandte Themen · `help.giveFeedback` Rückmeldung geben · `help.allTopics` Alle Hilfethemen · `help.center.title` Hilfe und Rückmeldung · `help.center.search` Hilfe durchsuchen · `help.group.start` Erste Schritte · `help.group.teaching` Im Unterricht · `help.group.classroom` Smartboard und Tafel · `help.group.planning` Vorbereiten und Planen · `help.group.setup` Einrichten · `help.group.about` Kauf, Datenschutz, Rückmeldung · `help.center.feedback` Rückmeldung · `help.center.sendIdea` Idee senden · `help.center.sendIssue` Hinweis senden · `help.center.feedbackNote` Deine Rückmeldung geht nach einmaliger Zustimmung an den Rückmeldedienst der Entwickler, sonst als E-Mail oder über Teilen. (Korrigiert 2026-11-16 nach ADR-0015; vorher „als E-Mail aus deinem Mail-Programm“.) Die sechs `help.group.*`-Schlüssel werden dynamisch gelesen und tragen deshalb wie die Artikel `"extractionState" : "manual"`.
 
 - [ ] **Step 1: Failing Tests schreiben**
 
@@ -934,7 +938,7 @@ Texte: `tips.daySelection.title` Die laufende Stunde ist schon gewählt · `tips
 
 Design-Takt: keiner
 
-- [ ] **Step 1: Gesamtdiff durchsehen** – `git diff main...HEAD -- Packages Frontstage FrontstageTests project.yml .github docs`: `FrontstageCore` importiert nur `Foundation`; Swift 6 strikt (Closures in `FeedbackContext` `@MainActor`, Delegates von MessageUI/AppKit mit `@preconcurrency` wie bei `PKCanvasViewDelegate`); MessageUI und `PKCanvasView` nur iOS; keine echte Adresse (`grep -rn "@" Frontstage/Feedback project.yml` zeigt nur `feedback@example.com`); `Localizable.xcstrings` gültiges JSON, 84 `help.*`-Schlüssel mit `extractionState manual`; kein Hilfe-/Rückmeldungs-Code hinter `PaidGate`; `RootView` und `FrontstageApp` behalten alles aus 04–10.
+- [ ] **Step 1: Gesamtdiff durchsehen** – `git diff main...HEAD -- Packages Frontstage FrontstageTests project.yml .github docs`: `FrontstageCore` importiert nur `Foundation`; Swift 6 strikt (Closures in `FeedbackContext` `@MainActor`, Delegates von MessageUI/AppKit mit `@preconcurrency` wie bei `PKCanvasViewDelegate`); MessageUI und `PKCanvasView` nur iOS; keine echte Adresse (`grep -rnE "[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+\.[A-Za-z.]{2,}" Frontstage project.yml` zeigt nur `feedback@example.com` – ein bloßes `grep "@"` träfe jedes `@MainActor`); `Localizable.xcstrings` gültiges JSON, 84 Artikelschlüssel `help.<topic>.…` und die `help.group.*`-Schlüssel mit `extractionState manual`; kein Hilfe-/Rückmeldungs-Code hinter `PaidGate`; `RootView` und `FrontstageApp` behalten alles aus 04–10.
 - [ ] **Step 2: Kern lokal** – `powershell -NoProfile -ExecutionPolicy Bypass -File scripts\swift-test.ps1` → alle Suites grün; `scripts\swift-parse.ps1` → keine Syntaxfehler.
 - [ ] **Step 3: Secrets anlegen** (einmalig, wenn Q-42/Q-43 beantwortet sind): `gh secret set FEEDBACK_EMAIL`, `gh secret set FEEDBACK_URL`, `gh secret set FEEDBACK_APP_KEY` (gleicher Wert wie `APP_KEY` des Dienstes) – fehlen sie, baut CI mit leeren Werten (Rückmeldung nur per Teilen), das ist zulässig.
 - [ ] **Step 4: Lauf starten**
@@ -958,16 +962,16 @@ Erwartet: „Core tests“ grün inkl. `Help Topics`, `Help Body`, `Help Text`, 
 | # | Aufbau | Handlung | Erwartet | Ergebnis |
 |---|---|---|---|---|
 | 1 | **AK-55:** kein Kauf, iPad im Flugmodus | Fragezeichen in Heute; Hilfecenter › Tafel; „Rückmeldung geben“ | Artikel ohne Netz und ohne Kaufangebot; Rückmeldung schreibbar | ☐ |
-| 2 | **AK-56:** VoiceOver an | Fragezeichen auf Heute, Vorbereiten, Jahresplan, Einrichten, Datenort, Ablage, Stundenplan-Quelle | Ansage „Hilfe zu <Thema>“; passender Artikel; verwandte Themen; Text skaliert bei „Größerer Text“ | ☐ |
+| 2 | **AK-56:** VoiceOver an | Fragezeichen auf Heute, Vorbereiten, Jahresplan, Einrichten, Datenort, Ablage, Stundenplan-Quelle; dasselbe im schmalen Fenster (Split View / Stage Manager), wenn das Fragezeichen ins Überlaufmenü der Leiste rückt | Ansage „Hilfe zu <Thema>“; passender Artikel; verwandte Themen; Text skaliert bei „Größerer Text“; Hilfeblatt öffnet auch aus dem Überlaufmenü | ☐ |
 | 3 | **AK-57:** Mac | Hilfe › Frontstage-Hilfe (⌘?); „AirPlay“, „ferien“, „ubernehmen“, „xyz“ | Center öffnet; Treffer wie AK-57; „Keine Treffer“ | ☐ Mac ☐ iPad mit Tastatur |
 | 4 | **AK-59 / Review 1:** Heute mit „8b Englisch“, Apple TV verbunden | Fragezeichen › Rückmeldung geben; Bild öffnen, „8b“ schwärzen, Pfeil zeichnen; Fotos bis zur Grenze; eines entfernen | erstes Bild = Tagesansicht ohne Hilfeblatt und nicht das Smartboard-Bild; „8b“ im gesendeten Bild schwarz; höchstens 5 | ☐ iPad ☐ Mac |
-| 5 | **AK-58:** Mail-Konto, Adresse aus Secret | Hinweis „Tafel speichert nicht“; App beenden; erneut öffnen; Geräteangaben an; Senden | Entwurf nach Neustart da; Mail mit Adresse, Betreff wie AK-58, Geräteangaben ohne Gerätenamen; danach Entwurf leer | ☐ iPad ☐ Mac |
+| 5 | **AK-58:** Mail-Konto, Adresse aus Secret | Hinweis „Tafel speichert nicht“; App beenden; erneut öffnen; Geräteangaben an; Senden | Entwurf nach Neustart da; Mail mit Adresse, Betreff wie AK-58, Geräteangaben ohne Gerätenamen; danach Entwurf leer; iPad: Mail nur „Als Entwurf sichern“ → Rückmeldungs-Entwurf bleibt (Entscheidung 12) | ☐ iPad ☐ Mac |
 | 6 | **AK-58:** ohne Mail-Konto, ohne Dienst-Secret | Rückmeldung öffnen | „Teilen“ und „Text kopieren“ statt „Senden“, Hinweiszeile | ☐ |
 | 6a | **AK-58 (geändert), AK-65:** Dienst aus Teilplan 12 läuft, Secrets gesetzt | Rückmeldung mit Bild senden; Zustimmung lesen, „Datenschutz“ antippen, zurück, „Zustimmen und senden“; danach Dienst stoppen und erneut senden | Datenschutzseite öffnet; Fortschritt, Kennung; Rückmeldung samt Bild auf der Verwaltungsseite; bei gestopptem Dienst Hinweis, Entwurf bleibt, „Per Mail senden“ angeboten | ☐ iPad ☐ Mac |
 | 7 | **AK-60:** frische Installation | Tipp schließen, Neustart; „Kurz-Tipps erneut zeigen“, Neustart; ausschalten | einmal; nach Zurücksetzen wieder; aus = keiner | ☐ |
 | 8 | Mac-Aufnahme | Rückmeldung aus dem Menü bei offener Vorbereiten-Ansicht | Bild zeigt den Fensterinhalt vollständig (keine leeren Flächen) | ☐ |
 | 9 | Zeichnen am iPad mit Finger und Stift | Stift, Marker, Radierer aus der Werkzeugleiste | alle drei wirken; Zeichnung bleibt nach „Fertig“ und Neustart | ☐ |
-| 10 | Hilfeknopf in Blättern | Koppeln, Tafel, Anzeige, „So verbinden“: Fragezeichen › Rückmeldung geben | Artikel erscheint; Rückmeldung öffnet im selben Blatt | ☐ |
+| 10 | Hilfeknopf in Blättern | Koppeln, Tafel, Anzeige, „So verbinden“: Fragezeichen › Rückmeldung geben; auch im schmalen Fenster (Split View), wenn das Fragezeichen im Überlaufmenü der Leiste steht | Artikel erscheint; Rückmeldung öffnet im selben Blatt; aus dem Überlaufmenü genauso | ☐ |
 
 ---
 

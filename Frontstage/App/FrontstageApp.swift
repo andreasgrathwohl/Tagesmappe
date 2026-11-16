@@ -27,6 +27,8 @@ struct FrontstageApp: App {
 
   /// `App.init` läuft auf dem Hauptakteur (`App` ist `@MainActor`), daher darf hier `mainContext` gelesen werden.
   init() {
+    // Als Erstes: TipKit muss vor der ersten Tip-Ansicht konfiguriert sein (Zurücksetzen davor).
+    HelpTipsConfiguration.configureAtLaunch()
     // Die Anmeldung hängt nicht am Datenort und entsteht deshalb einmal, vor dem Controller.
     let account = MicrosoftAccount()
     let network = NetworkMonitor()
@@ -96,6 +98,8 @@ struct FrontstageApp: App {
       default: break
       }
     }
+    // Menü „Hilfe“ (Mac) und Tastaturkürzel ⌘? (iPad mit Tastatur).
+    .commands { HelpCommands(support: .shared) }
     #if os(iOS)
       // Swift-Hinweis: SwiftUI ruft den Block auf, wenn das System die Aufgabe startet; die nächste Aufgabe muss
       // man selbst wieder anmelden. Die Closure läuft nicht auf dem Haupt-Actor – der Zugriff auf Halter und
