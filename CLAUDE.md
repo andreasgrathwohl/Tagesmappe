@@ -23,6 +23,10 @@ Tagesbegleiter für Lehrkräfte (iPad und Mac). Überblick: `README.md`. Der Cod
   - Wenn möglich mehrere Teilpläne gemeinsam in einem Lauf prüfen, statt je einen.
   - Schlägt ein Lauf fehl: erst das hochgeladene `TestResults.xcresult` und das Log lesen, Ursache
     beheben und den Diff prüfen, dann **ein** neuer Lauf – nie „noch mal probieren“.
+- **Rückmeldedienst `server/` (Python 3.12, FastAPI, ADR-0015):** lokal mit `uv run pytest` in `server/` testen;
+  CI dafür ist `.github/workflows/server.yml` auf Linux (`ubuntu-latest`, bei Pull Requests mit Änderungen unter
+  `server/**` und von Hand) – kostet keine macOS-Minuten, die Sparregeln oben gelten nur für `ci.yml`. Code-Sprache wie
+  ADR-0009: Bezeichner englisch, Kommentare und Docstrings deutsch, Texte der Seiten deutsch.
 - Swift/SwiftUI ist für den Entwickler Neuland: nicht offensichtliche Idiome und Framework-Eigenheiten
   kurz mit erklären.
 - Regeln der iCloud-Spiegelung (ADR-0002): kein `@Attribute(.unique)`/`#Unique`, alle Eigenschaften

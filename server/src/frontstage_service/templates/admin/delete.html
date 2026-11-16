@@ -1,0 +1,14 @@
+{% extends "admin/base.html" %}
+{% block title %}Rückmeldung löschen{% endblock %}
+{% block content %}
+<section class="card confirm">
+  <h1>Löschen bestätigen</h1>
+  <p>Rückmeldung {{ record.reference }} samt Bildern endgültig löschen?</p>
+  <p class="muted">Das lässt sich nicht rückgängig machen.</p>
+  <form method="post" action="/admin/feedback/{{ record.id }}/delete" class="button-row">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button type="submit" class="danger-button">Endgültig löschen</button>
+    <a href="/admin/feedback/{{ record.id }}" autofocus>Abbrechen</a>
+  </form>
+</section>
+{% endblock %}

@@ -1,0 +1,61 @@
+# Rückmeldedienst (server/): Lint, Tests, Image-Bau und Rauchtest auf Linux.
+# Linux-Minuten sind für öffentliche Repos frei; die macOS-Sparregeln (ci.yml) betreffen diesen Lauf nicht.
+name: server
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "server/**"
+      - ".github/workflows/server.yml"
+
+# Eigene Gruppe: dieselbe Gruppe wie ci.yml würde den macOS-Lauf auf demselben Ref abbrechen.
+concurrency:
+  group: server-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.12"
+
+      - name: Abhängigkeiten
+        run: uv sync --frozen
+
+      - name: Ruff
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: Tests
+        run: uv run pytest -q
+
+      - name: Image bauen
+        run: docker build -t frontstage-service:ci .
+
+      - name: Rauchtest
+        run: |
+          # Testwerte werden im Lauf erzeugt, keine Secrets nötig.
+          APP_KEY=$(openssl rand -hex 24)
+          SESSION_SECRET=$(openssl rand -hex 24)
+          HASH=$(uv run python -c "from argon2 import PasswordHasher; print(PasswordHasher().hash('ci-test-passwort'))")
+          docker run --rm -d --name fs-test \
+            -e APP_KEY="$APP_KEY" -e SESSION_SECRET="$SESSION_SECRET" \
+            -e ADMIN_PASSWORD_HASH="$HASH" -e COOKIE_SECURE=false \
+            -p 127.0.0.1:8099:8000 frontstage-service:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8099/healthz; then ok=1; break; fi
+            sleep 1
+          done
+          test "$(docker exec fs-test id -u)" = "10001"
+          docker rm -f fs-test
+          test "${ok:-0}" = "1"

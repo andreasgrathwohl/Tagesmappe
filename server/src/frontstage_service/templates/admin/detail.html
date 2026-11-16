@@ -1,0 +1,78 @@
+{% extends "admin/base.html" %}
+{% block title %}Rückmeldung {{ record.reference }}{% endblock %}
+{% block content %}
+<p class="breadcrumb"><a href="/admin/">← Alle Rückmeldungen</a></p>
+<h1>Rückmeldung {{ record.reference }}</h1>
+<dl class="facts">
+  <div><dt>Kennung</dt><dd>{{ record.reference }}</dd></div>
+  <div><dt>Eingang</dt><dd>{{ received }}</dd></div>
+  <div><dt>Art</dt><dd>{{ kind }}</dd></div>
+  <div><dt>Hilfethema</dt><dd>{{ record.topic or "–" }}</dd></div>
+  <div><dt>App-Version</dt><dd>{{ record.app_version }}</dd></div>
+</dl>
+
+<section aria-labelledby="h-text">
+  <h2 id="h-text">Text</h2>
+  <p class="message">{{ record.text }}</p>
+</section>
+
+<section aria-labelledby="h-device">
+  <h2 id="h-device">Geräteangaben</h2>
+  {% if device_info %}
+  <dl class="facts">
+    {% for key, value in device_info %}
+    <div><dt>{{ key }}</dt><dd>{{ value if value is not none else "–" }}</dd></div>
+    {% endfor %}
+  </dl>
+  {% else %}
+  <p class="muted">Keine Geräteangaben</p>
+  {% endif %}
+</section>
+
+{% if positions %}
+<section aria-labelledby="h-images">
+  <h2 id="h-images">Bilder</h2>
+  <ul class="images">
+    {% for n in positions %}
+    <li>
+      <a href="/admin/attachments/{{ record.id }}/{{ n }}" target="_blank" rel="noopener"
+         title="Originalgröße in neuem Tab öffnen">
+        <img src="/admin/attachments/{{ record.id }}/{{ n }}" alt="Bildschirmfoto {{ n }}" loading="lazy">
+      </a>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+
+<section aria-labelledby="h-edit" class="edit">
+  <h2 id="h-edit">Bearbeitung</h2>
+  <form method="post" action="/admin/feedback/{{ record.id }}/status" class="inline-form"
+        hx-post="/admin/feedback/{{ record.id }}/status" hx-target="#saved" hx-swap="innerHTML">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label for="status">Bearbeitungsstand</label>
+    <select id="status" name="status">
+      {% for key, label in status_labels.items() %}
+      <option value="{{ key }}"{% if record.status.value == key %} selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit" class="secondary">Speichern</button>
+  </form>
+
+  <form method="post" action="/admin/feedback/{{ record.id }}/note"
+        hx-post="/admin/feedback/{{ record.id }}/note" hx-target="#saved" hx-swap="innerHTML">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label for="note">Notiz (nur intern)</label>
+    <textarea id="note" name="note" rows="5" maxlength="{{ max_note }}">{{ record.note }}</textarea>
+    <button type="submit" class="secondary">Speichern</button>
+  </form>
+
+  <p id="saved" class="saved" role="status" aria-live="polite">{% if saved %}{% include "admin/_saved.html" %}{% endif %}</p>
+</section>
+
+<section class="danger" aria-labelledby="h-danger">
+  <h2 id="h-danger">Löschen</h2>
+  <p class="muted">Entfernt die Rückmeldung samt Bildern endgültig.</p>
+  <a class="button danger-button" href="/admin/feedback/{{ record.id }}/delete">Löschen …</a>
+</section>
+{% endblock %}

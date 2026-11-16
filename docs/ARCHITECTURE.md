@@ -42,6 +42,12 @@ flowchart TB
     Office["PowerPoint, Word, …"]
     Graph["Microsoft Graph"]
     SM["Schulmanager Online<br/>(inoffiziell)"]
+    Mail["Mail-Programm des Systems<br/>(Rückfall für Rückmeldungen)"]
+    subgraph Betreiber["Beim Betreiber (Container hinter Reverse-Proxy mit TLS) — Area dienst"]
+        Dienst["Frontstage-Dienst<br/>Annahme /api/v1/feedback · Verwaltungsseite /admin ·<br/>Startseite, Impressum, Datenschutz /"]
+        DVol[("Volume /data<br/>SQLite + Bilder")]
+    end
+    Browser["Browser<br/>(Betreiber, Interessierte)"]
 
     UI --> Kern
     Kern --> Daten
@@ -59,11 +65,17 @@ flowchart TB
     OD --> Graph
     OD -- "Office-Adresse, AutoSpeichern" --> Office
     Quel -- "ADR-0004" --> SM
+    UI -- "Rückmeldung, ADR-0015 (nur ausdrücklich gesendet)" --> Dienst
+    UI -- "Rückfall, ADR-0014" --> Mail
+    Dienst --> DVol
+    Browser --> Dienst
 ```
 
 Drei Dinge, die das Bild festhält: Keine Oberfläche spricht ein Fremdsystem direkt an – dazwischen
-liegt immer ein Baustein. Es gibt keinen Server des Produkts (NFR-2); nach außen gehen nur Apple,
-der Ablage-Anbieter, Microsoft (nach Anmeldung) und Schulmanager (wenn gewählt). Ordnerfreigaben und
+liegt immer ein Baustein. Nutzerdaten liegen auf keinem Server des Produkts (NFR-2); nach außen gehen nur
+Apple, der Ablage-Anbieter, Microsoft (nach Anmeldung) und Schulmanager (wenn gewählt) – dazu eine Rückmeldung, die
+die Lehrkraft ausdrücklich an den Rückmeldedienst des Betreibers sendet (ADR-0015), ersatzweise über ihr
+Mail-Programm (ADR-0014). Ordnerfreigaben und
 Zugangsdaten verlassen das Gerät nie.
 
 ## Area: plattform
@@ -107,6 +119,42 @@ den Oberflächen, nicht im Datenmodell. Mindestversion iPadOS 26 und macOS 26 ge
   einzige Quelle.
 - Die Schulversion (FR-13.2, später) wäre ein zweites Ziel im selben Xcode-Projekt, das die
   Freischaltung fest auf „gekauft“ setzt und als bezahlte App ohne In-App-Kauf erscheint.
+
+### Hilfe und Rückmeldung
+
+- Gemäß ADR-0014 liegen die Hilfeartikel (FR-17) in der App: Themen (`HelpTopic`), ihre Gruppen und verwandten
+  Themen sind Daten im Kern-Paket; Titel, Kurzfassung, Stichwörter und Text jedes Artikels stehen in der
+  Übersetzungstabelle (`help.<thema>.title|summary|keywords|body`, ADR-0009). Der Text ist eine kleine
+  Markdown-Teilmenge (Absatz, Zwischentitel, Aufzählung, nummerierte Schritte, Hinweis; fett und Links im
+  Absatz), die der Kern in Blöcke zerlegt; die Oberfläche setzt die Blöcke mit den Schriftgrößen aus DESIGN.md.
+  Suche und Rangfolge rechnet der Kern (Titel vor Stichwort vor Kurzfassung vor Text, Umlaute und
+  Groß-/Kleinschreibung gefaltet). Ein Test im Kern prüft, dass jedes Thema alle vier Texte hat und dass die
+  Artikel nur die neutralen Beispielklassen nennen.
+- Hilfeknöpfe öffnen den Artikel als Blatt an der Stelle, an der sie stehen – auch innerhalb anderer Blätter.
+  Das Hilfecenter steht in Einrichten; das Menü „Hilfe“ (Mac, iPad mit Tastatur) öffnet es als Blatt über
+  der Hauptansicht.
+- Gemäß ADR-0015 lädt die App eine Rückmeldung zum Rückmeldedienst hoch (Area dienst), wenn die Build-Einstellung
+  `FEEDBACK_URL` eine Adresse trägt (Info.plist `FrontstageFeedbackURL`, Schlüssel `FEEDBACK_APP_KEY` →
+  `FrontstageFeedbackAppKey`, beide in CI aus Secrets): ein Multipart-Upload mit `URLSession`, Fortschritt, bis zu drei
+  Versuchen bei Netz- und 5xx-Fehlern; vor dem ersten Senden eine einmalige Zustimmung (gemerkt in `UserDefaults`,
+  nicht abgeglichen) mit Link zur Datenschutzseite. Antwortet der Dienst nicht oder fehlt die Adresse, gilt der Weg
+  unten.
+- Gemäß ADR-0014 geht eine Rückmeldung als E-Mail über das Mail-Programm des Systems hinaus (iPad
+  `MFMailComposeViewController`, Mac `NSSharingService.composeEmail`), Rückfall Teilen-Dialog und Kopieren. Die
+  Empfangsadresse kommt aus der Build-Einstellung `FEEDBACK_EMAIL` (Info.plist `FrontstageFeedbackEmail`, in CI
+  aus einem Secret). Betreff, Text und Geräteangaben stellt der Kern zusammen; die Geräteangaben lesen nur
+  Version, System, Modellkennung, Art des Datenorts, Erscheinungsbild und Kaufstand – nie den Gerätenamen.
+- Bildschirmfotos: Beim Start einer Rückmeldung nimmt die App das Fenster der Hauptszene auf (nie die Szene des
+  Zweitbildschirms), nachdem ein offenes Hilfeblatt geschlossen ist. Bilder werden beim Hinzufügen auf höchstens
+  2048 Pixel Kantenlänge verkleinert. Gezeichnet wird mit PencilKit (`PKDrawing`): am iPad in `PKCanvasView` mit
+  `PKToolPicker` wie auf der Tafel, am Mac – wo es `PKCanvasView` nicht gibt – mit einer eigenen Zeichenfläche,
+  die Ziehbewegungen zu `PKStroke` macht. Schwärzen sind deckende Rechtecke über der Zeichnung, nicht
+  Marker-Striche (Marker sind durchscheinend). Beim Senden werden Bild, Zeichnung und Schwärzung zu einem JPEG
+  zusammengesetzt.
+- Der Entwurf einer Rückmeldung liegt nur auf dem Gerät im Ordner „Application Support“ der App, ohne Sicherung
+  und ohne Abgleich; er ist kein Datensatz des Datenorts.
+- Kurz-Tipps (FR-17.5) laufen über TipKit (`Tips.configure` beim Start; im Testlauf nicht). Zurücksetzen geht nur
+  vor `Tips.configure` und wirkt deshalb ab dem nächsten Start.
 
 ## Area: daten
 
@@ -368,6 +416,68 @@ Online“, später „WebUntis“ (FR-2.1).
   Zugangsdaten gelöscht (damit enden auch die automatischen Abfragen); nach Netz-, Server- oder
   Formfehlern bleiben sie.
 
+## Area: dienst
+
+- area-status: detailed
+
+Gemäß ADR-0015: ein Container „Frontstage-Dienst“ beim Betreiber, der Rückmeldungen annimmt (FR-18), die
+Verwaltungsseite trägt (FR-18.1) und Startseite, Impressum und Datenschutz ausliefert (FR-19, FR-19.1). Er hält keine
+Nutzerdaten der App (NFR-2) – nur, was eine Lehrkraft ausdrücklich als Rückmeldung sendet. Die App funktioniert ohne
+ihn vollständig.
+
+### Aufbau
+
+- Ordner `server/`: Paket `frontstage_service` (FastAPI-Anwendung), `templates/` (Jinja2 für die Verwaltungsseite),
+  `landing/` (statische Startseite samt Impressum und Datenschutz), `tests/` (pytest, HTTPX), `Dockerfile`,
+  `docker-compose.yml`, `pyproject.toml` (Abhängigkeiten mit uv gesperrt), `README.md` (Betrieb).
+- Ein Prozess (Uvicorn), ein Image (Python 3.12 slim, Nutzer ohne Root-Rechte), ein Volume `/data` mit
+  `frontstage.sqlite3` (WAL) und `attachments/<rückmeldung>/<n>.<png|jpg>`.
+- Einstellungen nur aus Umgebungsvariablen: `APP_KEY`, `ADMIN_PASSWORD_HASH` (Argon2), `SESSION_SECRET`,
+  `RETENTION_DAYS` (365), `DATA_DIR` (`/data`), `PUBLIC_BASE_URL`. Fehlt eine Pflichtangabe, startet der Dienst nicht.
+
+### Annahme
+
+- `POST /api/v1/feedback`, Multipart: Teil `feedback` (JSON: `kind` `idea|issue`, `text` 1–10 000 Zeichen, `topic`
+  optional aus der Liste der Hilfethemen, `deviceInfo` optional, `appVersion`), Teile `attachment` 0–5 (PNG oder JPEG,
+  am Inhalt erkannt, je ≤ 8 MB, zusammen ≤ 25 MB). Header `X-Frontstage-App-Key` muss `APP_KEY` gleichen (Vergleich in
+  konstanter Zeit). Antwort 201 mit `id` (UUID) und `reference` (acht Zeichen, für Löschanfragen).
+- Fehler: 401 ohne/mit falschem Schlüssel, 411 ohne `Content-Length` (sonst wäre die Größengrenze per chunked
+  Übertragung umgehbar; die App sendet die Länge immer), 413 bei zu großen oder zu vielen Teilen, 415 bei anderen Bildformaten, 422
+  bei ungültigem JSON, 429 bei Überschreitung der Begrenzung (10 je Minute, 30 je Stunde je Absenderadresse, gelesen aus
+  `X-Forwarded-For` des vertrauten Proxys). Bilder werden vor dem Speichern dekodiert und ohne Metadaten neu
+  geschrieben (EXIF entfernt).
+- Die Begrenzung lebt im Speicher des Prozesses (ADR-0015, Kosten).
+
+### Verwaltung
+
+- `/admin`: serverseitig gerendert (Jinja2), Teilaktualisierungen mit htmx, keine Fremd-Skripte. Anmeldung mit
+  Passwort gegen `ADMIN_PASSWORD_HASH`; Sitzung als signiertes Cookie (`Secure`, `HttpOnly`, `SameSite=Lax`,
+  acht Stunden); jede ändernde Anfrage trägt ein CSRF-Token; fünf Fehlversuche je Adresse sperren zehn Minuten.
+- Liste mit Filtern (Art, Bearbeitungsstand, Zeitraum), Seiten zu 50; Detail mit Text, Hilfethema, Geräteangaben,
+  Bildern; Bearbeitungsstand (`FeedbackStatus`), interne Notiz, Löschen mit Rückfrage; Ausfuhr der gefilterten Liste
+  als CSV (UTF-8 mit BOM, Semikolon) oder JSON; Bilder nur nach Anmeldung (`/admin/attachments/...`).
+- Sicherheitsheader für alle Seiten: `Content-Security-Policy` ohne Inline-Skripte, `X-Content-Type-Options`,
+  `Referrer-Policy: no-referrer`, `frame-ancestors 'none'`.
+
+### Startseite
+
+- Statische Dateien unter `/` (HTML, CSS, wenig JavaScript), Schriften mit freier Lizenz (OFL) als WOFF2 auf dem
+  eigenen Server statt über Google Fonts (keine Übertragung von Besucher-Adressen an Dritte), keine Cookies, keine
+  Messung, keine Fremd-Skripte. Darstellungen der App sind nachgebaute Illustrationen nach DESIGN.md (Grundton warm, Akzent Petrol) bzw. aus
+  `mockup/`, keine Bildschirmfotos echter Daten. Impressum und Datenschutz sind eigene Seiten (`/impressum`,
+  `/datenschutz`); die App verlinkt `/datenschutz`.
+
+### Aufbewahrung und Betrieb
+
+- Beim Start und danach alle 24 Stunden löscht der Dienst Rückmeldungen, die älter als `RETENTION_DAYS` sind, samt
+  Bildordner (FR-18.2).
+- `GET /healthz` prüft, ob die Datenbank lesbar ist. Der Reverse-Proxy des Betreibers beendet TLS und setzt
+  `X-Forwarded-For`; der Container lauscht nur intern.
+- Sicherung: das Volume täglich kopieren (SQLite mit `.backup` bzw. `VACUUM INTO`); Image regelmäßig neu bauen
+  (RISK-12).
+- CI: eigener Linux-Lauf (`.github/workflows/server.yml`) mit Tests und Image-Bau, bei Pull Requests mit Änderungen
+  unter `server/**` und von Hand; berührt die macOS-Läufe nicht.
+
 ## Area: anzeige
 
 - area-status: detailed
@@ -558,3 +668,7 @@ gehören sie zur Unterrichtsstunde. Das Original wird nie verändert.
 - 2026-11-14: daten changed — Jahresplanung (FR-15, ADR-0013): Modelle Schuljahr, Jahresplan, Planwoche, Leistungsnachweis; Abschnitt Jahresplanung (Unterrichtswochen berechnet, Jahrgang aus dem Klassennamen, Zuordnung über den Montag, Vorjahresplan übernehmen, frühere Jahre, Hinweis zur Unterrichtsstunde, Abgleich); Nebenläufigkeit ergänzt; Bausteinbild um Jahresplan ergänzt
 - 2026-11-14: daten changed — Q-33, Q-34 mit Rechercheergebnis ergänzt (beide weiter offen, Prüfung im Schul-Testmandanten)
 - 2026-11-15: daten changed — Erscheinungsbild als abgeglichener Datensatz (FR-16), Modell, Nebenläufigkeit und Ordner `Theme/` ergänzt; plattform changed — Freischaltung um das Erscheinungsbild ergänzt (FR-13)
+- 2026-11-16: dienst new — Rückmeldedienst im Container mit Annahme, Verwaltungsseite, Startseite, Aufbewahrung und Betrieb (ADR-0015, FR-18 bis FR-19.1); plattform changed — Rückmeldung zuerst per Upload zum Dienst mit Zustimmung, Mail/Teilen als Rückfall; Überblick: Dienst und Volume beim Betreiber, Satz zu NFR-2 angepasst
+- 2026-11-16: plattform changed — Abschnitt „Hilfe und Rückmeldung“ (FR-17, ADR-0014): Hilfeartikel in der Übersetzungstabelle, Aufbau und Suche im Kern, Rückmeldung per E-Mail über das System, Bildschirmfotos mit PencilKit und Schwärzung, Entwurf nur auf dem Gerät, Kurz-Tipps über TipKit; Überblick: Rückmeldung als einziger weiterer Weg nach außen
+- 2026-11-16: dienst changed — Annahme: 411 ohne `Content-Length` ergänzt (Abschlussreview Teilplan 12); für die App endgültig wie die übrigen 4xx
+- 2026-11-16: dienst changed — Betrieb als git-verwalteter Dockhand-Stack (`server/deploy/docker-compose.yml`) hinter einem Cloudflare Tunnel (teach.grathwohl.dev, Q-43): Dienst nur im internen Netz, Tunnel-Container mit fester Adresse als einziger vertrauter Proxy, `NOINDEX`; Sitzungscookie `SameSite=Lax` statt Strict
