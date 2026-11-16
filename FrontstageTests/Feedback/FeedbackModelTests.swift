@@ -177,4 +177,29 @@ import Testing
     model.didSend()
     #expect(urls.allSatisfy { !FileManager.default.fileExists(atPath: $0.path) })
   }
+
+  @Test("RISK-11: geschwärztes Bild geht nie ungeschwärzt mit")
+  func redactedAttachmentIsDroppedWhenFlatteningFails() throws {
+    let context = Support.makeContext()
+    // Unlesbare Bilddaten: Zusammensetzen schlägt fehl.
+    let broken = Data("kein Bild".utf8)
+    let redactedID = UUID()
+    let markedID = UUID()
+    try context.store.storeImage(broken, for: redactedID)
+    try context.store.storeImage(broken, for: markedID)
+    var draft = FeedbackDraft(kind: .issue, topic: nil)
+    draft.attachments = [
+      FeedbackAttachment(
+        id: redactedID, origin: .windowCapture, pixelWidth: 400, pixelHeight: 300,
+        redactions: [NormalizedRect(x: 0.1, y: 0.1, width: 0.2, height: 0.2)]),
+      FeedbackAttachment(
+        id: markedID, origin: .photoLibrary, pixelWidth: 400, pixelHeight: 300, hasMarkup: true),
+    ]
+    let model = FeedbackModel(draft: draft, context: context)
+
+    let items = model.flattenedAttachments()
+    // Nur das Bild ohne Schwärzung bleibt, als erstes Bild nummeriert.
+    #expect(items.map(\.fileName) == ["Bildschirmfoto-1.jpg"])
+    #expect(items.first?.data == broken)
+  }
 }

@@ -5441,7 +5441,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Frontstage hat keine eigenen Server, deine Daten bleiben bei dir und bei deinem Anbieter."
+            "value" : "Frontstage hat keine Server für deine Unterrichtsdaten, sie bleiben bei dir und bei deinem Anbieter."
           }
         }
       }
@@ -5463,7 +5463,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Frontstage betreibt keine eigenen Server für deine Daten.\n\n## Wo was liegt\n- **Deine Daten** wie Stundenplan, Zuordnungen und Jahrespläne liegen an deinem **Datenort**, also in iCloud oder in deinem OneDrive.\n- **Dein Material** liegt in deiner **Ablage**. Frontstage liest es nur und verändert es nie.\n- **Zugangsdaten**, etwa für Schulmanager, liegen nur im Schlüsselbund deines Geräts.\n\n## Rückmeldung\nEine Rückmeldung an den Entwickler verschickst du selbst. Frontstage sendet nichts im Hintergrund. Du siehst vorher, was mitgeht.\n\n## Was das für dich heißt\nWer Zugriff auf dein iCloud- oder OneDrive-Konto hat, hat Zugriff auf diese Daten. Schützt du das Konto, schützt du auch Frontstage.\n\n> Schüler- und Klassenlisten brauchst du in Frontstage nicht. Der Stundenplan kommt mit Klassenbezeichnungen wie 7a aus."
+            "value" : "Frontstage betreibt keine Server für deine Unterrichtsdaten.\n\n## Wo was liegt\n- **Deine Daten** wie Stundenplan, Zuordnungen und Jahrespläne liegen an deinem **Datenort**, also in iCloud oder in deinem OneDrive.\n- **Dein Material** liegt in deiner **Ablage**. Frontstage liest es nur und verändert es nie.\n- **Zugangsdaten**, etwa für Schulmanager, liegen nur im Schlüsselbund deines Geräts.\n\n## Rückmeldung\nEine Rückmeldung geht nur weg, wenn du sie absendest. Frontstage sendet nichts im Hintergrund, und du siehst vorher, was mitgeht. Beim ersten Senden fragt die App einmal, ob sie die Rückmeldung an den Rückmeldedienst der Entwickler hochladen darf. Dort wird sie zwölf Monate aufbewahrt und dann gelöscht. Nach dem Senden bekommst du eine **Kennung**, mit der du die Löschung früher verlangen kannst. Ohne Zustimmung oder wenn der Dienst nicht erreichbar ist, verschickst du sie selbst per E-Mail oder über Teilen.\n\n## Was das für dich heißt\nWer Zugriff auf dein iCloud- oder OneDrive-Konto hat, hat Zugriff auf diese Daten. Schützt du das Konto, schützt du auch Frontstage.\n\n> Schüler- und Klassenlisten brauchst du in Frontstage nicht. Der Stundenplan kommt mit Klassenbezeichnungen wie 7a aus."
           }
         }
       }
@@ -5507,7 +5507,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Du hast eine Idee oder einen Fehler gefunden? Öffne die Rückmeldung über das Fragezeichen im Hilfecenter.\n\n## Was du mitschicken kannst\n- Eine Beschreibung in deinen Worten.\n- Ein **Bildschirmfoto** der aktuellen Ansicht. Du kannst darauf zeichnen und Stellen **schwärzen**, die niemand sehen soll.\n- Höchstens fünf Bilder.\n- Geräteangaben wie Modell und App-Version. Das ist freiwillig, du entscheidest.\n\n## Verschicken\nFrontstage bereitet eine E-Mail vor. Du siehst alles, bevor du sendest. Hast du auf dem Gerät kein Mail-Konto, kannst du den Text **Teilen** oder **Kopieren** und anders verschicken.\n\n## Entwurf\nDein Entwurf bleibt auf dem Gerät. Schließt du das Fenster, kannst du später weiterschreiben.\n\n> Rückmeldung ist kostenlos und gehört nicht zum Einmalkauf."
+            "value" : "Du hast eine Idee oder einen Fehler gefunden? Öffne die Rückmeldung über das Fragezeichen im Hilfecenter.\n\n## Was du mitschicken kannst\n- Eine Beschreibung in deinen Worten.\n- Ein **Bildschirmfoto** der aktuellen Ansicht. Du kannst darauf zeichnen und Stellen **schwärzen**, die niemand sehen soll.\n- Höchstens fünf Bilder.\n- Geräteangaben wie Modell und App-Version. Das ist freiwillig, du entscheidest.\n\n## Verschicken\nDu siehst alles, bevor du sendest. Beim ersten Senden fragt Frontstage einmal, ob die Rückmeldung an den Rückmeldedienst der Entwickler hochgeladen werden darf. Danach siehst du eine **Kennung**: Mit ihr kannst du die Löschung verlangen, sonst wird die Rückmeldung nach zwölf Monaten gelöscht. Willst du nicht hochladen oder ist der Dienst nicht erreichbar, bereitet Frontstage eine E-Mail vor. Hast du auf dem Gerät kein Mail-Konto, kannst du den Text **Teilen** oder **Kopieren** und anders verschicken.\n\n## Entwurf\nDein Entwurf bleibt auf dem Gerät. Schließt du das Fenster, kannst du später weiterschreiben.\n\n> Rückmeldung ist kostenlos und gehört nicht zum Einmalkauf."
           }
         }
       }
@@ -5926,6 +5926,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Nicht gesendet. Dein Entwurf bleibt erhalten."
+          }
+        }
+      }
+    },
+    "feedback.text.tooLong" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Text ist zu lang. Höchstens 10.000 Zeichen – bitte kürze ihn."
           }
         }
       }
@@ -6416,7 +6427,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Deine Rückmeldung geht als E-Mail aus deinem Mail-Programm an die Entwickler."
+            "value" : "Deine Rückmeldung geht nach einmaliger Zustimmung an den Rückmeldedienst der Entwickler, sonst als E-Mail oder über Teilen."
           }
         }
       }

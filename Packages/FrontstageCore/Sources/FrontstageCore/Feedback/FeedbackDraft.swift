@@ -43,8 +43,15 @@ public struct FeedbackDraft: Hashable, Codable, Sendable {
     self.attachments = []
   }
 
-  /// Text mit mindestens einem Nicht-Leerraum-Zeichen.
+  /// Höchstlänge des Texts, wie der Rückmeldedienst sie prüft (FR-18; sonst antwortet er mit 422).
+  public static let maxTextLength = 10_000
+
+  /// Gezählt in Unicode-Skalaren wie der Dienst (Python `len`), nicht in sichtbaren Zeichen: ein Emoji mit
+  /// Hautton zählt dort doppelt.
+  public var isTextTooLong: Bool { text.unicodeScalars.count > Self.maxTextLength }
+
+  /// Text mit mindestens einem Nicht-Leerraum-Zeichen und höchstens `maxTextLength` Zeichen.
   public var canSend: Bool {
-    !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    !isTextTooLong && !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
   }
 }

@@ -129,18 +129,28 @@ enum FeedbackUploadState: Equatable {
     persist()
   }
 
-  /// Bilder mit eingerechneter Zeichnung und Schwärzung, in der Reihenfolge des Entwurfs. Lässt sich ein Bild
-  /// nicht zusammensetzen, geht die Aufnahme ohne Bearbeitung mit; fehlt die Datei, entfällt das Bild.
+  /// Bilder mit eingerechneter Zeichnung und Schwärzung, in der Reihenfolge des Entwurfs. Fehlt die Datei,
+  /// entfällt das Bild. Lässt sich ein Bild nicht zusammensetzen, geht es nur dann ohne Bearbeitung mit, wenn
+  /// es keine Schwärzung trägt; ein geschwärztes Bild entfällt dann ganz – nie ungeschwärzt (RISK-11,
+  /// Entscheidung 7).
   func flattenedAttachments() -> [(fileName: String, data: Data)] {
     var result: [(fileName: String, data: Data)] = []
     for attachment in draft.attachments {
       guard let original = imageData(for: attachment.id) else { continue }
-      let edited = attachment.hasMarkup || !attachment.redactions.isEmpty
-      let data =
-        edited
-        ? FeedbackImageEncoder.flattened(
-          imageData: original, markup: markup(for: attachment.id), redactions: attachment.redactions) ?? original
-        : original
+      let data: Data
+      if attachment.hasMarkup || !attachment.redactions.isEmpty {
+        let flattened = FeedbackImageEncoder.flattened(
+          imageData: original, markup: markup(for: attachment.id), redactions: attachment.redactions)
+        if let flattened {
+          data = flattened
+        } else if attachment.redactions.isEmpty {
+          data = original
+        } else {
+          continue
+        }
+      } else {
+        data = original
+      }
       result.append((FeedbackAttachmentPolicy.fileName(index: result.count), data))
     }
     return result

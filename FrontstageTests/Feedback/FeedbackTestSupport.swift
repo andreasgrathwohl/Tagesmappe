@@ -9,7 +9,7 @@ import FrontstageCore
 @MainActor
 enum FeedbackTestSupport {
   static let recipient = "hilfe@frontstage-rueckmeldung.de"
-  static let endpoint = FeedbackServiceEndpoint.resolve("https://feedback.kunde.de")!
+  static let endpoint = FeedbackServiceEndpoint.resolve("https://rueckmeldung.frontstage-app.de")!
 
   static func makeDirectory() -> URL {
     FileManager.default.temporaryDirectory.appending(

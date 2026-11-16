@@ -24,7 +24,7 @@ private final class Recorder<Value: Sendable>: @unchecked Sendable {
 }
 
 @Suite struct FeedbackUploaderTests {
-  private let endpoint = FeedbackServiceEndpoint.resolve("https://feedback.kunde.de")!
+  private let endpoint = FeedbackServiceEndpoint.resolve("https://rueckmeldung.frontstage-app.de")!
   private let receiptID = UUID()
 
   private var receiptBody: String { "{\"id\":\"\(receiptID.uuidString)\",\"reference\":\"AB12CD34\"}" }
@@ -51,7 +51,7 @@ private final class Recorder<Value: Sendable>: @unchecked Sendable {
     _ = try await upload(server)
     let request = try #require(server.requests.first)
     #expect(request.httpMethod == "POST")
-    #expect(request.url?.absoluteString == "https://feedback.kunde.de/api/v1/feedback")
+    #expect(request.url?.absoluteString == "https://rueckmeldung.frontstage-app.de/api/v1/feedback")
     #expect(request.value(forHTTPHeaderField: "X-Frontstage-App-Key") == "test-key")
     let contentType = try #require(request.value(forHTTPHeaderField: "Content-Type"))
     #expect(contentType.hasPrefix("multipart/form-data; boundary="))

@@ -11,8 +11,9 @@
     let recipient: String
     let message: FeedbackMessage
     let attachments: [(fileName: String, data: Data)]
-    /// `true`, wenn die Mail gesendet oder als Entwurf gesichert wurde – dann ist die Rückmeldung abgegeben.
-    let onFinish: @MainActor (_ handedOver: Bool) -> Void
+    /// Ergebnis des Mail-Entwurfs. Nur `.sent` gilt als abgegeben; `.saved` und `.cancelled` behalten den
+    /// Entwurf, `.failed` zeigt einen Hinweis (Entscheidung 12).
+    let onFinish: @MainActor (_ result: MFMailComposeResult) -> Void
 
     func makeUIViewController(context: Context) -> MFMailComposeViewController {
       let controller = MFMailComposeViewController()
@@ -30,15 +31,17 @@
 
     func makeCoordinator() -> Coordinator { Coordinator(onFinish: onFinish) }
 
-    @MainActor final class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
-      private let onFinish: @MainActor (Bool) -> Void
+    /// Swift-Hinweis: `@preconcurrency` vor dem Protokoll, weil MessageUI den Delegate nicht als `@MainActor`
+    /// kennzeichnet; UIKit ruft ihn trotzdem auf dem Hauptthread, die Prüfung erfolgt dann zur Laufzeit.
+    @MainActor final class Coordinator: NSObject, @preconcurrency MFMailComposeViewControllerDelegate {
+      private let onFinish: @MainActor (MFMailComposeResult) -> Void
 
-      init(onFinish: @escaping @MainActor (Bool) -> Void) { self.onFinish = onFinish }
+      init(onFinish: @escaping @MainActor (MFMailComposeResult) -> Void) { self.onFinish = onFinish }
 
       func mailComposeController(
         _ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?
       ) {
-        onFinish(result == .sent || result == .saved)
+        onFinish(result)
       }
     }
   }

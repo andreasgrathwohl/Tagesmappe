@@ -4,6 +4,7 @@ import PhotosUI
 import SwiftUI
 
 #if os(iOS)
+  import MessageUI
   import UIKit
 #else
   import AppKit
@@ -77,6 +78,8 @@ struct FeedbackView: View {
       #endif
       .toolbar { toolbar }
     }
+    // Während des Hochladens bleibt das Blatt offen, damit die Kennung für Löschanfragen sichtbar wird.
+    .interactiveDismissDisabled(isUploading)
     .task(id: model.draft) {
       // Entprellt: erst 400 ms nach der letzten Änderung speichern. Ein abgebrochener Schlaf beendet die Aufgabe.
       do { try await Task.sleep(for: .milliseconds(400)) } catch { return }
@@ -90,17 +93,17 @@ struct FeedbackView: View {
     .onChange(of: model.uploadState) { _, state in uploadStateChanged(state) }
     .sheet(isPresented: $showConsent) { consentSheet }
     #if os(iOS)
-      .fullScreenCover(item: $editing, content: editorContent)
+      .fullScreenCover(item: $editing) { target in editorContent(target) }
     #else
-      .sheet(item: $editing, content: editorContent)
+      .sheet(item: $editing) { target in editorContent(target) }
     #endif
     #if os(iOS)
       .sheet(item: $mailRequest) { request in
         MailComposeView(
           recipient: request.recipient, message: model.message, attachments: request.attachments
-        ) { handedOver in
+        ) { result in
           mailRequest = nil
-          if handedOver { completeHandover() }
+          mailFinished(result)
         }
       }
     #endif
@@ -183,8 +186,14 @@ struct FeedbackView: View {
           }
         }
     } footer: {
-      if let topic = model.draft.topic, let article = HelpLibrary.shared.article(for: topic) {
-        Text("feedback.aboutTopic \(article.title)")
+      VStack(alignment: .leading, spacing: 4) {
+        if model.draft.isTextTooLong {
+          Text("feedback.text.tooLong")
+            .foregroundStyle(.red)
+        }
+        if let topic = model.draft.topic, let article = HelpLibrary.shared.article(for: topic) {
+          Text("feedback.aboutTopic \(article.title)")
+        }
       }
     }
   }
@@ -259,9 +268,11 @@ struct FeedbackView: View {
   @ToolbarContentBuilder private var toolbar: some ToolbarContent {
     ToolbarItem(placement: .cancellationAction) {
       Button("feedback.close") { dismiss() }
+        .disabled(isUploading)
     }
     ToolbarItem(placement: .primaryAction) {
       moreMenu
+        .disabled(isUploading)
     }
     ToolbarItem(placement: .confirmationAction) {
       confirmationButton
@@ -372,6 +383,9 @@ struct FeedbackView: View {
       MarkupEditorView(imageData: target.imageData, model: target.model) { result in
         model.updateMarkup(for: target.id, drawing: result.drawing, redactions: result.redactions)
         editing = nil
+        // Neue Striche ändern den Anhang nicht immer (hasMarkup bleibt `true`); die Teilen-Dateien daher hier
+        // neu schreiben, sonst teilt „Teilen“ das alte Bild.
+        refreshShareFiles()
       }
     }
     #if os(macOS)
@@ -417,6 +431,19 @@ struct FeedbackView: View {
       }
     #endif
   }
+
+  #if os(iOS)
+    /// Nur eine gesendete Mail gibt die Rückmeldung ab; gesichert oder abgebrochen bleibt der Entwurf
+    /// (Entscheidung 12).
+    private func mailFinished(_ result: MFMailComposeResult) {
+      switch result {
+      case .sent: completeHandover()
+      case .failed: showFailed = true
+      case .saved, .cancelled: break
+      @unknown default: break
+      }
+    }
+  #endif
 
   /// Mail abgegeben: Entwurf weg, Hinweis, Blatt zu.
   private func completeHandover() {
