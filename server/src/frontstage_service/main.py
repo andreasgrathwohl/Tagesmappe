@@ -3,6 +3,7 @@
 import asyncio
 import contextlib
 import logging
+import mimetypes
 import sqlite3
 from collections.abc import AsyncIterator, Callable
 from contextlib import asynccontextmanager
@@ -28,6 +29,10 @@ from .settings import Settings
 logger = logging.getLogger(__name__)
 
 PURGE_INTERVAL_SECONDS = 24 * 60 * 60
+
+# Python 3.12 kennt .woff2 ohne /etc/mime.types nicht (schlankes Container-Image) und liefert die Schriften
+# der Startseite sonst als application/octet-stream aus (Befund Teilplan 13, Task 5).
+mimetypes.add_type("font/woff2", ".woff2")
 
 
 def utc_now() -> datetime:

@@ -19,7 +19,10 @@
         }
       });
     },
-    { threshold: 0.2 }
+    // Schon ein sichtbarer Rand genügt: Ein Schwellwert als Anteil wird bei Stationen, die höher als
+    // mehrere Bildschirme sind (390 px, große Schrift), nie erreicht – sie blieben sonst unsichtbar.
+    // Der negative Rand unten verzögert das Einblenden, bis die Station ein Stück im Bild ist.
+    { threshold: 0, rootMargin: "0px 0px -15% 0px" }
   );
   document.documentElement.classList.add("js-motion");
   stations.forEach(function (station) {

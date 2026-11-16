@@ -40,3 +40,10 @@ def test_landing_sets_no_cookie(client):
 
 def test_unknown_landing_path_is_404(client):
     assert client.get("/gibt-es-nicht").status_code == 404
+
+
+def test_fonts_are_served_as_woff2(client):
+    # Python 3.12 kennt .woff2 ohne /etc/mime.types nicht (Befund Teilplan 13, Task 5)
+    response = client.get("/assets/fonts/Nunito.woff2")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "font/woff2"

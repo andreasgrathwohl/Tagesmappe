@@ -223,3 +223,63 @@ def test_legal_pages_are_not_indexed_and_keep_internal_comment():
     imprint = (LANDING / "impressum" / "index.html").read_text(encoding="utf-8")
     assert "<!-- Q-31 -->" in imprint
     assert "Markenprüfung" not in _visible_text(LANDING / "impressum" / "index.html")
+
+
+def _figure_sources(page: Path) -> list[str]:
+    return re.findall(r"<figure\b.*?</figure>", page.read_text(encoding="utf-8"), flags=re.S)
+
+
+def test_smartboard_capsule_sits_on_shown_material():
+    # UI-12: die Kapsel „Am Smartboard" steht auf der Kachel des gezeigten Materials, nicht auf der Tafel
+    source = (LANDING / "index.html").read_text(encoding="utf-8")
+    station = re.search(r'id="smartboard".*?</section>', source, flags=re.S).group(0)
+    tiles = re.findall(r'<div class="app-tile[^"]*">(.*?)</div>', station, flags=re.S)
+    with_capsule = [t for t in tiles if "Am Smartboard" in t]
+    assert len(with_capsule) == 1
+    assert "Unit 3 Präsentation" in with_capsule[0]
+
+
+def test_substitution_signal_is_not_orange():
+    # UI-11: „Vertretung" trägt Textfarbe in Symbol und Wort; Orange heißt „Material nicht verfügbar"
+    css = (LANDING / "assets" / "illustrations.css").read_text(encoding="utf-8")
+    base = re.search(r"\.signal::before\s*\{(.*?)\}", css, flags=re.S).group(1)
+    assert "--app-unavailable" not in base
+    assert "var(--app-text)" in base
+    assert re.search(r"\.signal--unavailable::before\s*\{[^}]*--app-unavailable", css)
+
+
+def test_no_empty_or_padded_class_attributes():
+    for page in PAGES:
+        source = page.read_text(encoding="utf-8")
+        assert 'class=""' not in source, f"{page.name}: leeres class-Attribut"
+        assert not re.search(r'class="[^"]*\s"', source), f"{page.name}: Leerzeichen am Ende von class"
+
+
+def test_consistent_terms_on_index():
+    text = _visible_text(LANDING / "index.html")
+    assert "PRÄSENTATION" not in text, "Dateiart einheitlich als PPTX"
+    assert "Jahresplanung" not in text, "Glossar: Jahresplan"
+    assert "Woche 47" not in text, "Schulwochen wie im Jahresplan zählen"
+    assert "laufende Stunde" not in text, "um 7:30 läuft noch keine Stunde"
+
+
+def test_example_data_follows_plan_list():
+    text = _visible_text(LANDING / "index.html")
+    outside_list = (
+        "Arbeitsblatt Past tense",
+        "Brüche",
+        "Balladen",
+        "Wrap-up",
+        "Unit 3 Practice",
+        "Unit 4 Travel",
+    )
+    for outside in outside_list:
+        assert outside not in text, f"Beispieldaten außerhalb der Planliste: {outside}"
+
+
+def test_privacy_page_screenshot_and_reader_facts():
+    text = _visible_text(LANDING / "datenschutz" / "index.html")
+    # FR-17.4: das Bild des aktuellen Fensters ist vorbelegt, nicht eingeschaltet
+    assert "Bildschirmfotos, nur wenn du sie einschaltest" not in text
+    assert "aktuellen Fensters" in text
+    assert "Verwaltungsseite" in text, "FR-19.1: wer die Rückmeldung liest"

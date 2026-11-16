@@ -55,7 +55,8 @@
   opacity: 0.7;
 }
 
-/* Signalwörter stehen in Textfarbe, das Symbol trägt die Signalfarbe (UI-11) */
+/* Signalwörter stehen in Textfarbe, das Symbol trägt die Signalfarbe (UI-11). Vertretung hat keine eigene
+   Farbe: Symbol und Wort in Textfarbe. Orange nur für „Material nicht verfügbar“, Rot für „Entfällt“. */
 .signal {
   display: inline-flex;
   align-items: center;
@@ -69,6 +70,10 @@
   width: 0.7em;
   height: 0.7em;
   border-radius: 50%;
+  background: var(--app-text);
+}
+
+.signal--unavailable::before {
   background: var(--app-unavailable);
 }
 
@@ -482,6 +487,7 @@
   --app-bg: #fbf8f2;
   --app-selection: #ece5d8;
   --app-text: #1f1a14;
+  --app-hairline: rgba(92, 72, 48, 0.22);
   --app-accent: #0e6b7a;
   --app-tint: #dae4e1;
 }
@@ -490,6 +496,7 @@
   --app-bg: #061416;
   --app-selection: #15292c;
   --app-text: #ecf4f4;
+  --app-hairline: rgba(125, 108, 86, 0.55);
   --app-accent: #5fc2cf;
   --app-tint: #1b3a3e;
 }
