@@ -31,7 +31,6 @@ def test_strips_exif_gps():
     assert len(Image.open(io.BytesIO(cleaned)).getexif()) == 0
 
 
-
 def _icc_bytes() -> bytes:
     return ImageCms.ImageCmsProfile(ImageCms.createProfile("sRGB")).tobytes()
 
@@ -65,6 +64,7 @@ def test_strips_png_text_chunks_but_keeps_palette_transparency():
     assert b"Klasse 8b" not in cleaned
     result = Image.open(io.BytesIO(cleaned))
     assert result.info.get("transparency") == 0
+
 
 def test_applies_orientation():
     exif = Image.Exif()

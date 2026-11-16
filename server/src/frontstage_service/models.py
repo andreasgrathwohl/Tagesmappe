@@ -6,7 +6,7 @@ from enum import StrEnum
 from typing import Annotated, Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class FeedbackKind(StrEnum):
@@ -74,6 +74,14 @@ class FeedbackIn(BaseModel):
     topic: HelpTopic | None
     appVersion: Annotated[str, Field(max_length=32)]  # noqa: N815
     deviceInfo: DeviceInfoIn | None  # noqa: N815
+
+    @field_validator("text")
+    @classmethod
+    def _text_not_blank(cls, value: str) -> str:
+        # Wie die App (canSend): mindestens ein Zeichen außer Leerraum. Gespeichert wird der Text unverändert.
+        if not value.strip():
+            raise ValueError("Der Text besteht nur aus Leerraum.")
+        return value
 
 
 class Receipt(BaseModel):

@@ -25,7 +25,7 @@ class ImageRejected(Exception):
 
 
 def clean_image(data: bytes) -> tuple[bytes, Literal["png", "jpg"]]:
-    """Prüft und kodiert neu (ohne EXIF, ICC, Text und Kommentar). 413: zu groß oder Bombe; 415: falsches Format oder defekt."""
+    """Prüft und kodiert neu (ohne EXIF, ICC, Text, Kommentar). 413: zu groß/Bombe; 415: Format/defekt."""
     if len(data) > MAX_IMAGE_BYTES:
         raise ImageRejected(413, "Das Bild ist größer als 8 MiB.")
     try:

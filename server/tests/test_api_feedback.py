@@ -131,6 +131,12 @@ def test_empty_text_is_422(client):
     assert post_feedback(client, feedback_json(text="")).status_code == 422
 
 
+def test_whitespace_only_text_is_422(client, settings):
+    """Wie in der App (Plan 11, Review 5): nur Leerraum ist kein Text."""
+    assert post_feedback(client, feedback_json(text=" \n\t ")).status_code == 422
+    assert count_rows(settings) == 0
+
+
 def test_11th_request_in_a_minute_is_429_with_retry_after(client):
     for _ in range(10):
         assert post_feedback(client).status_code == 201
