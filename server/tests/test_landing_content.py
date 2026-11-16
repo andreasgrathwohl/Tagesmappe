@@ -176,8 +176,50 @@ def test_index_has_meta_and_icon():
 def test_required_sections():
     page = LANDING / "index.html"
     ids = {a.get("id") for _, a in parse(page).tags if a.get("id")}
-    required = {"tag", "morgen", "smartboard", "tafel", "vorbereiten", "vorplanen", "farben", "preise", "daten", "fragen", "testen"}
+    required = {
+        "tag",
+        "morgen",
+        "smartboard",
+        "tafel",
+        "vorbereiten",
+        "vorplanen",
+        "farben",
+        "preise",
+        "daten",
+        "fragen",
+        "testen",
+    }
     assert required <= ids, f"Abschnitte fehlen: {required - ids}"
     text = _visible_text(page)
     assert "kein Abo" in text
     assert not re.search(r"\d+,\d{2}\s?€", text), "Eurobetrag auf der Startseite"
+
+
+def test_privacy_page_states_facts():
+    # AK-65: die Sachaussagen der Datenschutzerklärung stehen auf der Seite
+    text = _visible_text(LANDING / "datenschutz" / "index.html")
+    for phrase in ("zwölf Monate", "Kennung", "keine Cookies", "Bildschirmfotos", "Geräteangaben"):
+        assert phrase in text, f"Datenschutz: '{phrase}' fehlt"
+
+
+def test_legal_pages_are_marked_as_draft():
+    for name in ("impressum", "datenschutz"):
+        text = _visible_text(LANDING / name / "index.html")
+        assert "[Platzhalter" in text, f"{name}: Platzhalter fehlt"
+        assert "Entwurf – vor Veröffentlichung von einem Menschen prüfen und ersetzen (Q-44)" in text, (
+            f"{name}: Entwurf-Hinweis fehlt"
+        )
+
+
+def test_footer_links_legal_pages():
+    hrefs = {a.get("href") for t, a in parse(LANDING / "index.html").tags if t == "a"}
+    assert {"/impressum/", "/datenschutz/"} <= hrefs
+
+
+def test_legal_pages_are_not_indexed_and_keep_internal_comment():
+    for name in ("impressum", "datenschutz"):
+        source = (LANDING / name / "index.html").read_text(encoding="utf-8")
+        assert 'name="robots" content="noindex"' in source, f"{name}: noindex fehlt"
+    imprint = (LANDING / "impressum" / "index.html").read_text(encoding="utf-8")
+    assert "<!-- Q-31 -->" in imprint
+    assert "Markenprüfung" not in _visible_text(LANDING / "impressum" / "index.html")
