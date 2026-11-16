@@ -27,5 +27,5 @@ async def require_csrf(request: Request) -> None:
             form = None
         value = form.get("csrf_token") if form is not None else None
         supplied = value if isinstance(value, str) else None
-    if not isinstance(expected, str) or not supplied or not hmac.compare_digest(expected, supplied):
+    if not isinstance(expected, str) or not supplied or not hmac.compare_digest(expected.encode(), supplied.encode()):
         raise HTTPException(status_code=403, detail="Ungültiges oder fehlendes CSRF-Token.")

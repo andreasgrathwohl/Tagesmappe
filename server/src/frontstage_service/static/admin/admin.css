@@ -78,3 +78,7 @@ button.primary {
   font-weight: 600;
 }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+/* htmx-Ladeanzeige (htmx-eigene Inline-Styles sind per CSP abgeschaltet) */
+.htmx-indicator { opacity: 0; transition: opacity 200ms ease-in; }
+.htmx-request .htmx-indicator, .htmx-request.htmx-indicator { opacity: 1; }

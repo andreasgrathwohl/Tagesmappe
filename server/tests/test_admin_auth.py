@@ -164,3 +164,19 @@ def test_hash_password_cli_rejects_mismatch(monkeypatch, capsys):
     monkeypatch.setattr(hash_password.getpass, "getpass", lambda prompt="": next(answers))
     assert hash_password.main() == 1
     assert "$argon2" not in capsys.readouterr().out
+
+
+def test_non_ascii_csrf_token_is_403_not_500(client):
+    login_token(client)
+    r = client.post("/admin/login", data={"password": PASSWORD, "csrf_token": "ä"})
+    assert r.status_code == 403
+    r = client.post("/admin/login", data={"password": PASSWORD}, headers={"X-CSRF-Token": "ä".encode("utf-8")})
+    assert r.status_code == 403
+
+
+def test_login_page_disables_htmx_inline_style_and_eval(client):
+    page = client.get("/admin/login")
+    assert 'name="htmx-config"' in page.text
+    assert '"includeIndicatorStyles":false' in page.text
+    assert '"allowEval":false' in page.text
+    assert ".htmx-indicator" in client.get("/admin/static/admin.css").text
