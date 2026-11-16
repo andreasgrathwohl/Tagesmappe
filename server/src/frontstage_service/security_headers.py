@@ -26,8 +26,9 @@ LANDING_CSP = (
 class SecurityHeadersMiddleware:
     """Reine ASGI-Middleware (kein BaseHTTPMiddleware), damit Streaming unberührt bleibt."""
 
-    def __init__(self, app: ASGIApp) -> None:
+    def __init__(self, app: ASGIApp, *, noindex: bool = False) -> None:
         self.app = app
+        self.noindex = noindex
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http":
@@ -43,6 +44,8 @@ class SecurityHeadersMiddleware:
                 headers = MutableHeaders(scope=message)
                 for name, value in HEADERS.items():
                     headers[name] = value
+                if self.noindex:
+                    headers["X-Robots-Tag"] = "noindex, nofollow"
                 if is_admin:
                     headers["Content-Security-Policy"] = ADMIN_CSP
                 elif is_landing:

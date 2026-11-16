@@ -59,7 +59,7 @@ def test_session_cookie_flags(client):
     assert "frontstage_admin=" in cookie
     assert "secure" in cookie
     assert "httponly" in cookie
-    assert "samesite=strict" in cookie
+    assert "samesite=lax" in cookie
     assert "max-age=28800" in cookie
 
 

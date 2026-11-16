@@ -61,3 +61,10 @@ def test_retention_must_be_positive(value):
 def test_invalid_cookie_secure_fails():
     with pytest.raises(SettingsError, match="COOKIE_SECURE"):
         Settings.from_env({**BASE, "COOKIE_SECURE": "vielleicht"})
+
+
+def test_noindex_setting():
+    assert Settings.from_env(BASE).noindex is False
+    assert Settings.from_env({**BASE, "NOINDEX": "true"}).noindex is True
+    with pytest.raises(SettingsError, match="NOINDEX"):
+        Settings.from_env({**BASE, "NOINDEX": "vielleicht"})

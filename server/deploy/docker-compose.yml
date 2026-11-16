@@ -1,0 +1,78 @@
+# Dockhand-Stack (Git): Dockhand klont das Repository und baut das Image selbst (pull_policy: build).
+# Alle Geheimnisse kommen als Umgebungsvariablen des Stacks; fehlt eine, bricht Compose ab.
+# Öffentlich erreichbar nur über den Cloudflare Tunnel; keine veröffentlichten Ports.
+name: frontstage
+
+x-hardening: &hardening
+  restart: unless-stopped
+  read_only: true
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  logging:
+    driver: json-file
+    options:
+      max-size: "10m"
+      max-file: "5"
+
+services:
+  frontstage-service:
+    <<: *hardening
+    # Kontext relativ zu diesem Ordner: server/ (Dockerfile liegt dort)
+    build:
+      context: ..
+    image: frontstage-service:lokal
+    pull_policy: build
+    container_name: frontstage-service
+    tmpfs:
+      - /tmp
+    volumes:
+      - frontstage-data:/data
+    environment:
+      TZ: Europe/Berlin
+      PUBLIC_BASE_URL: https://teach.grathwohl.dev
+      COOKIE_SECURE: "true"
+      # Suchmaschinen aussperren (X-Robots-Tag und robots.txt); zum Öffnen auf "false" setzen
+      NOINDEX: "true"
+      APP_KEY: ${APP_KEY:?APP_KEY fehlt}
+      SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET fehlt}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:?ADMIN_PASSWORD_HASH fehlt}
+      # X-Forwarded-For wird nur dem Tunnel-Container geglaubt (feste Adresse unten)
+      TRUSTED_PROXIES: 172.31.251.10
+    # Nur das interne Netz: der Dienst selbst hat keinen Zugang nach außen
+    networks:
+      edge: {}
+    mem_limit: 512m
+    pids_limit: 256
+
+  cloudflared:
+    <<: *hardening
+    image: cloudflare/cloudflared:2026.9.3
+    container_name: frontstage-tunnel
+    # Lokal verwalteter Tunnel mit Token: Ziel (Ingress) steht deshalb hier auf der Kommandozeile
+    command: ["tunnel", "--no-autoupdate", "run", "--url", "http://frontstage-service:8000"]
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?CLOUDFLARE_TUNNEL_TOKEN fehlt}
+    depends_on:
+      - frontstage-service
+    networks:
+      edge:
+        ipv4_address: 172.31.251.10
+      egress: {}
+    mem_limit: 256m
+    pids_limit: 128
+
+networks:
+  # Nur Tunnel und Dienst; ohne Weg nach außen. Festes Teilnetz für TRUSTED_PROXIES.
+  # Kollidiert es mit einem vorhandenen Netz: Teilnetz, ipv4_address und TRUSTED_PROXIES gemeinsam ändern.
+  edge:
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.31.251.0/24
+  # Ausgehende Verbindung des Tunnels zu Cloudflare
+  egress: {}
+
+volumes:
+  frontstage-data:

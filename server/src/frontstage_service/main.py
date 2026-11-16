@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
 
 from fastapi import FastAPI
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -89,14 +89,16 @@ def create_app(settings: Settings, *, clock: Callable[[], datetime] = utc_now) -
     app.state.limiter = SlidingWindowLimiter([(10, timedelta(minutes=1)), (30, timedelta(hours=1))], clock)
     # Anmeldung: 5 Fehlversuche je Adresse sperren 10 Minuten (AK-62)
     app.state.login_limiter = SlidingWindowLimiter([(5, timedelta(minutes=10))], clock)
-    app.add_middleware(SecurityHeadersMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware, noindex=settings.noindex)
     # Sitzung der Verwaltung (Entscheidung 8); HttpOnly setzt Starlette immer
     app.add_middleware(
         SessionMiddleware,
         secret_key=settings.session_secret,
         session_cookie="frontstage_admin",
         max_age=28_800,
-        same_site="strict",
+        # Lax statt Strict: Strict ließ das Cookie bei Links aus Mails weg und meldete den Betreiber ab.
+        # Zustandsändernde Anfragen schützt weiterhin das CSRF-Token.
+        same_site="lax",
         https_only=settings.cookie_secure,
     )
     app.include_router(feedback_router)
@@ -116,6 +118,12 @@ def create_app(settings: Settings, *, clock: Callable[[], datetime] = utc_now) -
         except sqlite3.Error:
             return JSONResponse({"status": "unavailable"}, status_code=503)
         return JSONResponse({"status": "ok"})
+
+    if settings.noindex:
+
+        @app.get("/robots.txt", include_in_schema=False)
+        def robots() -> PlainTextResponse:
+            return PlainTextResponse("User-agent: *\nDisallow: /\n")
 
     # 308 statt der 307 des Frontends, über eigene Routen. Die Seite mit Schrägstrich wird ebenfalls explizit
     # ausgeliefert: sonst leitet der Router `/impressum/` zurück (redirect_slashes).

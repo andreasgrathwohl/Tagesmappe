@@ -6,17 +6,17 @@
   --muted: #5e564b;
   --accent: #0e6b7a;
   --error: #9b1c1c;
-  --border: #d9d0c0;
+  --border: rgba(92, 72, 48, 0.22);
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg: #1c1812;
-    --selection: #2c261d;
-    --text: #f3ede2;
+    --bg: #17130e;
+    --selection: #2f2921;
+    --text: #f5efe5;
     --muted: #b8ad9c;
-    --accent: #5fc0cf;
+    --accent: #5fc2cf;
     --error: #ff9b9b;
-    --border: #453d30;
+    --border: rgba(125, 108, 86, 0.55);
   }
 }
 * { box-sizing: border-box; }

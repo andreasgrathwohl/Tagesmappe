@@ -49,6 +49,55 @@ Läuft der Proxy stattdessen als Container im selben Compose-Projekt, dort statt
 Dienstnamen `frontstage:8000` eintragen und `TRUSTED_PROXIES` auf die feste Adresse dieses Proxy-Containers setzen.
 Prüfen: Elf Anfragen mit unterschiedlichen Adressen in `X-Forwarded-For` (über den Proxy) dürfen keine 429 liefern.
 
+## Betrieb mit Dockhand und Cloudflare Tunnel
+
+`deploy/docker-compose.yml` ist ein Stack für Dockhand, der das Image selbst baut und den Dienst ausschließlich
+über einen Cloudflare Tunnel (`teach.grathwohl.dev`) erreichbar macht. Es werden **keine Ports veröffentlicht**.
+Die Datei `docker-compose.yml` in diesem Ordner bleibt für lokalen Betrieb oder anderes Hosting.
+
+**Aufbau:** Zwei Container. `frontstage-service` hängt nur im internen Netz `edge` (`internal: true`, Teilnetz
+`172.31.251.0/24`) und hat keinen Zugang nach außen. `frontstage-tunnel` (cloudflared) hängt in `edge` mit der festen
+Adresse `172.31.251.10` und zusätzlich in `egress` für die ausgehende Verbindung zu Cloudflare. Der Tunnel ist lokal
+verwaltet und läuft mit Token, das Ziel steht deshalb als `--url http://frontstage-service:8000` im Befehl.
+Kollidiert das Teilnetz mit einem vorhandenen, Teilnetz, `ipv4_address` und `TRUSTED_PROXIES` gemeinsam ändern.
+
+**Client-Adresse:** Cloudflare setzt `X-Forwarded-For` (die Adresse des Besuchers steht ganz rechts) und
+`Cf-Connecting-Ip`; cloudflared reicht beides durch. Uvicorn wertet `X-Forwarded-For` aus, aber nur, wenn die
+Anfrage von `TRUSTED_PROXIES` kommt – hier genau die Adresse des Tunnel-Containers. Das genügt; `Cf-Connecting-Ip`
+liest der Dienst nicht. Die Begrenzung und die Anmeldesperre gelten damit je Besucher.
+
+**Einrichten in Dockhand:**
+
+1. Stacks, Neuer Stack, Quelle Git: Repository `https://github.com/andreasgrathwohl/Tagesmappe`, Branch `main`,
+   Compose-Pfad `server/deploy/docker-compose.yml`.
+2. Umgebungsvariablen des Stacks setzen (fehlt eine, startet der Stack nicht):
+   - `CLOUDFLARE_TUNNEL_TOKEN`: Token des Tunnels `frontstage`.
+   - `APP_KEY` und `SESSION_SECRET`: je mindestens 32 Zeichen, z. B. `openssl rand -base64 48`.
+   - `ADMIN_PASSWORD_HASH`: Argon2-Hash des Verwaltungspassworts, erzeugt mit
+     `uv run python -m frontstage_service.hash_password` im Ordner `server/`. **In einfache Anführungszeichen
+     setzen** (`'$argon2id$…'`), weil der Hash aus `$`-Abschnitten besteht und Compose sie sonst ersetzt.
+3. Im Cloudflare-Dashboard den öffentlichen Hostnamen `teach.grathwohl.dev` dem Tunnel zuordnen; das Ziel
+   (Ingress) kommt aus dem Befehl, nicht aus dem Dashboard.
+4. Stack bereitstellen und `https://teach.grathwohl.dev/healthz` prüfen.
+
+`NOINDEX` ist im Stack auf `true`: Der Dienst sendet `X-Robots-Tag: noindex, nofollow` und liefert eine
+`robots.txt` mit `Disallow: /`. Zum Freigeben `NOINDEX: "false"` setzen.
+
+**Sicherung:** Die Daten liegen im Volume `frontstage_frontstage-data` (`/data`). Datenbankabzug wie im Abschnitt
+Sicherung, aber mit `docker exec frontstage-service …` statt `docker compose exec` (Dateisystem schreibgeschützt,
+`/data` ausgenommen):
+
+```
+docker exec frontstage-service python -c "import sqlite3; c=sqlite3.connect('/data/frontstage.sqlite3'); c.execute(\"VACUUM INTO '/data/backup.db'\")"
+docker cp frontstage-service:/data/backup.db ./backup-$(date +%F).db
+docker exec frontstage-service rm /data/backup.db
+docker cp frontstage-service:/data/attachments ./attachments-backup
+```
+
+**Update:** In Dockhand den Stack erneut aus Git bereitstellen (Pull and Redeploy). Wegen `pull_policy: build`
+baut Dockhand das Image neu; das Volume bleibt erhalten. Für Sicherheitsupdates des Basis-Images (RISK-12)
+regelmäßig neu bereitstellen. Das Tunnel-Image ist auf eine Version festgelegt und wird bewusst von Hand angehoben.
+
 ## Sicherung
 
 Die Daten liegen im Volume `frontstage-data` (`/data`: Datenbank `frontstage.sqlite3`, Anhänge unter

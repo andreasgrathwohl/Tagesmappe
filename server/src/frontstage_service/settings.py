@@ -48,6 +48,8 @@ class Settings:
     data_dir: Path = Path("/data")
     public_base_url: str = "https://frontstage.example.com"
     cookie_secure: bool = True
+    # NOINDEX: Suchmaschinen aussperren (Header X-Robots-Tag und robots.txt).
+    noindex: bool = False
     # LANDING_DIR: ein aus __file__ abgeleiteter Pfad trägt im Image nicht (nicht editierbare Installation).
     landing_dir: Path = Path("/app/landing")
 
@@ -78,5 +80,6 @@ class Settings:
             data_dir=Path(environ.get("DATA_DIR") or defaults["data_dir"].default),
             public_base_url=environ.get("PUBLIC_BASE_URL") or defaults["public_base_url"].default,
             cookie_secure=_bool(environ, "COOKIE_SECURE", True),
+            noindex=_bool(environ, "NOINDEX", False),
             landing_dir=Path(environ.get("LANDING_DIR") or defaults["landing_dir"].default),
         )
