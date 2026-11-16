@@ -4587,6 +4587,930 @@
           }
         }
       }
+    },
+    "help.gettingStarted.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erste Schritte"
+          }
+        }
+      }
+    },
+    "help.gettingStarted.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "So richtest du Frontstage in wenigen Minuten für deinen Unterricht ein."
+          }
+        }
+      }
+    },
+    "help.gettingStarted.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start, Einstieg, Anfang, Einrichten, Erste Schritte"
+          }
+        }
+      }
+    },
+    "help.gettingStarted.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frontstage zeigt dir im Unterricht, was heute dran ist, und öffnet das Material mit einem Tipp.\n\n## So fängst du an\n1. Öffne **Einrichten** und lege deinen Stundenplan an. Du kannst ihn von Hand eintragen oder aus Schulmanager importieren.\n2. Wähle unter **Datenort** aus, wo Frontstage deine Daten ablegt.\n3. Gib unter **Ablage** mit **Ordner freigeben** die Ordner frei, in denen dein Material liegt.\n4. Öffne **Vorbereiten** und ordne dem Material die Stunden zu.\n5. Im Unterricht öffnest du **Heute**. Die laufende Stunde ist schon gewählt.\n\n## Hilfe überall\nWo du auf ein Fragezeichen triffst, öffnet es den passenden Hilfeartikel. Die Suche im Hilfecenter findet auch Wörter wie „Beamer“ oder „Sync“.\n\n> Dein Material bleibt immer in deiner Ablage. Frontstage verändert es nie."
+          }
+        }
+      }
+    },
+    "help.dayView.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Heute"
+          }
+        }
+      }
+    },
+    "help.dayView.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Tagesansicht zeigt deine Stunden und öffnet das Material zur laufenden Stunde."
+          }
+        }
+      }
+    },
+    "help.dayView.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tagesansicht, Stunde, Ausfall, Jetzt, Tag"
+          }
+        }
+      }
+    },
+    "help.dayView.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In **Heute** siehst du deine Stunden des Tages als Liste, rechts daneben die Einzelheiten der gewählten Stunde.\n\n## Was du siehst\n- Die laufende Stunde ist schon gewählt und trägt die Marke **Jetzt**.\n- Thema, Bereitlegen und Hausaufgabe der Stunde stehen oben.\n- Leistungsnachweise aus dem Jahresplan erscheinen als Hinweis.\n- Unter **Stand** siehst du, wann der Stundenplan zuletzt abgefragt wurde.\n\n## Was du tun kannst\n- Tippe auf ein Material, um es zu öffnen.\n- Öffne die **Tafel** für diese Stunde.\n- Fällt eine Stunde aus, wähle **Ausfall markieren**. Das Material reichst du dann mit **Material weiterreichen** oder **In die nächste Stunde** weiter.\n- Mit **Ausfall aufheben** nimmst du die Markierung zurück.\n\n> Ein Ausfall, der aus dem Stundenplan der Quelle stammt, lässt sich nur dort ändern."
+          }
+        }
+      }
+    },
+    "help.openingMaterial.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Material öffnen"
+          }
+        }
+      }
+    },
+    "help.openingMaterial.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein Tipp öffnet dein Material in der App, die dafür zuständig ist."
+          }
+        }
+      }
+    },
+    "help.openingMaterial.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Öffnen, PowerPoint, AutoSpeichern, OneDrive, Datei"
+          }
+        }
+      }
+    },
+    "help.openingMaterial.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tippe in **Heute** auf ein Material. Frontstage öffnet es in der App, die für diesen Dateityp zuständig ist, zum Beispiel PowerPoint für „Unit 3 Präsentation“.\n\n## AutoSpeichern bei OneDrive\nLiegt die Datei in OneDrive und du hast Microsoft 365, speichert PowerPoint deine Änderungen automatisch. Das nennt sich AutoSpeichern. Möchtest du das nicht, wähle **Ohne AutoSpeichern öffnen**.\n\n## Wenn Material nicht verfügbar ist\n- Die Datei kann in der Cloud liegen und noch nicht auf dem Gerät sein. Stelle sie in der Dateien-App bereit, am besten schon vor dem Unterricht.\n- Wurde die Datei verschoben oder umbenannt, wähle **Neu verknüpfen** und suche sie neu aus.\n- Liegt sie in keinem freigegebenen Ordner, hilft **Ordner freigeben**.\n\n> Notizen zu einer Stunde gehen beim Neu verknüpfen nicht verloren. Frontstage fragt, ob sie mitkommen sollen."
+          }
+        }
+      }
+    },
+    "help.penNotes.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDFs und Bilder mit Stift"
+          }
+        }
+      }
+    },
+    "help.penNotes.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDFs und Bilder zeigt Frontstage selbst an, und du schreibst mit dem Stift darauf."
+          }
+        }
+      }
+    },
+    "help.penNotes.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stift, Notiz, PDF, Apple Pencil, Bild, Anmerkung"
+          }
+        }
+      }
+    },
+    "help.penNotes.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF-Dateien und Bilder öffnet Frontstage in der eigenen Ansicht. Dort schreibst und zeichnest du mit dem Apple Pencil.\n\n## Wie Notizen gelten\nDeine Stiftnotizen gelten je Stunde. Dasselbe Arbeitsblatt kann in 8a andere Notizen tragen als in 8b.\n\n## Wo die Notizen liegen\n- Sie liegen neben dem Dokument, im Ordner **.frontstage-notizen**.\n- Dort steht je Stunde eine eigene Notiz-PDF.\n- Das Original bleibt unverändert.\n\n## Gut zu wissen\n- Wird die Datei in der Ablage später geändert, bleiben deine Notizen erhalten. Frontstage weist dann darauf hin, dass sie zu einer früheren Fassung gehören.\n- Ist der Ordner des Materials nicht beschreibbar, legt Frontstage die Notizen auf dem Gerät ab.\n\n> Mit **Fertig** schließt du die Ansicht und kehrst zur Stunde zurück."
+          }
+        }
+      }
+    },
+    "help.secondScreen.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Smartboard verbinden"
+          }
+        }
+      }
+    },
+    "help.secondScreen.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "So zeigst du Frontstage auf Smartboard, Beamer oder Fernseher."
+          }
+        }
+      }
+    },
+    "help.secondScreen.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AirPlay, Apple TV, Beamer, Kabel, Spiegeln, Smartboard, Bildschirm"
+          }
+        }
+      }
+    },
+    "help.secondScreen.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frontstage erkennt einen zweiten Bildschirm von selbst und zeigt darauf den Klassenbildschirm. Die Klasse sieht nie deine Tagesansicht.\n\n## Per AirPlay\n1. Wische von der rechten oberen Ecke nach unten. Das **Kontrollzentrum** öffnet sich.\n2. Tippe auf **Bildschirmsynchronisierung**.\n3. Wähle das **Apple TV** des Raums.\n\n## Per Kabel\nStecke einen Adapter an, zum Beispiel USB-C auf HDMI. Das geht ohne weiteren Handgriff.\n\n## Was die Klasse sieht\nDie Leiste unten in **Heute** zeigt, was gerade auf dem Smartboard steht: Klassenbildschirm, Material, Tafel oder Dunkel. Mit **Dunkel** blendest du das Bild aus. Die Hilfe **So verbinden** in der App zeigt dieselben Schritte.\n\n> Beim Spiegeln des ganzen Bildschirms würde die Klasse alles sehen. Darum nutzt Frontstage den zweiten Bildschirm getrennt."
+          }
+        }
+      }
+    },
+    "help.classScreen.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Klassenbildschirm"
+          }
+        }
+      }
+    },
+    "help.classScreen.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Klassenbildschirm zeigt der Klasse, worum es in dieser Stunde geht."
+          }
+        }
+      }
+    },
+    "help.classScreen.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Timer, Arbeitsform, Hausaufgabe, Klasse, Bereitlegen"
+          }
+        }
+      }
+    },
+    "help.classScreen.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Klassenbildschirm erscheint auf dem Smartboard, sobald es verbunden ist.\n\n## Was darauf steht\n- Klasse, Fach und Uhrzeit der Stunde\n- das Thema\n- was die Klasse **Bereitlegen** soll\n- in den letzten fünf Minuten die **Hausaufgabe**\n- unter **Gleich:** die nächste Stunde\n\n## Timer und Arbeitsform\nMit dem **Timer** zählst du eine Arbeitsphase herunter. Wähle die Dauer und tippe auf **Starten**. Ist die Zeit um, steht „Zeit ist um“ auf dem Bildschirm.\n\nDie **Arbeitsform** zeigt der Klasse, ob sie in **Einzelarbeit**, **Partnerarbeit** oder **Gruppenarbeit** arbeitet.\n\n> Klassenbildschirm, Timer und Arbeitsform gehören zum Einmalkauf. Siehe den Artikel „Kauf“. Ohne Kauf bleibt die Kontrollleiste gesperrt."
+          }
+        }
+      }
+    },
+    "help.board.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tafel"
+          }
+        }
+      }
+    },
+    "help.board.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Tafel ist eine digitale Schreibfläche für den Unterricht, mit Stift und Hintergründen."
+          }
+        }
+      }
+    },
+    "help.board.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tafelbild, Kamera, Abdecken, Seite, Vorlage, Standbild"
+          }
+        }
+      }
+    },
+    "help.board.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit der **Tafel** schreibst du mit dem Stift vor der Klasse, auf dem Smartboard und am Gerät.\n\n## Seiten und Hintergründe\nMit **Seite hinzufügen** legst du weitere Seiten an. Als Hintergrund gibt es **Leer**, **Liniert** und **Kariert**.\n\n## Kamera und Vorlage\n- **Kamera** zeigt ein Bild der Kamera. Mit **Standbild** hältst du es an.\n- Als **Vorlage** nimmst du eine Seite aus dem Material der Stunde oder aus der Ablage. Du kannst die ganze Seite oder einen Ausschnitt wählen.\n\n## Abdecken\n**Abdecken** verdeckt einen Teil der Tafel, bis du ihn aufdeckst.\n\n## Tafelbild sichern\nDas Tafelbild bleibt bei der Stunde. Mit **Letztes Tafelbild** holst du das der vorigen Stunde dieser Klasse. **Als PDF sichern** speichert es als Datei.\n\n> Die Tafel gehört zum Einmalkauf. Siehe den Artikel „Kauf“."
+          }
+        }
+      }
+    },
+    "help.preparation.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorbereiten"
+          }
+        }
+      }
+    },
+    "help.preparation.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In Vorbereiten ordnest du Material den Stunden einer Woche zu."
+          }
+        }
+      }
+    },
+    "help.preparation.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zuordnen, übernehmen, Woche, Vertretung, Reihenfolge"
+          }
+        }
+      }
+    },
+    "help.preparation.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In **Vorbereiten** planst du die Woche. Wähle oben die Woche, links siehst du die Stunden.\n\n## Material zuordnen\nTippe bei einer Stunde auf **Material hinzufügen** und wähle die Datei. Am Mac ziehst du sie auch direkt auf die Stunde. Die Reihenfolge ändern kannst du durch Verschieben.\n\n## Schneller vorbereiten\n- **Für andere Klasse übernehmen** kopiert die Zuordnung, zum Beispiel von 8a für 8b.\n- **In die nächste Stunde** schiebt Material in die nächste Stunde derselben Klasse und desselben Fachs.\n- Für eine **Vertretungsstunde** wählst du Datum, Stunde, Klasse und Fach.\n- Steht im Jahresplan ein Thema, schlägt Frontstage es vor. **Als Thema übernehmen** trägt es ein.\n\n> Zuordnen kopiert nie eine Datei. Das Material bleibt in der Ablage."
+          }
+        }
+      }
+    },
+    "help.coursePlan.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jahresplan"
+          }
+        }
+      }
+    },
+    "help.coursePlan.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Jahresplan hält Themen, Tests und Klassenarbeiten für ein Fach und einen Jahrgang fest."
+          }
+        }
+      }
+    },
+    "help.coursePlan.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Jahresplanung, Klassenarbeit, Vorjahr, Test, Thema, Jahrgang"
+          }
+        }
+      }
+    },
+    "help.coursePlan.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ein Jahresplan gilt für ein Fach, einen Jahrgang und ein Schuljahr, zum Beispiel Englisch in Jahrgang 8.\n\n## Wochen und Einträge\nJede Unterrichtswoche trägt ein **Thema**, **Notizen** und **Leistungsnachweise**. Das sind **Test** oder **Klassenarbeit** mit Titel und, wenn du magst, einem Tag.\n\n## Nicht zugeordnet\nEinträge, die in keiner Unterrichtswoche Platz haben, stehen unter **nicht zugeordnet**. Von dort weist du sie einer Woche zu.\n\n## Frühere Jahre\nUnter **Frühere Jahre** vergleichst du mit den Plänen vorheriger Schuljahre.\n\n## Vorjahresplan übernehmen\nMit **Vorjahresplan übernehmen** holst du Themen, Leistungsnachweise und Notizen aus dem letzten Jahr. Was schon eingetragen ist, bleibt.\n\n> Ohne eingerichtetes Schuljahr gibt es keine Unterrichtswochen. Lege es unter **Einrichten** an."
+          }
+        }
+      }
+    },
+    "help.timetable.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stundenplan"
+          }
+        }
+      }
+    },
+    "help.timetable.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Stundenplan legt fest, welche Klasse wann welches Fach hat."
+          }
+        }
+      }
+    },
+    "help.timetable.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A-Woche, B-Woche, Eintrag, Wochenrhythmus, Plan"
+          }
+        }
+      }
+    },
+    "help.timetable.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Stundenplan besteht aus Einträgen. Jeder Eintrag hat Tag, Stunde, Klasse und Fach.\n\n## Von Hand eintragen\nÖffne **Einrichten** und dort den **Stundenplan**. Tippe auf ein Feld, um eine Stunde anzulegen oder zu ändern, zum Beispiel 9c, Deutsch, dienstags in der 3. Stunde.\n\n## A- und B-Woche\nUnter **Wochenrhythmus** wählst du **Jede Woche gleich** oder **A-/B-Woche im Wechsel**. Mit der Ansicht schaltest du zwischen **A-Woche**, **B-Woche** und **Beide Wochen** um. Lege fest, an welchem Tag eine A-Woche liegt.\n\n## Importieren\nStatt von Hand kannst du den Plan aus Schulmanager übernehmen. Siehe den Artikel „Schulmanager“.\n\n> Änderungen gelten ab sofort. Material, das schon zugeordnet ist, bleibt bei der Stunde."
+          }
+        }
+      }
+    },
+    "help.bellSchedule.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Zeitraster"
+          }
+        }
+      }
+    },
+    "help.bellSchedule.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Zeitraster legt Beginn und Ende jeder Unterrichtsstunde fest."
+          }
+        }
+      }
+    },
+    "help.bellSchedule.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Uhrzeit, Stundenzeiten, Pause, Beginn, Ende, Zeiten"
+          }
+        }
+      }
+    },
+    "help.bellSchedule.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Zeitraster sagt Frontstage, wann welche Stunde läuft.\n\n## Wofür du es brauchst\n- Die Marke **Jetzt** in **Heute** hängt daran, welche Stunde gerade läuft.\n- Der Klassenbildschirm zeigt die Uhrzeit der Stunde.\n\n## So trägst du es ein\nÖffne **Einrichten** und dort das **Zeitraster**. Mit **Stunde hinzufügen** legst du die nächste Stunde an, mit **Letzte Stunde entfernen** nimmst du die letzte weg. Trage bei jeder Stunde **Beginn** und **Ende** ein.\n\nDas Ende muss nach dem Beginn liegen, und zwei Stunden dürfen sich nicht überschneiden. Pausen ergeben sich aus den Lücken zwischen den Stunden.\n\n> Importierst du den Stundenplan aus Schulmanager, übernimmt Frontstage das Zeitraster gleich mit. In der Vorschau steht dann, dass sich das Zeitraster ändert."
+          }
+        }
+      }
+    },
+    "help.nonTeachingDays.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ferien und Feiertage"
+          }
+        }
+      }
+    },
+    "help.nonTeachingDays.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ferien und Feiertage trägst du als unterrichtsfreie Zeiträume ein."
+          }
+        }
+      }
+    },
+    "help.nonTeachingDays.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ferien, Feiertag, frei, unterrichtsfrei, Zeitraum"
+          }
+        }
+      }
+    },
+    "help.nonTeachingDays.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unter **Einrichten** findest du **Unterrichtsfrei**. Dort stehen alle Zeiträume ohne Unterricht.\n\n## Zeitraum eintragen\nTippe auf **Zeitraum hinzufügen**. Gib **Von** und **Bis** ein und eine Bezeichnung, zum Beispiel Herbstferien. Ein einzelner Feiertag ist ein Zeitraum von einem Tag.\n\n## Was mit dem Material geschieht\nLiegt in einem freien Zeitraum zugeordnetes Material, geht es nicht verloren. Es erscheint als **Material ohne Stunde**. Mit **Zuordnen** schiebst du es in eine andere Stunde.\n\nEntfernst du einen Zeitraum wieder, bleibt das Material erhalten.\n\n## Wirkung auf den Jahresplan\nWochen ohne einen einzigen Unterrichtstag zählen nicht als Unterrichtswochen. Der Jahresplan verteilt seine Themen nur auf Unterrichtswochen.\n\n> Die Ferien eines Schuljahrs ergeben sich aus diesen Zeiträumen. Ein eigenes Ferienfeld gibt es nicht."
+          }
+        }
+      }
+    },
+    "help.schoolYears.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schuljahr"
+          }
+        }
+      }
+    },
+    "help.schoolYears.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Das Schuljahr legt fest, von wann bis wann unterrichtet wird."
+          }
+        }
+      }
+    },
+    "help.schoolYears.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Halbjahr, Jahrgang, Schuljahr, Schultag, Unterrichtswochen"
+          }
+        }
+      }
+    },
+    "help.schoolYears.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unter **Einrichten** legst du mit **Schuljahr hinzufügen** ein Schuljahr an.\n\n## Die drei Daten\n- **Erster Schultag**\n- **Beginn 2. Halbjahr**\n- **Letzter Schultag**\n\nDer letzte Schultag darf nicht vor dem ersten liegen, und das zweite Halbjahr muss im Schuljahr beginnen. Zwei Schuljahre dürfen sich nicht überschneiden.\n\n## Unterrichtswochen\nAus den Daten und den unterrichtsfreien Zeiträumen ergeben sich die Unterrichtswochen. Auf ihnen baut der Jahresplan auf.\n\n## Jahrgang\nFrontstage liest den Jahrgang aus der Klasse, bei 8b also die 8. Bei Klassen ohne Ziffern, etwa „EF“, wählst du den Jahrgang unter **Jahrgang von Hand** selbst.\n\n> Entfernst du ein Schuljahr, bleiben die Jahrespläne dieses Schuljahrs erhalten."
+          }
+        }
+      }
+    },
+    "help.schulmanager.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schulmanager"
+          }
+        }
+      }
+    },
+    "help.schulmanager.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frontstage kann deinen Stundenplan aus Schulmanager Online abrufen und übernehmen."
+          }
+        }
+      }
+    },
+    "help.schulmanager.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import, Vertretung, Anmeldung, Schulmanager, Stundenplan, Abruf"
+          }
+        }
+      }
+    },
+    "help.schulmanager.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Anbindung an Schulmanager Online ist **inoffiziell und ohne Gewähr**. Der Anbieter stellt diese Schnittstelle nicht offiziell bereit. Sie kann sich ändern oder ausfallen. Den Stundenplan kannst du jederzeit von Hand pflegen.\n\n## Einrichten\n1. Öffne **Einrichten** und dort die **Stundenplan-Quelle**.\n2. Wähle als Quelle **Schulmanager Online**.\n3. Melde dich mit Benutzername und Passwort an.\n\n## Abruf\nFrontstage fragt morgens automatisch ab. Mit **Jetzt importieren** fragst du selbst ab. Vertretungen und Ausfälle kommen mit.\n\n## Vorschau\nBevor etwas geändert wird, zeigt die Vorschau **Neu**, **Geändert** und **Entfällt**. Erst **Übernehmen** schreibt es in den Stundenplan. Von Hand geänderte Stunden behältst du mit **Meine Fassung behalten**.\n\n> Deine Zugangsdaten liegen nur im Schlüsselbund dieses Geräts. Die Anbindung ist kostenlos."
+          }
+        }
+      }
+    },
+    "help.storage.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ablage und Ordner freigeben"
+          }
+        }
+      }
+    },
+    "help.storage.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Ablage ist der Ort, an dem dein Material liegt, und Frontstage liest nur freigegebene Ordner."
+          }
+        }
+      }
+    },
+    "help.storage.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OneDrive, iCloud Drive, Google Drive, Ordner, Freigabe, Ablage"
+          }
+        }
+      }
+    },
+    "help.storage.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Material bleibt dort, wo es liegt, zum Beispiel in OneDrive, iCloud Drive oder Google Drive. **Zuordnen** kopiert nie eine Datei.\n\n## Ordner freigeben\nFrontstage liest nur Ordner, die du freigegeben hast. Öffne **Einrichten**, dort die **Ablage**, und tippe auf **Ordner freigeben**. Wähle den Ordner mit deinem Material und gib ihm einen Namen.\n\nDie Freigabe gilt nur für dieses Gerät. Auf einem zweiten Gerät gibst du den passenden Ordner noch einmal frei. Frontstage zeigt dir unter **Auf diesem Gerät noch nicht freigegeben**, welche Ordner fehlen.\n\n## Microsoft-Anmeldung\nFür AutoSpeichern bei OneDrive meldest du dich unter **Einrichten** bei **Microsoft** an.\n\n> Liegt eine Datei außerhalb der freigegebenen Ordner, meldet Frontstage das und bietet **Ordner freigeben** an."
+          }
+        }
+      }
+    },
+    "help.dataLocation.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datenort"
+          }
+        }
+      }
+    },
+    "help.dataLocation.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Datenort ist der Platz, an dem Frontstage deinen Stundenplan und deine Zuordnungen ablegt."
+          }
+        }
+      }
+    },
+    "help.dataLocation.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iCloud, OneDrive, Sync, Abgleich, Datenort, Synchronisieren"
+          }
+        }
+      }
+    },
+    "help.dataLocation.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frontstage legt deine Daten an einem Datenort ab: **iCloud** oder **OneDrive**. Dort liegen Stundenplan, Zuordnungen, Jahrespläne und Einstellungen. Dein Material liegt dort nicht, es bleibt in der Ablage.\n\n## Wechseln\nÖffne **Einrichten** und dort **Datenort**. Beim **Wechseln** nimmst du alle Daten mit. Der bisherige Ort bleibt unverändert.\n\n## OneDrive\n- Melde dich bei Microsoft an.\n- Die Daten liegen im Ordner **Apps/Frontstage** in deinem OneDrive.\n- Mit **Jetzt abgleichen** startest du den Abgleich selbst. Der **Stand des Abgleichs** zeigt, ob alles angekommen ist.\n- Ein Schulkonto braucht manchmal die Freigabe der Schul-IT.\n\n> Auf allen Geräten muss derselbe Datenort gewählt sein. Ein zweites Gerät koppelst du mit **Gerät koppeln**."
+          }
+        }
+      }
+    },
+    "help.pairing.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Geräte koppeln"
+          }
+        }
+      }
+    },
+    "help.pairing.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit einem QR-Code verbindest du ein zweites Gerät, zum Beispiel deinen Mac, mit demselben Datenort."
+          }
+        }
+      }
+    },
+    "help.pairing.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "QR-Code, zweites Gerät, Mac, Koppeln, iPad, Scannen"
+          }
+        }
+      }
+    },
+    "help.pairing.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wenn du Frontstage auf einem zweiten Gerät nutzt, koppelst du es mit dem ersten. So landen beide am selben Datenort.\n\n## So koppelst du\n1. Öffne auf dem ersten Gerät **Einrichten**, dann **Datenort** und **Gerät koppeln**. Es zeigt einen QR-Code.\n2. Öffne auf dem zweiten Gerät **Mit anderem Gerät koppeln** und scanne den Code.\n3. Bestätige mit **Übernehmen**.\n\n## Bei OneDrive\nBeide Geräte brauchen dasselbe Microsoft-Konto. Gehört der Code zu einem anderen Konto, meldet Frontstage das.\n\n## Ohne Kamera\nHat das zweite Gerät keine Kamera, zeigst du den Code dort an und scannst ihn mit dem ersten Gerät.\n\n> Koppeln ist eine Erleichterung. Den Datenort kannst du auf jedem Gerät auch von Hand wählen."
+          }
+        }
+      }
+    },
+    "help.appearance.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erscheinungsbild"
+          }
+        }
+      }
+    },
+    "help.appearance.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hier stellst du Grundton, Akzentfarbe und Hell oder Dunkel nach deinem Geschmack ein."
+          }
+        }
+      }
+    },
+    "help.appearance.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Farbe, Dunkelmodus, Theme, Grundton, Akzent, Design"
+          }
+        }
+      }
+    },
+    "help.appearance.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unter **Einrichten** findest du das **Erscheinungsbild**.\n\n## Was du einstellen kannst\n- **Grundton**: **Warm** (der Standard), **System**, **Kühl** oder **Petrol**.\n- **Akzentfarbe**: Frontstage prüft den Kontrast und passt die Farbe an, wenn sie schlecht lesbar wäre. Das steht dann in der Vorschau.\n- **Hell/Dunkel**: **Wie das System**, **Hell** oder **Dunkel**.\n\nDie **Vorschau** zeigt die Wirkung mit einem Beispiel wie „Arbeitsblatt Vokabeln“, hell und dunkel nebeneinander. Mit **Auf Standard zurücksetzen** kehrst du zurück.\n\n## Kostenlos oder Kauf\nDer Standard ist kostenlos. Die übrige Auswahl gehört zum Einmalkauf. Ohne Kauf bleibt deine Auswahl gespeichert und gilt wieder, sobald du kaufst.\n\n> Das Erscheinungsbild gilt auf allen deinen Geräten."
+          }
+        }
+      }
+    },
+    "help.purchase.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kauf"
+          }
+        }
+      }
+    },
+    "help.purchase.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Der Kern von Frontstage ist kostenlos, ein einmaliger Kauf schaltet weitere Funktionen frei."
+          }
+        }
+      }
+    },
+    "help.purchase.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Preis, Einmalkauf, Abo, Kaufen, Freischalten, Wiederherstellen"
+          }
+        }
+      }
+    },
+    "help.purchase.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frontstage hat kein Abo. Es gibt einen einmaligen Kauf.\n\n## Kostenlos\n- der Kern: Heute, Vorbereiten, Material, Jahresplan, Stundenplan\n- die Anbindung an Schulmanager\n- die Hilfe\n- die Rückmeldung an den Entwickler\n\n## Im Einmalkauf\n- der **Klassenbildschirm**\n- **Timer** und **Arbeitsform**\n- die **Tafel**\n- das **Erscheinungsbild** über den Standard hinaus\n\n## Auf mehreren Geräten\nDer Kauf gilt auf allen Geräten mit derselben Apple-ID. Auf einem neuen Gerät wählst du unter **Einrichten** im Abschnitt **Kauf** die Option **Käufe wiederherstellen**.\n\n> Der Kauf läuft über den App Store. Den aktuellen Preis siehst du dort, bevor du bestätigst."
+          }
+        }
+      }
+    },
+    "help.privacy.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wo deine Daten liegen"
+          }
+        }
+      }
+    },
+    "help.privacy.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frontstage hat keine eigenen Server, deine Daten bleiben bei dir und bei deinem Anbieter."
+          }
+        }
+      }
+    },
+    "help.privacy.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Datenschutz, DSGVO, Server, Daten, Cloud, Sicherheit"
+          }
+        }
+      }
+    },
+    "help.privacy.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frontstage betreibt keine eigenen Server für deine Daten.\n\n## Wo was liegt\n- **Deine Daten** wie Stundenplan, Zuordnungen und Jahrespläne liegen an deinem **Datenort**, also in iCloud oder in deinem OneDrive.\n- **Dein Material** liegt in deiner **Ablage**. Frontstage liest es nur und verändert es nie.\n- **Zugangsdaten**, etwa für Schulmanager, liegen nur im Schlüsselbund deines Geräts.\n\n## Rückmeldung\nEine Rückmeldung an den Entwickler verschickst du selbst. Frontstage sendet nichts im Hintergrund. Du siehst vorher, was mitgeht.\n\n## Was das für dich heißt\nWer Zugriff auf dein iCloud- oder OneDrive-Konto hat, hat Zugriff auf diese Daten. Schützt du das Konto, schützt du auch Frontstage.\n\n> Schüler- und Klassenlisten brauchst du in Frontstage nicht. Der Stundenplan kommt mit Klassenbezeichnungen wie 7a aus."
+          }
+        }
+      }
+    },
+    "help.feedback.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rückmeldung geben"
+          }
+        }
+      }
+    },
+    "help.feedback.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mit einer Rückmeldung sagst du dem Entwickler, was dir fehlt oder was nicht funktioniert."
+          }
+        }
+      }
+    },
+    "help.feedback.keywords" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feedback, Fehler, Idee, Screenshot, Hinweis, Bildschirmfoto"
+          }
+        }
+      }
+    },
+    "help.feedback.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Du hast eine Idee oder einen Fehler gefunden? Öffne die Rückmeldung über das Fragezeichen im Hilfecenter.\n\n## Was du mitschicken kannst\n- Eine Beschreibung in deinen Worten.\n- Ein **Bildschirmfoto** der aktuellen Ansicht. Du kannst darauf zeichnen und Stellen **schwärzen**, die niemand sehen soll.\n- Höchstens fünf Bilder.\n- Geräteangaben wie Modell und App-Version. Das ist freiwillig, du entscheidest.\n\n## Verschicken\nFrontstage bereitet eine E-Mail vor. Du siehst alles, bevor du sendest. Hast du auf dem Gerät kein Mail-Konto, kannst du den Text **Teilen** oder **Kopieren** und anders verschicken.\n\n## Entwurf\nDein Entwurf bleibt auf dem Gerät. Schließt du das Fenster, kannst du später weiterschreiben.\n\n> Rückmeldung ist kostenlos und gehört nicht zum Einmalkauf."
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
