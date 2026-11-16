@@ -69,7 +69,9 @@ liest der Dienst nicht. Die Begrenzung und die Anmeldesperre gelten damit je Bes
 **Einrichten in Dockhand:**
 
 1. Stacks, Neuer Stack, Quelle Git: Repository `https://github.com/andreasgrathwohl/Tagesmappe`, Branch `main`,
-   Compose-Pfad `server/deploy/docker-compose.yml`.
+   Compose-Pfad `server/deploy/docker-compose.yml`, **Context directory `.`** (Repo-Wurzel). Ohne diese Einstellung
+   kopiert Dockhand nur die Compose-Datei, und der Bau scheitert mit „open Dockerfile: no such file or directory“.
+   Das Verwaltungspasswort selbst gehört nicht in den Stack, nur sein Hash.
 2. Umgebungsvariablen des Stacks setzen (fehlt eine, startet der Stack nicht):
    - `CLOUDFLARE_TUNNEL_TOKEN`: Token des Tunnels `frontstage`.
    - `APP_KEY` und `SESSION_SECRET`: je mindestens 32 Zeichen, z. B. `openssl rand -base64 48`.
