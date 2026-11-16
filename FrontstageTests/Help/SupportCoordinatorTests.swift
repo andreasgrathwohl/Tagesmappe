@@ -5,6 +5,12 @@ import Testing
 @testable import Frontstage
 
 @MainActor @Suite struct SupportCoordinatorTests {
+  /// Zählt Aufnahmen; eine Klasse, weil der `@MainActor`-Closure als Sendable keine lokale `var` mutieren darf.
+  private final class CallLog {
+    var captures = 0
+  }
+
+
   private func makeCoordinator(
     capture: @escaping @MainActor () -> CGImage? = { FeedbackTestSupport.makeImage() }
   ) -> SupportCoordinator {
@@ -22,13 +28,13 @@ import Testing
 
   @Test("Review 1: Rückmeldung aus dem Menü nimmt zuerst auf")
   func menuFeedbackCapturesFirst() {
-    var captures = 0
+    let log = CallLog()
     let coordinator = makeCoordinator(capture: {
-      captures += 1
+      log.captures += 1
       return FeedbackTestSupport.makeImage()
     })
     coordinator.startFeedback()
-    #expect(captures == 1)
+    #expect(log.captures == 1)
     let session = coordinator.feedbackSession
     #expect(session?.model.draft.attachments.map(\.origin) == [.windowCapture])
     #expect(session?.model.draft.kind == .issue)
