@@ -76,6 +76,22 @@ def test_nine_mib_image_is_413(client):
     assert post_feedback(client, images=[b"\x89PNG" + b"0" * (9 * MIB)]).status_code == 413
 
 
+def test_missing_content_length_is_rejected(client):
+    # Chunked-Upload ohne Content-Length darf die Größengrenze nicht umgehen
+    def chunks():
+        yield b"--x--"
+
+    r = client.post(
+        "/api/v1/feedback",
+        content=chunks(),
+        headers={
+            "X-Frontstage-App-Key": KEY,
+            "Content-Type": "multipart/form-data; boundary=x",
+        },
+    )
+    assert r.status_code == 411
+
+
 def test_content_length_over_26_mib_is_413_without_reading(client):
     r = client.post(
         "/api/v1/feedback",

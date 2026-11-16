@@ -52,9 +52,13 @@ async def receive_feedback(
     if wait is not None:
         return _error(429, "Zu viele Anfragen.", {"Retry-After": str(wait)})
 
-    # 3. Größe vorab, ohne den Rumpf zu lesen
+    # 3. Größe vorab, ohne den Rumpf zu lesen; ohne Content-Length (chunked) wäre die
+    #    Obergrenze umgehbar, die App sendet die Angabe immer
+    raw_length = request.headers.get("content-length")
+    if raw_length is None:
+        return _error(411, "Die Angabe der Länge fehlt.")
     try:
-        declared = int(request.headers.get("content-length", "0"))
+        declared = int(raw_length)
     except ValueError:
         return _error(422, "Ungültige Anfrage.")
     if declared > MAX_BODY_BYTES:
