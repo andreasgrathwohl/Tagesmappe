@@ -302,6 +302,7 @@ main {
 /*
  * App-Illustrationen (Nutzung in Teilplan 13 Task 2 und 3).
  * Der Rahmen ist ein Container: alle Maße im Inneren hängen an cqw und skalieren mit dem Rahmen.
+ * Inhalt gehört in ein Kind `.app-screen`, das die Schriftgröße trägt.
  * Auf schmalen Schirmen schneidet Task 2 den Rahmen auf den aktiven Bereich zu, statt die Schrift zu verkleinern.
  */
 .app-frame {
@@ -314,8 +315,14 @@ main {
   background: var(--app-bg);
   color: var(--app-text);
   font-family: var(--font-app);
-  font-size: clamp(10px, 2cqw, 22px);
   line-height: 1.25;
+}
+
+/* Schrift am inneren Wrapper: cqw löst sich für das Containerelement selbst gegen den Viewport auf. */
+.app-frame > .app-screen {
+  width: 100%;
+  height: 100%;
+  font-size: clamp(10px, 2cqw, 22px);
 }
 
 .app-frame--mac {
