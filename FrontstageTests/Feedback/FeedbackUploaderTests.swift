@@ -82,7 +82,7 @@ private final class Recorder<Value: Sendable>: @unchecked Sendable {
   func retriesServerErrorsThenFails() async {
     let server = StubURLProtocol.Server { _ in (503, "") }
     let sleeps = Recorder<Double>()
-    do {
+    do throws(FeedbackUploadError) {
       _ = try await upload(server, sleeps: sleeps)
       Issue.record("Erwartet: unavailable")
     } catch {
@@ -106,7 +106,7 @@ private final class Recorder<Value: Sendable>: @unchecked Sendable {
   func doesNotRetryClientErrors() async {
     for code in [401, 413, 415, 422] {
       let server = StubURLProtocol.Server { _ in (code, "") }
-      do {
+      do throws(FeedbackUploadError) {
         _ = try await upload(server)
         Issue.record("Erwartet: rejected \(code)")
       } catch {
@@ -119,7 +119,7 @@ private final class Recorder<Value: Sendable>: @unchecked Sendable {
   @Test("429 → rateLimited")
   func rateLimited() async {
     let server = StubURLProtocol.Server { _ in (429, "") }
-    do {
+    do throws(FeedbackUploadError) {
       _ = try await upload(server)
       Issue.record("Erwartet: rateLimited")
     } catch {
