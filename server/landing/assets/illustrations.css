@@ -1,9 +1,157 @@
 /*
- * Frontstage – App-Illustrationen der Stationen (Teilplan 13, Task 2).
+ * Frontstage – App-Illustrationen und ihre Bewegung.
  * Nachgebaut in HTML/CSS/SVG nach DESIGN.md (UI-3 Liste und Detail, UI-6 Hierarchie nur über Größe,
  * UI-8 warm, UI-9 Petrol, UI-10 Formen, UI-11 Signalsymbole, UI-12 Kapsel). Alle Daten sind erfunden.
- * Die Rahmen sind Container: Maße hängen an em, die Schrift am inneren .app-screen.
+ * Die Rahmen sind Container: Maße hängen an em, die Schrift am inneren .app-screen (cqw gegen den Rahmen).
+ * Ruhezustand jeder Illustration ist ihr Endzustand; Abläufe gelten nur ohne prefers-reduced-motion.
  */
+
+/* ---------- Geräte ---------- */
+
+.device {
+  --bz: clamp(6px, 0.9vw, 12px);
+  --r: clamp(18px, 2.4vw, 32px);
+  position: relative;
+  padding: var(--bz);
+  border-radius: var(--r);
+  background: var(--bezel);
+  /* Geräte stehen voreinander im Raum: der einzige Schatten der Seite */
+  box-shadow: 0 36px 60px -36px rgba(2, 16, 20, 0.6);
+  transition: background-color 0.6s ease;
+}
+
+.device--board {
+  --bz: clamp(5px, 0.7vw, 9px);
+  --r: 12px;
+  padding-bottom: calc(var(--bz) * 2.4);
+}
+
+.device--mac {
+  padding: 0;
+  border-radius: 12px;
+  background: var(--app-bg);
+  overflow: hidden;
+  box-shadow: 0 40px 70px -40px rgba(2, 16, 20, 0.55);
+}
+
+.mac-bar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 14px;
+  background: color-mix(in srgb, var(--app-text) 9%, var(--app-bg));
+  color: var(--app-text);
+  font-family: var(--font-app);
+}
+
+.mac-bar span {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--app-text) 26%, var(--app-bg));
+}
+
+.mac-bar p {
+  margin: 0 auto;
+  padding-right: 47px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.app-frame {
+  position: relative;
+  container-type: inline-size;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: calc(var(--r) - var(--bz));
+  background: var(--app-bg);
+  color: var(--app-text);
+  font-family: var(--font-app);
+  line-height: 1.25;
+}
+
+/* Schrift am inneren Wrapper: cqw löst sich für das Containerelement selbst gegen den Viewport auf. */
+.app-frame > .app-screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  font-size: clamp(11px, 2.1cqw, 22px);
+}
+
+.app-frame p {
+  max-width: none;
+}
+
+.app-frame--mac {
+  aspect-ratio: 16 / 9.4;
+  border-radius: 0;
+}
+
+.app-frame--board {
+  aspect-ratio: 16 / 9;
+  border-radius: 5px;
+}
+
+/* Ausschnitt: nur der Detailbereich, in Lesegröße */
+.app-frame--focus {
+  aspect-ratio: auto;
+}
+
+.app-frame--focus > .app-screen {
+  font-size: clamp(12px, 3.7cqw, 20px);
+}
+
+.app-frame--focus .day {
+  grid-template-columns: 1fr;
+}
+
+.app-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.app-row {
+  display: flex;
+  align-items: center;
+  gap: 1em;
+  padding: 0.8em 1em;
+  border-radius: var(--radius-select);
+}
+
+.app-row--selected {
+  background: var(--app-selection);
+}
+
+.app-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  padding: 1em;
+  border-radius: var(--radius-tile);
+  background: var(--app-tint);
+  color: var(--app-text);
+}
+
+.app-capsule {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  padding: 0.25em 0.9em;
+  border-radius: 999px;
+  background: var(--app-tint);
+  color: var(--app-text);
+  font-size: 0.85em;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.app-capsule--now {
+  background: var(--app-now);
+  color: var(--app-now-text);
+}
 
 /* ---------- Tagesansicht: Liste links, Detail rechts ---------- */
 
@@ -47,12 +195,10 @@
 
 .row-sub {
   font-size: 0.85em;
-  opacity: 0.8;
 }
 
 .row-free .row-main strong {
   font-weight: 500;
-  opacity: 0.7;
 }
 
 /* Signalwörter stehen in Textfarbe, das Symbol trägt die Signalfarbe (UI-11). Vertretung hat keine eigene
@@ -98,14 +244,16 @@
 .detail-topic {
   margin-top: -0.6em;
   font-size: 1.15em;
-  max-width: none;
-  opacity: 0.85;
 }
 
 .tiles {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.8em;
+}
+
+.tiles > * {
+  min-width: 0;
 }
 
 .app-tile strong {
@@ -126,43 +274,126 @@
   justify-content: space-between;
 }
 
-.app-note {
-  margin-left: auto;
-  font-size: 0.8em;
-  font-weight: 700;
-  padding: 0.2em 0.7em;
-  border-radius: 999px;
-  background: var(--app-bg);
-}
-
 .stand {
   margin-top: auto;
-  padding: 0.6em 0.8em 0;
-  font-size: 0.8em;
-  opacity: 0.75;
-  max-width: none;
+  font-size: 0.85em;
 }
 
-/* Schmal: Liste über Detail, Schrift fest (statt zu schrumpfen) */
-@media (max-width: 700px) {
-  .app-frame--tablet:not(.app-frame--chalk):not(.app-frame--strip) {
-    aspect-ratio: auto;
+/* ---------- Kacheln zum Antippen (Station 8:40) ---------- */
+
+.tiles--tap .app-tile {
+  padding: 0;
+  min-height: 7.6em;
+  transition: transform 0.3s var(--spring);
+}
+
+.tiles--tap .app-tile:hover {
+  transform: translateY(-3px);
+}
+
+.tiles--tap .app-tile:active {
+  transform: scale(0.96);
+  transition-duration: 0.08s;
+}
+
+.tiles--tap .app-tile--board {
+  min-height: 3.8em;
+}
+
+.tile-btn {
+  all: unset;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.4em;
+  width: 100%;
+  padding: 1em;
+  border-radius: inherit;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.app-tile--board .tile-btn {
+  justify-content: center;
+}
+
+.tile-btn:focus-visible {
+  outline: 3px solid var(--app-now);
+  outline-offset: 3px;
+}
+
+/* Tipp-Markierung: gelber Punkt, der sich ausbreitet */
+.tile-btn::after,
+.tap {
+  content: "";
+  position: absolute;
+  right: 1em;
+  top: 0.9em;
+  width: 2.4em;
+  height: 2.4em;
+  border-radius: 50%;
+  background: var(--app-now);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tap {
+  right: 22%;
+  top: 34%;
+}
+
+.tile-btn.tapped::after {
+  animation: tap-ring 0.75s ease-out;
+}
+
+@keyframes tap-ring {
+  0% {
+    opacity: 0.95;
+    transform: scale(0.3);
   }
 
-  .app-frame--strip {
-    aspect-ratio: auto;
+  35% {
+    opacity: 0.9;
+    transform: scale(1);
   }
 
-  .app-frame--tablet > .app-screen {
-    font-size: 13px;
+  100% {
+    opacity: 0;
+    transform: scale(2.6);
   }
+}
 
-  .app-frame--tablet .day {
-    grid-template-columns: 1fr;
-  }
+.tiles--tap .app-capsule {
+  position: absolute;
+  left: 1.2em;
+  bottom: 1.1em;
+  pointer-events: none;
+  transform-origin: left center;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
 
-  .app-frame--tablet .day__list {
-    padding: 0.8em 0.6em;
+.tiles--tap .app-tile--board .app-capsule {
+  left: auto;
+  right: 1.2em;
+  bottom: calc(50% - 0.9em);
+  transform-origin: right center;
+}
+
+.tiles--tap .app-capsule.is-off {
+  opacity: 0;
+  transform: scale(0.3);
+}
+
+.tiles--tap .app-capsule.pop {
+  animation: capsule-pop 0.55s var(--spring) backwards;
+}
+
+@keyframes capsule-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.3);
   }
 }
 
@@ -170,18 +401,24 @@
 
 .app-frame--board > .app-screen {
   font-size: 2.1cqw;
+}
+
+.pane {
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 1.2em;
   padding: 0 7%;
+  background: var(--app-bg);
+  color: var(--app-text);
 }
 
 .board-small {
   font-size: 1.5em;
   font-weight: 700;
   color: var(--app-accent);
-  max-width: none;
 }
 
 .board-big {
@@ -189,12 +426,10 @@
   font-weight: 800;
   line-height: 1.05;
   letter-spacing: -0.02em;
-  max-width: none;
 }
 
 .board-line {
   font-size: 1.8em;
-  max-width: none;
 }
 
 .board-timer {
@@ -205,20 +440,22 @@
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   color: var(--app-accent);
-  max-width: none;
 }
 
-/* Folie: weiße Fläche mit großer Überschrift */
-.slide {
+/* Folie und Arbeitsblatt: helle Seite, in beiden Modi */
+.pane--slide,
+.pane--sheet {
+  gap: 0.8em;
   background: #fbf8f2;
   color: #1f1a14;
 }
 
-.slide .board-small {
+.pane--slide .board-small,
+.pane--sheet .board-small {
   color: #0e6b7a;
 }
 
-.slide ul {
+.pane ul {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -226,56 +463,256 @@
   line-height: 1.5;
 }
 
-/* ---------- Leiste am iPad ---------- */
-
-.strip {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.9em;
-  height: 100%;
-  padding: 1.4em;
-  background: var(--app-selection);
+.pane--sheet ul {
+  font-weight: 700;
 }
 
-.strip-title {
-  font-size: 1.6em;
-  font-weight: 800;
-  line-height: 1.1;
-  max-width: none;
+.pen {
+  width: 30%;
+  margin: -1.6em 0 0 12%;
+  fill: none;
+  stroke: #0e6b7a;
+  stroke-width: 4;
+  stroke-linecap: round;
 }
 
-.strip-preview {
-  padding: 0.9em 1em;
-  border-radius: var(--radius-tile);
-  background: var(--app-bg);
-  max-width: none;
-  font-size: 1.1em;
-  line-height: 1.35;
+.pane--chalk {
+  padding: 0;
 }
 
-.strip-preview strong {
-  display: block;
-  font-size: 1.1em;
+/* Bühne der Station 8:40: site.js setzt data-show; die passende Fläche schiebt sich herein */
+[data-stage] .pane {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateX(6%);
+  transition: opacity 0.4s ease, transform 0.7s var(--ease), visibility 0s 0.4s;
 }
 
-.strip-state {
-  display: flex;
-  gap: 0.6em;
-  flex-wrap: wrap;
+[data-show="class"] [data-pane="class"],
+[data-show="pptx"] [data-pane="pptx"],
+[data-show="pdf"] [data-pane="pdf"],
+[data-show="tafel"] [data-pane="tafel"] {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0s;
 }
 
-.app-frame--strip {
-  aspect-ratio: 3 / 4;
+@media (prefers-reduced-motion: reduce) {
+  [data-stage] .pane {
+    transform: none;
+    transition: none;
+  }
 }
 
-.app-frame--strip > .app-screen {
-  font-size: clamp(11px, 4.2cqw, 20px);
+/* ---------- Held: ein Tipp, die Kapsel, das Smartboard wechselt – in einer Schleife ---------- */
+
+.hero__scene {
+  display: grid;
+}
+
+.hero__tablet {
+  z-index: 2;
+  width: 78%;
+  margin-top: -7%;
+}
+
+@media (min-width: 700px) {
+  .hero__scene {
+    grid-template-columns: repeat(12, 1fr);
+  }
+
+  .hero__board {
+    grid-column: 4 / -1;
+    grid-row: 1;
+    align-self: start;
+  }
+
+  .hero__tablet {
+    grid-column: 1 / 8;
+    grid-row: 1;
+    width: auto;
+    margin-top: 58%;
+  }
+}
+
+/* Ruhezustand = Endzustand: Kapsel sichtbar, Folie am Smartboard */
+.hero .pane--class {
+  opacity: 0;
+}
+
+.hero .app-capsule--now {
+  transform-origin: left center;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero .pane--class {
+    animation: hero-class 10s 1.2s infinite backwards;
+  }
+
+  .hero .pane--slide {
+    animation: hero-slide 10s 1.2s infinite backwards;
+  }
+
+  .hero .pane--slide li {
+    animation: hero-line 10s 1.2s infinite backwards;
+  }
+
+  .hero .pane--slide li + li {
+    animation-name: hero-line-2;
+  }
+
+  .hero .app-capsule--now {
+    animation: hero-capsule 10s 1.2s infinite backwards;
+  }
+
+  .hero .tap {
+    animation: hero-tap 10s 1.2s infinite backwards;
+  }
+
+  .hero .app-tile--hot {
+    animation: hero-press 10s 1.2s infinite backwards;
+  }
+}
+
+@keyframes hero-class {
+  0%,
+  22% {
+    opacity: 1;
+    transform: none;
+  }
+
+  29%,
+  91% {
+    opacity: 0;
+    transform: translateX(-7%);
+  }
+
+  97%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hero-slide {
+  0%,
+  22% {
+    opacity: 0;
+    transform: translateX(9%);
+  }
+
+  30%,
+  91% {
+    opacity: 1;
+    transform: none;
+  }
+
+  96%,
+  100% {
+    opacity: 0;
+    transform: translateX(9%);
+  }
+}
+
+@keyframes hero-line {
+  0%,
+  30% {
+    opacity: 0;
+    transform: translateX(1em);
+  }
+
+  36%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hero-line-2 {
+  0%,
+  34% {
+    opacity: 0;
+    transform: translateX(1em);
+  }
+
+  40%,
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes hero-capsule {
+  0%,
+  17% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+
+  20% {
+    opacity: 1;
+    transform: scale(1.14);
+  }
+
+  23%,
+  91% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  95%,
+  100% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+}
+
+@keyframes hero-tap {
+  0%,
+  8% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+
+  12% {
+    opacity: 0.95;
+    transform: scale(1);
+  }
+
+  16% {
+    opacity: 0.95;
+    transform: scale(0.8);
+  }
+
+  24%,
+  100% {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+
+@keyframes hero-press {
+  0%,
+  13% {
+    transform: none;
+  }
+
+  16% {
+    transform: scale(0.95);
+  }
+
+  20%,
+  100% {
+    transform: none;
+  }
 }
 
 /* ---------- Tafel (SVG) ---------- */
 
 .chalk-svg {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
 }
@@ -318,14 +755,23 @@
   font-weight: 700;
 }
 
+/* Endzustand: Abdeckung bis zum unteren Rand aufgezogen */
+.cover-g {
+  transform: translateY(106px);
+}
+
+.draw {
+  stroke-dasharray: 1;
+}
+
 .toolbar {
   position: absolute;
   left: 3%;
   top: 3%;
   display: flex;
   z-index: 1;
-  gap: 0.6em;
-  font-size: clamp(10px, 1.8cqw, 18px);
+  gap: 0.5em;
+  font-size: clamp(11px, 1.9cqw, 18px);
 }
 
 .toolbar span {
@@ -333,7 +779,6 @@
   border-radius: 999px;
   background: var(--app-selection);
   color: var(--app-text);
-  font-family: var(--font-app);
   font-weight: 700;
 }
 
@@ -342,48 +787,11 @@
   color: var(--app-bg);
 }
 
-/* Kapsel oben rechts am Rahmen */
-.corner-capsule {
-  position: absolute;
-  top: 3%;
-  right: 3%;
-  font-size: clamp(10px, 2cqw, 20px);
-  font-family: var(--font-app);
-  z-index: 1;
-}
-
-.corner-capsule.app-capsule {
-  font-size: clamp(11px, 2.2cqw, 20px);
-}
-
-/* Tafel auf dem Smartboard: SVG füllt den Rahmen */
 .board-chalk > .app-screen {
-  display: block;
   padding: 0;
 }
 
-.chalk-wrap {
-  width: 100%;
-  height: 100%;
-}
-
-.app-frame--tablet .app-screen > .chalk-svg {
-  position: absolute;
-  inset: 0;
-}
-
-/* Folie füllt den Rahmen */
-.app-frame--board > .app-screen > .slide {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.8em;
-  height: 100%;
-  margin: 0 -9.5%;
-  padding: 0 9.5%;
-}
-
-/* ---------- Vorbereiten am Mac (Task 3) ---------- */
+/* ---------- Vorbereiten am Mac ---------- */
 
 .prep {
   display: grid;
@@ -411,9 +819,30 @@
   background: var(--app-selection);
 }
 
-.app-tile--drop {
-  transform: rotate(-3deg) translate(0.6em, 0.4em);
-  box-shadow: 0 0.5em 1.2em rgba(31, 26, 20, 0.25); /* schwebt: wird gerade gezogen */
+.drop-slot {
+  display: grid;
+}
+
+.drop-slot > * {
+  grid-area: 1 / 1;
+}
+
+/* Die gezogene Datei: schwebt, mit Zeiger */
+.drag-file {
+  opacity: 0;
+  box-shadow: 0 0.6em 1.4em rgba(31, 26, 20, 0.3);
+  pointer-events: none;
+}
+
+.cursor {
+  position: absolute;
+  right: 0.8em;
+  bottom: -0.7em;
+  width: 1.7em;
+  fill: var(--app-text);
+  stroke: var(--app-bg);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
 }
 
 .prep__actions {
@@ -435,6 +864,10 @@
 }
 
 /* ---------- Jahresplan ---------- */
+
+.app-frame--plan {
+  aspect-ratio: 16 / 8.6;
+}
 
 .plan {
   display: flex;
@@ -472,51 +905,276 @@
 }
 
 .plan__table .old {
-  /* abgeschwächt, aber mit ausreichendem Kontrast (Prüfung: axe, 4,5:1) */
+  /* abgeschwächt, aber mit ausreichendem Kontrast (4,5:1) */
   color: color-mix(in srgb, var(--app-text) 70%, var(--app-bg));
 }
 
+.plan__table .fill {
+  display: inline-block;
+  font-weight: 700;
+}
+
 .plan__table .app-capsule {
-  margin-left: 0.6em;
+  margin-left: 0.4em;
   background: var(--app-bg);
 }
 
-/* ---------- Grundtöne: zwei kleine iPads ---------- */
+/* ---------- Abläufe beim Eintritt in den Blick ---------- */
 
-.theme-warm {
-  --app-bg: #fbf8f2;
-  --app-selection: #ece5d8;
-  --app-text: #1f1a14;
-  --app-hairline: rgba(92, 72, 48, 0.22);
-  --app-accent: #0e6b7a;
-  --app-tint: #dae4e1;
+@media (prefers-reduced-motion: no-preference) {
+  /* 7:30 – die Stunden des Tages erscheinen nacheinander, dann das Material */
+  .js [data-reveal] :is(.rows-in .app-row, .tiles-in .app-tile, .stand) {
+    transition: opacity 0.5s ease, transform 0.8s var(--ease);
+  }
+
+  .js [data-reveal]:not(.is-in) .rows-in .app-row {
+    opacity: 0;
+    transform: translateX(-1.4em);
+  }
+
+  .js [data-reveal]:not(.is-in) .tiles-in .app-tile {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+
+  .js [data-reveal]:not(.is-in) .stand {
+    opacity: 0;
+  }
+
+  .rows-in .app-row:nth-child(1) {
+    transition-delay: 0.5s;
+  }
+
+  .rows-in .app-row:nth-child(2) {
+    transition-delay: 0.62s;
+  }
+
+  .rows-in .app-row:nth-child(3) {
+    transition-delay: 0.74s;
+  }
+
+  .rows-in .app-row:nth-child(4) {
+    transition-delay: 0.86s;
+  }
+
+  .rows-in .app-row:nth-child(5) {
+    transition-delay: 0.98s;
+  }
+
+  .tiles-in .app-tile:nth-child(1) {
+    transition-delay: 1.15s;
+  }
+
+  .tiles-in .app-tile:nth-child(2) {
+    transition-delay: 1.27s;
+  }
+
+  .tiles-in .app-tile:nth-child(3) {
+    transition-delay: 1.39s;
+  }
+
+  .is-in .stand {
+    transition-delay: 1.7s;
+  }
+
+  /* 9:05 – Schrift und Striche zeichnen sich, dann geht die Abdeckung auf */
+  .js [data-reveal] .draw {
+    transition: stroke-dashoffset 0.8s ease-in-out;
+  }
+
+  .js [data-reveal]:not(.is-in) .draw {
+    stroke-dashoffset: 1;
+  }
+
+  .js [data-reveal] .write {
+    stroke: var(--app-text);
+    stroke-width: 0.8;
+    stroke-dasharray: 280;
+    transition: stroke-dashoffset 1.1s ease-in-out, fill-opacity 0.5s ease;
+  }
+
+  .js [data-reveal]:not(.is-in) .write {
+    stroke-dashoffset: 280;
+    fill-opacity: 0;
+  }
+
+  .js [data-reveal] .cover-g {
+    transition: transform 1.5s var(--ease);
+  }
+
+  .js [data-reveal]:not(.is-in) .cover-g {
+    transform: none;
+  }
+
+  .is-in .w1 {
+    transition-delay: 0.7s, 1.2s;
+  }
+
+  .is-in .s1 {
+    transition-delay: 1.5s;
+  }
+
+  .is-in .w2 {
+    transition-delay: 2s, 2.5s;
+  }
+
+  .is-in .s2 {
+    transition-delay: 2.9s;
+  }
+
+  .is-in .cover-g {
+    transition-delay: 3.7s;
+  }
+
+  .is-in .s3 {
+    transition-delay: 4.9s;
+  }
+
+  /* 14:30 – die Datei wird auf die Stunde gezogen, in einer Schleife */
+  .js .is-in .drag-file {
+    animation: drag 8s 1.3s infinite backwards;
+  }
+
+  .js .is-in .app-tile--drop {
+    animation: dropped 8s 1.3s infinite backwards;
+  }
+
+  /* Ferien – die Wochen füllen sich */
+  .js [data-reveal] .plan__table .fill {
+    clip-path: inset(-10% -2% -10% 0);
+    transition: clip-path 0.7s var(--ease), opacity 0.2s ease;
+  }
+
+  .js [data-reveal]:not(.is-in) .plan__table .fill {
+    clip-path: inset(-10% 100% -10% 0);
+    opacity: 0;
+  }
+
+  .js [data-reveal] .plan__table .app-capsule {
+    transition: opacity 0.2s ease, transform 0.5s var(--spring);
+  }
+
+  .js [data-reveal]:not(.is-in) .plan__table .app-capsule {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+
+  .is-in .plan__table tr:nth-child(1) .fill {
+    transition-delay: 0.7s;
+  }
+
+  .is-in .plan__table tr:nth-child(2) .fill {
+    transition-delay: 1.05s;
+  }
+
+  .is-in .plan__table tr:nth-child(3) .fill {
+    transition-delay: 1.4s;
+  }
+
+  .is-in .plan__table tr:nth-child(4) .fill {
+    transition-delay: 1.75s;
+  }
+
+  .is-in .plan__table .app-capsule {
+    transition-delay: 2.3s;
+  }
 }
 
-.theme-petrol {
-  --app-bg: #061416;
-  --app-selection: #15292c;
-  --app-text: #ecf4f4;
-  --app-hairline: rgba(125, 108, 86, 0.55);
-  --app-accent: #5fc2cf;
-  --app-tint: #1b3a3e;
+@keyframes drag {
+  0%,
+  6% {
+    opacity: 1;
+    transform: translate(-58cqw, 15cqw) rotate(-7deg);
+  }
+
+  36% {
+    opacity: 1;
+    transform: translate(0.8em, 0.6em) rotate(-4deg);
+  }
+
+  44% {
+    opacity: 1;
+    transform: translate(0.8em, 0.6em) rotate(-4deg);
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+    transform: none;
+  }
 }
 
-.app-frame--mini {
-  aspect-ratio: 1 / 1;
+@keyframes dropped {
+  0%,
+  45% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+
+  55%,
+  93% {
+    opacity: 1;
+    transform: none;
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
 }
 
-.mini {
-  display: flex;
-  flex-direction: column;
-  gap: 1em;
-  padding: 1.4em 1em;
-  height: 100%;
-}
+/* ---------- Schmal: Liste über Detail, Schrift fest statt geschrumpft ---------- */
 
-.app-frame--mini > .app-screen {
-  font-size: clamp(11px, 3.4cqw, 20px);
-}
+@media (max-width: 700px) {
+  .app-frame--tablet:not(.app-frame--chalk),
+  .app-frame--mac {
+    aspect-ratio: auto;
+  }
 
-.mini .app-row {
-  padding: 0.7em 0.8em;
+  .app-frame--tablet:not(.app-frame--chalk) > .app-screen,
+  .app-frame--mac > .app-screen {
+    font-size: 13px;
+  }
+
+  .app-frame--tablet .day,
+  .prep {
+    grid-template-columns: 1fr;
+  }
+
+  .app-frame--tablet .day__list {
+    padding: 0.8em 0.6em;
+  }
+
+  /* An der Bühne zählt der Tipp: nur der Detailbereich mit den Kacheln */
+  .scene .day__list,
+  .prep__week {
+    display: none;
+  }
+
+  .plan {
+    padding: 1.2em 0.6em;
+  }
+
+  .plan .detail-class {
+    padding-left: 0.4em;
+  }
+
+  .plan__table th,
+  .plan__table td {
+    padding: 0.6em 0.4em;
+    vertical-align: top;
+  }
+
+  .plan__table tbody th {
+    width: 2.6em;
+  }
+
+  .plan__table .app-capsule {
+    margin-left: 0;
+  }
 }

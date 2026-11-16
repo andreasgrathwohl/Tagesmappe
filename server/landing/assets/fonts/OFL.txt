@@ -1,13 +1,13 @@
-STIX Two Text (STIXTwoText.woff2) und Nunito (Nunito.woff2) stehen unter der SIL Open Font License 1.1.
-Quelle: github.com/google/fonts ofl/stixtwotext (Commit 718c7ee) und github.com/googlefonts/nunito (Commit 8c6a9bb).
-Die Dateien sind Latin-1-Teilmengen der Originale.
+Bricolage Grotesque (BricolageGrotesque.woff2) und Nunito (Nunito.woff2) stehen unter der SIL Open Font License 1.1.
+Quelle: github.com/google/fonts ofl/bricolagegrotesque (Commit 6ce172f) und github.com/googlefonts/nunito (Commit 8c6a9bb).
+Die Dateien sind Latin-1-Teilmengen der Originale; Bricolage Grotesque mit fester Breite 100 und den Achsen opsz 14–96, wght 400–800.
 
-================ STIX Two Text ================
-Copyright 2001-2021 The STIX Fonts Project Authors (https://github.com/stipub/stixfonts), with Reserved Font Name "TM Math". STIX Fonts™ is a trademark of The Institute of Electrical and Electronics Engineers, Inc.
+================ Bricolage Grotesque ================
+Copyright 2022 The Bricolage Grotesque Project Authors (https://github.com/ateliertriay/bricolage)
 
 This Font Software is licensed under the SIL Open Font License, Version 1.1.
 This license is copied below, and is also available with a FAQ at:
-http://scripts.sil.org/OFL
+https://scripts.sil.org/OFL
 
 
 -----------------------------------------------------------
