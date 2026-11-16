@@ -5,147 +5,317 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Frontstage – Dein Unterricht, vorbereitet</title>
 <meta name="description" content="Frontstage ist der Tagesbegleiter für Lehrkräfte auf iPad und Mac: Material vorbereiten, mit einem Tipp am Smartboard zeigen, Tafel und Klassenbildschirm inklusive. Einmalig, kein Abo.">
-<meta name="theme-color" content="#f4eee3" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#110e0a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#0b3f49" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0a2c33" media="(prefers-color-scheme: dark)">
 <link rel="icon" type="image/svg+xml" href="/assets/icon.svg">
 <link rel="stylesheet" href="/assets/site.css">
 <link rel="stylesheet" href="/assets/illustrations.css">
+<script src="/assets/site.js" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#inhalt">Zum Inhalt</a>
 <header class="site-header">
-  <a class="brand" href="/"><img src="/assets/icon.svg" width="36" height="36" alt=""><span>Frontstage</span></a>
-  <nav class="site-nav" aria-label="Hauptnavigation">
-    <a href="#tag">So sieht ein Tag aus</a>
-    <a href="#vorbereiten">Vorbereiten</a>
-    <a href="#preise">Preise</a>
-    <a href="#fragen">Fragen</a>
-    <a class="button" href="#testen">Bald im App Store</a>
-  </nav>
+  <div class="bar">
+    <a class="brand" href="/"><img src="/assets/icon.svg" width="36" height="36" alt=""><span>Frontstage</span></a>
+    <nav class="site-nav" aria-label="Hauptnavigation">
+      <a href="#tag">Ein Schultag</a>
+      <a href="#vorbereiten">Vorbereiten</a>
+      <a href="#preise">Preise</a>
+      <a href="#fragen">Fragen</a>
+    </nav>
+    <div class="bar-end">
+      <p class="clock" aria-hidden="true"><span class="clock__label">Jetzt</span><span class="clock__time" data-clock>7:30</span></p>
+      <a class="button button--small" href="#testen">Bald im App Store</a>
+    </div>
+  </div>
+  <div class="day-progress" aria-hidden="true"><span></span></div>
 </header>
 <main id="inhalt">
-<section class="hero" aria-labelledby="h-hero"><div class="wrap">
-<div class="text">
-<h1 id="h-hero">Dein Unterrichtstag, vorbereitet.</h1>
-<p class="lead">Ein Tipp – und das Material steht am Smartboard.</p>
-<p class="fine">Für iPad und Mac. Dein Material bleibt in deiner Ablage, kein Abo.</p>
-<div class="actions"><a class="button" href="#testen">Bald im App Store</a><a class="button button--quiet" href="#tag">So sieht ein Tag aus</a></div>
+
+<section class="hero field field--stage" aria-labelledby="h-hero">
+<div class="wrap hero__grid">
+  <div class="hero__text">
+    <h1 id="h-hero"><span class="line"><span>Ein Tipp.</span></span> <span class="line"><span>Am Smartboard.</span></span></h1>
+    <p class="lead">Dein Material liegt schon bei der Stunde. Ein Tipp am iPad bringt es an die Wand.</p>
+    <div class="actions"><a class="button" href="#testen">Bald im App Store</a><a class="link-quiet" href="#tag">So sieht ein Schultag aus</a></div>
+    <p class="fine">Für iPad und Mac. Dein Material bleibt in deiner Ablage, kein Abo.</p>
+  </div>
+  <figure class="hero__scene" role="img" aria-label="Ablauf in einer Schleife: Am iPad wird in der Stunde 8b Englisch die Kachel „Unit 3 Präsentation“ angetippt, sie bekommt die gelbe Kapsel „Am Smartboard“, und das Smartboard wechselt vom Klassenbildschirm „Gleich: 8b Englisch“ zur Folie „Past tense“">
+    <div class="device device--board hero__board"><div class="app-frame app-frame--board" data-ui><div class="app-screen">
+      <div class="pane pane--class"><p class="board-small">Gleich</p><p class="board-big">8b Englisch</p><p class="board-line">Bereitlegen: Buch, Heft</p></div>
+      <div class="pane pane--slide"><p class="board-small">Unit 3</p><p class="board-big">Past tense</p><ul><li>I went home.</li><li>He went home.</li></ul></div>
+    </div></div></div>
+    <div class="device device--tablet hero__tablet"><div class="app-frame app-frame--tablet app-frame--focus" data-ui><div class="app-screen"><div class="day">
+      <div class="day__detail"><p class="detail-class">8b Englisch</p><p class="detail-topic">Unit 3 – Past tense</p>
+        <div class="tiles">
+          <div class="app-tile app-tile--hot"><span class="kind">PPTX</span><strong>Unit 3 Präsentation</strong><span class="app-capsule app-capsule--now">Am Smartboard</span><span class="tap"></span></div>
+          <div class="app-tile"><span class="kind">PDF</span><strong>Arbeitsblatt Vokabeln</strong></div>
+          <div class="app-tile app-tile--board"><strong>Tafel</strong></div>
+        </div>
+      </div>
+    </div></div></div></div>
+  </figure>
 </div>
-<figure><div class="app-frame app-frame--tablet" role="img" aria-label="Tagesansicht am iPad: links die Stunden des Tages, die 2. Stunde, 8b Englisch, ist gewählt und als „Jetzt“ markiert; rechts das Thema „Unit 3 – Past tense“ mit den Kacheln „Unit 3 Präsentation“, „Arbeitsblatt Vokabeln“ und „Tafel“"><div class="app-screen"><div class="day"><ul class="app-list day__list"><li class="app-row"><span class="period">1</span><span class="row-main"><strong>7a Deutsch</strong></span></li><li class="app-row app-row--selected"><span class="period">2</span><span class="row-main"><strong>8b Englisch</strong></span><span class="app-capsule app-capsule--now">Jetzt</span></li><li class="app-row row-free"><span class="period">3</span><span class="row-main"><strong>frei</strong></span></li><li class="app-row"><span class="period">4</span><span class="row-main"><strong>9c Englisch</strong></span></li><li class="app-row"><span class="period">5</span><span class="row-main"><strong>6c Mathe</strong></span><span class="signal">Vertretung</span></li></ul><div class="day__detail"><p class="detail-class">8b Englisch</p><p class="detail-topic">Unit 3 – Past tense</p><div class="tiles"><div class="app-tile"><span class="kind">PPTX</span><strong>Unit 3 Präsentation</strong></div><div class="app-tile"><span class="kind">PDF</span><strong>Arbeitsblatt Vokabeln</strong></div><div class="app-tile app-tile--board"><strong>Tafel</strong></div></div></div></div></div></div></figure>
-</div></section>
+</section>
+
 <div id="tag">
-<section class="station st-morning" id="morgen" aria-labelledby="h-morgen"><div class="wrap">
-<div class="text"><time class="time" datetime="07:30">7:30</time>
-<h2 id="h-morgen">Ein Blick, und du weißt, was heute dran ist.</h2>
-<p>Die nächste Stunde ist schon gewählt. Vertretungen aus dem Schulmanager sind morgens da, eine Klassenarbeit erscheint als Hinweis.</p>
-<p>Dein Material liegt schon auf dem Gerät – auch wenn das Schul-WLAN hakt.</p></div>
-<figure><div class="app-frame app-frame--tablet" role="img" aria-label="Tagesansicht am iPad am Morgen: die 2. Stunde, 8b Englisch, ist gewählt; bei 9c Englisch steht der Hinweis „Klassenarbeit: KA 1“, bei 6c Mathe „Vertretung“; unten die Zeile „Stand: heute 7:12“"><div class="app-screen"><div class="day"><ul class="app-list day__list"><li class="app-row"><span class="period">1</span><span class="row-main"><strong>7a Deutsch</strong></span></li><li class="app-row app-row--selected"><span class="period">2</span><span class="row-main"><strong>8b Englisch</strong></span></li><li class="app-row row-free"><span class="period">3</span><span class="row-main"><strong>frei</strong></span></li><li class="app-row"><span class="period">4</span><span class="row-main"><strong>9c Englisch</strong><span class="row-sub">Klassenarbeit: KA 1</span></span></li><li class="app-row"><span class="period">5</span><span class="row-main"><strong>6c Mathe</strong></span><span class="signal">Vertretung</span></li></ul><div class="day__detail"><p class="detail-class">8b Englisch</p><p class="detail-topic">Unit 3 – Past tense</p><p class="stand">Stand: heute 7:12</p></div></div></div></div></figure>
-</div></section>
-<section class="station station--stage st-start" id="stundenbeginn" aria-labelledby="h-start"><div class="wrap">
-<div class="head"><div class="text"><time class="time" datetime="08:35">8:35</time></div><div class="text"><h2 id="h-start">Die Klasse sieht, was sie wissen muss.</h2>
-<p>Der Klassenbildschirm zeigt, was gleich beginnt und was bereitliegen soll. Ohne Handgriff, sobald dein iPad mit dem Smartboard verbunden ist.</p></div></div>
-<div class="stage-pair">
-<figure><div class="app-frame app-frame--board" role="img" aria-label="Smartboard mit Klassenbildschirm: „Gleich: 8b Englisch – Bereitlegen: Buch, Heft“"><div class="app-screen"><p class="board-small">Gleich</p><p class="board-big">8b Englisch</p><p class="board-line">Bereitlegen: Buch, Heft</p></div></div></figure>
-<figure><div class="app-frame app-frame--tablet app-frame--strip" role="img" aria-label="iPad-Leiste „Das sieht die Klasse“ mit der Vorschau des Klassenbildschirms und dem Zustand „Verbunden“"><div class="app-screen"><div class="strip"><p class="strip-title">Das sieht die Klasse</p><p class="strip-preview"><strong>Gleich: 8b Englisch</strong>Bereitlegen: Buch, Heft</p><div class="strip-state"><span class="app-capsule">Verbunden</span></div></div></div></div></figure>
-</div></div></section>
-<section class="station station--alt st-material" id="smartboard" aria-labelledby="h-material"><div class="wrap">
-<div class="head"><div class="time-wrap"><time class="time" datetime="08:40">8:40</time></div><div class="text"><h2 id="h-material">Ein Tipp auf die Kachel.</h2>
-<p>Die Präsentation läuft am Smartboard, die Tagesansicht bleibt auf deinem iPad. PowerPoint-Dateien speichern bei OneDrive automatisch mit.</p>
-<p>PDFs zeigt Frontstage selbst – mit Stift.</p></div></div>
-<div class="pair">
-<figure><div class="app-frame app-frame--tablet" role="img" aria-label="iPad mit der Tagesansicht der 2. Stunde: die Kachel „Unit 3 Präsentation“ ist angetippt, die Kapsel „Am Smartboard“ zeigt, dass sie läuft"><div class="app-screen"><div class="day"><ul class="app-list day__list"><li class="app-row"><span class="period">1</span><span class="row-main"><strong>7a Deutsch</strong></span></li><li class="app-row app-row--selected"><span class="period">2</span><span class="row-main"><strong>8b Englisch</strong></span><span class="app-capsule app-capsule--now">Jetzt</span></li><li class="app-row row-free"><span class="period">3</span><span class="row-main"><strong>frei</strong></span></li><li class="app-row"><span class="period">4</span><span class="row-main"><strong>9c Englisch</strong></span></li><li class="app-row"><span class="period">5</span><span class="row-main"><strong>6c Mathe</strong></span><span class="signal">Vertretung</span></li></ul><div class="day__detail"><p class="detail-class">8b Englisch</p><p class="detail-topic">Unit 3 – Past tense</p><div class="tiles"><div class="app-tile"><span class="kind">PPTX</span><strong>Unit 3 Präsentation</strong><span class="app-capsule app-capsule--now">Am Smartboard</span></div><div class="app-tile"><span class="kind">PDF</span><strong>Arbeitsblatt Vokabeln</strong></div><div class="app-tile app-tile--board"><strong>Tafel</strong></div></div></div></div></div></div></figure>
-<figure><div class="app-frame app-frame--board" role="img" aria-label="Smartboard zeigt die Folie „Unit 3 – Past tense“ mit den Beispielen „I went home.“ und „He went home.“"><div class="app-screen"><div class="slide"><p class="board-small">Unit 3</p><p class="board-big">Past tense</p><ul><li>I went home.</li><li>He went home.</li></ul></div></div></div></figure>
-</div></div></section>
-<section class="station station--stage st-board" id="tafel" aria-labelledby="h-tafel"><div class="wrap">
-<div class="text"><time class="time" datetime="09:05">9:05</time><h2 id="h-tafel">Die Tafel ist im iPad.</h2>
-<p>Seiten mit Karo oder Linien, die Kamera als Dokumentenkamera, eine Abdeckung zum Aufziehen. Das Smartboard zeigt nur, was du freigibst.</p>
-<p>Das Tafelbild bleibt bei der Stunde und ist nächste Woche wieder da.</p></div>
-<div class="pair">
-<figure class="tablet-wide"><div class="app-frame app-frame--tablet app-frame--chalk" role="img" aria-label="Tafelseite am iPad mit Karo: oben die halb aufgezogene Abdeckung, darunter handschriftlich „I went – he went“ und „go → went“"><div class="app-screen"><svg class="chalk-svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false"><defs><pattern id="karo1" width="20" height="20" patternUnits="userSpaceOnUse"><path class="grid" d="M0 0H20M0 0V20"/></pattern></defs><rect class="bg" x="0" y="0" width="400" height="300"/><rect x="0" y="0" width="400" height="300" fill="url(#karo1)"/><g transform="rotate(-2 200 215)"><text class="ink" x="28" y="215" font-size="38">I went – he went</text><path class="stroke" d="M30 232 Q 150 246 330 228"/></g><text class="ink" x="40" y="275" font-size="30">go</text><path class="stroke" d="M86 267 H140 M128 257 L140 267 L128 277"/><text class="ink" x="156" y="275" font-size="30">went</text><rect class="cover" x="0" y="0" width="400" height="148"/><rect class="cover-edge" x="0" y="148" width="400" height="6"/><rect class="cover-edge" x="170" y="140" width="60" height="18" rx="9"/><text class="cover-text" x="200" y="80" font-size="22" text-anchor="middle">Abgedeckt</text></svg><div class="toolbar"><span class="on">Stift</span><span>Karo</span><span>Kamera</span><span>Abdecken</span></div></div></div></figure>
-<figure class="board-small-wrap"><div class="app-frame app-frame--board board-chalk" role="img" aria-label="Smartboard zeigt nur den freigegebenen Teil der Tafel: „I went – he went“ und „go → went“"><div class="app-screen"><div class="chalk-wrap"><svg class="chalk-svg" viewBox="0 150 400 150" preserveAspectRatio="xMidYMid meet" aria-hidden="true" focusable="false"><defs><pattern id="karo2" width="20" height="20" patternUnits="userSpaceOnUse"><path class="grid" d="M0 0H20M0 0V20"/></pattern></defs><rect class="bg" x="0" y="0" width="400" height="300"/><rect x="0" y="0" width="400" height="300" fill="url(#karo2)"/><g transform="rotate(-2 200 215)"><text class="ink" x="28" y="215" font-size="38">I went – he went</text><path class="stroke" d="M30 232 Q 150 246 330 228"/></g><text class="ink" x="40" y="275" font-size="30">go</text><path class="stroke" d="M86 267 H140 M128 257 L140 267 L128 277"/><text class="ink" x="156" y="275" font-size="30">went</text></svg></div></div></div></figure>
-</div></div></section>
-<section class="station st-end" id="ende" aria-labelledby="h-end"><div class="wrap">
-<figure><div class="app-frame app-frame--board" role="img" aria-label="Smartboard mit Klassenbildschirm: „Hausaufgabe: Workbook S. 34“ und der laufende Timer „2:00“"><div class="app-screen"><p class="board-small">Hausaufgabe</p><p class="board-big">Workbook S. 34</p><p class="board-timer">2:00</p></div></div></figure>
-<div class="foot"><div class="text"><time class="time" datetime="09:16">9:16</time></div><div class="text"><h2 id="h-end">Die Hausaufgabe steht groß an der Wand, bevor es klingelt.</h2>
-<p>Der Timer läuft sichtbar weiter – für die letzten Minuten, ohne dass du etwas bedienen musst.</p></div></div>
-</div></section>
-<section class="station st-prep" id="vorbereiten" aria-labelledby="h-prep"><div class="wrap">
-<div class="text"><time class="time" datetime="14:30">14:30</time>
-<h2 id="h-prep">Am Mac vorbereiten, am iPad unterrichten.</h2>
-<p>Zieh die Datei auf die Stunde – oder gleich auf „Für 9c übernehmen“, wenn sie für die ganze Klasse gilt. Was du nicht geschafft hast, schiebst du mit einem Klick in die nächste Stunde.</p>
-<p>Zuordnen kopiert nie Dateien: Das Material bleibt in deiner Ablage, Frontstage merkt sich nur, wohin es gehört.</p></div>
-<figure><div class="app-frame app-frame--mac" role="img" aria-label="Mac-Fenster „Vorbereiten“: links die Woche mit der gewählten Stunde Donnerstag, 9c Englisch; rechts die Stunde in Woche 8 mit dem Thema „Unit 4 – Wortschatz“, der Datei „Arbeitsblatt Vokabeln“, einer gerade hineingezogenen Datei „Lösung Arbeitsblatt“ und den Knöpfen „Für 9c übernehmen“ und „In die nächste Stunde schieben“"><div class="app-screen"><div class="prep">
-<ul class="app-list prep__week"><li class="app-row"><span class="period">Mo</span><span class="row-main"><strong>8b Englisch</strong><span class="row-sub">Unit 3 – Past tense</span></span></li><li class="app-row"><span class="period">Di</span><span class="row-main"><strong>6c Mathe</strong></span></li><li class="app-row app-row--selected"><span class="period">Do</span><span class="row-main"><strong>9c Englisch</strong><span class="row-sub">Unit 4 – Wortschatz</span></span></li><li class="app-row"><span class="period">Fr</span><span class="row-main"><strong>7a Deutsch</strong></span></li></ul>
-<div class="prep__lesson"><p class="detail-class">Do · 9c Englisch</p><p class="detail-topic">Woche 8 · Unit 4 – Wortschatz</p>
-<div class="tiles"><div class="app-tile"><span class="kind">PDF</span><strong>Arbeitsblatt Vokabeln</strong></div><div class="app-tile app-tile--drop"><span class="kind">PDF</span><strong>Lösung Arbeitsblatt</strong></div></div>
-<div class="prep__actions"><span class="app-capsule app-capsule--action">Für 9c übernehmen</span><span class="app-capsule">In die nächste Stunde schieben</span></div></div>
-</div></div></div></figure>
-</div></section>
+
+<section class="station field field--tint st-morning" id="morgen" aria-labelledby="h-morgen" data-reveal data-time="7:30">
+<div class="wrap">
+  <div class="text">
+    <time class="time rv-time" datetime="07:30">7:30</time>
+    <h2 id="h-morgen" class="rv-wipe">Ein Blick, und der Tag steht.</h2>
+    <p class="rv-rise d1">Die nächste Stunde ist schon gewählt. Vertretungen aus dem Schulmanager sind morgens da, eine Klassenarbeit erscheint als Hinweis.</p>
+    <p class="rv-rise d2">Dein Material liegt schon auf dem Gerät – auch wenn das Schul-WLAN hakt.</p>
+  </div>
+  <figure class="rv-slide-r"><div class="device device--tablet"><div class="app-frame app-frame--tablet" data-ui role="img" aria-label="Tagesansicht am iPad am Morgen: die 2. Stunde, 8b Englisch, ist gewählt; bei 9c Englisch steht der Hinweis „Klassenarbeit: KA 1“, bei 6c Mathe „Vertretung“; rechts das Thema „Unit 3 – Past tense“ mit dem Material der Stunde; unten die Zeile „Stand: heute 7:12“"><div class="app-screen"><div class="day">
+    <ul class="app-list day__list rows-in">
+      <li class="app-row"><span class="period">1</span><span class="row-main"><strong>7a Deutsch</strong></span></li>
+      <li class="app-row app-row--selected"><span class="period">2</span><span class="row-main"><strong>8b Englisch</strong></span></li>
+      <li class="app-row row-free"><span class="period">3</span><span class="row-main"><strong>frei</strong></span></li>
+      <li class="app-row"><span class="period">4</span><span class="row-main"><strong>9c Englisch</strong><span class="row-sub">Klassenarbeit: KA 1</span></span></li>
+      <li class="app-row"><span class="period">5</span><span class="row-main"><strong>6c Mathe</strong></span><span class="signal">Vertretung</span></li>
+    </ul>
+    <div class="day__detail"><p class="detail-class">8b Englisch</p><p class="detail-topic">Unit 3 – Past tense</p>
+      <div class="tiles tiles-in">
+        <div class="app-tile"><span class="kind">PPTX</span><strong>Unit 3 Präsentation</strong></div>
+        <div class="app-tile"><span class="kind">PDF</span><strong>Arbeitsblatt Vokabeln</strong></div>
+        <div class="app-tile app-tile--board"><strong>Tafel</strong></div>
+      </div>
+      <p class="stand">Stand: heute 7:12</p>
+    </div>
+  </div></div></div></div></figure>
 </div>
-<section class="station station--alt st-plan" id="vorplanen" aria-labelledby="h-plan"><div class="wrap">
-<div class="text"><p class="time time--word">Ferien</p>
-<h2 id="h-plan">Das Schuljahr in Wochen – und was du letztes Jahr gemacht hast, gleich daneben.</h2>
-<p>In den Sommerferien planst du je Fach und Jahrgang das ganze Jahr, mit den Klassenarbeiten. Den Vorjahresplan übernimmst du als Grundlage und änderst nur, was sich ändert.</p>
-<p>Das Wochenthema erscheint später beim Vorbereiten als Vorschlag.</p></div>
-<figure><div class="app-frame app-frame--mac app-frame--plan" role="img" aria-label="Jahresplan Englisch, Jahrgang 8, 2026/27: Wochen 7 und 8 Unit 3 – Past tense mit Klassenarbeit „KA 1“ in Woche 8, Wochen 9 und 10 Unit 4 – Wortschatz; daneben grau der Plan 2025/26, in dem die Klassenarbeit erst in Woche 9 lag"><div class="app-screen"><div class="plan">
-<p class="detail-class">Englisch · Jahrgang 8</p>
-<table class="plan__table"><thead><tr><th scope="col">Woche</th><th scope="col">2026/27</th><th scope="col" class="old">2025/26</th></tr></thead><tbody>
-<tr><th scope="row">7</th><td>Unit 3 – Past tense</td><td class="old">Unit 3 – Past tense</td></tr>
-<tr class="hot"><th scope="row">8</th><td>Unit 3 – Past tense <span class="app-capsule">KA 1</span></td><td class="old">Unit 3 – Past tense</td></tr>
-<tr><th scope="row">9</th><td>Unit 4 – Wortschatz</td><td class="old">Unit 3 – KA 1</td></tr>
-<tr><th scope="row">10</th><td>Unit 4 – Wortschatz</td><td class="old">Unit 4 – Wortschatz</td></tr>
-</tbody></table></div></div></div></figure>
-</div></section>
-<section class="station st-look" id="farben" aria-labelledby="h-look"><div class="wrap">
-<div class="text"><h2 id="h-look">Warm, kühl oder Petrol – und deine eigene Akzentfarbe.</h2>
-<p>Frontstage gibt es hell und dunkel. Wählst du eine Akzentfarbe, die zu blass wäre, schützt der Kontrast die Lesbarkeit.</p></div>
-<div class="duo">
-<figure><div class="app-frame app-frame--tablet app-frame--mini theme-warm" role="img" aria-label="Kleine Tagesansicht in warmem Grundton, hell, mit Petrol-Akzent"><div class="app-screen"><div class="mini"><ul class="app-list"><li class="app-row"><span class="period">1</span><span class="row-main"><strong>7a Deutsch</strong></span></li><li class="app-row app-row--selected"><span class="period">2</span><span class="row-main"><strong>8b Englisch</strong></span><span class="app-capsule app-capsule--now">Jetzt</span></li><li class="app-row"><span class="period">3</span><span class="row-main"><strong>6c Mathe</strong></span></li></ul><div class="app-tile"><span class="kind">PPTX</span><strong>Unit 3</strong></div></div></div></div><figcaption>Warm, hell</figcaption></figure>
-<figure><div class="app-frame app-frame--tablet app-frame--mini theme-petrol" role="img" aria-label="Kleine Tagesansicht im Grundton Petrol, dunkel"><div class="app-screen"><div class="mini"><ul class="app-list"><li class="app-row"><span class="period">1</span><span class="row-main"><strong>7a Deutsch</strong></span></li><li class="app-row app-row--selected"><span class="period">2</span><span class="row-main"><strong>8b Englisch</strong></span><span class="app-capsule app-capsule--now">Jetzt</span></li><li class="app-row"><span class="period">3</span><span class="row-main"><strong>6c Mathe</strong></span></li></ul><div class="app-tile"><span class="kind">PPTX</span><strong>Unit 3</strong></div></div></div></div><figcaption>Petrol, dunkel</figcaption></figure>
-</div></div></section>
-<section class="station station--alt st-price" id="preise" aria-labelledby="h-price"><div class="wrap">
-<h2 id="h-price">Der Alltag ist kostenlos. Das Mehr kaufst du einmal.</h2>
-<div class="plans">
-<div class="plan-card"><h3>Kostenlos</h3><ul>
-<li>Stundenplan, auch aus dem Schulmanager</li><li>Vorbereiten am Mac und am iPad</li><li>Tagesansicht</li><li>Material öffnen und zeigen</li><li>Stiftnotizen</li><li>Jahresplan</li><li>Hilfe und Rückmeldung</li></ul></div>
-<div class="plan-card plan-card--paid"><h3>Einmalkauf, kein Abo</h3><ul>
-<li>Klassenbildschirm</li><li>Timer</li><li>Arbeitsform</li><li>Tafel</li><li>Eigenes Erscheinungsbild</li></ul>
-<p>Gilt auf allen Geräten derselben Apple-ID.</p></div>
-</div></div></section>
-<section class="station st-data" id="daten" aria-labelledby="h-data"><div class="wrap">
-<h2 id="h-data">Deine Daten bleiben bei dir.</h2>
-<ul class="facts">
-<li><svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M14 34a8 8 0 0 1 1-16 10 10 0 0 1 19 3 6.5 6.5 0 0 1-1 13z"/></svg><p>Stundenplan, Zuordnungen und Notizen liegen in deinem iCloud oder OneDrive.</p></li>
-<li><svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M6 14h13l4 5h19v19H6z"/></svg><p>Das Material bleibt in deiner Ablage. Frontstage kopiert nichts.</p></li>
-<li><svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><circle cx="24" cy="17" r="7"/><path d="M10 40a14 14 0 0 1 28 0z"/><path class="halo" d="M8 8l32 32"/><path class="cut" d="M8 8l32 32"/></svg><p>Kein Konto bei uns.</p></li>
-<li><svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M8 10h32v22H20l-8 7v-7H8z"/></svg><p>Rückmeldungen gehen nur an uns, wenn du sie selbst absendest.</p></li>
-</ul>
-<p class="more"><a href="/datenschutz/">Mehr im Datenschutz</a></p>
-</div></section>
-<section class="station station--alt st-faq" id="fragen" aria-labelledby="h-faq"><div class="wrap">
-<h2 id="h-faq">Fragen, die Lehrkräfte stellen.</h2>
-<div class="faq">
-<details><summary>Geht das ohne Microsoft 365?</summary><p>Ja. Du brauchst kein Microsoft-Konto; Material aus iCloud oder von deinem Gerät funktioniert genauso.</p></details>
-<details><summary>Geht das ohne Mac?</summary><p>Ja. Vorbereiten kannst du auch am iPad, der Mac ist nur bequemer.</p></details>
-<details><summary>Gibt es Frontstage für Android oder Windows?</summary><p>Vorerst nein. Frontstage ist für iPad und Mac gebaut.</p></details>
-<details><summary>Was ist mit dem Schulmanager?</summary><p>Der Stundenplan lässt sich daraus übernehmen. Das geschieht über eine inoffizielle Schnittstelle, ohne Gewähr, und bleibt kostenlos.</p></details>
-<details><summary>Wie starte ich AirPlay?</summary><p>Über das Kontrollzentrum des iPad. Ein Kabel geht ohne Handgriff.</p></details>
-<details><summary>Können mehrere Lehrkräfte ein iPad nutzen?</summary><p>Nein, das iPad ist persönlich.</p></details>
-</div></div></section>
-<section class="station station--stage st-test" id="testen" aria-labelledby="h-test"><div class="wrap">
-<img src="/assets/icon.svg" width="144" height="144" alt="">
-<div class="text"><h2 id="h-test">Bald im App Store.</h2>
-<p>Einladungen zum Testen über TestFlight folgen. Es gibt kein Formular und keine Anmeldung – diese Seite merkt sich nichts über dich.</p></div>
-</div></section>
+</section>
+
+<section class="station field field--stage st-material" id="smartboard" aria-labelledby="h-material" data-reveal data-time="8:40">
+<div class="wrap">
+  <div class="head">
+    <time class="time rv-time" datetime="08:40">8:40</time>
+    <div class="text">
+      <h2 id="h-material" class="rv-wipe">Ein Tipp auf die Kachel.</h2>
+      <p class="rv-rise d1">Bis dahin zeigt der Klassenbildschirm, was gleich beginnt und was bereitliegen soll. Dann läuft die Präsentation am Smartboard, und die Tagesansicht bleibt auf deinem iPad.</p>
+      <p class="rv-rise d2">PowerPoint-Dateien speichern bei OneDrive automatisch mit. PDFs zeigt Frontstage selbst – mit Stift.</p>
+    </div>
+  </div>
+  <div class="scene" data-stage data-show="pptx">
+    <figure class="scene__board rv-drop"><div class="device device--board"><div class="app-frame app-frame--board" data-ui><div class="app-screen">
+      <div class="pane pane--class" data-pane="class"><p class="board-small">Gleich</p><p class="board-big">8b Englisch</p><p class="board-line">Bereitlegen: Buch, Heft</p></div>
+      <div class="pane pane--slide" data-pane="pptx"><p class="board-small">Unit 3</p><p class="board-big">Past tense</p><ul><li>I went home.</li><li>He went home.</li></ul></div>
+      <div class="pane pane--sheet" data-pane="pdf"><p class="board-small">Arbeitsblatt Vokabeln</p><ul><li>to go – went</li><li>to see – saw</li><li>to buy – bought</li></ul><svg class="pen" viewBox="0 0 200 40" aria-hidden="true" focusable="false"><path d="M6 24 C 50 8 120 36 194 14"/></svg></div>
+      <div class="pane pane--chalk" data-pane="tafel"><svg class="chalk-svg" viewBox="0 30 400 225" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false"><defs><pattern id="karo3" width="20" height="20" patternUnits="userSpaceOnUse"><path class="grid" d="M0 0H20M0 0V20"/></pattern></defs><rect class="bg" x="0" y="0" width="400" height="300"/><rect x="0" y="0" width="400" height="300" fill="url(#karo3)"/><text class="ink" x="40" y="118" font-size="34">go</text><path class="stroke" d="M92 108 H150 M138 98 L150 108 L138 118"/><text class="ink" x="166" y="118" font-size="34">went</text><path class="stroke" d="M36 190 Q 150 204 330 186"/><text class="ink" x="36" y="176" font-size="34">I went – he went</text></svg></div>
+    </div></div></div>
+    <figcaption class="visually-hidden" aria-live="polite" data-status>Am Smartboard: Unit 3 Präsentation</figcaption></figure>
+    <figure class="scene__tablet rv-slide-l"><div class="device device--tablet"><div class="app-frame app-frame--tablet" data-ui><div class="app-screen"><div class="day">
+      <ul class="app-list day__list">
+        <li class="app-row"><span class="period">1</span><span class="row-main"><strong>7a Deutsch</strong></span></li>
+        <li class="app-row app-row--selected"><span class="period">2</span><span class="row-main"><strong>8b Englisch</strong></span><span class="app-capsule app-capsule--now">Jetzt</span></li>
+        <li class="app-row row-free"><span class="period">3</span><span class="row-main"><strong>frei</strong></span></li>
+        <li class="app-row"><span class="period">4</span><span class="row-main"><strong>9c Englisch</strong></span></li>
+        <li class="app-row"><span class="period">5</span><span class="row-main"><strong>6c Mathe</strong></span><span class="signal">Vertretung</span></li>
+      </ul>
+      <div class="day__detail"><p class="detail-class">8b Englisch</p><p class="detail-topic">Unit 3 – Past tense</p>
+        <div class="tiles tiles--tap">
+          <div class="app-tile"><button class="tile-btn" type="button" data-show="pptx" data-label="Unit 3 Präsentation" aria-pressed="true"><span class="kind">PPTX</span><strong>Unit 3 Präsentation</strong></button><span class="app-capsule app-capsule--now" data-capsule>Am Smartboard</span></div>
+          <div class="app-tile"><button class="tile-btn" type="button" data-show="pdf" data-label="Arbeitsblatt Vokabeln" aria-pressed="false"><span class="kind">PDF</span><strong>Arbeitsblatt Vokabeln</strong></button></div>
+          <div class="app-tile app-tile--board"><button class="tile-btn" type="button" data-show="tafel" data-label="Tafel" aria-pressed="false"><strong>Tafel</strong></button></div>
+        </div>
+      </div>
+    </div></div></div></div></figure>
+  </div>
+  <p class="hint js-only rv-rise d3">Probier es aus: Tipp auf eine andere Kachel, und das Smartboard wechselt.</p>
+</div>
+</section>
+
+<section class="station field field--night st-board" id="tafel" aria-labelledby="h-tafel" data-reveal data-time="9:05">
+<div class="wrap">
+  <div class="text">
+    <time class="time rv-time" datetime="09:05">9:05</time>
+    <h2 id="h-tafel" class="rv-wipe">Die Tafel ist im iPad.</h2>
+    <p class="rv-rise d1">Seiten mit Karo oder Linien, die Kamera als Dokumentenkamera, eine Abdeckung zum Aufziehen. Das Smartboard zeigt nur, was du freigibst.</p>
+    <p class="rv-rise d2">Das Tafelbild bleibt bei der Stunde und ist nächste Woche wieder da.</p>
+  </div>
+  <div class="pair">
+    <figure class="tablet-wide rv-slide-r"><div class="device device--tablet"><div class="app-frame app-frame--tablet app-frame--chalk" data-ui role="img" aria-label="Tafelseite am iPad mit Karo: oben geschrieben „go → went“, „went“ ist eingekreist; darunter „I went – he went“, unterstrichen; die Abdeckung ist bis zum unteren Rand aufgezogen"><div class="app-screen"><svg class="chalk-svg" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false"><defs><pattern id="karo1" width="20" height="20" patternUnits="userSpaceOnUse"><path class="grid" d="M0 0H20M0 0V20"/></pattern></defs><rect class="bg" x="0" y="0" width="400" height="300"/><rect x="0" y="0" width="400" height="300" fill="url(#karo1)"/><text class="ink write w1" x="44" y="122" font-size="36">go</text><path class="stroke draw s1" pathLength="1" d="M98 111 H158 M146 101 L158 111 L146 121"/><text class="ink write w2" x="174" y="122" font-size="36">went</text><path class="stroke draw s2" pathLength="1" d="M166 112 C 162 78 270 74 274 108 C 278 142 172 144 166 112"/><g transform="rotate(-2 200 215)"><text class="ink" x="36" y="218" font-size="36">I went – he went</text><path class="stroke draw s3" pathLength="1" d="M38 236 Q 150 250 322 232"/></g><g class="cover-g"><rect class="cover" x="0" y="158" width="400" height="160"/><rect class="cover-edge" x="0" y="155" width="400" height="6"/><rect class="cover-edge" x="170" y="148" width="60" height="18" rx="9"/><text class="cover-text" x="200" y="186" font-size="15" text-anchor="middle">Abgedeckt</text></g></svg><div class="toolbar"><span class="on">Stift</span><span>Karo</span><span>Kamera</span><span>Abdecken</span></div></div></div></div></figure>
+    <figure class="board-small-wrap rv-pop d3"><div class="device device--board"><div class="app-frame app-frame--board board-chalk" data-ui role="img" aria-label="Das Smartboard zeigt dieselbe Tafelseite: sichtbar ist nur, was nicht abgedeckt ist"><div class="app-screen"><svg class="chalk-svg" viewBox="0 60 400 225" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false"><defs><pattern id="karo2" width="20" height="20" patternUnits="userSpaceOnUse"><path class="grid" d="M0 0H20M0 0V20"/></pattern></defs><rect class="bg" x="0" y="0" width="400" height="300"/><rect x="0" y="0" width="400" height="300" fill="url(#karo2)"/><text class="ink write w1" x="44" y="122" font-size="36">go</text><path class="stroke draw s1" pathLength="1" d="M98 111 H158 M146 101 L158 111 L146 121"/><text class="ink write w2" x="174" y="122" font-size="36">went</text><path class="stroke draw s2" pathLength="1" d="M166 112 C 162 78 270 74 274 108 C 278 142 172 144 166 112"/><g transform="rotate(-2 200 215)"><text class="ink" x="36" y="218" font-size="36">I went – he went</text><path class="stroke draw s3" pathLength="1" d="M38 236 Q 150 250 322 232"/></g><g class="cover-g"><rect class="cover" x="0" y="158" width="400" height="160"/></g></svg></div></div></div></figure>
+  </div>
+</div>
+</section>
+
+<section class="station field field--tint st-end" id="ende" aria-labelledby="h-end" data-reveal data-time="9:16">
+<div class="wrap">
+  <figure class="rv-wipe-up"><div class="device device--board"><div class="app-frame app-frame--board" data-ui role="img" aria-label="Smartboard mit Klassenbildschirm: „Hausaufgabe: Workbook S. 34“ und der laufende Timer"><div class="app-screen"><div class="pane pane--class pane--static"><p class="board-small">Hausaufgabe</p><p class="board-big">Workbook S. 34</p><p class="board-timer" data-timer>2:00</p></div></div></div></div></figure>
+  <div class="text">
+    <time class="time rv-time" datetime="09:16">9:16</time>
+    <h2 id="h-end" class="rv-wipe">Die Hausaufgabe steht an der Wand.</h2>
+    <p class="rv-rise d1">Groß und lesbar, bevor es klingelt. Der Timer läuft sichtbar weiter – für die letzten Minuten, ohne dass du etwas bedienen musst.</p>
+  </div>
+</div>
+</section>
+
+<section class="station field field--paper st-prep" id="vorbereiten" aria-labelledby="h-prep" data-reveal data-time="14:30">
+<div class="wrap">
+  <div class="text">
+    <time class="time rv-time" datetime="14:30">14:30</time>
+    <h2 id="h-prep" class="rv-wipe">Am Mac vorbereiten, am iPad zeigen.</h2>
+    <p class="rv-rise d1">Zieh die Datei auf die Stunde – oder gleich auf „Für 9c übernehmen“, wenn sie für die ganze Klasse gilt. Was du nicht geschafft hast, schiebst du mit einem Klick in die nächste Stunde.</p>
+    <p class="rv-rise d2">Zuordnen kopiert nie Dateien: Das Material bleibt in deiner Ablage, Frontstage merkt sich nur, wohin es gehört.</p>
+  </div>
+  <figure class="rv-slide-r"><div class="device device--mac"><div class="mac-bar" aria-hidden="true"><span></span><span></span><span></span><p>Vorbereiten</p></div><div class="app-frame app-frame--mac" data-ui role="img" aria-label="Mac-Fenster „Vorbereiten“: links die Woche mit der gewählten Stunde Donnerstag, 9c Englisch; rechts die Stunde in Woche 8 mit dem Thema „Unit 4 – Wortschatz“, der Datei „Arbeitsblatt Vokabeln“, einer gerade hineingezogenen Datei „Lösung Arbeitsblatt“ und den Knöpfen „Für 9c übernehmen“ und „In die nächste Stunde schieben“"><div class="app-screen"><div class="prep">
+    <ul class="app-list prep__week">
+      <li class="app-row"><span class="period">Mo</span><span class="row-main"><strong>8b Englisch</strong><span class="row-sub">Unit 3 – Past tense</span></span></li>
+      <li class="app-row"><span class="period">Di</span><span class="row-main"><strong>6c Mathe</strong></span></li>
+      <li class="app-row app-row--selected"><span class="period">Do</span><span class="row-main"><strong>9c Englisch</strong><span class="row-sub">Unit 4 – Wortschatz</span></span></li>
+      <li class="app-row"><span class="period">Fr</span><span class="row-main"><strong>7a Deutsch</strong></span></li>
+    </ul>
+    <div class="prep__lesson"><p class="detail-class">Do · 9c Englisch</p><p class="detail-topic">Woche 8 · Unit 4 – Wortschatz</p>
+      <div class="tiles">
+        <div class="app-tile"><span class="kind">PDF</span><strong>Arbeitsblatt Vokabeln</strong></div>
+        <div class="drop-slot"><div class="app-tile app-tile--drop"><span class="kind">PDF</span><strong>Lösung Arbeitsblatt</strong></div><div class="app-tile drag-file" aria-hidden="true"><span class="kind">PDF</span><strong>Lösung Arbeitsblatt</strong><svg class="cursor" viewBox="0 0 24 24" focusable="false"><path d="M5 3l14 8-6 2-2 6z"/></svg></div></div>
+      </div>
+      <div class="prep__actions"><span class="app-capsule app-capsule--action">Für 9c übernehmen</span><span class="app-capsule">In die nächste Stunde schieben</span></div>
+    </div>
+  </div></div></div></div></figure>
+</div>
+</section>
+
+</div>
+
+<section class="station field field--tint st-plan" id="vorplanen" aria-labelledby="h-plan" data-reveal>
+<div class="wrap">
+  <figure class="rv-slide-l"><div class="device device--mac"><div class="mac-bar" aria-hidden="true"><span></span><span></span><span></span><p>Jahresplan</p></div><div class="app-frame app-frame--mac app-frame--plan" data-ui role="img" aria-label="Jahresplan Englisch, Jahrgang 8, 2026/27: Wochen 7 und 8 Unit 3 – Past tense mit Klassenarbeit „KA 1“ in Woche 8, Wochen 9 und 10 Unit 4 – Wortschatz; daneben blasser der Plan 2025/26, in dem die Klassenarbeit erst in Woche 9 lag"><div class="app-screen"><div class="plan">
+    <p class="detail-class">Englisch · Jahrgang 8</p>
+    <table class="plan__table"><thead><tr><th scope="col">Woche</th><th scope="col">2026/27</th><th scope="col" class="old">2025/26</th></tr></thead><tbody>
+    <tr><th scope="row">7</th><td><span class="fill">Unit 3 – Past tense</span></td><td class="old">Unit 3 – Past tense</td></tr>
+    <tr class="hot"><th scope="row">8</th><td><span class="fill">Unit 3 – Past tense</span> <span class="app-capsule">KA 1</span></td><td class="old">Unit 3 – Past tense</td></tr>
+    <tr><th scope="row">9</th><td><span class="fill">Unit 4 – Wortschatz</span></td><td class="old">Unit 3 – KA 1</td></tr>
+    <tr><th scope="row">10</th><td><span class="fill">Unit 4 – Wortschatz</span></td><td class="old">Unit 4 – Wortschatz</td></tr>
+    </tbody></table>
+  </div></div></div></div></figure>
+  <div class="text">
+    <p class="time time--word rv-time">Ferien</p>
+    <h2 id="h-plan" class="rv-wipe">Das Schuljahr, Woche für Woche.</h2>
+    <p class="rv-rise d1">In den Sommerferien planst du je Fach und Jahrgang das ganze Jahr, mit den Klassenarbeiten. Den Vorjahresplan übernimmst du als Grundlage und änderst nur, was sich ändert.</p>
+    <p class="rv-rise d2">Was du letztes Jahr gemacht hast, steht gleich daneben. Das Wochenthema erscheint später beim Vorbereiten als Vorschlag.</p>
+  </div>
+</div>
+</section>
+
+<section class="station field field--paper st-look look" id="farben" aria-labelledby="h-look" data-reveal>
+<div class="wrap">
+  <div class="text">
+    <h2 id="h-look" class="rv-wipe">Dein Ton, deine Akzentfarbe.</h2>
+    <p class="rv-rise d1">Frontstage gibt es warm, kühl oder in Petrol, hell und dunkel. Die Akzentfarbe wählst du in der App frei – ist sie zu blass, schützt der Kontrast die Lesbarkeit.</p>
+    <form class="switcher rv-rise d2" aria-label="Erscheinungsbild der Vorschau">
+      <fieldset><legend>Grundton</legend>
+        <label class="chip"><input type="radio" name="tone" id="tone-warm" checked><span>Warm</span></label>
+        <label class="chip"><input type="radio" name="tone" id="tone-cool"><span>Kühl</span></label>
+        <label class="chip"><input type="radio" name="tone" id="tone-petrol"><span>Petrol</span></label>
+      </fieldset>
+      <fieldset><legend>Akzent</legend>
+        <label class="chip chip--swatch sw-petrol"><input type="radio" name="accent" id="acc-petrol" checked><span>Petrol</span></label>
+        <label class="chip chip--swatch sw-berry"><input type="radio" name="accent" id="acc-berry"><span>Beere</span></label>
+        <label class="chip chip--swatch sw-forest"><input type="radio" name="accent" id="acc-forest"><span>Wald</span></label>
+      </fieldset>
+      <fieldset><legend>Modus</legend>
+        <label class="chip"><input type="radio" name="mode" id="mode-light" checked><span>Hell</span></label>
+        <label class="chip"><input type="radio" name="mode" id="mode-dark"><span>Dunkel</span></label>
+      </fieldset>
+    </form>
+  </div>
+  <figure class="look-stage rv-wipe-up"><div class="device device--tablet"><div class="app-frame app-frame--tablet" data-ui role="img" aria-label="Tagesansicht am iPad als Vorschau: Grundton, Akzentfarbe und Hell oder Dunkel folgen der Auswahl daneben"><div class="app-screen"><div class="day">
+    <ul class="app-list day__list">
+      <li class="app-row"><span class="period">1</span><span class="row-main"><strong>7a Deutsch</strong></span></li>
+      <li class="app-row app-row--selected"><span class="period">2</span><span class="row-main"><strong>8b Englisch</strong></span><span class="app-capsule app-capsule--now">Jetzt</span></li>
+      <li class="app-row row-free"><span class="period">3</span><span class="row-main"><strong>frei</strong></span></li>
+      <li class="app-row"><span class="period">4</span><span class="row-main"><strong>9c Englisch</strong></span></li>
+      <li class="app-row"><span class="period">5</span><span class="row-main"><strong>6c Mathe</strong></span></li>
+    </ul>
+    <div class="day__detail"><p class="detail-class">8b Englisch</p><p class="detail-topic">Unit 3 – Past tense</p>
+      <div class="tiles">
+        <div class="app-tile"><span class="kind">PPTX</span><strong>Unit 3 Präsentation</strong></div>
+        <div class="app-tile"><span class="kind">PDF</span><strong>Arbeitsblatt Vokabeln</strong></div>
+        <div class="app-tile app-tile--board"><strong>Tafel</strong></div>
+      </div>
+    </div>
+  </div></div></div></div></figure>
+</div>
+</section>
+
+<section class="st-price" id="preise" aria-labelledby="h-price" data-reveal>
+  <div class="field field--paper price-head"><div class="wrap">
+    <h2 id="h-price" class="rv-wipe">Der Alltag ist kostenlos.</h2>
+    <p class="lead rv-rise d1">Das Mehr kaufst du einmal. Es gibt kein Abo.</p>
+  </div></div>
+  <div class="plans">
+    <div class="plan-half field field--paper"><div class="plan-in">
+      <h3 class="rv-time">Kostenlos</h3>
+      <ul class="marks">
+        <li>Stundenplan, auch aus dem Schulmanager</li><li>Vorbereiten am Mac und am iPad</li><li>Tagesansicht</li><li>Material öffnen und zeigen</li><li>Stiftnotizen</li><li>Jahresplan</li><li>Hilfe und Rückmeldung</li>
+      </ul>
+    </div></div>
+    <div class="plan-half plan-half--paid field field--stage"><div class="plan-in">
+      <h3 class="rv-time">Einmalkauf</h3>
+      <ul class="marks">
+        <li>Klassenbildschirm</li><li>Timer</li><li>Arbeitsform</li><li>Tafel</li><li>Eigenes Erscheinungsbild</li>
+      </ul>
+      <p class="rv-rise d3">Einmal gekauft, gilt er auf allen Geräten derselben Apple-ID.</p>
+    </div></div>
+  </div>
+</section>
+
+<section class="station field field--night st-data" id="daten" aria-labelledby="h-data" data-reveal>
+<div class="wrap">
+  <div class="text">
+    <h2 id="h-data" class="rv-wipe">Deine Daten bleiben bei dir.</h2>
+    <p class="more rv-rise d1"><a class="link-quiet" href="/datenschutz/">Mehr im Datenschutz</a></p>
+  </div>
+  <ul class="facts">
+    <li class="rv-rise d1"><strong>In deinem iCloud oder OneDrive.</strong> Stundenplan, Zuordnungen und Notizen liegen dort, nicht bei uns.</li>
+    <li class="rv-rise d2"><strong>Das Material bleibt in deiner Ablage.</strong> Frontstage kopiert nichts, es merkt sich nur, wohin eine Datei gehört.</li>
+    <li class="rv-rise d3"><strong>Kein Konto bei uns.</strong> Du meldest dich nirgends an, um Frontstage zu nutzen.</li>
+    <li class="rv-rise d4"><strong>Rückmeldungen nur von dir.</strong> Sie gehen an uns, wenn du sie selbst absendest.</li>
+  </ul>
+</div>
+</section>
+
+<section class="station field field--paper st-faq" id="fragen" aria-labelledby="h-faq" data-reveal>
+<div class="wrap">
+  <h2 id="h-faq" class="rv-wipe">Fragen, die Lehrkräfte stellen.</h2>
+  <div class="faq">
+    <details class="rv-rise d1"><summary>Geht das ohne Microsoft 365?</summary><div class="answer"><p>Ja. Du brauchst kein Microsoft-Konto; Material aus iCloud oder von deinem Gerät funktioniert genauso.</p></div></details>
+    <details class="rv-rise d2"><summary>Geht das ohne Mac?</summary><div class="answer"><p>Ja. Vorbereiten kannst du auch am iPad, der Mac ist nur bequemer.</p></div></details>
+    <details class="rv-rise d3"><summary>Gibt es Frontstage für Android oder Windows?</summary><div class="answer"><p>Vorerst nein. Frontstage ist für iPad und Mac gebaut.</p></div></details>
+    <details class="rv-rise d4"><summary>Was ist mit dem Schulmanager?</summary><div class="answer"><p>Der Stundenplan lässt sich daraus übernehmen. Das geschieht über eine inoffizielle Schnittstelle, ohne Gewähr, und bleibt kostenlos.</p></div></details>
+    <details class="rv-rise d5"><summary>Wie starte ich AirPlay?</summary><div class="answer"><p>Über das Kontrollzentrum des iPad. Ein Kabel geht ohne Handgriff.</p></div></details>
+    <details class="rv-rise d6"><summary>Können mehrere Lehrkräfte ein iPad nutzen?</summary><div class="answer"><p>Nein, das iPad ist persönlich.</p></div></details>
+  </div>
+</div>
+</section>
+
+<section class="station field field--stage st-test" id="testen" aria-labelledby="h-test" data-reveal>
+<div class="wrap">
+  <img class="rv-pop" src="/assets/icon.svg" width="144" height="144" alt="">
+  <div class="text">
+    <h2 id="h-test" class="rv-wipe">Bald im App Store.</h2>
+    <p class="lead rv-rise d1">Einladungen zum Testen über TestFlight folgen. Es gibt kein Formular und keine Anmeldung – diese Seite merkt sich nichts über dich.</p>
+  </div>
+</div>
+</section>
+
 </main>
-<footer class="site-footer">
-  <p>Frontstage für iPad und Mac</p>
-  <nav aria-label="Rechtliches">
-    <a href="/impressum/">Impressum</a>
-    <a href="/datenschutz/">Datenschutz</a>
-  </nav>
-  <p>2026</p>
+<footer class="site-footer field field--night" data-reveal>
+  <div class="wrap">
+    <div class="foot-row">
+      <p>Frontstage für iPad und Mac</p>
+      <nav aria-label="Rechtliches">
+        <a href="/impressum/">Impressum</a>
+        <a href="/datenschutz/">Datenschutz</a>
+      </nav>
+      <p>2026</p>
+    </div>
+    <p class="wordmark" aria-hidden="true">Frontstage</p>
+  </div>
 </footer>
-<script src="/assets/site.js" defer></script>
 </body>
 </html>
