@@ -85,6 +85,27 @@ enum TimetableEditError: Error, Equatable {
     return variant == shownVariant
   }
 
+  // MARK: Schnelles Eintragen (FR-1.3)
+
+  /// Klassen aus dem Stundenplan, die zur Eingabe passen.
+  func classSuggestions(matching input: String) -> [SchoolClass] {
+    TimetableEntrySuggestions.classes(in: allEntries, matching: input)
+  }
+
+  /// Fächer aus dem Stundenplan, die zur Eingabe passen; die der eingegebenen Klasse zuerst.
+  func subjectSuggestions(forClass classInput: String, matching input: String) -> [Subject] {
+    let schoolClass = SchoolClass(classInput)
+    return TimetableEntrySuggestions.subjects(
+      in: allEntries, forClass: schoolClass.normalized.isEmpty ? nil : schoolClass, matching: input)
+  }
+
+  /// Nächstes freies Feld der gezeigten Variante, in der Reihenfolge des Rasters.
+  func nextFreeSlot(after weekday: Weekday, period: Int) -> TimetableGridNavigation.Slot? {
+    TimetableGridNavigation.nextFreeSlot(
+      after: weekday, period: period, weekdays: weekdays, periods: gridPeriods,
+      isOccupied: { !entries(weekday: $0, period: $1).isEmpty })
+  }
+
   // MARK: Einträge
 
   /// Legt eine Stunde an (`old == nil`, Herkunft `.manual`) oder ändert eine vorhandene.
