@@ -1,6 +1,6 @@
 ---
 status: draft
-date: 2026-11-15
+date: 2026-11-20
 ---
 
 # Frontstage — Gestaltung
@@ -647,6 +647,42 @@ formatiert Uhrzeiten heute von Hand (`PeriodHeader` in `Frontstage/UI/DayView/Da
 
 ---
 
+### UI-16 — Stundenplan-Editor: Raster links, fester Bearbeitungsbereich rechts, kein Blatt
+
+- category: 1
+- Constrained by: UI-2, UI-3, FR-1.3
+
+**Entscheidung:** „Einrichten › Stundenplan“ zeigt links das Raster Wochentag × Stunde und rechts dauerhaft einen
+Bearbeitungsbereich für das gewählte Feld: Überschrift „Montag, 4. Stunde“ mit Uhrzeit, Klasse und Fach mit
+Vorschlägen, Wochentag, Stunde, bei A/B „gilt für“, „Sichern und nächste“, beim Ändern „Auf andere Tage übernehmen“
+und „Stunde löschen“. Ein Tipp ins Raster wählt das Feld; „Sichern und nächste“ bewegt die Auswahl sichtbar zum
+nächsten freien Feld. Gewählt von Andreas am 2026-11-20 aus vier Varianten (HTML-Nachbau in iPad-Querformatbreite,
+gleicher Moment in allen: Mo 4. Stunde wird 9c Deutsch, im Rahmen UI-7 bis UI-10).
+
+**Kontext:** Ist-Zustand war das Raster mit `.bordered`-Knöpfen in einer `List` und ein Blatt je Stunde
+(`Frontstage/UI/Setup/TimetableEditorView.swift`, `TimetableEntrySheet.swift`); das Blatt verdeckt das Raster, so dass
+man beim Eintragen am Stück nicht sieht, wo man steht. Seit ADR-0016 ist der Editor der einzige Weg zum Stundenplan.
+
+**Verworfen, jeweils mit Vorzug:**
+- A, Ist-Zustand (Raster, Eingabe im Blatt) — volle Breite fürs Raster, vertraute Systemform, schon gebaut.
+- B, Liste je Tag mit Blatt — Uhrzeit an jeder Stunde, funktioniert auch schmal ohne Umbau.
+- C, Raster mit Stundenpalette (Paar wählen, Felder antippen) — am schnellsten bei vielen gleichen Stunden, kaum
+  Formular.
+
+**Konsequenzen mit Kosten:**
+- Das Raster verliert rund 360 pt Breite; Zellen werden schmaler, lange Fächer werden gekürzt.
+- Bei schmaler Breite (iPad hochkant, Split View) ist kein Platz für zwei Spalten. Umsetzung mit dem
+  System-Inspector (`.inspector`, iPadOS 17+/macOS 14+): Er zeigt den Bereich bei voller Breite als Spalte und bei
+  schmaler Breite von selbst als Blatt – ein Weg, kein zweiter Entwurf.
+- `TimetableEntrySheet` wird zum Bereichsinhalt; die Logik (`TimetableEditorViewModel`, FR-1.3) bleibt.
+- Ohne Auswahl braucht der Bereich einen ruhigen Zustand (UI-13), etwa „Tippe ein Feld an“; Wortlaut nach UI-15.
+- Am Gerät bestätigen (UI-2).
+
+**Revisit if:** Am Gerät zeigt sich, dass das Raster mit Bereich zu eng wird, oder die Eingabe am Stück trotzdem
+langsam bleibt (dann C als Ergänzung prüfen).
+
+---
+
 ## Wiederkehrende Fallen
 
 - **Eine Farbe, die zwei Dinge bedeutet, bedeutet keines.**
@@ -690,3 +726,4 @@ formatiert Uhrzeiten heute von Hand (`PeriodHeader` in `Frontstage/UI/DayView/Da
 - 2026-11-15: UI-11 new — Runde 8a: Aussagen mit Signalfarbe nur im Symbol (nach best practice, von Andreas delegiert); Q-41 answered
 - 2026-11-15: UI-12, UI-13, UI-14, UI-15 new — Runden 8b, 8c, 9, 10 von Andreas delegiert, nach Apples Richtlinien entschieden (Gutachten apple-design)
 - 2026-11-16: Q-46, Q-47 new — Startseite und Verwaltungsseite als neue Oberflächen außerhalb von UI-2 (FR-18.1, FR-19, ADR-0015); Aussehen entsteht beim Bau, keine UI-Beschlüsse jetzt
+- 2026-11-20: UI-16 new — Runde 1 für den Stundenplan-Editor: Raster mit festem Bearbeitungsbereich statt Blatt (Andreas aus vier Varianten)
