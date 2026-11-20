@@ -35,7 +35,7 @@ import FrontstageCore
   /// Der echte Koordinator: Zugangsdaten im Schlüsselbund, Stand in den UserDefaults, Vorschau als Datei.
   static func live(_ store: DataStore) -> TimetableSourceCoordinator {
     let credentials = KeychainCredentialStore()
-    return TimetableSourceCoordinator(
+    let coordinator = TimetableSourceCoordinator(
       repository: store,
       makeSource: { kind in
         switch kind {
@@ -46,5 +46,22 @@ import FrontstageCore
       credentials: credentials,
       statusStore: SourceStatusStore(),
       pendingStore: PendingImportStore(directory: PendingImportStore.defaultDirectory()))
+    retireUnavailableSource(coordinator: coordinator, credentials: credentials)
+    return coordinator
+  }
+
+  /// Abgeschaltete Quelle (ADR-0016): Steht im Datenort noch eine Quelle, die nicht mehr angeboten wird, gilt
+  /// ab jetzt „von Hand“ – der zuletzt übernommene Stundenplan bleibt, Abweichungen der Quelle ab heute fallen
+  /// weg (wie beim Wechsel von Hand). Zugangsdaten für Schulmanager werden aus dem Schlüsselbund dieses Geräts
+  /// gelöscht, damit kein ungenutztes Passwort liegen bleibt. Beides ist ohne Wirkung, wenn nichts da ist.
+  private static func retireUnavailableSource(
+    coordinator: TimetableSourceCoordinator, credentials: any CredentialStore
+  ) {
+    if !TimetableSourceKind.schulmanager.isAvailable {
+      try? credentials.delete()
+    }
+    if let kind = try? coordinator.repository.timetableSourceKind(), !kind.isAvailable {
+      try? coordinator.switchSource(to: .manual)
+    }
   }
 }

@@ -21,6 +21,15 @@ struct SourceDeviceRulesTests {
     #expect(!TimetableSourceError.notConfigured.discardsCredentials)
   }
 
+  // MARK: - Abgeschaltete Quellen (ADR-0016)
+
+  @Test("Schulmanager ist abgeschaltet, nur „von Hand“ wird angeboten")
+  func schulmanagerUnavailable() {
+    #expect(TimetableSourceKind.manual.isAvailable)
+    #expect(!TimetableSourceKind.schulmanager.isAvailable)
+    #expect(TimetableSourceKind.availableCases == [.manual])
+  }
+
   // MARK: - Abfrage nur mit Zugangsdaten auf diesem Gerät (Nachtrag 4)
 
   @Test("Von Hand: keine Quelle, unabhängig von Zugangsdaten")

@@ -20,8 +20,23 @@ public enum HelpTopic: String, CaseIterable, Codable, Sendable, Hashable {
     }
   }
 
-  /// Verwandte Themen (feste Tabelle, 1–3 Einträge, nie das Thema selbst).
-  public var related: [HelpTopic] {
+  /// Ob das Thema in der Hilfe erscheint. Das Schulmanager-Thema folgt der Quelle (ADR-0016): Ist sie
+  /// abgeschaltet, fehlt es in Gliederung, Suche und bei den verwandten Themen; die Texte bleiben erhalten.
+  public var isAvailable: Bool {
+    switch self {
+    case .schulmanager: TimetableSourceKind.schulmanager.isAvailable
+    default: true
+    }
+  }
+
+  /// Die angezeigten Themen, in der Reihenfolge von `allCases`.
+  public static var availableCases: [HelpTopic] { allCases.filter(\.isAvailable) }
+
+  /// Verwandte Themen (1–3 Einträge, nie das Thema selbst), ohne abgeschaltete Themen.
+  public var related: [HelpTopic] { relatedTable.filter(\.isAvailable) }
+
+  /// Feste Tabelle der verwandten Themen, unabhängig davon, was gerade angeboten wird.
+  var relatedTable: [HelpTopic] {
     switch self {
     case .gettingStarted: [.timetable, .storage, .dataLocation]
     case .dayView: [.openingMaterial, .secondScreen, .preparation]
@@ -57,6 +72,6 @@ public enum HelpGroup: String, CaseIterable, Sendable {
 }
 
 extension HelpGroup {
-  /// Themen der Gruppe in der Reihenfolge von `HelpTopic.allCases`.
-  public var topics: [HelpTopic] { HelpTopic.allCases.filter { $0.group == self } }
+  /// Angezeigte Themen der Gruppe in der Reihenfolge von `HelpTopic.allCases`.
+  public var topics: [HelpTopic] { HelpTopic.availableCases.filter { $0.group == self } }
 }

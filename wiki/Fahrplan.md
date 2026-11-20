@@ -7,7 +7,7 @@
 
 | Bereich | Anforderungen |
 |---|---|
-| Stundenplan | von Hand (FR-1), A/B-Wochen (FR-1.1), Import aus Schulmanager Online (FR-2), Vertretungen morgens sichtbar (FR-2.2) |
+| Stundenplan | von Hand (FR-1), A/B-Wochen (FR-1.1) |
 | Vorbereiten | zuordnen am Mac und iPad (FR-3), mehrere Materialien in Reihenfolge (FR-3.1), für Parallelklasse übernehmen (FR-3.2), in nächste Stunde schieben (FR-3.3), nie Dateien kopieren (FR-3.4) |
 | Abweichungen | Ferien und Feiertage (FR-7), Ausfall (FR-8), Vertretungsstunde (FR-9) |
 | Unterricht | Tagesansicht (FR-4), mit einem Tipp öffnen (FR-5), OneDrive mit AutoSpeichern (FR-5.1), PDFs und Bilder mit Stift (FR-6), Stiftnotizen je Unterrichtsstunde (FR-6.1), Zweitbildschirm zeigt nur das Material (FR-6.2) |
@@ -19,10 +19,11 @@
 | Rückmeldedienst | Rückmeldungen beim Betreiber annehmen und aufbewahren (FR-18), Verwaltungsseite (FR-18.1), Löschen nach zwölf Monaten und auf Anfrage (FR-18.2) |
 | Startseite | ein Schultag mit der App (FR-19), Impressum und Datenschutz (FR-19.1) |
 | Qualität | sofort und aktuell verfügbar (NFR-1), keine Nutzerdaten auf Servern des Produkts, nur ausdrücklich gesendete Rückmeldungen (NFR-2), jede Ablage (NFR-3), Zugangsdaten nur auf dem Gerät (NFR-4) |
-| Preis | Kern kostenlos, Klassenbildschirm, Tafel und Anpassung des Erscheinungsbilds per Einmalkauf, kein Abo (FR-13); Hilfe und Rückmeldung immer kostenlos; Schulmanager-Import immer kostenlos (FR-13.1) |
+| Preis | Kern kostenlos, Klassenbildschirm, Tafel und Anpassung des Erscheinungsbilds per Einmalkauf, kein Abo (FR-13); Hilfe und Rückmeldung immer kostenlos |
 
 ## Später
 
+- Stundenplan aus Schulmanager Online (FR-2) und Vertretungen morgens (FR-2.2), kostenlos (FR-13.1) – abgeschaltet, bis die Zulässigkeit geklärt ist (ADR-0016)
 - Stundenplan aus WebUntis (FR-2.1)
 - Ferien aus einem Ferienkalender (FR-7.1)
 - Unterrichtsstunden als Kalender-Abo (FR-10)

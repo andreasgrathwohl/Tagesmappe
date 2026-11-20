@@ -7,9 +7,9 @@ bleibt in der eigenen Ablage (iCloud Drive, OneDrive, Google Drive, …) und ist
 Stand.
 
 > **Stand:** Umsetzung. Anforderungen und Architektur sind freigegeben (`docs/PRD.md`, `docs/ARCHITECTURE.md`);
-> fünfzehn Architekturentscheidungen stehen in `docs/adr/`. Die Teilpläne 01–10 sind umgesetzt, Teilpläne 11 (Hilfe und Rückmeldung), 12 (Rückmeldedienst und Verwaltung) und 13 (Startseite) sind geplant (`docs/superpowers/plans/`):
+> sechzehn Architekturentscheidungen stehen in `docs/adr/`. Die Teilpläne 01–10 sind umgesetzt, Teilpläne 11 (Hilfe und Rückmeldung), 12 (Rückmeldedienst und Verwaltung) und 13 (Startseite) sind geplant (`docs/superpowers/plans/`):
 > SwiftUI-App für iPad und Mac unter `Frontstage/`, Kernlogik im Paket `Packages/FrontstageCore`; Rückmeldedienst und Startseite (geplant) unter `server/`. Offen sind Prüfungen auf
-> echten Geräten, die Gestaltungsrunden und der Test der Schulmanager-Schnittstelle (Q-16). Unter `mockup/` liegen HTML-Mockups.
+> echten Geräten, die Gestaltungsrunden. Die Schulmanager-Anbindung ist abgeschaltet, bis ihre Zulässigkeit geklärt ist (ADR-0016). Unter `mockup/` liegen HTML-Mockups.
 > Der Name „Frontstage“ ist intern festgelegt, die Registerprüfung steht aus (Q-31). Das Repository
 > heißt weiter `Tagesmappe`.
 
@@ -17,7 +17,7 @@ Stand.
 
 - **Vorbereiten** am Mac oder iPad: Material den Unterrichtsstunden der Woche oder des nächsten Tages
   zuordnen – mehrere Dateien je Stunde, Übernehmen für Parallelklassen, Weiterschieben bei Ausfall.
-- **Stundenplan** von Hand anlegen oder aus Schulmanager Online übernehmen; A/B-Wochen, Ferien,
+- **Stundenplan** von Hand anlegen; A/B-Wochen, Ferien,
   Ausfall und Vertretungen.
 - **Im Unterricht**: Tagesansicht, ein Tipp öffnet das Material. Mit Microsoft 365 öffnen
   OneDrive-Dateien mit AutoSpeichern, Notizen und Zeichnungen landen sofort in der Ablage. PDFs und

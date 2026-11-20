@@ -5,6 +5,18 @@ import Foundation
 public enum TimetableSourceKind: String, Codable, Sendable, CaseIterable {
   case manual
   case schulmanager
+
+  /// Ob die Quelle in der App angeboten wird. Schulmanager ist abgeschaltet (ADR-0016): Der Baustein bleibt im
+  /// Code und in den Tests, ist aber weder wählbar noch wird er abgefragt. Wieder einschalten = hier `true`.
+  public var isAvailable: Bool {
+    switch self {
+    case .manual: true
+    case .schulmanager: false
+    }
+  }
+
+  /// Die angebotenen Quellen, in der Reihenfolge von `allCases`.
+  public static var availableCases: [TimetableSourceKind] { allCases.filter(\.isAvailable) }
 }
 
 /// Fehler beim Abfragen einer Stundenplan-Quelle.
