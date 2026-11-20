@@ -2498,6 +2498,36 @@
         }
       }
     },
+    "setup.timetable.entry.saveAndNext" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sichern und nächste"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.saved %@ %lld %@ %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Gesichert: %1$@, %2$lld. Stunde · %3$@ %4$@"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.suggestions" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorschläge"
+          }
+        }
+      }
+    },
     "setup.timetable.entry.cancel" : {
       "localizations" : {
         "de" : {
@@ -5023,7 +5053,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Der Stundenplan besteht aus Einträgen. Jeder Eintrag hat Tag, Stunde, Klasse und Fach.\n\n## Von Hand eintragen\nÖffne **Einrichten** und dort den **Stundenplan**. Tippe auf ein Feld, um eine Stunde anzulegen oder zu ändern, zum Beispiel 9c, Deutsch, dienstags in der 3. Stunde.\n\n## A- und B-Woche\nUnter **Wochenrhythmus** wählst du **Jede Woche gleich** oder **A-/B-Woche im Wechsel**. Mit der Ansicht schaltest du zwischen **A-Woche**, **B-Woche** und **Beide Wochen** um. Lege fest, an welchem Tag eine A-Woche liegt.\n\n> Änderungen gelten ab sofort. Material, das schon zugeordnet ist, bleibt bei der Stunde."
+            "value" : "Der Stundenplan besteht aus Einträgen. Jeder Eintrag hat Tag, Stunde, Klasse und Fach.\n\n## Von Hand eintragen\nÖffne **Einrichten** und dort den **Stundenplan**. Tippe auf ein Feld, um eine Stunde anzulegen oder zu ändern, zum Beispiel 9c, Deutsch, dienstags in der 3. Stunde.\n\n## Schneller eintragen\nUnter **Klasse** und **Fach** stehen Klassen und Fächer, die du schon eingetragen hast. Tippe einen Vorschlag an, statt ihn zu schreiben. Mit **Sichern und nächste** springst du gleich zum nächsten freien Feld. Klasse und Fach bleiben stehen, so ist eine Doppelstunde nur ein Tipp.\n\n## A- und B-Woche\nUnter **Wochenrhythmus** wählst du **Jede Woche gleich** oder **A-/B-Woche im Wechsel**. Mit der Ansicht schaltest du zwischen **A-Woche**, **B-Woche** und **Beide Wochen** um. Lege fest, an welchem Tag eine A-Woche liegt.\n\n> Änderungen gelten ab sofort. Material, das schon zugeordnet ist, bleibt bei der Stunde."
           }
         }
       }

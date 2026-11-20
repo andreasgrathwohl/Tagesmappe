@@ -178,5 +178,17 @@ import Testing
     // Neuer Eintrag: gezeigte Variante als Vorgabe.
     #expect(vm.initialVariant(editing: nil) == .a)
   }
-}
 
+  @Test("AK-66: Vorschläge aus dem Stundenplan, nächstes freies Feld (FR-1.3)")
+  func quickEntry() throws {
+    let vm = makeModel()
+    try vm.save(Fixtures.entry(.monday, 1, "8b", "Englisch"), replacing: nil)
+    try vm.save(Fixtures.entry(.monday, 2, "8b", "Englisch"), replacing: nil)
+    try vm.save(Fixtures.entry(.monday, 3, "9c", "Deutsch"), replacing: nil)
+    #expect(vm.classSuggestions(matching: "").map(\.normalized) == ["8b", "9c"])
+    #expect(vm.subjectSuggestions(forClass: "9c", matching: "").map(\.display) == ["Deutsch", "Englisch"])
+    // Ohne Zeitraster gilt 1…10: nach Mo 1 ist Mo 4 das nächste freie Feld.
+    #expect(vm.nextFreeSlot(after: .monday, period: 1) == .init(weekday: .monday, period: 4))
+    #expect(vm.nextFreeSlot(after: .monday, period: 10) == .init(weekday: .tuesday, period: 1))
+  }
+}

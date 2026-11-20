@@ -144,6 +144,14 @@ die Stundenplan-Quelle Zeiten, werden sie übernommen. Abgeleitet am 2026-11-13 
 die Stundenende, „Gleich:“ und die letzten fünf Minuten zeigen und dafür Uhrzeiten brauchen; vom Nutzer
 bestätigt am 2026-11-13.
 
+### FR-1.3 — Stundenplan zügig von Hand eintragen [MVP]
+
+Beim Anlegen einer Stunde schlägt die App Klassen und Fächer vor, die im Stundenplan schon vorkommen – für die
+eingegebene Klasse deren Fächer zuerst. Ein Tipp auf einen Vorschlag setzt nur das Feld. „Sichern und nächste“
+sichert und springt zum nächsten freien Feld; Klasse und Fach bleiben stehen. Neu am 2026-11-20: Seit der Import
+abgeschaltet ist (ADR-0016), ist die Eingabe von Hand der einzige Weg zum Stundenplan; Auftrag von Andreas („so
+umsetzen“). Design: `docs/superpowers/specs/2026-11-20-stundenplan-schnell-eintragen-design.md`.
+
 ### FR-2 — Stundenplan aus Schulmanager Online importieren [Later]
 
 Die Lehrkraft kann ihren Stundenplan alternativ aus Schulmanager Online übernehmen. Schulmanager
@@ -646,8 +654,8 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 
 ## Lieferstufen
 
-- **MVP:** FR-1, FR-1.1, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-7, FR-8,
-  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, NFR-1 bis NFR-4, FR-1.2, FR-14, FR-14.1, FR-15, FR-15.1 bis FR-15.6, FR-16, FR-16.1, FR-16.2, FR-17, FR-17.1 bis FR-17.5, FR-18, FR-18.1, FR-18.2, FR-19, FR-19.1 (geprüfte Zahl: 61). FR-2 und FR-5.1 bestätigt (Q-3, Q-4); FR-2 am 2026-11-20 zurückgestellt (ADR-0016).
+- **MVP:** FR-1, FR-1.1, FR-1.3, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-7, FR-8,
+  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, NFR-1 bis NFR-4, FR-1.2, FR-14, FR-14.1, FR-15, FR-15.1 bis FR-15.6, FR-16, FR-16.1, FR-16.2, FR-17, FR-17.1 bis FR-17.5, FR-18, FR-18.1, FR-18.2, FR-19, FR-19.1 (geprüfte Zahl: 62). FR-2 und FR-5.1 bestätigt (Q-3, Q-4); FR-2 am 2026-11-20 zurückgestellt (ADR-0016).
 - **Later:** FR-2, FR-2.1, FR-2.2, FR-7.1, FR-10, FR-13.1, FR-13.2.
 
 ## Out of Scope
@@ -827,6 +835,7 @@ des Volumes; App Attest als spätere Stufe (ADR-0015). Domain `teach.grathwohl.d
 - AK-1 (FR-1): Aufbau: leerer Stundenplan. Handlung: Eintrag „Di, 2. Stunde, 8b, Englisch“ anlegen. Ergebnis: Die Tagesansicht jedes Dienstags zeigt in der 2. Stunde „8b Englisch“.
 - AK-2 (FR-1.1): Aufbau: A-Woche Mo 1. Stunde 7a, B-Woche Mo 1. Stunde 9c; Woche vom 16.11. ist A-Woche. Handlung: Tagesansichten Mo 16.11. und Mo 23.11. öffnen. Ergebnis: 16.11. zeigt 7a, 23.11. zeigt 9c.
 - AK-42 (FR-1.2): Aufbau: Stundenplan mit Di 2. Stunde 8b, Zeitraster leer. Handlung: 2. Stunde auf 8:35–9:20 setzen; Klassenbildschirm am Di um 8:40 ansehen. Ergebnis: Er zeigt „bis 9:20“; die Tagesansicht zeigt die Zeit an der 2. Stunde.
+- AK-66 (FR-1.3): Aufbau: Stundenplan mit Mo 1. und 2. Stunde 8b Englisch und Mo 3. Stunde 9c Deutsch. Handlung: auf das leere Feld Mo 4. Stunde tippen, „9“ in Klasse tippen, Vorschlag „9c“ tippen, Vorschlag „Deutsch“ tippen, „Sichern und nächste“. Ergebnis: Mo 4. Stunde 9c Deutsch ist gesichert; das Blatt bleibt offen, steht auf Mo 5. Stunde, Klasse 9c und Fach Deutsch sind vorbelegt; ohne Tipp auf einen Sichern-Knopf wird nichts gesichert.
 - AK-3 (FR-2): Aufbau: Schulmanager-Testkonto mit Stundenplan (3 Einträge). Handlung: Import auslösen. Ergebnis: Die 3 Einträge stehen im Stundenplan; ein vorher von Hand angelegter Eintrag geht dabei nicht stillschweigend verloren.
 - AK-21 (FR-2.2): Aufbau: Schulmanager-Testkonto; für heute ist dort seit gestern Abend eine Vertretung „3. Stunde 6c“ eingetragen; Tablet war über Nacht gesperrt. Handlung: Tablet um 7:30 Uhr entsperren und Tagesansicht öffnen. Ergebnis: Die Vertretung steht in der 3. Stunde, spätestens wenige Sekunden nach dem Öffnen; die Ansicht zeigt, von wann der Stand ist.
 - AK-4 (FR-3): Aufbau: Stundenplan mit „Di 2. Stunde 8b“, eine Präsentation in der Ablage. Handlung: am Mac die Präsentation der Unterrichtsstunde am kommenden Dienstag zuordnen. Ergebnis: Am Tablet zeigt die Tagesansicht dieses Dienstags die Präsentation in der 2. Stunde.
@@ -939,12 +948,14 @@ des Volumes; App Attest als spätere Stufe (ADR-0015). Domain `teach.grathwohl.d
 - 2026-11-16: Glossar „Rückmeldung“ changed — Hochladen zum Rückmeldedienst zuerst, Mail/Teilen als Rückfall (ADR-0015)
 - 2026-11-20: FR-2, FR-2.2, FR-13.1 changed — [MVP] → [Later]: Schulmanager-Anbindung abgeschaltet wegen ungeklärter Zulässigkeit (Recht, Datenschutz), Baustein bleibt im Code (ADR-0016); RISK-1 ergänzt; Lieferstufen (61) angepasst
 - 2026-11-20: Verworfen (FR-2): Code löschen (Andreas: „nicht löschen“), Ausschluss per `#if` (verrottet unbemerkt), Schalter in den Einstellungen oder per Fernkonfiguration (Funktion bliebe erreichbar, Fernkonfiguration bräuchte einen Server) – siehe ADR-0016
+- 2026-11-20: FR-1.3 new — Stundenplan zügig von Hand eintragen: Vorschläge für Klasse und Fach, „Sichern und nächste“; AK-66, Lieferstufen (62) und Abdeckung angepasst
+- 2026-11-20: Verworfen (FR-1.3): Schnelleingabe direkt im Raster per Palette (neue Bedienform, am Mac heikel), Autovervollständigen des Systems (an `TextField` nicht für iPad und Mac gleich) – siehe Design-Dokument
 
 ## Anhang A — Abdeckung
 
 | Phase | Anforderungen |
 |---|---|
-| 1 Stundenplan einrichten | FR-1, FR-1.1, FR-1.2, FR-2, FR-2.1, FR-7, FR-7.1 |
+| 1 Stundenplan einrichten | FR-1, FR-1.1, FR-1.2, FR-1.3, FR-2, FR-2.1, FR-7, FR-7.1 |
 | 2 Vorbereiten | FR-3, FR-3.1 bis FR-3.4, FR-8, FR-9 |
 | 3 Tagesansicht | FR-4, FR-2.2 |
 | 2 Vorbereiten (Thema und Hinweis) | FR-11.1 |
@@ -963,6 +974,7 @@ Phase erreichbar) und FR-18 bis FR-19.1 (Rückmeldedienst, Verwaltung und Starts
 | FR-1 | AK-1 |
 | FR-1.1 | AK-2 |
 | FR-1.2 | AK-42 |
+| FR-1.3 | AK-66 |
 | FR-2 | AK-3 |
 | FR-2.2 | AK-21 |
 | FR-3 | AK-4, AK-5 |
