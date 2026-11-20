@@ -7,7 +7,7 @@ concurrency: { group: "ci-${{ github.ref }}", cancel-in-progress: true }
 jobs:
   build-and-test:
     runs-on: macos-26
-    timeout-minutes: 15
+    timeout-minutes: 19
     steps:
       - uses: actions/checkout@v4
       - run: xcodebuild -version && swift --version
@@ -40,7 +40,9 @@ jobs:
           echo "udid=$UDID" >> "$GITHUB_OUTPUT"
       - name: App tests (iPad simulator)
         # Eigenes Limit unter dem Job-Limit: Hängt ein Test, bleiben Zeit für Diagnose und Upload des xcresult.
-        timeout-minutes: 8
+        # Das Limit umfasst den Build für den Simulator (2026-11-20: 7–7,5 min) plus die Tests (~1 min); 8 min
+        # reichten nicht mehr. Hänger fängt schon die Zeitgrenze je Test (120 s) ab.
+        timeout-minutes: 12
         run: xcodebuild test -project Frontstage.xcodeproj -scheme Frontstage-iOS -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" -resultBundlePath TestResults.xcresult -test-timeouts-enabled YES -default-test-execution-time-allowance 60 -maximum-test-execution-time-allowance 120 CODE_SIGNING_ALLOWED=NO MSAL_CLIENT_ID="${{ secrets.MSAL_CLIENT_ID }}" FEEDBACK_EMAIL="${{ secrets.FEEDBACK_EMAIL }}" FEEDBACK_URL="${{ secrets.FEEDBACK_URL }}" FEEDBACK_APP_KEY="${{ secrets.FEEDBACK_APP_KEY }}"
       - name: Collect crash diagnostics
         if: failure() && steps.sim.outputs.udid != ''
