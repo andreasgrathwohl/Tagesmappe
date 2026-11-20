@@ -1,0 +1,63 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: #e4dccb; }
+    #r-cam { position: absolute; inset: 0; transform-origin: 1236px 512px; }
+    #r-board { left: 650px; top: 176px; width: 1172px; height: 672px; font-size: 13px; }
+    #r-rail { position: absolute; left: 0; right: 0; top: 930px; height: 22px; background: linear-gradient(#cfc4ad, #b9ad94); box-shadow: 0 6px 12px rgba(40, 28, 10, 0.18); }
+    #r-clock { position: absolute; left: 330px; top: 92px; width: 168px; height: 168px; border-radius: 50%; background: #fbfaf6; box-shadow: 0 0 0 9px #2a2e30, 0 14px 28px rgba(40, 28, 10, 0.25); }
+    #r-clock .tk { position: absolute; left: 82px; top: 6px; width: 4px; height: 14px; background: #2a2e30; transform-origin: 2px 78px; }
+    #r-clock .hand { position: absolute; left: 50%; bottom: 50%; background: #1f1a14; border-radius: 3px; transform-origin: 50% 100%; }
+    #r-hh { width: 7px; height: 46px; margin-left: -3.5px; }
+    #r-mm { width: 5px; height: 66px; margin-left: -2.5px; }
+    #r-ss { width: 2px; height: 70px; margin-left: -1px; background: #c0392b !important; }
+    #r-pin { position: absolute; left: 77px; top: 77px; width: 14px; height: 14px; border-radius: 50%; background: #1f1a14; }
+    #r-say { position: absolute; left: 112px; top: 380px; width: 500px; color: #0d2327; }
+    #r-say .title { font-size: 104px; }
+    #r-say .subtitle { font-size: 54px; margin-top: 24px; }
+    .cs-head { display: flex; align-items: baseline; gap: 0.6em; }
+    #r-timer { transform-origin: 100% 0; }
+  </style>
+  <div data-hf-id="hf-vnhw" id="root" data-composition-id="room" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-k4fj" id="r-cam">
+      <div data-hf-id="hf-a9vw" class="wall"></div>
+      <div data-hf-id="hf-gyhy" id="r-rail"></div>
+      <div data-hf-id="hf-q6tk" id="r-clock">
+        <div data-hf-id="hf-ita7" class="tk" style="transform:rotate(0deg)"></div><div data-hf-id="hf-grs8" class="tk" style="transform:rotate(90deg)"></div>
+        <div data-hf-id="hf-xyrq" class="tk" style="transform:rotate(180deg)"></div><div data-hf-id="hf-97os" class="tk" style="transform:rotate(270deg)"></div>
+        <div data-hf-id="hf-4fyy" class="hand" id="r-hh"></div><div data-hf-id="hf-ifac" class="hand" id="r-mm"></div><div data-hf-id="hf-4tno" class="hand" id="r-ss"></div>
+        <div data-hf-id="hf-o253" id="r-pin"></div>
+      </div>
+      <div data-hf-id="hf-i3z3" id="r-board" class="board"><div data-hf-id="hf-emam" class="board__screen">
+        <div data-hf-id="hf-qfgi" class="cs">
+          <div data-hf-id="hf-yv2l" class="cs-head"><span data-hf-id="hf-8lhh" class="cs__clock">9:16</span><span data-hf-id="hf-apxy" class="cs__date">Dienstag, 17. November</span></div>
+          <div data-hf-id="hf-uca8" class="cs__label">8b · Englisch · bis 9:20</div>
+          <div data-hf-id="hf-6ry5" class="cs__big" style="margin-top:0.3em">Hausaufgabe:<br data-hf-id="hf-x5px">Workbook S. 34</div>
+          <div data-hf-id="hf-noej" class="cs__line">Unit 3 – Past tense</div>
+          <div data-hf-id="hf-k7ht" class="cs__timer" id="r-timer"><span data-hf-id="hf-t6gj" id="r-t">2:00</span></div>
+        </div>
+      </div><div data-hf-id="hf-mvn7" class="board__logo"></div></div>
+    </div>
+    <div data-hf-id="hf-9ju3" id="r-say">
+      <h2 data-hf-id="hf-2cq3" class="title"><span data-hf-id="hf-dpbc" class="w">9:16</span></h2>
+      <p data-hf-id="hf-5dcb" class="subtitle"><span data-hf-id="hf-n4iu" class="w">Die</span> <span data-hf-id="hf-de54" class="w">Hausaufgabe</span> <span data-hf-id="hf-dvqq" class="w">steht</span> <span data-hf-id="hf-vfsf" class="w">an</span> <span data-hf-id="hf-ljer" class="w">der</span> <span data-hf-id="hf-hnv4" class="w">Wand.</span></p>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    // Uhr: 9:16 Uhr, Sekundenzeiger läuft
+    tl.set("#r-hh", { rotation: 9 * 30 + 16 * 0.5 }, 0);
+    tl.set("#r-mm", { rotation: 16 * 6 }, 0);
+    tl.fromTo("#r-ss", { rotation: 4 * 6 }, { rotation: 9 * 6, duration: 5, ease: "steps(5)" }, 0);
+    // Rückfahrt: vom Board auf die ganze Wand
+    tl.fromTo("#r-cam", { scale: 1.75, x: -280, y: 30 }, { scale: 1, x: 0, y: 0, duration: 1.0, ease: "power2.inOut" }, 0);
+    tl.fromTo("#r-say .w", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.14, stagger: 0.07, ease: "power2.out" }, 0.95);
+    // Timer zählt von 2:00 herunter (ganze Sekunden, aus der Zeitachse berechnet)
+    const t = { s: 120 };
+    const tEl = document.querySelector("#r-t");
+    tl.fromTo(t, { s: 120 }, {
+      s: 115.2, duration: 4.8, ease: "none",
+      onUpdate: () => { const v = Math.ceil(t.s); tEl.textContent = Math.floor(v / 60) + ":" + String(v % 60).padStart(2, "0"); }
+    }, 0);
+    window.__timelines["room"] = tl;
+  </script>
+</template>

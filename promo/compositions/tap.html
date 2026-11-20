@@ -1,0 +1,131 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: #b07e52; }
+    #t-desk, #t-wall { position: absolute; inset: 0; }
+    #t-wall { opacity: 0; }
+    #t-cam { position: absolute; inset: 0; transform-origin: 1175px 467px; }
+    #t-ipad { left: 620px; top: 110px; }
+    #t-when { position: absolute; left: 110px; top: 170px; color: #fbf8f2; text-shadow: 0 2px 18px rgba(60, 30, 8, 0.25); }
+    #t-when .title { font-size: 112px; }
+    #t-tile1 .cap { position: absolute; left: 16px; top: 14px; opacity: 0; }
+    #t-tile1 .tile__name { transform: translateY(0); }
+    #t-press { position: absolute; inset: 0; border-radius: 16px; background: rgba(14, 107, 122, 0.16); opacity: 0; }
+    #t-touch { left: 1175px; top: 470px; opacity: 0; }
+    .mini-cs { position: absolute; inset: 0; background: #fbf8f2; }
+    .mini-cs i { position: absolute; left: 10px; height: 5px; border-radius: 2px; background: #1f1a14; }
+    .mini-sl { position: absolute; inset: 0; background: #fff; opacity: 0; }
+    .mini-sl i { position: absolute; left: 10px; border-radius: 2px; }
+    /* Wand */
+    #t-boardwrap { position: absolute; inset: 0; transform-origin: 1236px 512px; }
+    #t-board { left: 650px; top: 176px; width: 1172px; height: 672px; font-size: 13px; }
+    #t-say { position: absolute; left: 112px; top: 330px; width: 500px; color: #0d2327; }
+    #t-say .title { font-size: 104px; }
+    #t-say .subtitle { margin-top: 26px; font-size: 58px; }
+    #t-rail { position: absolute; left: 0; right: 0; top: 930px; height: 22px; background: linear-gradient(#cfc4ad, #b9ad94); box-shadow: 0 6px 12px rgba(40, 28, 10, 0.18); }
+  </style>
+  <div data-hf-id="hf-3uwc" id="root" data-composition-id="tap" data-width="1920" data-height="1080">
+    <!-- Pult mit iPad -->
+    <div data-hf-id="hf-y1hz" id="t-desk">
+      <div data-hf-id="hf-xie9" id="t-cam">
+        <div data-hf-id="hf-8e1r" class="oak"></div>
+        <div data-hf-id="hf-jd73" id="t-ipad" class="ipad"><div data-hf-id="hf-qz2q" class="ipad__bezel"><div data-hf-id="hf-63cb" class="ipad__cam"></div><div data-hf-id="hf-zj9e" class="ipad__screen">
+          <div data-hf-id="hf-gk5l" class="app">
+            <div data-hf-id="hf-8kim" class="status"><span data-hf-id="hf-74gv">8:35&nbsp;&nbsp;Di. 17. Nov.</span><span data-hf-id="hf-0gg9" class="status__right"><svg data-hf-id="hf-e4sq" width="17" height="12" viewBox="0 0 17 12"><path data-hf-id="hf-3uls" d="M8.5 11.5l2.4-2.9a3.6 3.6 0 0 0-4.8 0z M8.5 5.6c1.6 0 3 .6 4.1 1.6l1.4-1.7A8.2 8.2 0 0 0 8.5 3.4 8.2 8.2 0 0 0 3 5.5l1.4 1.7c1.1-1 2.5-1.6 4.1-1.6z M8.5 0C5.3 0 2.4 1.2.2 3.2l1.4 1.7A10.4 10.4 0 0 1 8.5 2.2c2.6 0 5 1 6.9 2.7l1.4-1.7A12.6 12.6 0 0 0 8.5 0z" fill="#1f1a14"/></svg> <span data-hf-id="hf-tf3f">87 %</span><span data-hf-id="hf-7g6e" class="batt"><i data-hf-id="hf-wt6k"></i></span></span></div>
+            <div data-hf-id="hf-x348" class="tabbar"><span data-hf-id="hf-fj0b" class="on">Heute</span><span data-hf-id="hf-kqb6">Vorbereiten</span><span data-hf-id="hf-jx3h">Jahresplan</span><span data-hf-id="hf-swrw">Einrichten</span></div>
+            <div data-hf-id="hf-hgc8" class="split">
+              <div data-hf-id="hf-33o8" class="list">
+                <div data-hf-id="hf-v5df" class="list__day">Dienstag, 17. November</div>
+                <div data-hf-id="hf-thy4" class="row"><div data-hf-id="hf-iyfj" class="row__top"><span data-hf-id="hf-l8h0" class="row__title">7a · Deutsch</span><span data-hf-id="hf-5ytb" class="row__meta">1. Stunde · 07:45 – 08:30</span></div><div data-hf-id="hf-jshc" class="row__sub"><span data-hf-id="hf-6zed">Satzglieder</span></div></div>
+                <div data-hf-id="hf-peys" class="row sel"><div data-hf-id="hf-4pv3" class="row__top"><span data-hf-id="hf-oe01" class="row__title">8b · Englisch</span><span data-hf-id="hf-5b62" class="row__meta">2. Stunde · 08:35 – 09:20</span></div><div data-hf-id="hf-5eq0" class="row__sub"><span data-hf-id="hf-ug8y">Unit 3 – Past tense</span><span data-hf-id="hf-hqxc" class="cap">Jetzt</span></div></div>
+                <div data-hf-id="hf-lt04" class="row"><div data-hf-id="hf-4bk2" class="row__top"><span data-hf-id="hf-r9r4" class="row__title">Keine Stunde</span><span data-hf-id="hf-di4l" class="row__meta">3. Stunde · 09:40 – 10:25</span></div></div>
+                <div data-hf-id="hf-km31" class="row"><div data-hf-id="hf-3x91" class="row__top"><span data-hf-id="hf-9r33" class="row__title">9c · Englisch</span><span data-hf-id="hf-8jlf" class="row__meta">4. Stunde · 10:30 – 11:15</span></div><div data-hf-id="hf-47sx" class="row__sub"><span data-hf-id="hf-a8xk">Unit 2 – Hörverstehen</span></div></div>
+                <div data-hf-id="hf-l0e2" class="row"><div data-hf-id="hf-6pe8" class="row__top"><span data-hf-id="hf-c3cy" class="row__title">6c · Mathe</span><span data-hf-id="hf-epjx" class="row__meta">5. Stunde · 11:35 – 12:20</span></div><div data-hf-id="hf-4m3y" class="row__sub"><span data-hf-id="hf-k74w">Ohne Material</span></div></div>
+                <div data-hf-id="hf-mzx7" class="row"><div data-hf-id="hf-6b37" class="row__top"><span data-hf-id="hf-ianu" class="row__title">8a · Englisch</span><span data-hf-id="hf-gby4" class="row__meta">6. Stunde · 12:25 – 13:10</span></div><div data-hf-id="hf-3f6v" class="row__sub"><span data-hf-id="hf-3x0t">Unit 4 – Wortschatz</span></div></div>
+              </div>
+              <div data-hf-id="hf-j2sz" class="detail">
+                <div data-hf-id="hf-tvli" class="d__title">8b · Englisch</div>
+                <div data-hf-id="hf-ykkr" class="d__meta">2. Stunde · 08:35 – 09:20</div>
+                <div data-hf-id="hf-bnzw" class="d__topic">Unit 3 – Past tense</div>
+                <div data-hf-id="hf-oaog" class="d__notes">Bereitlegen: Buch, Heft<br data-hf-id="hf-x5px">Hausaufgabe: Workbook S. 34</div>
+                <div data-hf-id="hf-hovr" class="tiles">
+                  <div data-hf-id="hf-h0tg" class="tile" id="t-tile1"><div data-hf-id="hf-n56x" id="t-press"></div><span data-hf-id="hf-hqsx" class="cap" id="t-cap">Am Smartboard</span><span data-hf-id="hf-ru4w" class="tile__name" id="t-name">Unit 3 Präsentation</span><span data-hf-id="hf-7v6v" class="tile__type">PPTX</span></div>
+                  <div data-hf-id="hf-f6ek" class="tile"><span data-hf-id="hf-ob1l" class="tile__name">Arbeitsblatt Vokabeln</span><span data-hf-id="hf-y0vf" class="tile__type">PDF</span></div>
+                  <div data-hf-id="hf-8r7o" class="tile"><span data-hf-id="hf-obns" class="tile__name">Tafel</span><span data-hf-id="hf-11ua" class="tile__type">Seite 1</span></div>
+                </div>
+                <div data-hf-id="hf-s5hz" class="acts"><span data-hf-id="hf-j8s1">Ausfall markieren</span><span data-hf-id="hf-446e">Material weiterreichen</span></div>
+              </div>
+            </div>
+            <div data-hf-id="hf-7ma2" class="sbar">
+              <span data-hf-id="hf-grel" class="sbar__label">Das sieht die Klasse</span>
+              <div data-hf-id="hf-aiob" class="sbar__prev">
+                <div data-hf-id="hf-zcx0" class="mini-cs"><i data-hf-id="hf-mz2f" style="top:12px;width:30px;height:4px;opacity:.6"></i><i data-hf-id="hf-wowm" style="top:24px;width:70px;height:8px"></i><i data-hf-id="hf-dt57" style="top:38px;width:52px;height:4px;opacity:.6"></i></div>
+                <div data-hf-id="hf-s2yk" class="mini-sl" id="t-minisl"><i data-hf-id="hf-nnuz" style="top:10px;left:10px;width:24px;height:3px;background:#c0392b"></i><i data-hf-id="hf-tpix" style="top:18px;left:10px;width:66px;height:9px;background:#1c2a3a"></i><i data-hf-id="hf-9ili" style="top:33px;left:10px;width:14px;height:2px;background:#c0392b"></i><i data-hf-id="hf-im8e" style="top:40px;left:10px;width:46px;height:4px;background:#1c2a3a;opacity:.7"></i></div>
+              </div>
+              <div data-hf-id="hf-ta0z" class="seg"><span data-hf-id="hf-0983" id="t-seg-cs" class="on">Klassenbildschirm</span><span data-hf-id="hf-f3oy" id="t-seg-mat">Material</span><span data-hf-id="hf-w8gd">Tafel</span><span data-hf-id="hf-1am8">Dunkel</span></div>
+              <span data-hf-id="hf-k7pw" class="sbar__btn">Timer</span>
+              <span data-hf-id="hf-2ch3" class="sbar__btn">Arbeitsform</span>
+              <span data-hf-id="hf-kf1n" class="sbar__conn"><span data-hf-id="hf-9gry" class="dot"></span>Bildschirm verbunden</span>
+            </div>
+          </div>
+        </div></div></div>
+        <div data-hf-id="hf-4m33" id="t-touch" class="touch"></div>
+      </div>
+      <div data-hf-id="hf-1aic" id="t-when">
+        <h1 data-hf-id="hf-kbng" class="title"><span data-hf-id="hf-vtqf" class="w">Heute,</span></h1>
+        <h1 data-hf-id="hf-0z90" class="title"><span data-hf-id="hf-iyk6" class="w">8:35</span></h1>
+      </div>
+    </div>
+
+    <!-- Wand mit Smartboard -->
+    <div data-hf-id="hf-xmrk" id="t-wall">
+      <div data-hf-id="hf-cc5c" id="t-boardwrap">
+        <div data-hf-id="hf-a9vw" class="wall"></div>
+        <div data-hf-id="hf-xidg" id="t-rail"></div>
+        <div data-hf-id="hf-fjjd" id="t-board" class="board"><div data-hf-id="hf-emam" class="board__screen">
+          <div data-hf-id="hf-1zdz" class="slide">
+            <div data-hf-id="hf-el7t" class="slide__kicker">UNIT 3</div>
+            <div data-hf-id="hf-0yts" class="slide__head">Past tense</div>
+            <div data-hf-id="hf-p4pz" class="slide__rule"></div>
+            <div data-hf-id="hf-bkb1" class="slide__line">I <b data-hf-id="hf-tgeb">went</b> home.</div>
+            <div data-hf-id="hf-m5kf" class="slide__line">He <b data-hf-id="hf-t1vn">went</b> home.</div>
+            <div data-hf-id="hf-5nme" class="slide__line">We <b data-hf-id="hf-jpje">saw</b> a film.</div>
+          </div>
+        </div><div data-hf-id="hf-mvn7" class="board__logo"></div></div>
+      </div>
+      <div data-hf-id="hf-tvz9" id="t-say">
+        <h2 data-hf-id="hf-2cq3" class="title"><span data-hf-id="hf-vhos" class="w">Ein</span> <span data-hf-id="hf-jzg3" class="w">Tipp.</span></h2>
+        <p data-hf-id="hf-5dcb" class="subtitle"><span data-hf-id="hf-ipub" class="w">Schon</span> <span data-hf-id="hf-vfsf" class="w">an</span> <span data-hf-id="hf-ljer" class="w">der</span> <span data-hf-id="hf-hnv4" class="w">Wand.</span></p>
+      </div>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    // Ausgangszustände
+    // iPad wischt herein und schärft sich
+    tl.fromTo("#t-ipad", { x: 420, filter: "blur(16px)" }, { x: 0, filter: "blur(0px)", duration: 0.55, ease: "expo.out" }, 0);
+    tl.fromTo("#t-when .w", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.16, stagger: 0.12, ease: "power2.out" }, 0.2);
+    tl.to("#t-when .w", { opacity: 0, filter: "blur(8px)", duration: 0.18, stagger: 0.05, ease: "power2.in" }, 1.35);
+    // Kamera auf die Kachel
+    tl.fromTo("#t-cam", { scale: 1, x: 0, y: 0 }, { scale: 2.05, x: -215, y: 60, duration: 0.65, ease: "power2.inOut" }, 1.45);
+    // Fingertipp (Ton 12,23 s = lokal 2,23)
+    tl.fromTo("#t-touch", { opacity: 0, scale: 1.15 }, { opacity: 1, scale: 1, duration: 0.12, ease: "power2.out" }, 2.0);
+    tl.to("#t-touch", { scale: 0.86, duration: 0.08, ease: "power2.in" }, 2.15);
+    tl.fromTo("#t-press", { opacity: 0 }, { opacity: 1, duration: 0.06 }, 2.17);
+    tl.to("#t-touch", { scale: 1, opacity: 0, duration: 0.25, ease: "power2.out" }, 2.3);
+    tl.to("#t-press", { opacity: 0, duration: 0.2 }, 2.32);
+    // Kapsel „Am Smartboard“ wie in der App: Überblendung, Name rückt nach (snappy 0,15 s)
+    tl.to("#t-cap", { opacity: 1, duration: 0.15, ease: "power2.out" }, 2.33);
+    tl.fromTo("#t-name", { y: 0 }, { y: 28, duration: 0.15, ease: "power2.out" }, 2.33);
+    tl.set("#t-seg-cs", { backgroundColor: "rgba(255,255,255,0)", boxShadow: "0 0 0 rgba(0,0,0,0)" }, 2.33);
+    tl.set("#t-seg-mat", { backgroundColor: "#ffffff", boxShadow: "0 1px 3px rgba(31,26,20,0.16)" }, 2.33);
+    tl.fromTo("#t-minisl", { opacity: 0 }, { opacity: 1, duration: 0.15 }, 2.33);
+    // Schnitt auf die Wand, die Folie kommt leicht groß und setzt sich
+    tl.set("#t-desk", { opacity: 0 }, 3.0);
+    tl.set("#t-wall", { opacity: 1 }, 3.0);
+    tl.fromTo("#t-boardwrap", { scale: 1.08 }, { scale: 1, duration: 0.6, ease: "expo.out" }, 3.0);
+    tl.fromTo("#t-say .w", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.14, stagger: 0.08, ease: "power2.out" }, 3.3);
+    // Wisch zur Tafel
+    tl.to("#t-wall", { x: -560, filter: "blur(18px)", duration: 0.3, ease: "power3.in" }, 5.7);
+    window.__timelines["tap"] = tl;
+  </script>
+</template>

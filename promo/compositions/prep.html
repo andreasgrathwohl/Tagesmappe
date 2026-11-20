@@ -1,0 +1,98 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: #f5f7f4; }
+    #p-stage { position: absolute; inset: 0; }
+    #p-when { position: absolute; left: 110px; top: 170px; color: #0d2327; }
+    #p-when .title { font-size: 112px; }
+    #p-done { position: absolute; left: 116px; top: 560px; width: 440px; color: #0d2327; font-size: 54px; }
+    #p-done .w { display: inline-block; }
+    #p-win { left: 560px; top: 150px; width: 1180px; height: 720px; }
+    .pv-body { position: absolute; top: 64px; left: 0; right: 0; bottom: 0; display: flex; }
+    .pv-side { width: 360px; background: #eeeeec; border-right: 0.5px solid rgba(0,0,0,.12); padding: 18px 14px; }
+    .pv-sec { font-size: 17px; font-weight: 600; color: #86868b; padding: 14px 10px 8px; }
+    .pv-row { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 12px; border-radius: 8px; font-size: 22px; }
+    .pv-row small { font-size: 16px; color: #6e6e73; }
+    .pv-row.sel { background: #0e6b7a; color: #fff; }
+    .pv-row.sel small { color: rgba(255,255,255,.82); }
+    .pv-main { flex: 1; padding: 30px 40px; }
+    .pv-h { font-size: 40px; font-weight: 700; letter-spacing: -0.01em; }
+    .pv-meta { font-size: 19px; color: #6e6e73; margin-top: 6px; }
+    .pv-topic { font-size: 22px; margin-top: 22px; }
+    .pv-lab { font-size: 17px; font-weight: 600; color: #86868b; margin-top: 30px; margin-bottom: 10px; }
+    .pv-list { background: #fff; border-radius: 12px; box-shadow: 0 0 0 0.5px rgba(0,0,0,.14); overflow: hidden; }
+    .pv-item { display: flex; align-items: center; gap: 16px; padding: 0 18px; height: 64px; font-size: 21px; border-bottom: 0.5px solid rgba(0,0,0,.08); overflow: hidden; }
+    .pv-ico { width: 30px; height: 38px; border-radius: 4px; position: relative; flex: none; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.18); }
+    .pv-ico b { position: absolute; left: -3px; right: -3px; bottom: 5px; height: 13px; border-radius: 2px; font-size: 8.5px; line-height: 13px; text-align: center; color: #fff; font-weight: 800; letter-spacing: .02em; }
+    .pdf b { background: #d4382c; }
+    .ppt b { background: #d9622b; }
+    #p-new { height: 0; border-bottom-width: 0; }
+    #p-drop { display: flex; align-items: center; gap: 12px; height: 64px; padding: 0 18px; font-size: 20px; color: #0e6b7a; position: relative; }
+    #p-hl { position: absolute; inset: 4px; border-radius: 9px; background: rgba(14,107,122,.12); box-shadow: 0 0 0 2.5px #0e6b7a inset; opacity: 0; }
+    #p-file { position: absolute; left: 1770px; top: 700px; width: 120px; text-align: center; font-family: var(--font-sys); }
+    #p-file .doc { width: 76px; height: 96px; margin: 0 auto; position: relative; background: #fff; border-radius: 6px; box-shadow: 0 0 0 1px rgba(0,0,0,.16), 0 6px 14px rgba(13,35,39,.18); }
+    #p-file .doc::before { content: ""; position: absolute; right: 0; top: 0; width: 20px; height: 20px; background: linear-gradient(225deg, #f5f7f4 50%, #dcdcdc 50%); border-top-right-radius: 6px; }
+    #p-file .doc b { position: absolute; left: -5px; right: -5px; bottom: 16px; height: 24px; border-radius: 3px; background: #d9622b; color: #fff; font-size: 14px; line-height: 24px; font-weight: 800; }
+    #p-file p { font-size: 16px; line-height: 1.2; margin-top: 8px; color: #1d1d1f; }
+    #p-cursor { left: 1960px; top: 1120px; }
+  </style>
+  <div data-hf-id="hf-kl6k" id="root" data-composition-id="prep" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-e3gi" id="p-stage">
+      <div data-hf-id="hf-39e8" id="p-when">
+        <h1 data-hf-id="hf-kbng" class="title"><span data-hf-id="hf-avdy" class="w">Gestern,</span></h1>
+        <h1 data-hf-id="hf-0z90" class="title"><span data-hf-id="hf-q9l2" class="w">14:30</span></h1>
+      </div>
+      <p data-hf-id="hf-fv3k" id="p-done" class="subtitle"><span data-hf-id="hf-i4su" class="w">Einmal</span> <span data-hf-id="hf-qdc1" class="w">zuordnen.</span><br data-hf-id="hf-x5px"><span data-hf-id="hf-ym47" class="w">Fertig.</span></p>
+
+      <div data-hf-id="hf-xch0" id="p-win" class="mac">
+        <div data-hf-id="hf-6tyy" class="mac__bar"><i data-hf-id="hf-wt6k"></i><i data-hf-id="hf-zeb8"></i><i data-hf-id="hf-y7e5"></i><span data-hf-id="hf-rtd7" class="mac__title">Vorbereiten</span></div>
+        <div data-hf-id="hf-v10n" class="pv-body">
+          <div data-hf-id="hf-nccy" class="pv-side">
+            <div data-hf-id="hf-iyz7" class="pv-sec">Dienstag, 17.11.</div>
+            <div data-hf-id="hf-9p0p" class="pv-row"><span data-hf-id="hf-ctic">7a · Deutsch</span><small data-hf-id="hf-s9ju">1. Stunde</small></div>
+            <div data-hf-id="hf-s5vx" class="pv-row sel"><span data-hf-id="hf-589t">8b · Englisch</span><small data-hf-id="hf-1f6v">2. Stunde</small></div>
+            <div data-hf-id="hf-9sd9" class="pv-row"><span data-hf-id="hf-wc67">9c · Englisch</span><small data-hf-id="hf-2u01">4. Stunde</small></div>
+            <div data-hf-id="hf-azac" class="pv-row"><span data-hf-id="hf-1sua">6c · Mathe</span><small data-hf-id="hf-g22m">5. Stunde</small></div>
+            <div data-hf-id="hf-0d8a" class="pv-sec">Mittwoch, 18.11.</div>
+            <div data-hf-id="hf-akzb" class="pv-row"><span data-hf-id="hf-1smt">8b · Englisch</span><small data-hf-id="hf-6rn0">3. Stunde</small></div>
+            <div data-hf-id="hf-brwe" class="pv-row"><span data-hf-id="hf-20ws">7a · Deutsch</span><small data-hf-id="hf-vb05">4. Stunde</small></div>
+          </div>
+          <div data-hf-id="hf-3wpk" class="pv-main">
+            <div data-hf-id="hf-djnp" class="pv-h">8b · Englisch</div>
+            <div data-hf-id="hf-8zle" class="pv-meta">Dienstag, 17. November · 2. Stunde · 08:35 – 09:20</div>
+            <div data-hf-id="hf-rir8" class="pv-topic">Thema: Unit 3 – Past tense</div>
+            <div data-hf-id="hf-ywvh" class="pv-lab">Material</div>
+            <div data-hf-id="hf-w1n7" class="pv-list">
+              <div data-hf-id="hf-lzzl" class="pv-item"><span data-hf-id="hf-adhl" class="pv-ico pdf"><b data-hf-id="hf-5u1h">PDF</b></span>Arbeitsblatt Vokabeln.pdf</div>
+              <div data-hf-id="hf-qpbf" class="pv-item" id="p-new"><span data-hf-id="hf-2o3r" class="pv-ico ppt"><b data-hf-id="hf-kbyx">PPTX</b></span>Unit 3 Präsentation.pptx</div>
+              <div data-hf-id="hf-23h0" id="p-drop"><div data-hf-id="hf-fi38" id="p-hl"></div><span data-hf-id="hf-2neg" style="font-size:26px;line-height:1">+</span> Material hinzufügen</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div data-hf-id="hf-sm6q" id="p-file"><div data-hf-id="hf-nh2y" class="doc"><b data-hf-id="hf-8d4d">PPTX</b></div><p data-hf-id="hf-kupp">Unit 3 Präsentation.pptx</p></div>
+      <svg data-hf-id="hf-u6dv" id="p-cursor" class="cursor" viewBox="0 0 23 32"><path data-hf-id="hf-df1j" d="M2 2 L2 26 L8 20.5 L12.2 30 L16 28.4 L11.9 19 L20 19 Z" fill="#000" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    tl.fromTo("#p-when .w", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.16, stagger: 0.12, ease: "power2.out" }, 0.25);
+    tl.fromTo("#p-win", { y: 260, opacity: 0 }, { y: 0, opacity: 1, duration: 0.8, ease: "expo.out" }, 0.35);
+    tl.fromTo("#p-file", { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.3, ease: "expo.out" }, 0.9);
+    // Zeiger kommt von rechts unten, greift die Datei (Klick 1,83 s)
+    tl.fromTo("#p-cursor", { x: 0, y: 0 }, { x: -140, y: -360, duration: 0.75, ease: "power3.out" }, 1.0);
+    tl.fromTo("#p-file", { scale: 1, opacity: 1 }, { scale: 1.06, opacity: 0.85, duration: 0.12, ease: "power2.out", immediateRender: false }, 1.82);
+    // Ziehen auf „Material hinzufügen“
+    tl.fromTo("#p-cursor", { x: -140, y: -360 }, { x: -810, y: -594, duration: 1.1, ease: "power2.inOut", immediateRender: false }, 1.92);
+    tl.fromTo("#p-file", { x: 0, y: 0 }, { x: -660, y: -210, duration: 1.1, ease: "power2.inOut", immediateRender: false }, 1.92);
+    tl.fromTo("#p-hl", { opacity: 0 }, { opacity: 1, duration: 0.15 }, 2.65);
+    // Loslassen (3,03 s): Datei geht in die Zeile auf, die neue Zeile öffnet sich
+    tl.to("#p-file", { scale: 0.35, opacity: 0, duration: 0.2, ease: "power3.in" }, 3.03);
+    tl.to("#p-hl", { opacity: 0, duration: 0.2 }, 3.1);
+    tl.fromTo("#p-new", { height: 0, borderBottomWidth: 0 }, { height: 64, borderBottomWidth: 0.5, duration: 0.35, ease: "expo.out" }, 3.05);
+    tl.fromTo("#p-done .w", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.14, stagger: 0.09, ease: "power2.out" }, 3.2);
+    // Wisch nach links in die nächste Welt
+    tl.to("#p-stage", { x: -520, filter: "blur(18px)", duration: 0.3, ease: "power3.in" }, 4.1);
+    window.__timelines["prep"] = tl;
+  </script>
+</template>

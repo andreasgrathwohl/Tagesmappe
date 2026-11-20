@@ -1,0 +1,52 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: #0b3f49; }
+    #s-flood { position: absolute; inset: 0; background: #f5f7f4; opacity: 0; }
+    #s-path { position: absolute; left: 160px; top: 370px; display: flex; gap: 22px; font-family: var(--font-title); font-weight: 500; font-size: 52px; color: #b9d3d2; letter-spacing: -0.01em; }
+    #s-path .sep { color: rgba(185, 211, 210, 0.5); }
+    #s-win { position: absolute; left: 150px; top: 470px; width: 1640px; height: 140px; overflow: hidden; }
+    #s-strip { position: absolute; left: 10px; top: 0; }
+    #s-strip p { height: 140px; line-height: 140px; white-space: nowrap; color: #fbf8f2; font-size: 112px; }
+    #s-strike { position: absolute; left: 160px; top: 542px; width: 1290px; height: 8px; border-radius: 4px; background: #ffc94a; transform-origin: left center; }
+    #s-q { position: absolute; left: 160px; top: 700px; color: #fbf8f2; font-size: 72px; }
+  </style>
+  <div data-hf-id="hf-jrqz" id="root" data-composition-id="search" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-81us" id="s-path">
+      <span data-hf-id="hf-hw96" class="pseg">Unterricht</span><span data-hf-id="hf-8ahc" class="pseg sep">›</span>
+      <span data-hf-id="hf-hupp" class="pseg">Englisch</span><span data-hf-id="hf-hq08" class="pseg sep">›</span>
+      <span data-hf-id="hf-6ao4" class="pseg">8b</span><span data-hf-id="hf-gj35" class="pseg sep">›</span>
+      <span data-hf-id="hf-mxt9" class="pseg">Unit 3</span><span data-hf-id="hf-gxe6" class="pseg sep">›</span>
+    </div>
+    <div data-hf-id="hf-8eeu" id="s-win" data-layout-allow-overflow>
+      <div data-hf-id="hf-8dnd" id="s-strip">
+        <p data-hf-id="hf-tats" class="title">Präsentation.pptx</p>
+        <p data-hf-id="hf-a0i5" class="title">Präsentation_neu.pptx</p>
+        <p data-hf-id="hf-7f71" class="title">Präsentation_final.pptx</p>
+        <p data-hf-id="hf-7onc" class="title">Präsentation_alt.pptx</p>
+        <p data-hf-id="hf-bixo" class="title">Präsentation_final_v2.pptx</p>
+      </div>
+    </div>
+    <div data-hf-id="hf-uuoz" id="s-strike"></div>
+    <p data-hf-id="hf-a3zu" id="s-q" class="subtitle"><span data-hf-id="hf-vptq" class="w">Welche</span> <span data-hf-id="hf-6dwy" class="w">war</span> <span data-hf-id="hf-w5za" class="w">die</span> <span data-hf-id="hf-ju9u" class="w">richtige?</span></p>
+    <div data-hf-id="hf-m0ib" id="s-flood"></div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    // Pfad Glied für Glied (je mit Tick im Ton)
+    const segs = gsap.utils.toArray("#s-path .pseg");
+    segs.forEach((el, i) => {
+      tl.fromTo(el, { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.13, ease: "power2.out" }, 0.2 + Math.floor(i / 2) * 0.24 + (i % 2) * 0.08);
+    });
+    // Dateiname rollt wie ein Zählwerk und bleibt bei der vierten Fassung hängen
+    tl.fromTo("#s-win", { opacity: 0 }, { opacity: 1, duration: 0.1 }, 1.08);
+    const stops = [0, -140, -280, -420, -560];
+    for (let i = 1; i < stops.length; i++) {
+      tl.fromTo("#s-strip", { y: stops[i - 1] }, { y: stops[i], duration: i === stops.length - 1 ? 0.28 : 0.1, ease: i === stops.length - 1 ? "back.out(1.4)" : "none", immediateRender: false }, 1.1 + (i - 1) * 0.16);
+    }
+    tl.fromTo("#s-strike", { scaleX: 0 }, { scaleX: 1, duration: 0.3, ease: "expo.out" }, 2.0);
+    tl.fromTo("#s-q .w", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.14, stagger: 0.07, ease: "power2.out" }, 2.1);
+    // Farbflut zu Papier: die nächste Welt
+    tl.fromTo("#s-flood", { opacity: 0 }, { opacity: 1, duration: 0.3, ease: "power2.inOut" }, 2.9);
+    window.__timelines["search"] = tl;
+  </script>
+</template>
