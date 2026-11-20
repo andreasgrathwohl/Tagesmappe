@@ -57,3 +57,20 @@ lassen, weil dann die Doppelstunde ohne eigenen Schalter ein Tipp ist und die Vo
 - Ein eigener Plan entfällt: Die Änderung ist klein, dieses Dokument nennt alle Dateien.
 - PRD: neue Anforderung FR-1.3 [MVP] mit AK, Lieferstufen und Abdeckung; Hilfeartikel „Stundenplan“ ergänzt.
 - Prüfung: Kern-Tests lokal, `swift-parse.ps1`, ein CI-Lauf auf macOS am Ende.
+
+## Nachtrag 2026-11-20: Auf andere Tage übernehmen, Erststart
+
+Auftrag von Andreas („Dann los gehts“) für die Punkte 4 und 5.
+
+- **Übernehmen** (nur beim Ändern einer gesicherten Stunde): Abschnitt „Auf andere Tage übernehmen“ im Blatt mit den
+  Tagen des Rasters als An/Aus-Knöpfen und „Übernehmen“. Gleiche Stunde, Klasse, Fach und Woche; ein Feld gilt als
+  belegt, wenn dort ein Eintrag mit überschneidender Woche steht (ohne Woche überschneidet sich mit jeder). Belegte
+  Felder bleiben, das Blatt nennt sie. Übernommen wird die gesicherte Stunde, nicht ungesicherte Eingaben.
+  Kern: `TimetableEntryCopy.plan` (neu, in `TimetableEntrySuggestions.swift`); App: `TimetableEditorViewModel.copy`.
+  Verworfen: belegte Felder überschreiben (ein Tipp dürfte keine fremde Stunde still ersetzen).
+- **Erststart**: neuer leerer Zustand `DayEmptyState.noTimetable` (bestehende Datei `Frontstage/UI/DayView/DayEmptyState.swift`),
+  wenn der Stundenplan keinen Eintrag hat; Ferien gehen vor. Die Tagesansicht zeigt „Noch kein Stundenplan“ mit dem
+  Knopf „Stundenplan einrichten“, der über das vorhandene `showSetup` nach Einrichten springt (wie bei „Ordner
+  freigeben“). Verworfen: eigener Assistent als Blatt (zweiter Weg neben Einrichten).
+- Punkt 3 (Doppelstunde) ist durch „Sichern und nächste“ mit stehenbleibender Klasse und Fach abgedeckt; kein eigener
+  Schalter.

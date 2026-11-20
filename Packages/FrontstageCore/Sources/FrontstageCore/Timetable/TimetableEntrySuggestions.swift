@@ -83,3 +83,36 @@ public enum TimetableGridNavigation {
     return nil
   }
 }
+
+/// Eine Stunde auf andere Wochentage übernehmen (FR-1.3): gleiche Stunde, Klasse, Fach und Woche.
+public enum TimetableEntryCopy {
+  public struct Plan: Hashable, Sendable {
+    /// Neu anzulegende Einträge, in Wochentag-Reihenfolge.
+    public var additions: [TimetableEntry]
+    /// Tage, an denen das Feld schon belegt ist; dort wird nichts angelegt.
+    public var occupied: [Weekday]
+  }
+
+  /// Ein Feld gilt als belegt, wenn dort schon ein Eintrag steht, dessen Woche sich mit der des Eintrags
+  /// überschneidet (ohne Woche überschneidet sich mit jeder). Der eigene Tag wird ignoriert.
+  public static func plan(copying entry: TimetableEntry, to weekdays: Set<Weekday>, existing: [TimetableEntry])
+    -> Plan
+  {
+    var additions: [TimetableEntry] = []
+    var occupied: [Weekday] = []
+    for day in Weekday.allCases where weekdays.contains(day) && day != entry.weekday {
+      let taken = existing.contains { other in
+        other.weekday == day && other.period == entry.period
+          && (other.weekVariant == nil || entry.weekVariant == nil || other.weekVariant == entry.weekVariant)
+      }
+      if taken {
+        occupied.append(day)
+      } else {
+        var copy = entry
+        copy.weekday = day
+        additions.append(copy)
+      }
+    }
+    return Plan(additions: additions, occupied: occupied)
+  }
+}

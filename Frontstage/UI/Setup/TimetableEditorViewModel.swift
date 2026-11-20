@@ -106,6 +106,23 @@ enum TimetableEditError: Error, Equatable {
       isOccupied: { !entries(weekday: $0, period: $1).isEmpty })
   }
 
+  /// Übernimmt eine gesicherte Stunde auf weitere Tage (gleiche Stunde, Klasse, Fach und Woche). Belegte Felder
+  /// bleiben unverändert und kommen im Ergebnis als `occupied` zurück.
+  func copy(_ entry: TimetableEntry, to weekdays: Set<Weekday>) throws(TimetableEditError)
+    -> TimetableEntryCopy.Plan
+  {
+    reload()
+    let plan = TimetableEntryCopy.plan(copying: entry, to: weekdays, existing: allEntries)
+    do {
+      for addition in plan.additions { try environment.store.addEntry(addition, origin: .manual) }
+    } catch {
+      reload()
+      throw .saveFailed
+    }
+    reload()
+    return plan
+  }
+
   // MARK: Einträge
 
   /// Legt eine Stunde an (`old == nil`, Herkunft `.manual`) oder ändert eine vorhandene.

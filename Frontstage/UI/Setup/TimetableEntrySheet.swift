@@ -45,6 +45,9 @@ struct TimetableEntrySheet: View {
   /// Zuletzt mit „Sichern und nächste“ gesicherte Stunde, als Rückmeldung im Blatt.
   @State private var lastSaved: TimetableEntry?
   @FocusState private var focusedField: Field?
+  /// Tage, auf die die gesicherte Stunde übernommen werden soll (nur beim Ändern).
+  @State private var copyDays: Set<Weekday> = []
+  @State private var copyResult: TimetableEntryCopy.Plan?
 
   private enum Field { case schoolClass, subject }
 
@@ -115,6 +118,7 @@ struct TimetableEntrySheet: View {
           }
         }
         if let editing {
+          copySection(editing)
           Section {
             Button("setup.timetable.entry.delete", role: .destructive) {
               model.delete(editing)
@@ -150,6 +154,57 @@ struct TimetableEntrySheet: View {
 
   private func save() {
     if store() != nil { dismiss() }
+  }
+
+  /// „Auf andere Tage übernehmen“: Tage als Knöpfe zum An- und Abwählen, dann ein Knopf zum Übernehmen. Übernommen
+  /// wird die gesicherte Stunde (`editing`), nicht ungesicherte Änderungen im Blatt.
+  private func copySection(_ editing: TimetableEntry) -> some View {
+    Section {
+      HStack(spacing: 8) {
+        ForEach(model.weekdays.filter { $0 != editing.weekday }, id: \.self) { day in
+          let isOn = copyDays.contains(day)
+          // Swift-Hinweis: Zwei Knopfstile in einem Ternär sind verschiedene Typen; darum zwei Zweige.
+          Group {
+            if isOn {
+              Button { copyDays.remove(day) } label: { Text(verbatim: day.shortName) }
+                .buttonStyle(.borderedProminent)
+            } else {
+              Button { copyDays.insert(day) } label: { Text(verbatim: day.shortName) }
+                .buttonStyle(.bordered)
+            }
+          }
+          .accessibilityLabel(Text(verbatim: day.displayName))
+          .accessibilityAddTraits(isOn ? .isSelected : [])
+        }
+      }
+      Button("setup.timetable.entry.copy") { copy(editing) }
+        .disabled(copyDays.isEmpty)
+    } header: {
+      Text("setup.timetable.entry.copy.header")
+    } footer: {
+      if let copyResult {
+        VStack(alignment: .leading, spacing: 4) {
+          Text("setup.timetable.entry.copy.result \(copyResult.additions.count)")
+          if !copyResult.occupied.isEmpty {
+            Text(
+              "setup.timetable.entry.copy.occupied \(copyResult.occupied.map(\.shortName).formatted(.list(type: .and)))"
+            )
+          }
+        }
+      } else {
+        Text("setup.timetable.entry.copy.footer")
+      }
+    }
+  }
+
+  private func copy(_ editing: TimetableEntry) {
+    do throws(TimetableEditError) {
+      copyResult = try model.copy(editing, to: copyDays)
+      copyDays = []
+      error = nil
+    } catch {
+      self.error = error
+    }
   }
 
   /// Sichern, dann zum nächsten freien Feld; ist keins mehr frei, schließt das Blatt.
