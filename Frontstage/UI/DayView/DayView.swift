@@ -268,7 +268,19 @@ struct DayView: View {
       content: model.content,
       sourceKind: (try? coordinator.repository.timetableSourceKind()) ?? .manual,
       fetchedAt: try? coordinator.repository.sourceFetchedAt(),
-      lastError: coordinator.status.lastError)
+      lastError: coordinator.status.lastError,
+      hasTimetableEntries: hasTimetableEntries)
+  }
+
+  /// Ob der Stundenplan wenigstens einen Eintrag hat. Unlesbarer Speicher zählt als „ja“: lieber „keine Stunde“
+  /// als ein falscher Erststart.
+  private var hasTimetableEntries: Bool {
+    do {
+      guard let timetable = try coordinator.repository.timetable() else { return false }
+      return !timetable.entries.isEmpty
+    } catch {
+      return true
+    }
   }
 
   /// Schmale Breite (z. B. Split View): Das Detail ist ohne Zeilen nicht erreichbar, also zeigt die Liste
@@ -314,6 +326,14 @@ struct DayView: View {
     switch state {
     case .noLessons:
       ContentUnavailableView("dayView.noLesson", systemImage: DayStatement.noLesson.symbolName)
+    case .noTimetable:
+      ContentUnavailableView {
+        Label("dayView.empty.noTimetable", systemImage: "calendar.badge.plus")
+      } description: {
+        Text("dayView.empty.noTimetable.description")
+      } actions: {
+        Button("dayView.empty.noTimetable.action") { showSetup() }
+      }
     case .nonTeachingDay(let title):
       ContentUnavailableView(title, systemImage: "sun.max")
     case .sourceFailed(let error):

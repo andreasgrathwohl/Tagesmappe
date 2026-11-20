@@ -191,4 +191,19 @@ import Testing
     #expect(vm.nextFreeSlot(after: .monday, period: 1) == .init(weekday: .monday, period: 4))
     #expect(vm.nextFreeSlot(after: .monday, period: 10) == .init(weekday: .tuesday, period: 1))
   }
+
+  @Test("AK-67: Stunde auf andere Tage übernehmen, belegte Felder bleiben (FR-1.3)")
+  func copyToOtherDays() throws {
+    let vm = makeModel()
+    let source = Fixtures.entry(.monday, 2, "8b", "Englisch")
+    let other = Fixtures.entry(.wednesday, 2, "9c", "Deutsch")
+    try vm.save(source, replacing: nil)
+    try vm.save(other, replacing: nil)
+    let plan = try vm.copy(source, to: [.tuesday, .wednesday, .thursday])
+    #expect(plan.occupied == [.wednesday])
+    #expect(vm.entries(weekday: .tuesday, period: 2) == [Fixtures.entry(.tuesday, 2, "8b", "Englisch")])
+    #expect(vm.entries(weekday: .thursday, period: 2) == [Fixtures.entry(.thursday, 2, "8b", "Englisch")])
+    #expect(vm.entries(weekday: .wednesday, period: 2) == [other])
+    #expect(try store.manuallyEditedEntries().contains(Fixtures.entry(.tuesday, 2, "8b", "Englisch")))
+  }
 }

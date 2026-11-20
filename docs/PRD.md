@@ -152,6 +152,10 @@ sichert und springt zum nächsten freien Feld; Klasse und Fach bleiben stehen. N
 abgeschaltet ist (ADR-0016), ist die Eingabe von Hand der einzige Weg zum Stundenplan; Auftrag von Andreas („so
 umsetzen“). Design: `docs/superpowers/specs/2026-11-20-stundenplan-schnell-eintragen-design.md`.
 
+Geändert 2026-11-20: Eine gesicherte Stunde lässt sich auf andere Wochentage übernehmen (gleiche Stunde, Klasse, Fach
+und Woche); belegte Felder bleiben unverändert und werden genannt. Hat der Stundenplan noch keinen Eintrag, zeigt die
+Tagesansicht statt „keine Stunde“ den Hinweis „Noch kein Stundenplan“ mit einem Knopf nach Einrichten (Ferien gehen vor).
+
 ### FR-2 — Stundenplan aus Schulmanager Online importieren [Later]
 
 Die Lehrkraft kann ihren Stundenplan alternativ aus Schulmanager Online übernehmen. Schulmanager
@@ -836,6 +840,8 @@ des Volumes; App Attest als spätere Stufe (ADR-0015). Domain `teach.grathwohl.d
 - AK-2 (FR-1.1): Aufbau: A-Woche Mo 1. Stunde 7a, B-Woche Mo 1. Stunde 9c; Woche vom 16.11. ist A-Woche. Handlung: Tagesansichten Mo 16.11. und Mo 23.11. öffnen. Ergebnis: 16.11. zeigt 7a, 23.11. zeigt 9c.
 - AK-42 (FR-1.2): Aufbau: Stundenplan mit Di 2. Stunde 8b, Zeitraster leer. Handlung: 2. Stunde auf 8:35–9:20 setzen; Klassenbildschirm am Di um 8:40 ansehen. Ergebnis: Er zeigt „bis 9:20“; die Tagesansicht zeigt die Zeit an der 2. Stunde.
 - AK-66 (FR-1.3): Aufbau: Stundenplan mit Mo 1. und 2. Stunde 8b Englisch und Mo 3. Stunde 9c Deutsch. Handlung: auf das leere Feld Mo 4. Stunde tippen, „9“ in Klasse tippen, Vorschlag „9c“ tippen, Vorschlag „Deutsch“ tippen, „Sichern und nächste“. Ergebnis: Mo 4. Stunde 9c Deutsch ist gesichert; das Blatt bleibt offen, steht auf Mo 5. Stunde, Klasse 9c und Fach Deutsch sind vorbelegt; ohne Tipp auf einen Sichern-Knopf wird nichts gesichert.
+- AK-67 (FR-1.3): Aufbau: Mo 2. Stunde 8b Englisch, Mi 2. Stunde 9c Deutsch. Handlung: Mo 2. Stunde öffnen, unter „Auf andere Tage übernehmen“ Di, Mi und Do wählen, „Übernehmen“. Ergebnis: Di und Do 2. Stunde zeigen 8b Englisch; Mi bleibt 9c Deutsch, das Blatt nennt Mi als schon belegt.
+- AK-68 (FR-1.3): Aufbau: leerer Stundenplan, Schultag. Handlung: Tagesansicht öffnen. Ergebnis: „Noch kein Stundenplan“ mit Knopf „Stundenplan einrichten“, der nach Einrichten führt; an einem Ferientag steht weiter der Ferienname.
 - AK-3 (FR-2): Aufbau: Schulmanager-Testkonto mit Stundenplan (3 Einträge). Handlung: Import auslösen. Ergebnis: Die 3 Einträge stehen im Stundenplan; ein vorher von Hand angelegter Eintrag geht dabei nicht stillschweigend verloren.
 - AK-21 (FR-2.2): Aufbau: Schulmanager-Testkonto; für heute ist dort seit gestern Abend eine Vertretung „3. Stunde 6c“ eingetragen; Tablet war über Nacht gesperrt. Handlung: Tablet um 7:30 Uhr entsperren und Tagesansicht öffnen. Ergebnis: Die Vertretung steht in der 3. Stunde, spätestens wenige Sekunden nach dem Öffnen; die Ansicht zeigt, von wann der Stand ist.
 - AK-4 (FR-3): Aufbau: Stundenplan mit „Di 2. Stunde 8b“, eine Präsentation in der Ablage. Handlung: am Mac die Präsentation der Unterrichtsstunde am kommenden Dienstag zuordnen. Ergebnis: Am Tablet zeigt die Tagesansicht dieses Dienstags die Präsentation in der 2. Stunde.
@@ -950,6 +956,8 @@ des Volumes; App Attest als spätere Stufe (ADR-0015). Domain `teach.grathwohl.d
 - 2026-11-20: Verworfen (FR-2): Code löschen (Andreas: „nicht löschen“), Ausschluss per `#if` (verrottet unbemerkt), Schalter in den Einstellungen oder per Fernkonfiguration (Funktion bliebe erreichbar, Fernkonfiguration bräuchte einen Server) – siehe ADR-0016
 - 2026-11-20: FR-1.3 new — Stundenplan zügig von Hand eintragen: Vorschläge für Klasse und Fach, „Sichern und nächste“; AK-66, Lieferstufen (62) und Abdeckung angepasst
 - 2026-11-20: Verworfen (FR-1.3): Schnelleingabe direkt im Raster per Palette (neue Bedienform, am Mac heikel), Autovervollständigen des Systems (an `TextField` nicht für iPad und Mac gleich) – siehe Design-Dokument
+- 2026-11-20: FR-1.3 changed — Stunde auf andere Tage übernehmen, Hinweis „Noch kein Stundenplan“ in der Tagesansicht; AK-67, AK-68 new, Abdeckung angepasst
+- 2026-11-20: Verworfen (FR-1.3): Kopieren überschreibt belegte Felder (ein Tipp dürfte keine fremde Stunde still ersetzen); eigener Einrichtungsassistent als Blatt (doppelter Weg neben Einrichten; der vorhandene Sprung `showSetup` reicht)
 
 ## Anhang A — Abdeckung
 
@@ -974,7 +982,7 @@ Phase erreichbar) und FR-18 bis FR-19.1 (Rückmeldedienst, Verwaltung und Starts
 | FR-1 | AK-1 |
 | FR-1.1 | AK-2 |
 | FR-1.2 | AK-42 |
-| FR-1.3 | AK-66 |
+| FR-1.3 | AK-66, AK-67, AK-68 |
 | FR-2 | AK-3 |
 | FR-2.2 | AK-21 |
 | FR-3 | AK-4, AK-5 |

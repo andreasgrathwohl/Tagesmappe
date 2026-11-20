@@ -27,6 +27,22 @@ import Testing
     #expect(make(.manual, nil, .offline) == .noLessons)
   }
 
+  @Test("Erststart: ohne einen Eintrag im Stundenplan Hinweis statt „keine Stunde“, Ferien gehen vor (FR-1.3)")
+  func noTimetableGuidesToSetup() {
+    #expect(
+      DayEmptyState.make(
+        content: .noLessons, sourceKind: .manual, fetchedAt: nil, lastError: nil,
+        hasTimetableEntries: false) == .noTimetable)
+    #expect(
+      DayEmptyState.make(
+        content: .noLessons, sourceKind: .manual, fetchedAt: nil, lastError: nil,
+        hasTimetableEntries: true) == .noLessons)
+    #expect(
+      DayEmptyState.make(
+        content: .nonTeachingDay(title: "Herbstferien"), sourceKind: .manual, fetchedAt: nil,
+        lastError: nil, hasTimetableEntries: false) == .nonTeachingDay(title: "Herbstferien"))
+  }
+
   @Test("Zeilen vorhanden: kein leerer Zustand")
   func rowsHaveNoEmptyState() {
     #expect(

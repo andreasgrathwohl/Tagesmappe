@@ -107,3 +107,33 @@ struct TimetableGridNavigationTests {
     #expect(slot == .init(weekday: .monday, period: 1))
   }
 }
+
+@Suite("Timetable Entry Copy (FR-1.3)")
+struct TimetableEntryCopyTests {
+  private func entry(_ day: Weekday, _ period: Int, _ cls: String, _ variant: WeekVariant? = nil)
+    -> TimetableEntry
+  {
+    TimetableEntry(
+      weekVariant: variant, weekday: day, period: period, schoolClass: SchoolClass(cls),
+      subject: Subject("Englisch"))
+  }
+
+  @Test("Freie Tage bekommen eine Kopie, belegte werden gemeldet, der eigene Tag entfällt")
+  func copiesToFreeDays() {
+    let source = entry(.monday, 2, "8b")
+    let existing = [source, entry(.wednesday, 2, "9c")]
+    let plan = TimetableEntryCopy.plan(
+      copying: source, to: [.monday, .tuesday, .wednesday, .thursday], existing: existing)
+    #expect(plan.additions == [entry(.tuesday, 2, "8b"), entry(.thursday, 2, "8b")])
+    #expect(plan.occupied == [.wednesday])
+  }
+
+  @Test("A-Woche kollidiert nicht mit einem B-Eintrag, wohl aber mit einem Eintrag ohne Woche")
+  func weekVariants() {
+    let source = entry(.monday, 1, "7a", .a)
+    let existing = [source, entry(.tuesday, 1, "9c", .b), entry(.wednesday, 1, "9c")]
+    let plan = TimetableEntryCopy.plan(copying: source, to: [.tuesday, .wednesday], existing: existing)
+    #expect(plan.additions == [entry(.tuesday, 1, "7a", .a)])
+    #expect(plan.occupied == [.wednesday])
+  }
+}
