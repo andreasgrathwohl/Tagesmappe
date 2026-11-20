@@ -20,12 +20,13 @@ public struct HelpCatalog: Sendable {
   }
 
   /// Baut den Katalog aus einer Textquelle (`nil` = Text fehlt). Stichwörter sind an "," getrennt,
-  /// getrimmt und ohne leere. Ein Thema mit Befund fehlt im Katalog.
+  /// getrimmt und ohne leere. Ein Thema mit Befund fehlt im Katalog, ein abgeschaltetes Thema
+  /// (`HelpTopic.isAvailable`) ebenso – damit es auch in der Suche nicht auftaucht.
   public static func build(text: (String) -> String?) -> (catalog: HelpCatalog, issues: [HelpCatalogIssue]) {
     var articles: [HelpArticle] = []
     var issues: [HelpCatalogIssue] = []
 
-    for topic in HelpTopic.allCases {
+    for topic in HelpTopic.availableCases {
       let prefix = topic.textKeyPrefix
       var values: [String: String] = [:]
       var complete = true

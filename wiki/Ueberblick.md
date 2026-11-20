@@ -32,7 +32,7 @@ Mac oder iPad (Vorbereiten)                iPad (Unterricht)
 
 ## Ablauf
 
-1. Stundenplan einrichten – von Hand oder aus Schulmanager Online
+1. Stundenplan einrichten – von Hand
 2. Vorbereiten – Material den Unterrichtsstunden zuordnen
 3. Tagesansicht im Unterricht öffnen
 4. Material öffnen, präsentieren, darin schreiben und zeichnen

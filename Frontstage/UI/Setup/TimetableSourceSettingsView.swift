@@ -72,7 +72,9 @@ struct TimetableSourceSettingsView: View {
     Section("timetableSource.source") {
       Picker("timetableSource.source", selection: kindBinding) {
         Text("timetableSource.source.manual").tag(TimetableSourceKind.manual)
-        Text("timetableSource.source.schulmanager").tag(TimetableSourceKind.schulmanager)
+        if TimetableSourceKind.schulmanager.isAvailable {
+          Text("timetableSource.source.schulmanager").tag(TimetableSourceKind.schulmanager)
+        }
       }
       .pickerStyle(.inline)
       .labelsHidden()

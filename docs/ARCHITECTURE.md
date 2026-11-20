@@ -34,14 +34,14 @@ flowchart TB
         Abl["Baustein Ablage<br/>auflösen · öffnen · bereithalten<br/>Area ablage"]
         OD["Baustein OneDrive-Zusatz<br/>nur nach Anmeldung"]
         DOD["Baustein OneDrive-Abgleich<br/>nur bei Datenort OneDrive"]
-        Quel["Stundenplan-Quellen<br/>von Hand · Schulmanager Online · (WebUntis)<br/>Area stundenplan-quellen"]
+        Quel["Stundenplan-Quellen<br/>von Hand · (Schulmanager Online, abgeschaltet) · (WebUntis)<br/>Area stundenplan-quellen"]
     end
 
     iCloud[("Private iCloud-Datenbank<br/>der Lehrkraft")]
     Files["Dateien-Schnittstelle des Systems<br/>iCloud Drive · OneDrive · Google Drive · …"]
     Office["PowerPoint, Word, …"]
     Graph["Microsoft Graph"]
-    SM["Schulmanager Online<br/>(inoffiziell)"]
+    SM["Schulmanager Online<br/>(inoffiziell, abgeschaltet)"]
     Mail["Mail-Programm des Systems<br/>(Rückfall für Rückmeldungen)"]
     subgraph Betreiber["Beim Betreiber (Container hinter Reverse-Proxy mit TLS) — Area dienst"]
         Dienst["Frontstage-Dienst<br/>Annahme /api/v1/feedback · Verwaltungsseite /admin ·<br/>Startseite, Impressum, Datenschutz /"]
@@ -385,6 +385,12 @@ Gemäß ADR-0004. Jede Stundenplan-Quelle ist ein Baustein mit derselben Schnitt
 Liste von Stundenplan-Einträgen und – wenn die Quelle das kann – Abweichungen für einen Zeitraum.
 Bausteine: „von Hand“ (liefert nichts, der Stundenplan wird in der App gepflegt), „Schulmanager
 Online“, später „WebUntis“ (FR-2.1).
+
+Gemäß ADR-0016 ist „Schulmanager Online“ abgeschaltet: `TimetableSourceKind.isAvailable` ist dafür `false`. Der
+Baustein wird weiter übersetzt und getestet, aber nicht angeboten und nicht abgefragt; Einrichten zeigt die
+Stundenplan-Quelle nicht, solange nur „von Hand“ angeboten wird, und das Hilfethema fehlt. Ein Datenort, der noch
+Schulmanager als Quelle trägt, wird beim Start auf „von Hand“ umgestellt; Zugangsdaten werden aus dem Schlüsselbund
+gelöscht. Die Abschnitte unten beschreiben den Baustein für den Fall, dass er wieder eingeschaltet wird.
 
 ### Import-Abgleich
 

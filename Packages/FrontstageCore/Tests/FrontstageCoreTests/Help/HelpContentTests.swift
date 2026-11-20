@@ -43,7 +43,7 @@ import Testing
     let strings = try Self.loadStrings()
     let (catalog, issues) = HelpCatalog.build(text: { strings[$0] })
     #expect(issues.isEmpty)
-    #expect(catalog.articles.count == HelpTopic.allCases.count)
+    #expect(catalog.articles.count == HelpTopic.availableCases.count)
   }
 
   @Test("Datenhygiene: nur Beispielklassen, kein @, kein %") func onlyNeutralExamples() throws {

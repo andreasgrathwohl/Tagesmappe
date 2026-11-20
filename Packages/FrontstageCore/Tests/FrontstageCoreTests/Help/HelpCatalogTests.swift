@@ -8,18 +8,20 @@ import Testing
     return "Text zu \(key)"
   }
 
-  @Test("Vollständige Texte ergeben 21 Artikel ohne Befund") func buildsFromCompleteTexts() {
+  @Test("Vollständige Texte ergeben 20 Artikel ohne Befund, ohne abgeschaltetes Thema (ADR-0016)")
+  func buildsFromCompleteTexts() {
     let result = HelpCatalog.build(text: completeText)
     #expect(result.issues.isEmpty)
-    #expect(result.catalog.articles.count == 21)
-    #expect(result.catalog.articles.map(\.topic) == HelpTopic.allCases)
+    #expect(result.catalog.articles.count == 20)
+    #expect(result.catalog.articles.map(\.topic) == HelpTopic.availableCases)
+    #expect(result.catalog.article(for: .schulmanager) == nil)
   }
 
   @Test("Fehlender Text wird gemeldet, Thema fehlt") func reportsMissingText() {
     let result = HelpCatalog.build { $0 == "help.board.body" ? nil : completeText($0) }
     #expect(result.issues == [.missingText(key: "help.board.body")])
     #expect(result.catalog.article(for: .board) == nil)
-    #expect(result.catalog.articles.count == 20)
+    #expect(result.catalog.articles.count == 19)
   }
 
   @Test("Ungültiger Text wird gemeldet") func reportsInvalidBody() {

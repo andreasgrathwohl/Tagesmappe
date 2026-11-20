@@ -144,19 +144,26 @@ die Stundenplan-Quelle Zeiten, werden sie übernommen. Abgeleitet am 2026-11-13 
 die Stundenende, „Gleich:“ und die letzten fünf Minuten zeigen und dafür Uhrzeiten brauchen; vom Nutzer
 bestätigt am 2026-11-13.
 
-### FR-2 — Stundenplan aus Schulmanager Online importieren [MVP]
+### FR-2 — Stundenplan aus Schulmanager Online importieren [Later]
 
 Die Lehrkraft kann ihren Stundenplan alternativ aus Schulmanager Online übernehmen. Schulmanager
 bietet keine offizielle Schnittstelle; die Anbindung ist inoffiziell (siehe RISK-1).
+
+Geändert 2026-11-20: von [MVP] auf [Later] – die Anbindung ist abgeschaltet, bis ihre Zulässigkeit
+(Recht, Datenschutz) geklärt ist; der Baustein bleibt im Code (ADR-0016). Der Kern (FR-13) umfasst
+FR-2 und FR-2.2 erst wieder, wenn sie eingeschaltet sind.
 
 ### FR-2.1 — Stundenplan aus WebUntis importieren [Later]
 
 Als weitere Stundenplan-Quelle — vom Nutzer genannt („Untis könnte noch angebunden werden“).
 
-### FR-2.2 — Vertretungen aus Schulmanager morgens sichtbar [MVP]
+### FR-2.2 — Vertretungen aus Schulmanager morgens sichtbar [Later]
 
 Nutzt die Lehrkraft den Schulmanager-Import, zeigt die Tagesansicht Vertretungen und Änderungen des
 Tages bereits am Morgen desselben Tages. Vom Nutzer: „müssen morgens da sein“ (Q-15).
+
+Geändert 2026-11-20: von [MVP] auf [Later], folgt FR-2 (ADR-0016). Vertretungen und Ausfälle trägt
+die Lehrkraft bis dahin als Abweichung von Hand ein.
 
 ### FR-3 — Material Unterrichtsstunden zuordnen [MVP]
 
@@ -391,11 +398,13 @@ Kostenlos bleibt der Standard; Hell/Dunkel wie das System gilt immer.
 Geändert 2026-11-16: Hilfe, Hilfecenter, Kurz-Tipps und Rückmeldung (FR-17 bis FR-17.5) gehören immer zum
 kostenlosen Teil – auch die Hilfeartikel zu bezahlten Funktionen sind ohne Kauf lesbar.
 
-### FR-13.1 — Schulmanager-Import ohne Bezahlung und ohne Gewähr [MVP]
+### FR-13.1 — Schulmanager-Import ohne Bezahlung und ohne Gewähr [Later]
 
 Der Import aus Schulmanager Online (FR-2, FR-2.2) gehört immer zum kostenlosen Teil und wird in der
 App als inoffizielle Anbindung ohne Gewähr bezeichnet, solange es keine Vereinbarung mit dem Anbieter
 gibt (RISK-1).
+
+Geändert 2026-11-20: von [MVP] auf [Later], folgt FR-2 (ADR-0016).
 
 ### FR-13.2 — Schulversion für den Sammelkauf [Later]
 
@@ -637,9 +646,9 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 
 ## Lieferstufen
 
-- **MVP:** FR-1, FR-1.1, FR-2, FR-2.2, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-7, FR-8,
-  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, FR-13.1, NFR-1 bis NFR-4, FR-1.2, FR-14, FR-14.1, FR-15, FR-15.1 bis FR-15.6, FR-16, FR-16.1, FR-16.2, FR-17, FR-17.1 bis FR-17.5, FR-18, FR-18.1, FR-18.2, FR-19, FR-19.1 (geprüfte Zahl: 64). FR-2 und FR-5.1 bestätigt (Q-3, Q-4).
-- **Later:** FR-2.1, FR-7.1, FR-10, FR-13.2.
+- **MVP:** FR-1, FR-1.1, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-7, FR-8,
+  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, NFR-1 bis NFR-4, FR-1.2, FR-14, FR-14.1, FR-15, FR-15.1 bis FR-15.6, FR-16, FR-16.1, FR-16.2, FR-17, FR-17.1 bis FR-17.5, FR-18, FR-18.1, FR-18.2, FR-19, FR-19.1 (geprüfte Zahl: 61). FR-2 und FR-5.1 bestätigt (Q-3, Q-4); FR-2 am 2026-11-20 zurückgestellt (ADR-0016).
+- **Later:** FR-2, FR-2.1, FR-2.2, FR-7.1, FR-10, FR-13.1, FR-13.2.
 
 ## Out of Scope
 
@@ -664,7 +673,9 @@ selten — einmal je Morgen und auf Knopfdruck, nicht dauernd (ADR-0004) —, vo
 Stundenplan bleibt immer möglich (FR-1), parallel den Anbieter nach einer offiziellen Partnerschaft
 fragen. Ob die inoffizielle Schnittstelle für Lehrerkonten Stundenplan und Vertretungen liefert, ist
 ungeprüft (Q-16). Ergänzt 2026-11-13: Für den Import wird kein Geld verlangt (FR-13.1), damit ein
-Ausfall keine bezahlte Funktion trifft.
+Ausfall keine bezahlte Funktion trifft. Ergänzt 2026-11-20: Weil die Zulässigkeit (Recht, Datenschutz)
+ungeklärt ist, ist die Anbindung abgeschaltet und nicht mehr erreichbar; der Baustein bleibt im Code,
+Zugangsdaten werden vom Gerät gelöscht (ADR-0016). Das Risiko ruht, bis die Anbindung wieder eingeschaltet wird.
 
 ### RISK-7 — Schulen können den Einmalkauf nicht sammelweise kaufen
 
@@ -926,6 +937,8 @@ des Volumes; App Attest als spätere Stufe (ADR-0015). Domain `teach.grathwohl.d
 - 2026-11-16: Verworfen (FR-17.3): eigenes Web-Formular bzw. eigener Endpunkt (Server, widerspricht NFR-2), GitHub-Issues (Zugangsschlüssel in der App), nur TestFlight-Feedback (gibt es im App Store nicht), App-Store-Bewertungen (öffentlich, ohne Bildschirmfotos) – siehe ADR-0014
 - 2026-11-16: Q-43 answered — teach.grathwohl.dev, Dockhand-Git-Stack, Cloudflare Tunnel
 - 2026-11-16: Glossar „Rückmeldung“ changed — Hochladen zum Rückmeldedienst zuerst, Mail/Teilen als Rückfall (ADR-0015)
+- 2026-11-20: FR-2, FR-2.2, FR-13.1 changed — [MVP] → [Later]: Schulmanager-Anbindung abgeschaltet wegen ungeklärter Zulässigkeit (Recht, Datenschutz), Baustein bleibt im Code (ADR-0016); RISK-1 ergänzt; Lieferstufen (61) angepasst
+- 2026-11-20: Verworfen (FR-2): Code löschen (Andreas: „nicht löschen“), Ausschluss per `#if` (verrottet unbemerkt), Schalter in den Einstellungen oder per Fernkonfiguration (Funktion bliebe erreichbar, Fernkonfiguration bräuchte einen Server) – siehe ADR-0016
 
 ## Anhang A — Abdeckung
 

@@ -42,8 +42,12 @@ struct SetupView: View {
           NavigationLink("setup.storage.title") {
             scoped { StorageSettingsScreen(account: account) }
           }
-          NavigationLink("timetableSource.title") {
-            scoped { TimetableSourceSettingsView() }
+          // Nur „von Hand“ angeboten (Schulmanager abgeschaltet, ADR-0016): Eine Seite mit einer einzigen
+          // Wahl wäre leer, darum entfällt der Eintrag.
+          if TimetableSourceKind.availableCases.count > 1 {
+            NavigationLink("timetableSource.title") {
+              scoped { TimetableSourceSettingsView() }
+            }
           }
         }
         Section {

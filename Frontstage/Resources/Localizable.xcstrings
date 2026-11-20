@@ -4627,7 +4627,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Frontstage zeigt dir im Unterricht, was heute dran ist, und öffnet das Material mit einem Tipp.\n\n## So fängst du an\n1. Öffne **Einrichten** und lege deinen Stundenplan an. Du kannst ihn von Hand eintragen oder aus Schulmanager importieren.\n2. Wähle unter **Datenort** aus, wo Frontstage deine Daten ablegt.\n3. Gib unter **Ablage** mit **Ordner freigeben** die Ordner frei, in denen dein Material liegt.\n4. Öffne **Vorbereiten** und ordne dem Material die Stunden zu.\n5. Im Unterricht öffnest du **Heute**. Die laufende Stunde ist schon gewählt.\n\n## Hilfe überall\nWo du auf ein Fragezeichen triffst, öffnet es den passenden Hilfeartikel. Die Suche im Hilfecenter findet auch Wörter wie „Beamer“ oder „Sync“.\n\n> Dein Material bleibt immer in deiner Ablage. Frontstage verändert es nie."
+            "value" : "Frontstage zeigt dir im Unterricht, was heute dran ist, und öffnet das Material mit einem Tipp.\n\n## So fängst du an\n1. Öffne **Einrichten** und lege deinen Stundenplan an. Du trägst ihn von Hand ein.\n2. Wähle unter **Datenort** aus, wo Frontstage deine Daten ablegt.\n3. Gib unter **Ablage** mit **Ordner freigeben** die Ordner frei, in denen dein Material liegt.\n4. Öffne **Vorbereiten** und ordne dem Material die Stunden zu.\n5. Im Unterricht öffnest du **Heute**. Die laufende Stunde ist schon gewählt.\n\n## Hilfe überall\nWo du auf ein Fragezeichen triffst, öffnet es den passenden Hilfeartikel. Die Suche im Hilfecenter findet auch Wörter wie „Beamer“ oder „Sync“.\n\n> Dein Material bleibt immer in deiner Ablage. Frontstage verändert es nie."
           }
         }
       }
@@ -5023,7 +5023,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Der Stundenplan besteht aus Einträgen. Jeder Eintrag hat Tag, Stunde, Klasse und Fach.\n\n## Von Hand eintragen\nÖffne **Einrichten** und dort den **Stundenplan**. Tippe auf ein Feld, um eine Stunde anzulegen oder zu ändern, zum Beispiel 9c, Deutsch, dienstags in der 3. Stunde.\n\n## A- und B-Woche\nUnter **Wochenrhythmus** wählst du **Jede Woche gleich** oder **A-/B-Woche im Wechsel**. Mit der Ansicht schaltest du zwischen **A-Woche**, **B-Woche** und **Beide Wochen** um. Lege fest, an welchem Tag eine A-Woche liegt.\n\n## Importieren\nStatt von Hand kannst du den Plan aus Schulmanager übernehmen. Siehe den Artikel „Schulmanager“.\n\n> Änderungen gelten ab sofort. Material, das schon zugeordnet ist, bleibt bei der Stunde."
+            "value" : "Der Stundenplan besteht aus Einträgen. Jeder Eintrag hat Tag, Stunde, Klasse und Fach.\n\n## Von Hand eintragen\nÖffne **Einrichten** und dort den **Stundenplan**. Tippe auf ein Feld, um eine Stunde anzulegen oder zu ändern, zum Beispiel 9c, Deutsch, dienstags in der 3. Stunde.\n\n## A- und B-Woche\nUnter **Wochenrhythmus** wählst du **Jede Woche gleich** oder **A-/B-Woche im Wechsel**. Mit der Ansicht schaltest du zwischen **A-Woche**, **B-Woche** und **Beide Wochen** um. Lege fest, an welchem Tag eine A-Woche liegt.\n\n> Änderungen gelten ab sofort. Material, das schon zugeordnet ist, bleibt bei der Stunde."
           }
         }
       }
@@ -5067,7 +5067,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Das Zeitraster sagt Frontstage, wann welche Stunde läuft.\n\n## Wofür du es brauchst\n- Die Marke **Jetzt** in **Heute** hängt daran, welche Stunde gerade läuft.\n- Der Klassenbildschirm zeigt die Uhrzeit der Stunde.\n\n## So trägst du es ein\nÖffne **Einrichten** und dort das **Zeitraster**. Mit **Stunde hinzufügen** legst du die nächste Stunde an, mit **Letzte Stunde entfernen** nimmst du die letzte weg. Trage bei jeder Stunde **Beginn** und **Ende** ein.\n\nDas Ende muss nach dem Beginn liegen, und zwei Stunden dürfen sich nicht überschneiden. Pausen ergeben sich aus den Lücken zwischen den Stunden.\n\n> Importierst du den Stundenplan aus Schulmanager, übernimmt Frontstage das Zeitraster gleich mit. In der Vorschau steht dann, dass sich das Zeitraster ändert."
+            "value" : "Das Zeitraster sagt Frontstage, wann welche Stunde läuft.\n\n## Wofür du es brauchst\n- Die Marke **Jetzt** in **Heute** hängt daran, welche Stunde gerade läuft.\n- Der Klassenbildschirm zeigt die Uhrzeit der Stunde.\n\n## So trägst du es ein\nÖffne **Einrichten** und dort das **Zeitraster**. Mit **Stunde hinzufügen** legst du die nächste Stunde an, mit **Letzte Stunde entfernen** nimmst du die letzte weg. Trage bei jeder Stunde **Beginn** und **Ende** ein.\n\nDas Ende muss nach dem Beginn liegen, und zwei Stunden dürfen sich nicht überschneiden. Pausen ergeben sich aus den Lücken zwischen den Stunden."
           }
         }
       }
@@ -5419,7 +5419,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Frontstage hat kein Abo. Es gibt einen einmaligen Kauf.\n\n## Kostenlos\n- der Kern: Heute, Vorbereiten, Material, Jahresplan, Stundenplan\n- die Anbindung an Schulmanager\n- die Hilfe\n- die Rückmeldung an den Entwickler\n\n## Im Einmalkauf\n- der **Klassenbildschirm**\n- **Timer** und **Arbeitsform**\n- die **Tafel**\n- das **Erscheinungsbild** über den Standard hinaus\n\n## Auf mehreren Geräten\nDer Kauf gilt auf allen Geräten mit derselben Apple-ID. Auf einem neuen Gerät wählst du unter **Einrichten** im Abschnitt **Kauf** die Option **Käufe wiederherstellen**.\n\n> Der Kauf läuft über den App Store. Den aktuellen Preis siehst du dort, bevor du bestätigst."
+            "value" : "Frontstage hat kein Abo. Es gibt einen einmaligen Kauf.\n\n## Kostenlos\n- der Kern: Heute, Vorbereiten, Material, Jahresplan, Stundenplan\n- die Hilfe\n- die Rückmeldung an den Entwickler\n\n## Im Einmalkauf\n- der **Klassenbildschirm**\n- **Timer** und **Arbeitsform**\n- die **Tafel**\n- das **Erscheinungsbild** über den Standard hinaus\n\n## Auf mehreren Geräten\nDer Kauf gilt auf allen Geräten mit derselben Apple-ID. Auf einem neuen Gerät wählst du unter **Einrichten** im Abschnitt **Kauf** die Option **Käufe wiederherstellen**.\n\n> Der Kauf läuft über den App Store. Den aktuellen Preis siehst du dort, bevor du bestätigst."
           }
         }
       }
@@ -5463,7 +5463,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Frontstage betreibt keine Server für deine Unterrichtsdaten.\n\n## Wo was liegt\n- **Deine Daten** wie Stundenplan, Zuordnungen und Jahrespläne liegen an deinem **Datenort**, also in iCloud oder in deinem OneDrive.\n- **Dein Material** liegt in deiner **Ablage**. Frontstage liest es nur und verändert es nie.\n- **Zugangsdaten**, etwa für Schulmanager, liegen nur im Schlüsselbund deines Geräts.\n\n## Rückmeldung\nEine Rückmeldung geht nur weg, wenn du sie absendest. Frontstage sendet nichts im Hintergrund, und du siehst vorher, was mitgeht. Beim ersten Senden fragt die App einmal, ob sie die Rückmeldung an den Rückmeldedienst der Entwickler hochladen darf. Dort wird sie zwölf Monate aufbewahrt und dann gelöscht. Nach dem Senden bekommst du eine **Kennung**, mit der du die Löschung früher verlangen kannst. Ohne Zustimmung oder wenn der Dienst nicht erreichbar ist, verschickst du sie selbst per E-Mail oder über Teilen.\n\n## Was das für dich heißt\nWer Zugriff auf dein iCloud- oder OneDrive-Konto hat, hat Zugriff auf diese Daten. Schützt du das Konto, schützt du auch Frontstage.\n\n> Schüler- und Klassenlisten brauchst du in Frontstage nicht. Der Stundenplan kommt mit Klassenbezeichnungen wie 7a aus."
+            "value" : "Frontstage betreibt keine Server für deine Unterrichtsdaten.\n\n## Wo was liegt\n- **Deine Daten** wie Stundenplan, Zuordnungen und Jahrespläne liegen an deinem **Datenort**, also in iCloud oder in deinem OneDrive.\n- **Dein Material** liegt in deiner **Ablage**. Frontstage liest es nur und verändert es nie.\n- **Anmeldungen**, etwa bei Microsoft, liegen nur im Schlüsselbund deines Geräts.\n\n## Rückmeldung\nEine Rückmeldung geht nur weg, wenn du sie absendest. Frontstage sendet nichts im Hintergrund, und du siehst vorher, was mitgeht. Beim ersten Senden fragt die App einmal, ob sie die Rückmeldung an den Rückmeldedienst der Entwickler hochladen darf. Dort wird sie zwölf Monate aufbewahrt und dann gelöscht. Nach dem Senden bekommst du eine **Kennung**, mit der du die Löschung früher verlangen kannst. Ohne Zustimmung oder wenn der Dienst nicht erreichbar ist, verschickst du sie selbst per E-Mail oder über Teilen.\n\n## Was das für dich heißt\nWer Zugriff auf dein iCloud- oder OneDrive-Konto hat, hat Zugriff auf diese Daten. Schützt du das Konto, schützt du auch Frontstage.\n\n> Schüler- und Klassenlisten brauchst du in Frontstage nicht. Der Stundenplan kommt mit Klassenbezeichnungen wie 7a aus."
           }
         }
       }
