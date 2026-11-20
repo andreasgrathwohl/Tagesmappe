@@ -2578,6 +2578,96 @@
         }
       }
     },
+    "setup.timetable.entry.heading %@ %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$lld. Stunde"
+          }
+        }
+      }
+    },
+    "setup.timetable.selectCell" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tippe ein Feld an, um eine Stunde einzutragen oder zu ändern."
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.delete.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Diese Stunde löschen?"
+          }
+        }
+      }
+    },
+    "setup.timetable.entry.delete.confirm" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Löschen"
+          }
+        }
+      }
+    },
+    "setup.timetable.discard.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Änderungen an dieser Stunde verwerfen?"
+          }
+        }
+      }
+    },
+    "setup.timetable.discard.confirm" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwerfen"
+          }
+        }
+      }
+    },
+    "setup.timetable.discard.keep" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weiter bearbeiten"
+          }
+        }
+      }
+    },
+    "setup.timetable.cell.free %@ %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$lld. Stunde, frei"
+          }
+        }
+      }
+    },
+    "setup.timetable.cell.lesson %@ %lld %@ %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$lld. Stunde, %3$@ %4$@"
+          }
+        }
+      }
+    },
     "setup.timetable.entry.saveAndNext" : {
       "localizations" : {
         "de" : {
@@ -5133,7 +5223,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Der Stundenplan besteht aus Einträgen. Jeder Eintrag hat Tag, Stunde, Klasse und Fach.\n\n## Von Hand eintragen\nÖffne **Einrichten** und dort den **Stundenplan**. Tippe auf ein Feld, um eine Stunde anzulegen oder zu ändern, zum Beispiel 9c, Deutsch, dienstags in der 3. Stunde.\n\n## Schneller eintragen\nUnter **Klasse** und **Fach** stehen Klassen und Fächer, die du schon eingetragen hast. Tippe einen Vorschlag an, statt ihn zu schreiben. Mit **Sichern und nächste** springst du gleich zum nächsten freien Feld. Klasse und Fach bleiben stehen, so ist eine Doppelstunde nur ein Tipp.\n\nSteht eine Stunde an mehreren Tagen gleich im Plan, öffne sie und wähle unter **Auf andere Tage übernehmen** die Tage. Belegte Felder bleiben, wie sie sind.\n\n## A- und B-Woche\nUnter **Wochenrhythmus** wählst du **Jede Woche gleich** oder **A-/B-Woche im Wechsel**. Mit der Ansicht schaltest du zwischen **A-Woche**, **B-Woche** und **Beide Wochen** um. Lege fest, an welchem Tag eine A-Woche liegt.\n\n> Änderungen gelten ab sofort. Material, das schon zugeordnet ist, bleibt bei der Stunde."
+            "value" : "Der Stundenplan besteht aus Einträgen. Jeder Eintrag hat Tag, Stunde, Klasse und Fach.\n\n## Von Hand eintragen\nÖffne **Einrichten** und dort den **Stundenplan**. Tippe im Raster auf ein Feld. Rechts trägst du dann die Stunde ein oder änderst sie, zum Beispiel 9c, Deutsch, dienstags in der 3. Stunde. Ist das Fenster schmal, erscheint der Bereich als Blatt.\n\n## Schneller eintragen\nUnter **Klasse** und **Fach** stehen Klassen und Fächer, die du schon eingetragen hast. Tippe einen Vorschlag an, statt ihn zu schreiben. Mit **Sichern und nächste** springst du gleich zum nächsten freien Feld. Klasse und Fach bleiben stehen, so ist eine Doppelstunde nur ein Tipp.\n\nSteht eine Stunde an mehreren Tagen gleich im Plan, öffne sie und wähle unter **Auf andere Tage übernehmen** die Tage. Belegte Felder bleiben, wie sie sind.\n\n## A- und B-Woche\nUnter **Wochenrhythmus** wählst du **Jede Woche gleich** oder **A-/B-Woche im Wechsel**. Mit der Ansicht schaltest du zwischen **A-Woche**, **B-Woche** und **Beide Wochen** um. Lege fest, an welchem Tag eine A-Woche liegt.\n\n> Änderungen gelten ab sofort. Material, das schon zugeordnet ist, bleibt bei der Stunde."
           }
         }
       }

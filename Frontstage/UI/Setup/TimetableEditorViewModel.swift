@@ -99,6 +99,11 @@ enum TimetableEditError: Error, Equatable {
       in: allEntries, forClass: schoolClass.normalized.isEmpty ? nil : schoolClass, matching: input)
   }
 
+  /// Uhrzeit einer Stunde aus dem Zeitraster („10:30 – 11:15“), `nil` ohne Eintrag im Zeitraster.
+  func timeText(period: Int) -> String? {
+    bellSchedule.periods[period].map { LessonTimeFormat.range($0, on: environment.today()) }
+  }
+
   /// Nächstes freies Feld der gezeigten Variante, in der Reihenfolge des Rasters.
   func nextFreeSlot(after weekday: Weekday, period: Int) -> TimetableGridNavigation.Slot? {
     TimetableGridNavigation.nextFreeSlot(
