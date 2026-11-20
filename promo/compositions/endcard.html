@@ -1,0 +1,51 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; background: #0b3f49; }
+    #e-flood { position: absolute; inset: 0; background: #f5f7f4; opacity: 0; }
+    #e-claim { position: absolute; left: 150px; top: 380px; color: #fbf8f2; }
+    #e-claim .title { font-size: 150px; letter-spacing: -0.03em; }
+    #e-claim .acc { color: #ffc94a; }
+    #e-lock { opacity: 0; position: absolute; left: 50%; top: 400px; width: 760px; margin-left: -380px; display: flex; align-items: center; gap: 36px; }
+    #e-icon { width: 176px; height: 176px; flex: none; border-radius: 40px; overflow: hidden; box-shadow: 0 18px 36px rgba(13, 35, 39, 0.22), 0 4px 10px rgba(13, 35, 39, 0.16); }
+    #e-icon svg { display: block; width: 100%; height: 100%; }
+    #e-word { font-family: var(--font-title); font-weight: 700; font-size: 128px; letter-spacing: -0.035em; color: #0d2327; line-height: 1; }
+    #e-cta { position: absolute; left: 0; right: 0; top: 650px; text-align: center; color: #415856; font-size: 44px; }
+    #e-cta b { font-weight: 600; color: #0d2327; }
+  </style>
+  <div data-hf-id="hf-32ii" id="root" data-composition-id="endcard" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-q5f1" id="e-flood"></div>
+    <div data-hf-id="hf-wb0x" id="e-claim">
+      <h2 data-hf-id="hf-2cq3" class="title"><span data-hf-id="hf-vhos" class="w">Ein</span> <span data-hf-id="hf-jzg3" class="w">Tipp.</span></h2>
+      <h2 data-hf-id="hf-8r0r" class="title"><span data-hf-id="hf-spwi" class="w">Am</span> <span data-hf-id="hf-j5ji" class="w acc">Smartboard.</span></h2>
+    </div>
+    <div data-hf-id="hf-6x6a" id="e-lock">
+      <div data-hf-id="hf-kr24" id="e-icon">
+        <!-- assets/icon.svg (UI-1), in Teile zerlegt, damit es sich aufbaut -->
+        <svg data-hf-id="hf-h9yf" viewBox="0 0 1024 1024">
+          <rect data-hf-id="hf-z1nf" width="1024" height="1024" fill="#0E4B57"/>
+          <g data-hf-id="hf-hhlq" fill="#8FC3C9"><rect data-hf-id="hf-ormc" id="e-b1" x="176" y="232" width="184" height="100"/><rect data-hf-id="hf-8jh7" id="e-b2" x="176" y="368" width="184" height="100"/><rect data-hf-id="hf-pknx" id="e-b3" x="176" y="640" width="184" height="100"/></g>
+          <g data-hf-id="hf-id8r" fill="#FFC94A"><rect data-hf-id="hf-hp6t" id="e-y1" x="176" y="504" width="320" height="100"/><rect data-hf-id="hf-bcht" id="e-y2" x="492" y="292" width="356" height="440"/></g>
+        </svg>
+      </div>
+      <div data-hf-id="hf-ty78" id="e-word">Frontstage</div>
+    </div>
+    <p data-hf-id="hf-l11o" id="e-cta" class="subtitle"><b data-hf-id="hf-89cv">Für iPad und Mac.</b> Bald im App Store.</p>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    // Claim
+    tl.fromTo("#e-claim .w", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.16, stagger: 0.12, ease: "power2.out" }, 0.1);
+    tl.to("#e-claim .w", { opacity: 0, filter: "blur(8px)", duration: 0.18, stagger: 0.04, ease: "power2.in" }, 1.75);
+    tl.fromTo("#e-flood", { opacity: 0 }, { opacity: 1, duration: 0.4, ease: "power2.inOut" }, 1.8);
+    // Icon baut sich auf: Tafelzeilen fallen ein, die gelbe Stunde wird zur großen Fläche
+    tl.set("#e-lock", { opacity: 1 }, 2.0);
+    tl.fromTo("#e-icon", { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "expo.out" }, 2.0);
+    tl.fromTo(["#e-b1", "#e-b2", "#e-b3"], { opacity: 0, y: -60 }, { opacity: 1, y: 0, duration: 0.3, stagger: 0.06, ease: "expo.out" }, 2.05);
+    tl.fromTo("#e-y1", { scaleX: 0, transformOrigin: "0% 50%" }, { scaleX: 1, duration: 0.18, ease: "power3.out" }, 2.12);
+    tl.fromTo("#e-y2", { scaleX: 0, scaleY: 0.23, transformOrigin: "0% 59%" }, { scaleX: 1, scaleY: 1, duration: 0.24, ease: "back.out(1.5)" }, 2.24);
+    // Wortmarke wischt ein, dann der Aufruf
+    tl.fromTo("#e-word", { clipPath: "inset(0 100% 0 0)", x: -24 }, { clipPath: "inset(0 0% 0 0)", x: 0, duration: 0.55, ease: "power3.out" }, 2.5);
+    tl.fromTo("#e-cta", { opacity: 0, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power2.out" }, 3.0);
+    window.__timelines["endcard"] = tl;
+  </script>
+</template>

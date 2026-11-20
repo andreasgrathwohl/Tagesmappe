@@ -1,0 +1,36 @@
+<template>
+  <style>
+    #root { position: absolute; inset: 0; overflow: hidden; }
+    #h-cam { position: absolute; inset: 0; transform-origin: 1236px 512px; }
+    #h-board { left: 650px; top: 176px; width: 1172px; height: 672px; }
+    #h-flood { position: absolute; inset: 0; background: #0b3f49; opacity: 0; }
+    #h-time { position: absolute; left: 112px; top: 300px; font-size: 230px; color: #0d2327; letter-spacing: -0.04em; }
+    #h-line { position: absolute; left: 120px; top: 560px; width: 480px; color: #0d2327; font-size: 64px; line-height: 1.08; }
+    #h-rail { position: absolute; left: 0; right: 0; top: 930px; height: 22px; background: linear-gradient(#cfc4ad, #b9ad94); box-shadow: 0 6px 12px rgba(40, 28, 10, 0.18); }
+    #h-socket { position: absolute; left: 1700px; top: 980px; width: 46px; height: 70px; border-radius: 6px; background: #efe9de; box-shadow: 0 0 0 1px rgba(0,0,0,.1), 0 3px 6px rgba(40,28,10,.12); }
+  </style>
+  <div data-hf-id="hf-ktv8" id="root" data-composition-id="hook" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-93gt" id="h-cam">
+      <div data-hf-id="hf-a9vw" class="wall"></div>
+      <div data-hf-id="hf-qwy0" id="h-rail"></div>
+      <div data-hf-id="hf-cqvv" id="h-socket"></div>
+      <div data-hf-id="hf-bcr9" id="h-board" class="board">
+        <div data-hf-id="hf-emam" class="board__screen"><div data-hf-id="hf-m0is" id="h-flood"></div></div>
+        <div data-hf-id="hf-mvn7" class="board__logo"></div>
+      </div>
+      <h1 data-hf-id="hf-n3l0" id="h-time" class="title"><span data-hf-id="hf-ik95" class="w">8:34</span></h1>
+      <p data-hf-id="hf-apwu" id="h-line" class="subtitle"><span data-hf-id="hf-n4iu" class="w">Die</span> <span data-hf-id="hf-5s5z" class="w">Klasse</span> <span data-hf-id="hf-85l3" class="w">wartet.</span></p>
+    </div>
+  </div>
+  <script>
+    const tl = gsap.timeline({ paused: true });
+    // Frame 0 ist das Vorschaubild: Uhrzeit steht schon, die Zeile kommt wortweise.
+    tl.fromTo("#h-time .w", { opacity: 1, filter: "blur(0px)" }, { opacity: 1, duration: 0.01 }, 0);
+    tl.fromTo("#h-line .w", { opacity: 0, filter: "blur(6px)" },
+      { opacity: 1, filter: "blur(0px)", duration: 0.14, stagger: 0.08, ease: "power2.out" }, 0.35);
+    // Zoom durch das schwarze Board (power3.in), am Ende flutet die Fläche zu Petrol.
+    tl.fromTo("#h-cam", { scale: 1, x: 0 }, { scale: 2.35, x: -280, duration: 0.55, ease: "power3.in" }, 1.85);
+    tl.fromTo("#h-flood", { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "power2.inOut" }, 2.18);
+    window.__timelines["hook"] = tl;
+  </script>
+</template>
