@@ -5,10 +5,10 @@ import Testing
 @testable import Frontstage
 
 @MainActor @Suite struct HelpLibraryTests {
-  @Test("Alle 21 Artikel laden aus dem App-Bundle, ohne Befund") func everyTopicLoadsFromBundle() {
+  @Test("Alle angezeigten Artikel laden aus dem App-Bundle, ohne Befund") func everyTopicLoadsFromBundle() {
     let (catalog, issues) = HelpLibrary.load(bundle: .main)
     #expect(issues.isEmpty)
-    #expect(catalog.articles.count == 21)
+    #expect(catalog.articles.count == HelpTopic.availableCases.count)
   }
 
   @Test("Dienst ohne Schlüssel gilt als nicht hinterlegt") func serviceNeedsKey() {

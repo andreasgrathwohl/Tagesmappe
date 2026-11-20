@@ -5,10 +5,10 @@ import Testing
 @testable import Frontstage
 
 @MainActor @Suite struct HelpCenterModelTests {
-  @Test("Ohne Suche alle Gruppen in Reihenfolge, 21 Artikel") func sectionsCoverAllTopics() {
+  @Test("Ohne Suche alle Gruppen in Reihenfolge, alle angezeigten Artikel") func sectionsCoverAllTopics() {
     let model = HelpCenterModel(catalog: HelpLibrary.shared)
     #expect(model.sections.map { $0.group } == HelpGroup.allCases)
-    #expect(model.sections.flatMap { $0.articles }.count == 21)
+    #expect(model.sections.flatMap { $0.articles }.count == HelpTopic.availableCases.count)
     #expect(!model.isSearching)
   }
 
