@@ -173,7 +173,7 @@ Vorgabewert, alle Beziehungen sind optional, und kein Modell nutzt Eindeutigkeit
 | Stundenplan-Eintrag | Wochenvariante, Wochentag, Stunde, Klasse, Fach | gehört zu einem Stundenplan |
 | unterrichtsfreier Zeitraum | von, bis, Bezeichnung | FR-7 |
 | Abweichung | Datum, Schlüssel der Unterrichtsstunde, Art (Ausfall, Vertretungsstunde), bei Vertretungsstunde: Stunde, Klasse, Fach | FR-8, FR-9, FR-2.2 |
-| Zuordnung | Schlüssel der Unterrichtsstunde, Position, Verweis auf das Material | FR-3, FR-3.1 |
+| Zuordnung | Schlüssel der Unterrichtsstunde, Position, Verweis auf das Material, optional Verweis auf eine Lösung | FR-3, FR-3.1, FR-6.3 |
 | Materialverweis | Ordnerfreigabe, Pfad darin, ggf. OneDrive-Kennung, Anzeigename, Dateiart | gemäß ADR-0003 |
 | Stiftnotiz | Verweis auf die Zuordnung, Seite (bei Bildern 1), Zeichnungsdaten, Seitengröße beim Zeichnen | **nur Ersatz** gemäß ADR-0011, wenn der Ordner des Dokuments nicht beschreibbar ist oder das Schreiben der Notiz-Datei beim Schließen scheitert; sonst liegen Stiftnotizen neben dem Dokument (Area anzeige) |
 | Stundenangaben | Schlüssel der Unterrichtsstunde, Thema, Bereitlegen, Hausaufgabe | FR-11.1; höchstens ein Datensatz je Unterrichtsstunde |
@@ -599,6 +599,18 @@ Schreiben), und der Übergang zwischen eigener Szene und Spiegelung beim App-Wec
 - **Abdecken (FR-12.7):** Die Abdeckung gehört zum flüchtigen Zustand des Zweitbildschirms, nicht zum
   Tafelbild. Die Szene auf dem Zweitbildschirm zeichnet sie deckend, die am Tablet durchscheinend.
 
+### Lösung neben dem Blatt
+
+- Die Lösung (FR-6.3) ist ein zweiter Verweis an der Zuordnung, in denselben Feldern wie der Verweis des Materials
+  (Präfix `solution`, alle optional gemäß ADR-0002). Schieben ändert nur den Schlüssel der Zuordnung und nimmt sie damit
+  mit; Übernehmen, Neu verknüpfen, Bereithalten und das Zusammenführen doppelter Zuordnungen beziehen sie ein.
+- Die Anzeige liest die Lösung über denselben Weg wie das Material (nur lesend, gemäß ADR-0003) und zeigt sie mit der
+  Darstellung ohne Zeichenfläche. Sie gelangt nie in den Zustand des Zweitbildschirms; der kennt nur das Material.
+- Den Vorschlag aus dem Ordner trifft eine reine Namensregel im Kern-Paket; die App liefert nur die Namen der Dateien
+  neben dem Blatt.
+- Spiegelt das System das Tablet-Bild, ohne dass die App eine eigene Szene für den Bildschirm hat, meldet UIKit das
+  über den Aufnahmezustand der Szene; dann blendet die Anzeige die Lösung aus.
+
 ### Stiftnotizen
 
 Gemäß ADR-0011 (löst ADR-0006 ab) liegen Stiftnotizen neben dem Dokument in der Ablage; gemäß FR-6.1
@@ -681,3 +693,4 @@ gehören sie zur Unterrichtsstunde. Das Original wird nie verändert.
 - 2026-11-16: dienst changed — Annahme: 411 ohne `Content-Length` ergänzt (Abschlussreview Teilplan 12); für die App endgültig wie die übrigen 4xx
 - 2026-11-16: dienst changed — Betrieb als git-verwalteter Dockhand-Stack (`server/deploy/docker-compose.yml`) hinter einem Cloudflare Tunnel (teach.grathwohl.dev, Q-43): Dienst nur im internen Netz, Tunnel-Container mit fester Adresse als einziger vertrauter Proxy, `NOINDEX`; Sitzungscookie `SameSite=Lax` statt Strict
 - 2026-11-16: dienst changed — Annahme: `clientDraftId` und Antwort 200 bei Wiederholung nachgetragen, damit der Vertrag in allen drei Quellen gleich ist
+- 2026-11-22: anzeige, daten changed — Lösung neben dem Blatt als zweiter Verweis an der Zuordnung, nie am Zweitbildschirm (FR-6.3)

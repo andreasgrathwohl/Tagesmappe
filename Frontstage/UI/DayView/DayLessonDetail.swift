@@ -13,6 +13,10 @@ struct DayRowActions {
   var passOn: (LessonKey) -> Void
   /// Öffnet die Tafel der Stunde (Teilplan 07, FR-12).
   var openBoard: (LessonKey) -> Void
+  /// Lösung hinzufügen oder ersetzen (FR-6.3).
+  var editSolution: (MaterialRow) -> Void
+  /// Lösung entfernen (FR-6.3).
+  var removeSolution: (MaterialRow) -> Void
 }
 
 /// Detail der gewählten Unterrichtsstunde (UI-3, UI-4, UI-5): Titel, Stunde und Uhrzeit, alle Aussagen,

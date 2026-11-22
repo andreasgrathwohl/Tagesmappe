@@ -71,9 +71,25 @@ struct MaterialTile: View {
       if row.availability.isUnavailable {
         Button("dayView.relink", systemImage: "link") { actions.relink(row) }
       }
+      solutionMenu
     }
     .accessibilityLabel(Text(verbatim: row.item.reference.displayName))
     .accessibilityValue(Text(verbatim: accessibilityValue))
+  }
+
+  // MARK: Lösung (FR-6.3)
+
+  /// Menüpunkte zur Lösung; nur für Material, das die eigene Anzeige öffnet (PDF, Bild).
+  @ViewBuilder private var solutionMenu: some View {
+    if row.item.reference.fileKind.opensInViewer {
+      Divider()
+      if row.item.solution == nil {
+        Button("solution.add", systemImage: "doc.badge.plus") { actions.editSolution(row) }
+      } else {
+        Button("solution.replace", systemImage: "arrow.triangle.2.circlepath") { actions.editSolution(row) }
+        Button("solution.remove", systemImage: "trash", role: .destructive) { actions.removeSolution(row) }
+      }
+    }
   }
 
   // MARK: Fuß
@@ -89,10 +105,17 @@ struct MaterialTile: View {
     } else if row.availability.isUnavailable {
       StatementView(.materialUnavailable, scale: .fileType)
     } else {
-      Text(verbatim: Self.fileTypeLabel(row.item.reference))
+      Text(verbatim: footerLabel)
         .scaledFont(.fileType)
         .foregroundStyle(style.accent)
     }
+  }
+
+  /// Dateityp, mit Lösung „PDF · mit Lösung“ (FR-6.3).
+  private var footerLabel: String {
+    let type = Self.fileTypeLabel(row.item.reference)
+    guard row.item.solution != nil else { return type }
+    return "\(type) · \(String(localized: "solution.withSolution"))"
   }
 
   private var isLoading: Bool {
@@ -113,6 +136,7 @@ struct MaterialTile: View {
   private var accessibilityValue: String {
     var parts: [String] = []
     if isShown { parts.append(String(localized: "dayView.onSmartboard.accessibility")) }
+    if row.item.solution != nil { parts.append(String(localized: "solution.withSolution")) }
     if isLoading {
       parts.append(String(localized: "dayView.loading"))
     } else if row.availability.isUnavailable {

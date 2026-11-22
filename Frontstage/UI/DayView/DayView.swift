@@ -21,6 +21,8 @@ private enum DayNotice: Equatable {
   case grantMissing
   /// Die Datei liegt nicht auf dem Gerät und es gibt kein Netz – Neu verknüpfen hilft hier nicht.
   case notDownloadedOffline
+  /// Die Lösung ließ sich nicht entfernen (FR-6.3).
+  case solutionSaveFailed
 
   var messageKey: LocalizedStringKey {
     switch self {
@@ -31,6 +33,7 @@ private enum DayNotice: Equatable {
     case .carryNotesFailed: "lesson.relink.carryNotesFailed"
     case .grantMissing: "dayView.grantMissing"
     case .notDownloadedOffline: "dayView.notDownloadedOffline"
+    case .solutionSaveFailed: "solution.saveFailed"
     }
   }
 }
@@ -89,6 +92,8 @@ struct DayView: View {
   @State private var carryOffer: CarryOffer?
   @State private var autoSaveOffer: MaterialReference?
   @State private var assignTarget: MaterialLinkItem?
+  /// Ablauf „Lösung hinzufügen“ (FR-6.3).
+  @State private var solutionTarget: SolutionTarget?
   /// Zuordnung, die gerade im Betrachter offen ist (Teilplan 06).
   @State private var viewerTarget: ViewerTarget?
   /// Stunde, deren Tafel gerade offen ist (Teilplan 07).
@@ -176,6 +181,7 @@ struct DayView: View {
         ViewerView(linkID: target.id).frame(minWidth: 720, minHeight: 560)
       }
     #endif
+    .solutionPicking(target: $solutionTarget) { model.reload() }
     .sheet(item: $assignTarget) { item in
       AssignLessonSheet(item: item, lessons: model.assignableLessons()) { lesson in
         model.actions.move(linkID: item.id, to: lesson.key)
@@ -391,7 +397,12 @@ struct DayView: View {
         if model.actions.passOnAll(from: key) == nil { notice = .noNextLesson }
         model.reload()
       },
-      openBoard: { key in boardTarget = BoardTarget(key: key) })
+      openBoard: { key in boardTarget = BoardTarget(key: key) },
+      editSolution: { row in solutionTarget = SolutionTarget(linkID: row.id, sheet: row.item.reference) },
+      removeSolution: { row in
+        if (try? environment.store.setSolution(nil, forLinkID: row.id)) == nil { notice = .solutionSaveFailed }
+        model.reload()
+      })
   }
 
   private func beginRelink(_ row: MaterialRow) {

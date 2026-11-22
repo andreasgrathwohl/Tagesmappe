@@ -149,6 +149,64 @@ import Testing
     #expect(try store.links(for: di8a).first?.penNotes?.count == 1)
   }
 
+  // MARK: Lösung (FR-6.3)
+
+  @Test("FR-6.3: Lösung setzen und wieder entfernen")
+  func setSolutionStoresAndClears() throws {
+    let (store, di8b) = try fixtureBStore()
+    let link = try store.assign(reference("AB Bruchrechnen.pdf"), to: di8b)
+    try store.setSolution(reference("AB Bruchrechnen – Lösung.pdf"), forLinkID: link.id)
+    #expect(try store.link(id: link.id)?.solution == reference("AB Bruchrechnen – Lösung.pdf"))
+    #expect(try store.materialLinkItem(id: link.id)?.solution == reference("AB Bruchrechnen – Lösung.pdf"))
+    try store.setSolution(nil, forLinkID: link.id)
+    #expect(try store.link(id: link.id)?.solution == nil)
+  }
+
+  @Test("FR-6.3: Schieben nimmt die Lösung mit")
+  func moveToNextLessonKeepsSolution() throws {
+    let (store, di8b) = try fixtureBStore()
+    let link = try store.assign(reference("AB Bruchrechnen.pdf"), to: di8b)
+    try store.setSolution(reference("AB Bruchrechnen – Lösung.pdf"), forLinkID: link.id)
+    let target = try #require(try store.moveLinkToNextLesson(link))
+    #expect(try store.links(for: target).first?.solution == reference("AB Bruchrechnen – Lösung.pdf"))
+  }
+
+  @Test("FR-6.3: Für Klasse übernehmen kopiert die Lösung")
+  func copyMaterialLinksCopiesSolution() throws {
+    let (store, di8a, mi8b) = try fixtureAStore()
+    let link = try store.assign(reference("AB Bruchrechnen.pdf"), to: di8a)
+    try store.setSolution(reference("AB Bruchrechnen – Lösung.pdf"), forLinkID: link.id)
+    #expect(try store.copyMaterialLinks(from: di8a, to: mi8b) == 1)
+    #expect(try store.links(for: mi8b).first?.solution == reference("AB Bruchrechnen – Lösung.pdf"))
+  }
+
+  @Test("FR-6.3: Neu verknüpfen ersetzt auch Lösungen am alten Ort")
+  func replaceReferencesReplacesSolutionAtLocation() throws {
+    let (store, di8a, mi8b) = try fixtureAStore()
+    let first = try store.assign(reference("AB Bruchrechnen.pdf"), to: di8a)
+    let second = try store.assign(reference("AB Brüche.pdf"), to: mi8b)
+    for link in [first, second] {
+      try store.setSolution(reference("AB – Lösung.pdf"), forLinkID: link.id)
+    }
+    let renamed = MaterialReference(
+      folderGrantName: "Unterricht", relativePath: "Englisch/AB – Lösung neu.pdf", displayName: "AB – Lösung neu",
+      fileKind: .pdf)
+    #expect(try store.replaceReferences(atLocation: reference("AB – Lösung.pdf").locationKey, with: renamed) == 2)
+    #expect(try store.link(id: first.id)?.solution == renamed)
+    #expect(try store.link(id: second.id)?.solution == renamed)
+    #expect(try store.link(id: first.id)?.reference == reference("AB Bruchrechnen.pdf"))
+  }
+
+  @Test("FR-6.3: Bereithalten bezieht die Lösung ein")
+  func linkedReferencesIncludesSolution() throws {
+    let (store, di8a, _) = try fixtureAStore()
+    let link = try store.assign(reference("AB Bruchrechnen.pdf"), to: di8a)
+    try store.setSolution(reference("AB Bruchrechnen – Lösung.pdf"), forLinkID: link.id)
+    #expect(
+      try store.linkedReferences(for: [di8a]).map(\.reference)
+        == [reference("AB Bruchrechnen.pdf"), reference("AB Bruchrechnen – Lösung.pdf")])
+  }
+
   @Test("Gespeicherte Freigabe-Namen und Verweise für das Bereithalten")
   func folderGrantNamesAndLinkedReferences() throws {
     let (store, di8a, mi8b) = try fixtureAStore()

@@ -30,6 +30,20 @@ struct ViewerView: View {
   @State private var didClose = false
   @State private var hideOutdatedNotice = false
   @State private var showMissingNotes = false
+  /// Lösung neben dem Blatt (FR-6.3, UI-17); `nil` = keine Lösung an der Zuordnung.
+  @State private var solution: SolutionPaneModel?
+  /// Verweis des Blatts (für „Lösung hinzufügen“).
+  @State private var sheetReference: MaterialReference?
+  @State private var solutionTarget: SolutionTarget?
+  /// Das System nimmt das Tablet-Bild auf bzw. spiegelt es; `nil` = noch unbekannt. Auf dem Mac gibt es keine
+  /// Erkennung, dort gilt „nicht gespiegelt“.
+  #if os(iOS)
+    @State private var isCaptured: Bool?
+  #else
+    @State private var isCaptured: Bool? = false
+  #endif
+  private var visibility: SolutionVisibility { .shared }
+  private var secondScreen: SecondScreenState { .shared }
 
   private static let logger = Logger(
     subsystem: Bundle.main.bundleIdentifier ?? "com.example.frontstage", category: "ViewerView")
@@ -57,6 +71,16 @@ struct ViewerView: View {
     .sheet(isPresented: $showMissingNotes) {
       if let model { MissingNotesSheet(model: model) }
     }
+    .environment(visibility)
+    // Gekoppeltes Blättern: Seitenwechsel im Blatt (Pfeile oder Wischen) zieht die Lösung nach.
+    .onChange(of: model?.pageIndex) { _, page in
+      if let page { solution?.sheetPageChanged(to: page) }
+    }
+    .onDisappear { visibility.viewerClosed() }
+    .solutionPicking(target: $solutionTarget) { reloadSolution() }
+    #if os(iOS)
+      .background { ScreenCaptureReader(isCaptured: $isCaptured) }
+    #endif
   }
 
   // MARK: Inhalt
@@ -85,12 +109,41 @@ struct ViewerView: View {
   private func ready(_ model: ViewerModel) -> some View {
     VStack(spacing: 0) {
       banners(for: model)
-      document(model)
+      sheetAndSolution(model)
       #if os(iOS)
         SmartboardBar()
       #endif
     }
   }
+
+  /// Gespiegelt heißt: das System nimmt das Tablet-Bild auf, ohne dass eine eigene Szene am Bildschirm hängt.
+  private var isMirrored: Bool? { isCaptured.map { $0 && !secondScreen.isConnected } }
+
+  /// Blatt allein oder Blatt und Lösung (UI-17): breit nebeneinander je halbe Breite, schmal übereinander.
+  ///
+  /// Immer dieselbe Struktur (GeometryReader → Layout → Blatt): Nur die Spalte kommt und geht. So behält die
+  /// Zeichenfläche des Blatts beim Ein- und Ausblenden ihre Identität, samt Zoom – auch am Zweitbildschirm.
+  private func sheetAndSolution(_ model: ViewerModel) -> some View {
+    GeometryReader { proxy in
+      let sideBySide = proxy.size.width >= Self.sideBySideMinWidth
+      let layout = sideBySide ? AnyLayout(HStackLayout(spacing: 0)) : AnyLayout(VStackLayout(spacing: 0))
+      layout {
+        document(model)
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+        if let solution, visibility.isShownByUser {
+          Divider()
+          SolutionPane(
+            model: solution, sheetPage: model.pageIndex, isMirrored: isMirrored,
+            pickOther: { beginSolutionPick() }
+          )
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+        }
+      }
+    }
+  }
+
+  /// Ab dieser Breite stehen Blatt und Lösung nebeneinander (iPad quer); darunter übereinander.
+  private static let sideBySideMinWidth: CGFloat = 700
 
   @ViewBuilder private func document(_ model: ViewerModel) -> some View {
     #if os(iOS)
@@ -170,7 +223,46 @@ struct ViewerView: View {
           .disabled(model.pageIndex >= count - 1)
       }
     }
+    if let model, model.phase == .ready {
+      ToolbarItem(placement: .primaryAction) { solutionButton }
+    }
     ToolbarItem(placement: .primaryAction) { HelpButton(topic: .penNotes) }
+  }
+
+  /// „Lösung“ blendet die Spalte ein und aus; ohne Lösung „Lösung hinzufügen“ (nur PDF und Bild).
+  @ViewBuilder private var solutionButton: some View {
+    if solution != nil {
+      Toggle(isOn: Binding(get: { visibility.isShownByUser }, set: { visibility.isShownByUser = $0 })) {
+        Label("viewer.solution", systemImage: "sidebar.right")
+      }
+      .toggleStyle(.button)
+    } else if let sheetReference, sheetReference.fileKind.opensInViewer {
+      Button("viewer.addSolution", systemImage: "doc.badge.plus") { beginSolutionPick() }
+    }
+  }
+
+  private func beginSolutionPick() {
+    guard let sheetReference else { return }
+    solutionTarget = SolutionTarget(linkID: linkID, sheet: sheetReference)
+  }
+
+  /// Nach „Lösung hinzufügen“: Lösung neu lesen und die Spalte zeigen.
+  private func reloadSolution() {
+    guard let link = try? dataStore.link(id: linkID) else { return }
+    loadSolution(link.solution)
+    visibility.isShownByUser = true
+  }
+
+  private func loadSolution(_ reference: MaterialReference?) {
+    guard let reference else {
+      solution = nil
+      return
+    }
+    let pane = SolutionPaneModel(reference: reference, fileReader: ScopedFileReader(storage: storage))
+    solution = pane
+    pane.sheetPageChanged(to: model?.pageIndex ?? 0)
+    // Seitenwechsel während des Ladens merkt sich das Modell selbst (`lastSheetPage`).
+    Task { await pane.load() }
   }
 
   private func go(to index: Int, _ model: ViewerModel) {
@@ -188,6 +280,8 @@ struct ViewerView: View {
       return
     }
     title = link.displayName
+    sheetReference = link.reference
+    loadSolution(link.solution)
     let files = StoragePenNoteFiles(storage: storage)
     let notes = PenNoteStore(link: link, files: files, fallback: dataStore)
     let environment = environment

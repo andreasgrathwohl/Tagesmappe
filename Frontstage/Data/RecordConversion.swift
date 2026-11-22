@@ -177,9 +177,29 @@ extension MaterialLinkRecord {
     oneDriveDriveID = reference.oneDriveDriveID
   }
 
+  /// Lösung (FR-6.3); `nil`, solange kein Pfad gesetzt ist.
+  var solution: MaterialReference? {
+    guard let path = solutionRelativePath, !path.isEmpty else { return nil }
+    return MaterialReference(
+      folderGrantName: solutionFolderGrantName ?? "", relativePath: path, displayName: solutionDisplayName ?? "",
+      fileKind: MaterialFileKind(rawValue: solutionFileKindRaw ?? "") ?? .other,
+      oneDriveItemID: solutionOneDriveItemID, oneDriveDriveID: solutionOneDriveDriveID)
+  }
+
+  /// Setzt oder entfernt (`nil`) die Lösung.
+  func setSolution(_ reference: MaterialReference?) {
+    solutionFolderGrantName = reference?.folderGrantName
+    solutionRelativePath = reference?.relativePath
+    solutionDisplayName = reference?.displayName
+    solutionFileKindRaw = reference?.fileKind.rawValue
+    solutionOneDriveItemID = reference?.oneDriveItemID
+    solutionOneDriveDriveID = reference?.oneDriveDriveID
+  }
+
   func snapshot() -> MaterialLinkSnapshot {
     MaterialLinkSnapshot(
-      id: id, lessonKeyText: lessonKeyText, fileIdentity: reference.fileIdentity, createdAt: createdAt)
+      id: id, lessonKeyText: lessonKeyText, fileIdentity: reference.fileIdentity, createdAt: createdAt,
+      hasSolution: solution != nil)
   }
 }
 

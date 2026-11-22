@@ -108,12 +108,16 @@ public struct MaterialLinkPayload: Codable, Hashable, Sendable {
   public var fileKindRaw: String
   public var oneDriveItemID: String?
   public var oneDriveDriveID: String?
+  /// Lösung neben dem Blatt (FR-6.3). Fehlt der Schlüssel in einer älteren Datei, ist sie `nil`
+  /// (Swift-Hinweis: synthetisiertes `Codable` liest und schreibt Optionale mit `decodeIfPresent`/`encodeIfPresent`).
+  public var solution: MaterialReference?
 
   public init(
     createdAt: Date, lessonKeyText: String, dayText: String, position: Int, folderGrantName: String,
     relativePath: String, displayName: String, fileKindRaw: String, oneDriveItemID: String?,
-    oneDriveDriveID: String?
+    oneDriveDriveID: String?, solution: MaterialReference? = nil
   ) {
+    self.solution = solution
     self.createdAt = createdAt
     self.lessonKeyText = lessonKeyText
     self.dayText = dayText

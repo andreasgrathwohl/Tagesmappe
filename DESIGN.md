@@ -681,6 +681,36 @@ man beim Eintragen am Stück nicht sieht, wo man steht. Seit ADR-0016 ist der Ed
 **Revisit if:** Am Gerät zeigt sich, dass das Raster mit Bereich zu eng wird, oder die Eingabe am Stück trotzdem
 langsam bleibt (dann C als Ergänzung prüfen).
 
+### UI-17 — Lösung als zweite Spalte der Anzeige, nur am Tablet
+
+- category: 1
+- Constrained by: UI-2, UI-5, UI-13, FR-6.3
+
+**Entscheidung:** Hat das Material eine Lösung, teilt sich die Anzeige: links das Blatt mit Stift, rechts die Lösung nur
+lesend, je halbe Breite, getrennt durch die Spaltenlinie des Systems (UI-5); bei schmaler Breite übereinander, Blatt
+oben. Die Lösungsspalte trägt eine schlichte Kopfzeile: „Lösung“, „Seite 2 von 3“ mit eigenen Pfeilen, Schalter
+„Seiten koppeln“ (`link`) und „Ausblenden“. Ein Knopf „Lösung“ (`sidebar.right`) in der Leiste blendet die Spalte ein und
+aus. Die Kachel nennt im Fuß „· mit Lösung“. Bei erkannter Spiegelung zeigt die Spalte statt der Lösung eine ruhige
+Aussage (UI-13) mit „Trotzdem zeigen“. Nach best practice entschieden, von Andreas delegiert (2026-11-22).
+
+**Kontext:** Ist-Zustand: Die Anzeige (`Frontstage/Viewer/ViewerView.swift`) zeigt ein Dokument über die volle Breite,
+darunter die Smartboard-Leiste. Apples HIG zu Split Views: Nebeneinander, wenn beide Inhalte gleichzeitig gebraucht
+werden; die Lehrkraft vergleicht Blatt und Lösung Zeile für Zeile, daher gleiche Breite statt schmaler Seitenleiste.
+
+**Verworfen, jeweils mit Vorzug:**
+- Lösung als Inspector (schmale Spalte rechts, `.inspector`) — Systembaustein, bei schmaler Breite von selbst ein Blatt;
+  aber zu schmal, um eine A4-Seite lesbar zu zeigen, und als Blatt verdeckt er das Blatt.
+- Lösung als schwebendes Bild-im-Bild über dem Blatt — spart Platz; verdeckt aber Teile des Blatts, auf die man schreibt.
+- Umschalten zwischen Blatt und Lösung (Segment) — volle Größe für beide; aber nie gleichzeitig, und genau das ist der Wunsch.
+
+**Konsequenzen mit Kosten:**
+- Das Blatt hat am Tablet nur halbe Breite, solange die Lösung offen ist; Schreiben wird kleiner. Abhilfe: ausblenden.
+- Hochkant werden beide Seiten klein; übereinander ist dort trotzdem besser lesbar als nebeneinander.
+- Am Gerät bestätigen (UI-2).
+
+**Revisit if:** Am Gerät zeigt sich, dass halbe Breite zum Schreiben nicht reicht (dann verschiebbare Trennlinie oder
+schmalere Lösung prüfen).
+
 ---
 
 ## Wiederkehrende Fallen
@@ -695,7 +725,7 @@ langsam bleibt (dann C als Ergänzung prüfen).
 
 ## Open Questions
 
-- Q-19: Die Tagesansicht ist während des Unterrichts per Bildschirmspiegelung für die Klasse sichtbar. Was darf dort stehen, was nicht (z. B. Material anderer Klassen, Lösungen, Namen von Dateien wie „KA 1 9b“)? — eingegrenzt 2026-11-13 durch FR-6.2: Mit Zweitbildschirm sieht die Klasse die Tagesansicht nicht. Offen bleibt die Frage für reine Bildschirmspiegelung (z. B. beim Wechsel zu einer anderen App, RISK-5).
+- Q-19: Die Tagesansicht ist während des Unterrichts per Bildschirmspiegelung für die Klasse sichtbar. Was darf dort stehen, was nicht (z. B. Material anderer Klassen, Lösungen, Namen von Dateien wie „KA 1 9b“)? — eingegrenzt 2026-11-13 durch FR-6.2: Mit Zweitbildschirm sieht die Klasse die Tagesansicht nicht. Offen bleibt die Frage für reine Bildschirmspiegelung (z. B. beim Wechsel zu einer anderen App, RISK-5). Ergänzt 2026-11-22: Für die Lösung (FR-6.3) beantwortet – bei erkannter Spiegelung ausgeblendet, mit Warnung und „Trotzdem zeigen“ (UI-17).
 - ~~Q-21~~: Was zeigt der Zweitbildschirm, solange kein Material geöffnet ist (FR-6.2) – eine leere Fläche, Klasse und Fach der laufenden Unterrichtsstunde, die Uhrzeit, etwas anderes? → answered 2026-11-13: den Klassenbildschirm mit Klasse, Fach, Uhrzeit, Stundenende, Thema, Hinweis, Timer und Arbeitsform (FR-11, FR-11.1 bis FR-11.3). Wie er aussieht, ist wie jede Kategorie hier offen.
 - Q-37: Wie zeigt sich der Klassenbildschirm auf Distanz (FR-11 bis FR-11.3)? Offen seit Teilplan 07, gebaut mit Systemvorgaben: Schriftgrößen (Systemstile, aus dem Klassenraum vermutlich zu klein), Farben, Symbole der Arbeitsform (`person`, `person.2`, `person.3`), Material der Timer-Karte, Timer-Signal (Platzhalter Sinus 880 Hz, dreimal), Wortlaut.
 - Q-38: Wie sieht die Tafel aus (FR-12 bis FR-12.7)? Offen seit Teilplan 07, gebaut mit Systemvorgaben: Breite (220 pt) und Reihenfolge der Seitenleiste, Seitenvorschauen statt Nummern, Farbe und Abstand der Linien und Karos, Farbe der Abdeckung (Platzhalter Schwarz; die Systemhintergrundfarbe wäre auf der weißen Seite am Tablet unsichtbar), Farbe der Streifen neben der Seite am Zweitbildschirm (Platzhalter Schwarz), Wortlaut „Letztes Tafelbild“.
@@ -703,6 +733,7 @@ langsam bleibt (dann C als Ergänzung prüfen).
 - ~~Q-41~~: Rot („Entfällt“) und Orange („Material nicht verfügbar“) erreichen als kleiner Text auf dem hellen warmen Grund nur 3,35:1 bzw. 2,07:1 (Ziel 4,5:1). Dunklere Signaltöne für hell (z. B. Rot `#C4271D`, Orange `#B25C00`), Signal nur im Symbol und Text in Textfarbe, oder Signal als getönte Fläche? Gehört zu Runde 8 (Zustände). Gefunden in Runde 6. → answered 2026-11-15: Signalfarbe nur im Symbol (≥ 3:1), Wort in Textfarbe (UI-11).
 - Q-46: Wie sieht die Startseite aus (FR-19)? Sie ist eine neue Oberfläche außerhalb der Referenz aus UI-2 (Web, Modus Persuade statt Operate). Bis zur Antwort: Die Gestaltung entsteht beim Bau (Teilplan 13) mit dem Skill `design-taste-frontend`, von Andreas delegiert; Darstellungen der App folgen UI-6 bis UI-12 (warmer Grundton, Petrol-Akzent, Rundschrift als Ersatz für SF Rounded). Das Ergebnis wird danach hier als Beschluss festgehalten oder in einer Design-Runde bestätigt.
 - Q-47: Wie verhält und zeigt sich die Verwaltungsseite (FR-18.1)? Neue Oberfläche außerhalb von UI-2 (Web, datendicht, nur für den Betreiber). Bis zur Antwort: Verhalten nach `design:enterprise-ux-patterns` (Liste mit Filtern, leere/Fehler-Zustände, Löschen mit Rückfrage), Aussehen schlicht nach Systemstandard des Browsers mit den Grundtönen aus UI-8; entschieden beim Bau (Teilplan 12), von Andreas delegiert.
+- Q-48: HIG-Befunde zur Lösungsspalte (UI-17, Gutachten `apple-design` am 2026-11-22), umzusetzen mit der nächsten App-Änderung, damit kein eigener CI-Lauf nötig ist: (1) Kopfzeilen-Knöpfe der Spalte ohne 44-pt-Trefferfläche; (2) „Ausblenden“ mit `xmark` liest sich als modales Schließen – anderes Symbol, Wortlaut bleibt; (3) `sidebar.right` passt nicht, wenn die Lösung unter dem Blatt steht; (4) „Seite x von y“ von Blatt und Lösung klingen in VoiceOver gleich; (5) „Seiten koppeln“ nur als Symbol, ohne `.help`; (6) „Lösung ersetzen/entfernen“ nur im Kontextmenü der Kachel, nicht in der Anzeige (Vorschlag: Menü am Leistenknopf „Lösung“).
 
 ## Changes
 
@@ -727,3 +758,5 @@ langsam bleibt (dann C als Ergänzung prüfen).
 - 2026-11-15: UI-12, UI-13, UI-14, UI-15 new — Runden 8b, 8c, 9, 10 von Andreas delegiert, nach Apples Richtlinien entschieden (Gutachten apple-design)
 - 2026-11-16: Q-46, Q-47 new — Startseite und Verwaltungsseite als neue Oberflächen außerhalb von UI-2 (FR-18.1, FR-19, ADR-0015); Aussehen entsteht beim Bau, keine UI-Beschlüsse jetzt
 - 2026-11-20: UI-16 new — Runde 1 für den Stundenplan-Editor: Raster mit festem Bearbeitungsbereich statt Blatt (Andreas aus vier Varianten)
+- 2026-11-22: UI-17 new — Lösung als zweite Spalte der Anzeige, nur am Tablet (FR-6.3; nach best practice, von Andreas delegiert); Q-19 ergänzt
+- 2026-11-22: Q-48 new — HIG-Befunde zur Lösungsspalte (UI-17), umzusetzen mit der nächsten App-Änderung

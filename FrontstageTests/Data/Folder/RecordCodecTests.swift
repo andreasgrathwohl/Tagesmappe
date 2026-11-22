@@ -50,6 +50,11 @@ import Testing
       folderGrantName: "Unterricht", relativePath: "Englisch/Blatt.pdf", displayName: "Blatt.pdf",
       fileKindRaw: "pdf", oneDriveItemID: "item-1", oneDriveDriveID: "drive-1")
     link.createdAt = date
+    // FR-6.3: Lösung, damit der Rundweg auch sie prüft.
+    link.setSolution(
+      MaterialReference(
+        folderGrantName: "Unterricht", relativePath: "Englisch/Blatt – Lösung.pdf", displayName: "Blatt – Lösung.pdf",
+        fileKind: .pdf, oneDriveItemID: "item-2", oneDriveDriveID: "drive-1"))
     context.insert(link)
 
     let note = PenNoteRecord(materialLink: link, pageIndex: 2)
@@ -158,6 +163,18 @@ import Testing
     let targetPage = again.first { $0.payload.model == .boardPage }
     #expect(sourcePage?.attachmentData == targetPage?.attachmentData)
     #expect(sourcePage?.attachmentData.keys.sorted() == ["backgroundImage", "drawing"])
+  }
+
+  @Test("FR-6.3: Lösung der Zuordnung kommt im Datenordner zurück")
+  func solutionRoundTrips() throws {
+    let source = try makeContext()
+    let (_, link) = populate(source)
+    let target = try makeContext()
+    try copy(try RecordCodec.exportAll(from: source), into: target)
+    try target.save()
+    let copied = try target.fetch(FetchDescriptor<MaterialLinkRecord>())
+    #expect(copied.first?.solution == link.solution)
+    #expect(copied.first?.solution?.relativePath == "Englisch/Blatt – Lösung.pdf")
   }
 
   @Test("Beziehungen kommen über die Kennung des Elterndatensatzes zurück")

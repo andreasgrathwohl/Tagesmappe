@@ -23,7 +23,8 @@ Stand.
   OneDrive-Dateien mit AutoSpeichern, Notizen und Zeichnungen landen sofort in der Ablage. PDFs und
   Bilder zeigt die App selbst, mit Stift; diese Stiftnotizen gelten je Unterrichtsstunde und lassen
   die Datei unverändert. Das Smartboard zeigt dabei als Zweitbildschirm nur das Material – die
-  Tagesansicht bleibt auf dem iPad.
+  Tagesansicht bleibt auf dem iPad. Hängt an einem Arbeitsblatt eine Lösung, sieht die Lehrkraft sie am
+  iPad daneben, die Klasse nie.
 - **Smartboard und Tafel**: Ist nichts geöffnet, zeigt das Smartboard einen Klassenbildschirm (Klasse,
   Fach, Uhrzeit, Thema, Timer, Arbeitsform). Mit einem Tipp wird das iPad zur Tafel; das Tafelbild
   bleibt bei der Unterrichtsstunde.

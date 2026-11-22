@@ -161,6 +161,8 @@ import OSLog
         let items = try store.materialLinkItems(for: lesson.key)
         itemsByLesson[lesson.key.storageText] = items
         references += items.map(\.reference)
+        // Lösungen (FR-6.3) ebenso, damit die Anzeige ihren Stand kennt.
+        references += items.compactMap(\.solution)
       }
       // Erst lesen lassen, dann `availability` auswerten: Die Zeilen zeigen den frischen Stand.
       storage.refreshAvailability(for: references)

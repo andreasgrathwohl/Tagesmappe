@@ -11,6 +11,8 @@ import FrontstageCore
   func addGrant(folderURL: URL, name: String) async throws -> FolderGrant
   func removeGrant(id: UUID)
   func reference(forPickedFile url: URL) -> MaterialReference?
+  /// Lösung im Ordner des Blatts vorschlagen (FR-6.3).
+  func suggestedSolution(for sheet: MaterialReference) -> MaterialReference?
   func relink(_ old: MaterialReference, toPickedFile url: URL) -> RelinkResult
   func refreshAvailability(for references: [MaterialReference])
   func open(_ reference: MaterialReference, anchor: HandOffAnchor) async -> OpenOutcome

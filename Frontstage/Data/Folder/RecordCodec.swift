@@ -154,7 +154,7 @@ enum RecordCodecError: Error, Equatable {
       position: record.position, folderGrantName: record.folderGrantName,
       relativePath: record.relativePath, displayName: record.displayName,
       fileKindRaw: record.fileKindRaw, oneDriveItemID: record.oneDriveItemID,
-      oneDriveDriveID: record.oneDriveDriveID)
+      oneDriveDriveID: record.oneDriveDriveID, solution: record.solution)
     return ExportedRecord(id: record.id, payload: .materialLink(payload), attachmentData: [:])
   }
 
@@ -300,6 +300,7 @@ enum RecordCodecError: Error, Equatable {
       record.fileKindRaw = value.fileKindRaw
       record.oneDriveItemID = value.oneDriveItemID
       record.oneDriveDriveID = value.oneDriveDriveID
+      record.setSolution(value.solution)
 
     case .penNote(let value):
       let parent = try materialLink(value.materialLinkID, in: context)

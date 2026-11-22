@@ -52,6 +52,8 @@ Das Smartboard ist ein Zweitbildschirm: Es zeigt nie die Tagesansicht, sondern g
 Dingen – den Klassenbildschirm (Klasse, Fach, Uhrzeit, Thema, Timer, Arbeitsform), das geöffnete
 Material, die Tafel oder nichts (dunkel). Umgeschaltet wird am iPad, das immer zeigt, was die Klasse
 gerade sieht. Was an die Tafel geschrieben wird, bleibt als Tafelbild bei der Unterrichtsstunde.
+Hängt an einem Arbeitsblatt eine Lösung, zeigt das iPad sie neben dem Blatt; aufs Smartboard kommt sie nie,
+und wird das iPad-Bild nur gespiegelt, blendet die App sie aus.
 
 ## Hilfe und Rückmeldung
 

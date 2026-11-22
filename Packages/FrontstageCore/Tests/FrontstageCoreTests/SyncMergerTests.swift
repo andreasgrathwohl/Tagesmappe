@@ -11,8 +11,32 @@ struct SyncMergerTests {
   /// Feste UUID aus einer Ziffer; Zeichenketten sortieren wie die Ziffern.
   func id(_ n: Int) -> UUID { UUID(uuidString: "00000000-0000-0000-0000-00000000000\(n)")! }
 
-  func link(_ n: Int, _ created: Date, key: String = "k", file: String? = "f") -> MaterialLinkSnapshot {
-    MaterialLinkSnapshot(id: id(n), lessonKeyText: key, fileIdentity: file, createdAt: created)
+  func link(_ n: Int, _ created: Date, key: String = "k", file: String? = "f", solution: Bool = false)
+    -> MaterialLinkSnapshot
+  {
+    MaterialLinkSnapshot(id: id(n), lessonKeyText: key, fileIdentity: file, createdAt: created, hasSolution: solution)
+  }
+
+  @Test("FR-6.3: aufgegebene Zuordnung hat die Lösung → sie geht an die behaltene")
+  func mergeKeepsSolutionOfDroppedLink() {
+    let plan = SyncMerger.plan(for: SyncSnapshot(links: [link(1, t1), link(2, t2, solution: true)]))
+    #expect(plan.deletions == [id(2)])
+    #expect(plan.linkSolutionSources == [id(1): id(2)])
+    #expect(!plan.isEmpty)
+  }
+
+  @Test("FR-6.3: behaltene Zuordnung hat schon eine Lösung → keine Übernahme")
+  func mergeKeepsKeeperSolution() {
+    let plan = SyncMerger.plan(
+      for: SyncSnapshot(links: [link(1, t1, solution: true), link(2, t2, solution: true), link(3, t3, solution: true)]))
+    #expect(plan.linkSolutionSources.isEmpty)
+  }
+
+  @Test("FR-6.3: mehrere aufgegebene mit Lösung → die jüngste")
+  func mergeTakesNewestDroppedSolution() {
+    let plan = SyncMerger.plan(
+      for: SyncSnapshot(links: [link(1, t1), link(2, t2, solution: true), link(3, t3, solution: true)]))
+    #expect(plan.linkSolutionSources == [id(1): id(3)])
   }
 
   func note(_ n: Int, link: Int?, page: Int, created: Date, updated: Date) -> PenNoteSnapshot {
