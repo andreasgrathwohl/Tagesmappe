@@ -7,7 +7,8 @@ struct SolutionPane: View {
   let model: SolutionPaneModel
   /// Seite des Blatts (für „Seiten koppeln“).
   let sheetPage: Int
-  let isMirrored: Bool
+  /// `nil` = Aufnahmezustand noch unbekannt.
+  let isMirrored: Bool?
   /// „Andere Datei wählen …“, wenn die Lösung nicht verfügbar ist.
   let pickOther: () -> Void
 
@@ -28,7 +29,7 @@ struct SolutionPane: View {
     HStack(spacing: 12) {
       Text("solution.title").font(.headline)
       Spacer(minLength: 8)
-      if model.phase == .ready, model.pageCount > 1, !isHiddenByMirroring {
+      if model.phase == .ready, model.pageCount > 1, visibility.isVisible(isMirrored: isMirrored) {
         Button("solution.previousPage", systemImage: "chevron.left") { model.goToPage(model.pageIndex - 1) }
           .labelStyle(.iconOnly)
           .disabled(model.pageIndex <= 0)
@@ -55,10 +56,11 @@ struct SolutionPane: View {
 
   // MARK: Inhalt
 
-  private var isHiddenByMirroring: Bool { isMirrored && !visibility.overrideMirroring }
-
   @ViewBuilder private var content: some View {
-    if isHiddenByMirroring {
+    if isMirrored == nil {
+      // Aufnahmezustand noch unbekannt: weder Lösung noch Warnung, bis er feststeht.
+      ProgressView()
+    } else if !visibility.isVisible(isMirrored: isMirrored) {
       // Ruhige Aussage statt der Lösung (UI-13): Die Klasse sähe sonst das gespiegelte Tablet-Bild.
       ContentUnavailableView {
         Label("solution.mirrored.title", systemImage: "rectangle.on.rectangle.slash")

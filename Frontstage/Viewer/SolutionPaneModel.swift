@@ -23,6 +23,8 @@ import PDFKit
   private(set) var pageIndex = 0
   /// Folgt dem Blättern im Blatt (Vorgabe an).
   private(set) var isCoupled = true
+  /// Zuletzt gemeldete Seite des Blatts; gilt auch, wenn das Blatt blättert, während die Lösung noch lädt.
+  @ObservationIgnored private var lastSheetPage = 0
 
   let reference: MaterialReference
   private let fileReader: any MaterialFileReading
@@ -43,7 +45,9 @@ import PDFKit
       let document = try MaterialDocumentLoader.makeDocument(from: data, kind: reference.fileKind)
       documentData = data
       pageCount = document.pageCount
-      pageIndex = min(pageIndex, max(pageCount - 1, 0))
+      pageIndex = isCoupled
+        ? SolutionPaging.coupledPage(sheetPage: lastSheetPage, solutionPageCount: pageCount)
+        : min(pageIndex, max(pageCount - 1, 0))
       phase = .ready
     } catch {
       Self.logger.error("Lösung nicht lesbar: \(String(describing: error), privacy: .public)")
@@ -55,6 +59,7 @@ import PDFKit
 
   /// Das Blatt hat geblättert; gekoppelt zieht die Lösung nach.
   func sheetPageChanged(to sheetPage: Int) {
+    lastSheetPage = sheetPage
     guard isCoupled else { return }
     pageIndex = SolutionPaging.coupledPage(sheetPage: sheetPage, solutionPageCount: pageCount)
   }

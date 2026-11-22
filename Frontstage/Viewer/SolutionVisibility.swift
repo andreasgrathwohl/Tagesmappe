@@ -14,8 +14,10 @@ import Observation
   init() {}
 
   /// Sichtbar, wenn eingeblendet und das Tablet-Bild nicht gespiegelt wird (oder die Lehrkraft es trotzdem will).
-  func isVisible(isMirrored: Bool) -> Bool {
-    isShownByUser && (!isMirrored || overrideMirroring)
+  /// `isMirrored == nil`: Zustand noch unbekannt (Anzeige gerade geöffnet) – im Zweifel nicht zeigen.
+  func isVisible(isMirrored: Bool?) -> Bool {
+    guard isShownByUser, let isMirrored else { return false }
+    return !isMirrored || overrideMirroring
   }
 
   /// Beim Schließen der Anzeige: „Trotzdem zeigen“ gilt nicht für das nächste Blatt.

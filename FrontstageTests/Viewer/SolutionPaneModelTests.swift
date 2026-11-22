@@ -49,6 +49,15 @@ import Testing
     #expect(model.pageIndex == 1)
   }
 
+  @Test("Blättern während des Ladens: nach dem Laden steht die Lösung auf der Seite des Blatts")
+  func pageChangeDuringLoadIsApplied() async throws {
+    let model = SolutionPaneModel(
+      reference: solution, fileReader: StubReader(data: TestDocuments.pdfData(pages: 3, size: .a4), error: nil))
+    model.sheetPageChanged(to: 2)
+    await model.load()
+    #expect(model.pageIndex == 2)
+  }
+
   @Test("Review Focus 2: unlesbare Lösung → nicht verfügbar")
   func unreadableSolutionIsUnavailable() async {
     let model = SolutionPaneModel(reference: solution, fileReader: StubReader(data: Data(), error: StubError.unresolvable))
@@ -59,6 +68,8 @@ import Testing
   @Test("Review Focus 1: gespiegelt ausgeblendet, außer auf Wunsch; ausgeblendet bleibt ausgeblendet")
   func mirroringHidesUnlessOverridden() {
     let visibility = SolutionVisibility()
+    // Unbekannter Aufnahmezustand (Anzeige gerade geöffnet): Lösung noch nicht zeigen.
+    #expect(!visibility.isVisible(isMirrored: nil))
     #expect(visibility.isVisible(isMirrored: false))
     #expect(!visibility.isVisible(isMirrored: true))
     visibility.overrideMirroring = true

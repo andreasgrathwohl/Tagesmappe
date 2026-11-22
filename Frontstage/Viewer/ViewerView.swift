@@ -35,8 +35,13 @@ struct ViewerView: View {
   /// Verweis des Blatts (für „Lösung hinzufügen“).
   @State private var sheetReference: MaterialReference?
   @State private var solutionTarget: SolutionTarget?
-  /// Das System nimmt das Tablet-Bild auf bzw. spiegelt es (nur iOS).
-  @State private var isCaptured = false
+  /// Das System nimmt das Tablet-Bild auf bzw. spiegelt es; `nil` = noch unbekannt. Auf dem Mac gibt es keine
+  /// Erkennung, dort gilt „nicht gespiegelt“.
+  #if os(iOS)
+    @State private var isCaptured: Bool?
+  #else
+    @State private var isCaptured: Bool? = false
+  #endif
   private var visibility: SolutionVisibility { .shared }
   private var secondScreen: SecondScreenState { .shared }
 
@@ -112,17 +117,20 @@ struct ViewerView: View {
   }
 
   /// Gespiegelt heißt: das System nimmt das Tablet-Bild auf, ohne dass eine eigene Szene am Bildschirm hängt.
-  private var isMirrored: Bool { isCaptured && !secondScreen.isConnected }
+  private var isMirrored: Bool? { isCaptured.map { $0 && !secondScreen.isConnected } }
 
   /// Blatt allein oder Blatt und Lösung (UI-17): breit nebeneinander je halbe Breite, schmal übereinander.
-  @ViewBuilder private func sheetAndSolution(_ model: ViewerModel) -> some View {
-    if let solution, visibility.isShownByUser {
-      GeometryReader { proxy in
-        let sideBySide = proxy.size.width >= Self.sideBySideMinWidth
-        let layout = sideBySide ? AnyLayout(HStackLayout(spacing: 0)) : AnyLayout(VStackLayout(spacing: 0))
-        layout {
-          document(model)
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+  ///
+  /// Immer dieselbe Struktur (GeometryReader → Layout → Blatt): Nur die Spalte kommt und geht. So behält die
+  /// Zeichenfläche des Blatts beim Ein- und Ausblenden ihre Identität, samt Zoom – auch am Zweitbildschirm.
+  private func sheetAndSolution(_ model: ViewerModel) -> some View {
+    GeometryReader { proxy in
+      let sideBySide = proxy.size.width >= Self.sideBySideMinWidth
+      let layout = sideBySide ? AnyLayout(HStackLayout(spacing: 0)) : AnyLayout(VStackLayout(spacing: 0))
+      layout {
+        document(model)
+          .frame(maxWidth: .infinity, maxHeight: .infinity)
+        if let solution, visibility.isShownByUser {
           Divider()
           SolutionPane(
             model: solution, sheetPage: model.pageIndex, isMirrored: isMirrored,
@@ -131,8 +139,6 @@ struct ViewerView: View {
           .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
       }
-    } else {
-      document(model)
     }
   }
 
@@ -254,11 +260,9 @@ struct ViewerView: View {
     }
     let pane = SolutionPaneModel(reference: reference, fileReader: ScopedFileReader(storage: storage))
     solution = pane
-    let sheetPage = model?.pageIndex ?? 0
-    Task {
-      await pane.load()
-      pane.sheetPageChanged(to: sheetPage)
-    }
+    pane.sheetPageChanged(to: model?.pageIndex ?? 0)
+    // Seitenwechsel während des Ladens merkt sich das Modell selbst (`lastSheetPage`).
+    Task { await pane.load() }
   }
 
   private func go(to index: Int, _ model: ViewerModel) {

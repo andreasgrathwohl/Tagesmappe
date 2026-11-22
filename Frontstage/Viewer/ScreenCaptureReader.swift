@@ -9,7 +9,8 @@ import SwiftUI
   /// solange die Szene gespiegelt oder aufgezeichnet wird. Mit `registerForTraitChanges` meldet die Ansicht jeden
   /// Wechsel. Die eigene Szene für den Zweitbildschirm zählt nicht dazu – dort sieht die Klasse nur, was wir zeigen.
   struct ScreenCaptureReader: UIViewRepresentable {
-    @Binding var isCaptured: Bool
+    /// `nil`, bis die Ansicht im Fenster hängt und den Zustand kennt.
+    @Binding var isCaptured: Bool?
 
     func makeUIView(context: Context) -> CaptureView {
       let view = CaptureView()
