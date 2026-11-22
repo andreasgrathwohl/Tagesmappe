@@ -13,3 +13,6 @@ DerivedData/
 .build/
 .swiftpm/
 /.superpowers/
+
+# Arbeitsdateien des Browser-Werkzeugs (Seitenabbilder, können Inhalte der Oberfläche enthalten)
+/.playwright-cli/
