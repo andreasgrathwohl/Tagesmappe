@@ -66,7 +66,12 @@ import FrontstageCore
     return .relinked(new)
   }
 
-  func refreshAvailability(for references: [MaterialReference]) {}
+  /// Alle Verweise, deren Zustand angefragt wurde (FR-6.3: auch Lösungen).
+  private(set) var refreshedReferences: [MaterialReference] = []
+
+  func refreshAvailability(for references: [MaterialReference]) {
+    refreshedReferences += references
+  }
 
   func open(_ reference: MaterialReference, anchor: HandOffAnchor) async -> OpenOutcome {
     let key = reference.locationKey

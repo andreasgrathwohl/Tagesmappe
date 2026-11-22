@@ -23,6 +23,8 @@ struct LessonDetailView: View {
   @State private var isImporting = false
   @State private var showCopyPicker = false
   @State private var notice: PreparationNotice?
+  /// Ablauf „Lösung hinzufügen“ (FR-6.3).
+  @State private var solutionTarget: SolutionTarget?
   /// Stunde, deren Tafel gerade offen ist (Teilplan 07).
   @State private var boardTarget: BoardTarget?
 
@@ -64,6 +66,7 @@ struct LessonDetailView: View {
       MaterialDropTarget(key: key, actions: actions, onError: { notice = PreparationNotice($0) })
     )
     .preparationNotice($notice)
+    .solutionPicking(target: $solutionTarget)
     .fileImporter(
       isPresented: $isImporting, allowedContentTypes: [.item], allowsMultipleSelection: true
     ) { result in
@@ -165,9 +168,28 @@ struct LessonDetailView: View {
             Image(systemName: DayStatement.materialUnavailable.symbolName)
               .accessibilityLabel(Text(LocalizedStringKey(DayStatement.materialUnavailable.labelKey)))
           }
+          if item.solution != nil {
+            Image(systemName: "checkmark.seal")
+              .foregroundStyle(.secondary)
+              .accessibilityLabel(Text("solution.withSolution"))
+          }
           Spacer(minLength: 8)
           Menu {
             Button("lesson.moveToNext", systemImage: "arrow.right") { moveToNext(item) }
+            if item.reference.fileKind.opensInViewer {
+              if item.solution == nil {
+                Button("solution.add", systemImage: "doc.badge.plus") {
+                  solutionTarget = SolutionTarget(linkID: item.id, sheet: item.reference)
+                }
+              } else {
+                Button("solution.replace", systemImage: "arrow.triangle.2.circlepath") {
+                  solutionTarget = SolutionTarget(linkID: item.id, sheet: item.reference)
+                }
+                Button("solution.remove", systemImage: "trash", role: .destructive) {
+                  if (try? actions.store.setSolution(nil, forLinkID: item.id)) == nil { notice = .saveFailed }
+                }
+              }
+            }
             Button("lesson.remove", systemImage: "trash", role: .destructive) {
               actions.remove(linkID: item.id)
             }

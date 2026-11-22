@@ -58,6 +58,17 @@ import Testing
     #expect(vm.content == .noLessons)
   }
 
+  @Test("FR-6.3: Zustand der Lösung wird mit angefragt, die Zeile trägt sie")
+  func refreshesSolutionAvailability() throws {
+    try Fixtures.seed(data, [Fixtures.entry(.tuesday, 2, "8b", "Mathe")])
+    let item = try assign("AB Bruchrechnen.pdf", to: Fixtures.key(.tue17, "8b", "Mathe"))
+    let solution = Fixtures.reference("AB Bruchrechnen – Lösung.pdf", .pdf)
+    try data.setSolution(solution, forLinkID: item.id)
+    let row = try lessonRow(makeModel(), 2)
+    #expect(row.materials.first?.item.solution == solution)
+    #expect(storage.refreshedReferences.contains(solution))
+  }
+
   @Test("AK-42: Tagesansicht zeigt die Zeit an der 2. Stunde")
   func showsBellScheduleTime() throws {
     try Fixtures.seed(data, [Fixtures.entry(.tuesday, 2, "8b", "Englisch")])
