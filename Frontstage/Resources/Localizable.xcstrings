@@ -1,6 +1,206 @@
 {
   "sourceLanguage" : "de",
   "strings" : {
+    "solution.add" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lösung hinzufügen …"
+          }
+        }
+      }
+    },
+    "solution.replace" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lösung ersetzen …"
+          }
+        }
+      }
+    },
+    "solution.remove" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lösung entfernen"
+          }
+        }
+      }
+    },
+    "solution.withSolution" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "mit Lösung"
+          }
+        }
+      }
+    },
+    "solution.suggestion.title %@" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "„%@“ als Lösung verwenden?"
+          }
+        }
+      }
+    },
+    "solution.suggestion.use" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verwenden"
+          }
+        }
+      }
+    },
+    "solution.suggestion.other" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Andere Datei wählen …"
+          }
+        }
+      }
+    },
+    "solution.saveFailed" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Lösung konnte nicht gesichert werden."
+          }
+        }
+      }
+    },
+    "viewer.solution" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lösung"
+          }
+        }
+      }
+    },
+    "viewer.addSolution" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lösung hinzufügen"
+          }
+        }
+      }
+    },
+    "solution.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lösung"
+          }
+        }
+      }
+    },
+    "solution.couple" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seiten koppeln"
+          }
+        }
+      }
+    },
+    "solution.hide" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ausblenden"
+          }
+        }
+      }
+    },
+    "solution.unavailable" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lösung nicht verfügbar"
+          }
+        }
+      }
+    },
+    "solution.mirrored.title" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dein Bildschirm wird gespiegelt"
+          }
+        }
+      }
+    },
+    "solution.mirrored.body" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Die Klasse würde die Lösung sehen."
+          }
+        }
+      }
+    },
+    "solution.mirrored.showAnyway" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trotzdem zeigen"
+          }
+        }
+      }
+    },
+    "solution.previousPage" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vorherige Seite der Lösung"
+          }
+        }
+      }
+    },
+    "solution.nextPage" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nächste Seite der Lösung"
+          }
+        }
+      }
+    },
+    "solution.pageOfPages %lld %lld" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Seite %1$lld von %2$lld"
+          }
+        }
+      }
+    },
     "classScreen.upcoming" : {
       "localizations" : {
         "de" : {
@@ -4948,7 +5148,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Stift, Notiz, PDF, Apple Pencil, Bild, Anmerkung"
+            "value" : "Stift, Notiz, PDF, Apple Pencil, Bild, Anmerkung, Lösung, Lösungsblatt"
           }
         }
       }
@@ -4959,7 +5159,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "PDF-Dateien und Bilder öffnet Frontstage in der eigenen Ansicht. Dort schreibst und zeichnest du mit dem Apple Pencil.\n\n## Wie Notizen gelten\nDeine Stiftnotizen gelten je Stunde. Dasselbe Arbeitsblatt kann in 8a andere Notizen tragen als in 8b.\n\n## Wo die Notizen liegen\n- Sie liegen neben dem Dokument, im Ordner **.frontstage-notizen**.\n- Dort steht je Stunde eine eigene Notiz-PDF.\n- Das Original bleibt unverändert.\n\n## Gut zu wissen\n- Wird die Datei in der Ablage später geändert, bleiben deine Notizen erhalten. Frontstage weist dann darauf hin, dass sie zu einer früheren Fassung gehören.\n- Ist der Ordner des Materials nicht beschreibbar, legt Frontstage die Notizen auf dem Gerät ab.\n\n> Mit **Fertig** schließt du die Ansicht und kehrst zur Stunde zurück."
+            "value" : "PDF-Dateien und Bilder öffnet Frontstage in der eigenen Ansicht. Dort schreibst und zeichnest du mit dem Apple Pencil.\n\n## Wie Notizen gelten\nDeine Stiftnotizen gelten je Stunde. Dasselbe Arbeitsblatt kann in 8a andere Notizen tragen als in 8b.\n\n## Wo die Notizen liegen\n- Sie liegen neben dem Dokument, im Ordner **.frontstage-notizen**.\n- Dort steht je Stunde eine eigene Notiz-PDF.\n- Das Original bleibt unverändert.\n\n## Gut zu wissen\n- Wird die Datei in der Ablage später geändert, bleiben deine Notizen erhalten. Frontstage weist dann darauf hin, dass sie zu einer früheren Fassung gehören.\n- Ist der Ordner des Materials nicht beschreibbar, legt Frontstage die Notizen auf dem Gerät ab.\n\n## Lösung neben dem Blatt\n- Halte an der Kachel eines Arbeitsblatts gedrückt und wähle **Lösung hinzufügen**. Liegt im selben Ordner eine Datei mit „Lösung“ im Namen, schlägt Frontstage sie vor.\n- Beim Öffnen siehst du links das Blatt und rechts die Lösung. Die Lösung blättert mit, bis du sie selbst blätterst.\n- Das Smartboard zeigt nur das Blatt, nie die Lösung. Wird dein iPad-Bild nur gespiegelt, blendet Frontstage die Lösung aus.\n\n> Mit **Fertig** schließt du die Ansicht und kehrst zur Stunde zurück."
           }
         }
       }

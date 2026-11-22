@@ -91,6 +91,27 @@ struct ResolvedMaterial: Sendable {
     return ScopedFile(url: resolved.fileURL, reference: reference, grantURL: resolved.grantURL)
   }
 
+  /// Vorschlag für die Lösung (FR-6.3): eine Datei im Ordner des Blatts, deren Name die Regel aus
+  /// `SolutionMatching` erfüllt. `nil` = kein Treffer oder Ordner nicht auflösbar. Nur lesend.
+  func suggestedSolution(for sheet: MaterialReference) -> MaterialReference? {
+    guard let resolved = resolveFolder(of: sheet) else { return nil }
+    let accessing = resolved.grantURL.startAccessingSecurityScopedResource()
+    defer { if accessing { resolved.grantURL.stopAccessingSecurityScopedResource() } }
+    let directory = resolved.fileURL.deletingLastPathComponent()
+    guard
+      let names = try? FileManager.default.contentsOfDirectory(atPath: directory.path(percentEncoded: false)),
+      let match = SolutionMatching.bestCandidate(forSheetNamed: resolved.fileURL.lastPathComponent, among: names)
+    else { return nil }
+    let fileName = match.precomposedStringWithCanonicalMapping
+    var components = StoragePath.components(ofRelativePath: sheet.relativePath)
+    components.removeLast()
+    components.append(fileName)
+    return MaterialReference(
+      folderGrantName: sheet.folderGrantName, relativePath: components.joined(separator: "/"),
+      displayName: (fileName as NSString).deletingPathExtension,
+      fileKind: MaterialFileKind(fileExtension: (fileName as NSString).pathExtension))
+  }
+
   /// Datei aus der Ordnerauswahl → Verweis; `nil` = außerhalb freigegebener Ordner.
   func reference(forPickedFile url: URL) -> MaterialReference? {
     let path = url.standardizedFileURL.resolvingSymlinksInPath().path(percentEncoded: false)

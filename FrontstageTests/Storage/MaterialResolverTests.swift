@@ -66,6 +66,25 @@ import Testing
     #expect(picked.fileKind == .pdf)
   }
 
+  @Test("FR-6.3: Lösung im Ordner des Blatts wird vorgeschlagen")
+  func suggestsSolutionBesideSheet() throws {
+    try makeFile("8b/AB Bruchrechnen.pdf")
+    try makeFile("8b/AB Bruchrechnen – Lösung.pdf")
+    try makeFile("8b/Andere.pdf")
+    let suggestion = try #require(resolver.suggestedSolution(for: reference("8b/AB Bruchrechnen.pdf")))
+    #expect(suggestion.folderGrantName == "Unterricht")
+    #expect(suggestion.relativePath == "8b/AB Bruchrechnen – Lösung.pdf")
+    #expect(suggestion.displayName == "AB Bruchrechnen – Lösung")
+    #expect(suggestion.fileKind == .pdf)
+  }
+
+  @Test("FR-6.3: ohne passende Datei kein Vorschlag, auch im Wurzelordner")
+  func noSolutionSuggestionWithoutCandidate() throws {
+    try makeFile("AB Bruchrechnen.pdf")
+    try makeFile("AB Brüche – Lösung.pdf")
+    #expect(resolver.suggestedSolution(for: reference("AB Bruchrechnen.pdf")) == nil)
+  }
+
   @Test("Gewählte Datei außerhalb: nil")
   func pickedFileOutsideGrantsIsNil() throws {
     let outside = root.appending(path: "Fremd.pdf", directoryHint: .notDirectory)

@@ -51,6 +51,13 @@ import FrontstageCore
       url.lastPathComponent, MaterialFileKind(fileExtension: url.pathExtension))
   }
 
+  /// Vorschlag für die Lösung (FR-6.3), von Tests gesetzt.
+  var solutionSuggestion: MaterialReference?
+
+  func suggestedSolution(for sheet: MaterialReference) -> MaterialReference? {
+    solutionSuggestion
+  }
+
   func relink(_ old: MaterialReference, toPickedFile url: URL) -> RelinkResult {
     if let override = relinkResultOverride { return override }
     guard !rejectURLs.contains(url), let new = reference(forPickedFile: url) else {

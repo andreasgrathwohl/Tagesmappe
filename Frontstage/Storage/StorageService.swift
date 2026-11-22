@@ -137,6 +137,11 @@ enum OpenOutcome {
     resolver.reference(forPickedFile: url)
   }
 
+  /// Lösung im Ordner des Blatts vorschlagen (FR-6.3); `nil` ohne Treffer.
+  func suggestedSolution(for sheet: MaterialReference) -> MaterialReference? {
+    resolver.suggestedSolution(for: sheet)
+  }
+
   /// Ersetzt den Ort an allen Zuordnungen mit dem alten Ort (ADR-0003); Zuordnungen und Stiftnotizen bleiben.
   func relink(_ old: MaterialReference, toPickedFile url: URL) -> RelinkResult {
     guard let new = resolver.reference(forPickedFile: url) else { return .outsideGrants }
