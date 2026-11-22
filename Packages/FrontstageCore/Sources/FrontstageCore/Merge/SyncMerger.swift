@@ -12,12 +12,14 @@ public struct MergePlan: Equatable, Sendable {
   public var penNoteDrawingSources: [UUID: UUID] = [:]
   /// Behaltener Datensatz ← je Feld die Quelle.
   public var lessonInfoFieldSources: [UUID: [LessonInfoField: UUID]] = [:]
+  /// Behaltene Zuordnung ohne Lösung ← Lösung dieser aufgegebenen Zuordnung übernehmen (FR-6.3).
+  public var linkSolutionSources: [UUID: UUID] = [:]
 
   public init() {}
 
   public var isEmpty: Bool {
     deletions.isEmpty && entryTimetableChanges.isEmpty && penNoteLinkChanges.isEmpty
-      && penNoteDrawingSources.isEmpty && lessonInfoFieldSources.isEmpty
+      && penNoteDrawingSources.isEmpty && lessonInfoFieldSources.isEmpty && linkSolutionSources.isEmpty
   }
 }
 
@@ -69,6 +71,14 @@ public enum SyncMerger {
       key: { item in item.fileIdentity.map { LinkKey(lessonKeyText: item.lessonKeyText, fileIdentity: $0) } },
       id: { $0.id }, createdAt: { $0.createdAt })
     plan.deletions.formUnion(linkMap.keys)
+    // Lösung (FR-6.3): Hat die behaltene Zuordnung keine, kommt die der jüngsten aufgegebenen mit Lösung.
+    let linksByID = Dictionary(snapshot.links.map { ($0.id, $0) }, uniquingKeysWith: { first, _ in first })
+    for (keeperID, droppedIDs) in Dictionary(grouping: linkMap.keys, by: { linkMap[$0]! }) {
+      guard let keeper = linksByID[keeperID], !keeper.hasSolution else { continue }
+      let source = droppedIDs.compactMap { linksByID[$0] }.filter(\.hasSolution)
+        .max { ($0.createdAt, $0.id.uuidString) < ($1.createdAt, $1.id.uuidString) }
+      if let source { plan.linkSolutionSources[keeperID] = source.id }
+    }
 
     // 4. Stiftnotizen: Schlüssel über die wirksame Zuordnung; Zeichnung vom jüngsten `updatedAt`.
     func effectiveLink(_ note: PenNoteSnapshot) -> UUID? {

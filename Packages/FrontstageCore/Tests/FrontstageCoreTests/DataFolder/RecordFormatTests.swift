@@ -46,6 +46,30 @@ struct RecordFormatTests {
     #expect(!text.contains("payload"))
   }
 
+  @Test("FR-6.3: Zuordnung ohne Schlüssel solution (alter Datenordner) liest sich als ohne Lösung")
+  func materialLinkPayloadDecodesWithoutSolution() throws {
+    let text = String(decoding: try DataFolderCoding.encode(linkEnvelope()), as: UTF8.self)
+    #expect(!text.contains("solution"))
+    let decoded = try DataFolderCoding.decode(Data(text.utf8))
+    guard case .materialLink(let value)? = decoded.payload else {
+      Issue.record("kein materialLink")
+      return
+    }
+    #expect(value.solution == nil)
+  }
+
+  @Test("FR-6.3: Zuordnung mit Lösung hin und zurück")
+  func materialLinkPayloadRoundTripsSolution() throws {
+    var payload = sampleLink
+    payload.solution = MaterialReference(
+      folderGrantName: "Material", relativePath: "8b/Vokabeln – Lösung.pdf", displayName: "Vokabeln – Lösung",
+      fileKind: .pdf)
+    let env = RecordEnvelope(
+      id: id(1), model: .materialLink, updatedAt: Date(timeIntervalSince1970: 1_795_000_000.125),
+      deviceID: "device-A", deleted: false, payload: .materialLink(payload))
+    #expect(try DataFolderCoding.decode(try DataFolderCoding.encode(env)) == env)
+  }
+
   @Test("Nicht gelöschter Datensatz ohne Inhalt wirft payloadMissing")
   func missingPayloadThrows() throws {
     let json = """

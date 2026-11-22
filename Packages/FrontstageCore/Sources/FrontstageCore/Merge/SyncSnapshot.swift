@@ -38,12 +38,15 @@ public struct MaterialLinkSnapshot: Hashable, Sendable {
   /// `nil`, solange der Verweis noch nicht abgeglichen ist.
   public var fileIdentity: String?
   public var createdAt: Date
+  /// Die Zuordnung trägt eine Lösung (FR-6.3).
+  public var hasSolution: Bool
 
-  public init(id: UUID, lessonKeyText: String, fileIdentity: String?, createdAt: Date) {
+  public init(id: UUID, lessonKeyText: String, fileIdentity: String?, createdAt: Date, hasSolution: Bool = false) {
     self.id = id
     self.lessonKeyText = lessonKeyText
     self.fileIdentity = fileIdentity
     self.createdAt = createdAt
+    self.hasSolution = hasSolution
   }
 }
 
