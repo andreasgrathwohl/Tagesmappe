@@ -68,6 +68,7 @@ Person (Q-13).
 | Stiftnotiz | was die Lehrkraft in der Anzeige des Produkts mit dem Stift auf ein PDF oder Bild schreibt oder zeichnet; gehört zu einer Zuordnung, nicht zur Datei | Zeichnungen in einer Präsentation (die gehören zur Datei und landen in der Ablage) | `PenNote` |
 | Notiz-Datei | der Ordner `<Name>.frontstage-notizen` neben einem Dokument; enthält je Unterrichtsstunde die Stiftnotizen in einer Form, die Frontstage weiter bearbeiten kann | Material | `PenNoteFile` |
 | Notiz-PDF | lesbare Fassung eines Dokuments mit den Stiftnotizen einer Unterrichtsstunde, neben dem Dokument | Material (das Original bleibt unverändert) | `PenNotePDF` |
+| Lösung | eine zweite Datei aus der Ablage (PDF oder Bild), die an einer Zuordnung hängt und die nur die Lehrkraft in der Anzeige neben dem Material sieht – nie der Zweitbildschirm | Material (das sieht die Klasse) | `solution` (Verweis an `MaterialLink`), Spalte `SolutionPane` |
 | Stand | Zeitpunkt, zu dem der Stundenplan zuletzt aus der Stundenplan-Quelle geholt wurde; die Tagesansicht zeigt ihn | Datum einer Unterrichtsstunde | `sourceFetchedAt` |
 | Arbeitsform | wie die Klasse gerade arbeitet: Einzelarbeit, Partnerarbeit oder Gruppenarbeit | Fach | `WorkMode` (`individual`, `pairs`, `groups`) |
 | Vorlage | Seite oder Ausschnitt aus Material oder Ablage als Hintergrund einer Tafelseite | Material (bleibt unverändert in der Ablage) | `BoardBackground.image`, erzeugt von `TemplateRenderer` |
@@ -260,6 +261,19 @@ funktioniert“, „die App zeigt was anderes wie das Smartboard“. Für Materi
 Ergänzt 2026-11-13: Neben dem Material kann der Zweitbildschirm die Tafel (FR-12) zeigen; ist beides
 nicht offen, zeigt er den Klassenbildschirm (FR-11).
 
+### FR-6.3 — Lösung neben dem Blatt, nur für die Lehrkraft [MVP]
+
+An ein PDF oder Bild lässt sich eine Lösung hängen – eine zweite Datei aus der Ablage, ohne Kopie (FR-3.4).
+Liegt im Ordner des Blatts eine Datei mit demselben Namen und einem Lösungswort („Lösung“, „Loesung“, „Lsg“
+u. ä.), schlägt das Produkt sie vor. Öffnet die Lehrkraft das Blatt in der Anzeige, sieht sie am Tablet links
+das Blatt und rechts die Lösung (bei schmaler Breite übereinander); die Lösung blättert standardmäßig mit dem
+Blatt mit, lässt sich davon lösen und ausblenden. Der Zweitbildschirm zeigt nur das Blatt, nie die Lösung
+(FR-6.2). Wird das Tablet-Bild nur gespiegelt, blendet das Produkt die Lösung aus und warnt. Schieben und
+Weiterreichen (FR-3.3, FR-8) und „Für <Klasse> übernehmen“ (FR-3.2) nehmen die Lösung mit. Kostenlos wie die
+Anzeige (FR-13). Für Material in einer anderen App (FR-5) gibt es keine Lösung. Vom Nutzer: „die schüler sollen
+ein dokument sehen, es gibt aber auch noch ein lösungs dokument, welches der lehrer gleichzeitig offen hat, so
+eine art splitscreen.“
+
 ### FR-7 — Unterrichtsfreie Tage [MVP]
 
 Die Lehrkraft trägt Ferien und Feiertage ein; an diesen Tagen gibt es keine Unterrichtsstunden.
@@ -409,6 +423,8 @@ Kostenlos bleibt der Standard; Hell/Dunkel wie das System gilt immer.
 
 Geändert 2026-11-16: Hilfe, Hilfecenter, Kurz-Tipps und Rückmeldung (FR-17 bis FR-17.5) gehören immer zum
 kostenlosen Teil – auch die Hilfeartikel zu bezahlten Funktionen sind ohne Kauf lesbar.
+
+Geändert 2026-11-22: Die Lösung neben dem Blatt (FR-6.3) gehört als Teil der Anzeige zum kostenlosen Kern.
 
 ### FR-13.1 — Schulmanager-Import ohne Bezahlung und ohne Gewähr [Later]
 
@@ -658,8 +674,8 @@ Geräts gehalten und nie an Dritte außer der Quelle selbst übertragen.
 
 ## Lieferstufen
 
-- **MVP:** FR-1, FR-1.1, FR-1.3, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-7, FR-8,
-  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, NFR-1 bis NFR-4, FR-1.2, FR-14, FR-14.1, FR-15, FR-15.1 bis FR-15.6, FR-16, FR-16.1, FR-16.2, FR-17, FR-17.1 bis FR-17.5, FR-18, FR-18.1, FR-18.2, FR-19, FR-19.1 (geprüfte Zahl: 62). FR-2 und FR-5.1 bestätigt (Q-3, Q-4); FR-2 am 2026-11-20 zurückgestellt (ADR-0016).
+- **MVP:** FR-1, FR-1.1, FR-1.3, FR-3, FR-3.1 bis FR-3.4, FR-4, FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-6.3, FR-7, FR-8,
+  FR-9, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7, FR-13, NFR-1 bis NFR-4, FR-1.2, FR-14, FR-14.1, FR-15, FR-15.1 bis FR-15.6, FR-16, FR-16.1, FR-16.2, FR-17, FR-17.1 bis FR-17.5, FR-18, FR-18.1, FR-18.2, FR-19, FR-19.1 (geprüfte Zahl: 63). FR-2 und FR-5.1 bestätigt (Q-3, Q-4); FR-2 am 2026-11-20 zurückgestellt (ADR-0016).
 - **Later:** FR-2, FR-2.1, FR-2.2, FR-7.1, FR-10, FR-13.1, FR-13.2.
 
 ## Out of Scope
@@ -842,6 +858,7 @@ des Volumes; App Attest als spätere Stufe (ADR-0015). Domain `teach.grathwohl.d
 - AK-66 (FR-1.3): Aufbau: Stundenplan mit Mo 1. und 2. Stunde 8b Englisch und Mo 3. Stunde 9c Deutsch. Handlung: auf das leere Feld Mo 4. Stunde tippen, „9“ in Klasse tippen, Vorschlag „9c“ tippen, Vorschlag „Deutsch“ tippen, „Sichern und nächste“. Ergebnis: Mo 4. Stunde 9c Deutsch ist gesichert; das Blatt bleibt offen, steht auf Mo 5. Stunde, Klasse 9c und Fach Deutsch sind vorbelegt; ohne Tipp auf einen Sichern-Knopf wird nichts gesichert.
 - AK-67 (FR-1.3): Aufbau: Mo 2. Stunde 8b Englisch, Mi 2. Stunde 9c Deutsch. Handlung: Mo 2. Stunde öffnen, unter „Auf andere Tage übernehmen“ Di, Mi und Do wählen, „Übernehmen“. Ergebnis: Di und Do 2. Stunde zeigen 8b Englisch; Mi bleibt 9c Deutsch, das Blatt nennt Mi als schon belegt.
 - AK-68 (FR-1.3): Aufbau: leerer Stundenplan, Schultag. Handlung: Tagesansicht öffnen. Ergebnis: „Noch kein Stundenplan“ mit Knopf „Stundenplan einrichten“, der nach Einrichten führt; an einem Ferientag steht weiter der Ferienname.
+- AK-69 (FR-6.3): Aufbau: Ordner mit „AB Bruchrechnen.pdf“ (3 Seiten) und „AB Bruchrechnen – Lösung.pdf“ (2 Seiten); das Blatt ist Di 10.11. 8b Mathe zugeordnet; iPad per Kabel mit einem Bildschirm verbunden. Handlung: an der Kachel „Lösung hinzufügen …“, Vorschlag „Verwenden“; das Blatt öffnen, auf Seite 2 und 3 blättern; „Seiten koppeln“ aus, in der Lösung auf Seite 1; das Material in die nächste Stunde schieben und dort öffnen; Bildschirm trennen und das Tablet-Bild per Bildschirmsynchronisierung spiegeln. Ergebnis: Der Vorschlag nennt die Lösungsdatei; die Kachel zeigt „mit Lösung“; am Tablet stehen Blatt und Lösung nebeneinander, die Lösung folgt auf Seite 2 und bleibt bei Seite 3 auf ihrer letzten Seite; ungekoppelt bleibt das Blatt auf Seite 3; der verbundene Bildschirm und das Vorschaubild zeigen zu keinem Zeitpunkt die Lösung; in der nächsten Stunde ist die Lösung wieder da; beim Spiegeln ist die Lösung ausgeblendet und die Warnung steht da; die Ablage enthält keine Kopie der Dateien.
 - AK-3 (FR-2): Aufbau: Schulmanager-Testkonto mit Stundenplan (3 Einträge). Handlung: Import auslösen. Ergebnis: Die 3 Einträge stehen im Stundenplan; ein vorher von Hand angelegter Eintrag geht dabei nicht stillschweigend verloren.
 - AK-21 (FR-2.2): Aufbau: Schulmanager-Testkonto; für heute ist dort seit gestern Abend eine Vertretung „3. Stunde 6c“ eingetragen; Tablet war über Nacht gesperrt. Handlung: Tablet um 7:30 Uhr entsperren und Tagesansicht öffnen. Ergebnis: Die Vertretung steht in der 3. Stunde, spätestens wenige Sekunden nach dem Öffnen; die Ansicht zeigt, von wann der Stand ist.
 - AK-4 (FR-3): Aufbau: Stundenplan mit „Di 2. Stunde 8b“, eine Präsentation in der Ablage. Handlung: am Mac die Präsentation der Unterrichtsstunde am kommenden Dienstag zuordnen. Ergebnis: Am Tablet zeigt die Tagesansicht dieses Dienstags die Präsentation in der 2. Stunde.
@@ -958,6 +975,8 @@ des Volumes; App Attest als spätere Stufe (ADR-0015). Domain `teach.grathwohl.d
 - 2026-11-20: Verworfen (FR-1.3): Schnelleingabe direkt im Raster per Palette (neue Bedienform, am Mac heikel), Autovervollständigen des Systems (an `TextField` nicht für iPad und Mac gleich) – siehe Design-Dokument
 - 2026-11-20: FR-1.3 changed — Stunde auf andere Tage übernehmen, Hinweis „Noch kein Stundenplan“ in der Tagesansicht; AK-67, AK-68 new, Abdeckung angepasst
 - 2026-11-20: Verworfen (FR-1.3): Kopieren überschreibt belegte Felder (ein Tipp dürfte keine fremde Stunde still ersetzen); eigener Einrichtungsassistent als Blatt (doppelter Weg neben Einrichten; der vorhandene Sprung `showSetup` reicht)
+- 2026-11-22: FR-6.3 new — Lösung neben dem Blatt, nur am Tablet, nie am Zweitbildschirm (Wunsch von Andreas); Glossar um Lösung ergänzt; FR-13 changed (Lösung kostenlos); AK-69, Lieferstufen (63) und Abdeckung angepasst
+- 2026-11-22: Verworfen (FR-6.3): Lösung nur über den Dateinamen finden (ohne Treffer kein Weg), zwei Materialien derselben Stunde nebeneinander (Lösung stünde als Material in der Stunde und könnte aufs Smartboard), Split View des Systems mit einer zweiten App (die App im Vordergrund bestimmt den Zweitbildschirm) – siehe Design-Dokument
 
 ## Anhang A — Abdeckung
 
@@ -967,7 +986,7 @@ des Volumes; App Attest als spätere Stufe (ADR-0015). Domain `teach.grathwohl.d
 | 2 Vorbereiten | FR-3, FR-3.1 bis FR-3.4, FR-8, FR-9 |
 | 3 Tagesansicht | FR-4, FR-2.2 |
 | 2 Vorbereiten (Thema und Hinweis) | FR-11.1 |
-| 4 Öffnen und präsentieren | FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7 |
+| 4 Öffnen und präsentieren | FR-5, FR-5.1, FR-6, FR-6.1, FR-6.2, FR-6.3, FR-11, FR-11.1 bis FR-11.7, FR-12, FR-12.1 bis FR-12.7 |
 | 5 Änderungen in der Ablage | FR-5.1, NFR-1 |
 | 6 Vorplanen | FR-15, FR-15.1 bis FR-15.4 |
 | 2 Vorbereiten (Wochenthema, Leistungsnachweise) | FR-15.5, FR-15.6 |
@@ -996,6 +1015,7 @@ Phase erreichbar) und FR-18 bis FR-19.1 (Rückmeldedienst, Verwaltung und Starts
 | FR-6 | AK-13 |
 | FR-6.1 | AK-22 |
 | FR-6.2 | AK-23 |
+| FR-6.3 | AK-69 |
 | FR-11 | AK-24 |
 | FR-11.1 | AK-25 |
 | FR-11.2 | AK-26 |
