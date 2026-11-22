@@ -80,6 +80,13 @@ extension DataStore {
       }
     }
 
+    // 4a. Lösung (FR-6.3) der aufgegebenen Zuordnung an die behaltene ohne Lösung (die Quelle existiert noch).
+    for (keeperID, sourceID) in plan.linkSolutionSources {
+      if let keeper = links[keeperID], let source = links[sourceID] {
+        keeper.setSolution(source.solution)
+      }
+    }
+
     // 5. Records löschen; Kaskaden treffen jetzt nur noch Aufgegebenes.
     for id in plan.deletions {
       if let record = timetables[id] {

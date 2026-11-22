@@ -39,7 +39,11 @@ extension DataStore {
   func linkedReferences(for keys: [LessonKey]) throws -> [(key: LessonKey, reference: MaterialReference)] {
     var result: [(key: LessonKey, reference: MaterialReference)] = []
     for key in keys {
-      for link in try links(for: key) { result.append((key: key, reference: link.reference)) }
+      for link in try links(for: key) {
+        result.append((key: key, reference: link.reference))
+        // Die Lösung (FR-6.3) wird ebenso bereitgehalten.
+        if let solution = link.solution { result.append((key: key, reference: solution)) }
+      }
     }
     return result
   }
@@ -53,13 +57,26 @@ extension DataStore {
 
   /// Neu verknüpfen (ADR-0003): ersetzt den Verweis an allen Zuordnungen mit `reference.locationKey == locationKey`;
   /// Zuordnungen und Stiftnotizen bleiben. Auch zum Zurückschreiben gefundener OneDrive-Kennungen (03). Liefert die Zahl.
+  /// Lösungen (FR-6.3) am selben Ort werden ebenso ersetzt und mitgezählt.
   @discardableResult
   func replaceReferences(atLocation locationKey: String, with reference: MaterialReference) throws -> Int {
-    let matches = try allLinks().filter { $0.reference.locationKey == locationKey }
-    guard !matches.isEmpty else { return 0 }
+    let all = try allLinks()
+    let matches = all.filter { $0.reference.locationKey == locationKey }
+    let solutionMatches = all.filter { $0.solution?.locationKey == locationKey }
+    guard !matches.isEmpty || !solutionMatches.isEmpty else { return 0 }
     for link in matches { link.setReference(reference) }
+    for link in solutionMatches { link.setSolution(reference) }
     try saveAndBump()
-    return matches.count
+    return matches.count + solutionMatches.count
+  }
+
+  // MARK: - Lösung (FR-6.3)
+
+  /// Setzt (oder entfernt mit `nil`) die Lösung einer Zuordnung; unbekannte id → nichts geändert.
+  func setSolution(_ reference: MaterialReference?, forLinkID id: UUID) throws {
+    guard let record = try link(id: id) else { return }
+    record.setSolution(reference)
+    try saveAndBump()
   }
 
   // MARK: - Zuordnen und Anordnen
@@ -148,6 +165,7 @@ extension DataStore {
       modelContext.insert(copy)
       copy.setLessonKey(target)
       copy.setReference(reference)
+      copy.setSolution(link.solution)
       copy.position = position
       position += 1
       created += 1

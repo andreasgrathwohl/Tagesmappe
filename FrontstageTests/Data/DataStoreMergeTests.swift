@@ -66,6 +66,21 @@ import Testing
     #expect(try context.fetchCount(FetchDescriptor<PenNoteRecord>()) == 1)
   }
 
+  @Test("FR-6.3: Lösung der aufgegebenen Zuordnung geht an die behaltene")
+  func mergeMovesSolutionToKeeper() throws {
+    _ = insertLink(createdAt: t1)
+    let younger = insertLink(createdAt: t2)
+    younger.setSolution(reference("Vokabeln – Lösung.pdf"))
+    try context.save()
+
+    try store.mergeDuplicates()
+
+    let links = try fetchLinks()
+    #expect(links.count == 1)
+    #expect(links[0].createdAt == t1)
+    #expect(links[0].solution == reference("Vokabeln – Lösung.pdf"))
+  }
+
   @Test("Gleiche Seite: Zeichnung der zuletzt geänderten Notiz bleibt")
   func mergeTakesLatestDrawingForSamePage() throws {
     let older = insertLink(createdAt: t1)

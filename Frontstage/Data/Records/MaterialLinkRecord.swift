@@ -20,6 +20,14 @@ final class MaterialLinkRecord {
   var fileKindRaw: String = "other"
   var oneDriveItemID: String?
   var oneDriveDriveID: String?
+  /// Lösung neben dem Blatt (FR-6.3): ein zweiter Verweis in denselben Feldern wie oben, alle `nil` = keine Lösung.
+  /// Optional ohne Vorgabe gemäß ADR-0002; lesen und setzen über `solution`/`setSolution(_:)`.
+  var solutionFolderGrantName: String?
+  var solutionRelativePath: String?
+  var solutionDisplayName: String?
+  var solutionFileKindRaw: String?
+  var solutionOneDriveItemID: String?
+  var solutionOneDriveDriveID: String?
   @Relationship(deleteRule: .cascade, inverse: \PenNoteRecord.materialLink)
   var penNotes: [PenNoteRecord]? = []
 

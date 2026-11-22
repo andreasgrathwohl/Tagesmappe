@@ -9,6 +9,8 @@ struct MaterialLinkItem: Identifiable, Hashable, Sendable {
   var lessonKey: LessonKey?
   var position: Int
   var reference: MaterialReference
+  /// Lösung neben dem Blatt (FR-6.3); `nil` = keine.
+  var solution: MaterialReference? = nil
 }
 
 /// Schmale Sicht auf die Daten für Tagesansicht, Vorbereiten und Einrichten.
@@ -64,6 +66,8 @@ struct MaterialLinkItem: Identifiable, Hashable, Sendable {
   func moveLinkToNextLesson(id: UUID) throws -> LessonKey?
   func moveLink(id: UUID, to key: LessonKey) throws
   func removeLink(id: UUID) throws
+  /// Lösung setzen oder entfernen (FR-6.3); unbekannte id → nichts geändert.
+  func setSolution(_ reference: MaterialReference?, forLinkID id: UUID) throws
 }
 
 /// Vorgaben für Test-Attrappen ohne Jahresplan: kein Hinweis, keine Leistungsnachweise.
@@ -78,7 +82,8 @@ extension PreparationStore {
 extension MaterialLinkItem {
   init(_ record: MaterialLinkRecord) {
     self.init(
-      id: record.id, lessonKey: record.lessonKey, position: record.position, reference: record.reference)
+      id: record.id, lessonKey: record.lessonKey, position: record.position, reference: record.reference,
+      solution: record.solution)
   }
 }
 
